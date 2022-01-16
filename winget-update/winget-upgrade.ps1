@@ -105,8 +105,9 @@ function Get-WingetOutdated {
         Write-Log "No Winget installed !"
         return
     }
-
-    $upgradeResult = & $upgradecmd upgrade --accept-source-agreements | Out-String
+    
+    & $upgradecmd list --accept-source-agreements
+    $upgradeResult = & $upgradecmd upgrade | Out-String
 
     if (!($upgradeResult -match "-----")){
         return

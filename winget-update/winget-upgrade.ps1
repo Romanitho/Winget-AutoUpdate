@@ -60,7 +60,7 @@ function Test-Network {
     Write-Log "Checking internet connection..." "Yellow"
     while (!$ping -and $timeout -lt 1800){
         try{
-            Invoke-RestMethod -Uri 'https://en.wikipedia.org/api/rest_v1/'
+            Invoke-RestMethod -Uri "https://ifconfig.me/"
             Write-Log "Connected !" "Green"
             $ping = $true
             return 

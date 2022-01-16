@@ -1,2 +1,2 @@
 # Winget-autoupdate
-Create scheduled task to update apps and notify
+Create scheduled tasks to update apps as system and notify

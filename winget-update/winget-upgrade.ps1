@@ -106,7 +106,7 @@ function Get-WingetOutdated {
         return
     }
 
-    $upgradeResult = & $upgradecmd upgrade | Out-String
+    $upgradeResult = & $upgradecmd upgrade --accept-source-agreements | Out-String
 
     if (!($upgradeResult -match "-----")){
         return

@@ -28,3 +28,6 @@ $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOn
 # Set up the task, and register it
 $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
 Register-ScheduledTask -TaskName 'Winget Update Notify' -InputObject $task -Force
+
+# Run Winget
+Get-ScheduledTask -TaskName "Winget Update" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue

@@ -61,7 +61,7 @@ function Test-Network {
     while (!$ping -and $timeout -lt 1800){
         try{
             Invoke-RestMethod -Uri 'https://en.wikipedia.org/api/rest_v1/'
-            Write-Log "Coonected !" "Green"
+            Write-Log "Connected !" "Green"
             $ping = $true
             return 
         }

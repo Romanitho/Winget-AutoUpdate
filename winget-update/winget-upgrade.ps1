@@ -74,7 +74,7 @@ function Test-Network {
             #Send Notif if no connection for 5 min
             Write-Log "Notify 'No connection'" "Yellow"
             $Title = "Vérifiez votre connexion réseau"
-            $Message = "Impossible de vérifier les mises à jours logicielles pour le moment !"
+            $Message = "Impossible de vérifier les mises à jour logicielles pour le moment !"
             $MessageType = "warning"
             $Balise = "connection"
             Run-NotifTask $Title $Message $MessageType $Balise

@@ -169,6 +169,7 @@ Init
 $toSkip = @(
 "Google.Chrome",
 "Mozilla.Firefox",
+"Mozilla.Firefox.ESR",
 "Microsoft.Edge",
 "Microsoft.Office"
 )

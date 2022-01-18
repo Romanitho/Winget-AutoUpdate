@@ -92,10 +92,13 @@ function Get-WingetOutdated {
     }
 
     #Get WinGet Location to run as system
-    if (Test-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe"){
+    $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
+    if ($WingetCmd){
+        $script:upgradecmd = $WingetCmd.Source
+    }
+    elseif (Test-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe"){
         #WinGet < 1.17
         $script:upgradecmd = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe" | Select -ExpandProperty Path
-
     }
     elseif (Test-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"){
         #WinGet > 1.17
@@ -106,16 +109,20 @@ function Get-WingetOutdated {
         return
     }
 
-    & $upgradecmd upgrade * --accept-source-agreements | Out-Null
+    #Run winget to list apps and accept source agrements (necessary on first run)
+    & $upgradecmd list --accept-source-agreements | Out-Null
+
+    #Get list of available upgrades on winget format
     $upgradeResult = & $upgradecmd upgrade | Out-String
 
+    #Start Convertion of winget format to an array
     if (!($upgradeResult -match "-----")){
         return
     }
 
     $lines = $upgradeResult.Split([Environment]::NewLine)
 
-    # Find the line that starts with ------
+    # Find the line that starts with "------"
     $fl = 0
     while (-not $lines[$fl].StartsWith("-----"))
     {

@@ -1,6 +1,6 @@
 ﻿function Init {
     #Var
-    $Script:WorkingDir = "C:\ProgramData\winget-update"
+    $Script:WorkingDir = $PSScriptRoot
 
     #Logs initialisation
     $LogPath = "$WorkingDir\logs"

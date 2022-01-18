@@ -60,8 +60,8 @@ function Test-Network {
     Write-Log "Checking internet connection..." "Yellow"
     while (!$ping -and $timeout -lt 1800){
         try{
-            Invoke-RestMethod -Uri "https://ifconfig.me/"
-            Write-Log "Connected !" "Green"
+            Invoke-RestMethod -Uri 'https://en.wikipedia.org/api/rest_v1/'
+            Write-Log "Coonected !" "Green"
             $ping = $true
             return 
         }
@@ -74,7 +74,7 @@ function Test-Network {
             #Send Notif if no connection for 5 min
             Write-Log "Notify 'No connection'" "Yellow"
             $Title = "Vérifiez votre connexion réseau"
-            $Message = "Impossible de vérifier les mises à jour logicielles pour le moment !"
+            $Message = "Impossible de vérifier les mises à jours logicielles pour le moment !"
             $MessageType = "warning"
             $Balise = "connection"
             Run-NotifTask $Title $Message $MessageType $Balise
@@ -105,11 +105,8 @@ function Get-WingetOutdated {
         Write-Log "No Winget installed !"
         return
     }
-    
-    #Accept sources
+
     & $upgradecmd upgrade * --accept-source-agreements | Out-Null
-    
-    #List updates
     $upgradeResult = & $upgradecmd upgrade | Out-String
 
     if (!($upgradeResult -match "-----")){
@@ -160,26 +157,26 @@ function Get-WingetOutdated {
     return $upgradeList
 }
 
+function Get-ExcludedApps{
+    if (Test-Path "$WorkingDir\excluded_apps.txt"){
+        return Get-Content -Path "$WorkingDir\excluded_apps.txt"
+    }
+}
+
 ### MAIN ###
 
 #Run initialisation
 Init
-
-#Exclude apps (auto update)
-$toSkip = @(
-"Google.Chrome",
-"Mozilla.Firefox",
-"Mozilla.Firefox.ESR",
-"Microsoft.Edge",
-"Microsoft.Office"
-)
 
 #Check network connectivity
 $ping = Test-Network
 
 if ($ping){
 
-    #Get outdated choco packages
+    #Exclude apps (auto update)
+    $toSkip = Get-ExcludedApps
+
+    #Get outdated packages
     Write-Log "Checking available updates..." "yellow"
     
     #Get outdated apps
@@ -217,7 +214,7 @@ if ($ping){
             $Log | out-file -filepath $LogFile -Append
 
             #Winget upgrade
-            & $upgradecmd upgrade -e --id $($app.Id) --accept-package-agreements --accept-source-agreements
+            & $upgradecmd upgrade -e --id $($app.Id) --accept-package-agreements --accept-source-agreements -h -o "$LogFile"
             Sleep 3
 
             $Log = "#--- Winget - $($app.Name) Upgrade Finished ---"

@@ -3,7 +3,8 @@ $WingetUpdatePath = "$env:ProgramData\winget-update"
 if (!(Test-Path $WingetUpdatePath)){
     New-Item -ItemType Directory -Force -Path $WingetUpdatePath
 }
-Copy-Item -Path "$PSScriptRoot\winget-update\*" -Destination $WingetUpdatePath -Recurse -Force
+Copy-Item -Path "$PSScriptRoot\winget-update\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
 
 # Set dummy regkeys for notification name and icon
 & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f

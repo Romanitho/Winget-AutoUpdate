@@ -1,7 +1,7 @@
 ﻿#Send Notif Script
 
 #get xml notif config
-[xml]$NotifConf = Get-Content "$PSScriptRoot\notif.xml" -Encoding UTF8
+[xml]$NotifConf = Get-Content "$PSScriptRoot\notif.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
 if (!($NotifConf)) {break}
 
 #Load Assemblies

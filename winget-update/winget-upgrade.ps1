@@ -214,7 +214,7 @@ if ($ping){
             $Log | out-file -filepath $LogFile -Append
 
             #Winget upgrade
-            & $upgradecmd upgrade -e --id $($app.Id) --accept-package-agreements --accept-source-agreements -h -o "$LogFile"
+            & $upgradecmd upgrade -e --id $($app.Id) --accept-package-agreements --accept-source-agreements -h
             Sleep 3
 
             $Log = "#--- Winget - $($app.Name) Upgrade Finished ---"

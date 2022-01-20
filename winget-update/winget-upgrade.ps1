@@ -15,6 +15,22 @@
     $Log = "##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format 'dd/MM/yyyy')`n##################################################"
     $Log | Write-host
     $Log | out-file -filepath $LogFile -Append
+
+    #Get locale file for Notification
+    #Default en-US
+    $DefaultLocal = "$WorkingDir\locale\en-US.xml"
+    #Get OS locale
+    $Locale = Get-WinSystemLocale
+    #Test if OS locale config file exists
+    $LocalFile = "$WorkingDir\locale\$($locale.Name).xml"
+    if(Test-Path $LocalFile){
+        [xml]$Script:NotifLocal = Get-Content $LocalFile -Encoding UTF8 -ErrorAction SilentlyContinue
+        Write-Log "Local : $($locale.Name)"
+    }
+    else{
+        [xml]$Script:NotifLocal = Get-Content $DefaultLocal -Encoding UTF8 -ErrorAction SilentlyContinue
+        Write-Log "Local : en-US"
+    } 
 }
 
 function Write-Log ($LogMsg,$LogColor = "White") {
@@ -73,8 +89,8 @@ function Test-Network {
         if ($timeout -eq 300){            
             #Send Notif if no connection for 5 min
             Write-Log "Notify 'No connection'" "Yellow"
-            $Title = "Vérifiez votre connexion réseau"
-            $Message = "Impossible de vérifier les mises à jours logicielles pour le moment !"
+            $Title = $NotifLocal.local.outputs.output[0].title
+            $Message = $NotifLocal.local.outputs.output[0].message
             $MessageType = "warning"
             $Balise = "connection"
             Run-NotifTask $Title $Message $MessageType $Balise
@@ -209,8 +225,8 @@ if ($ping){
             Write-Log "Updating $($app.Name) from $($app.Version) to $($app.AvailableVersion)..." "Cyan"
             
             #Send Notif
-            $Title = "$($app.Name) va être mis à jour."
-            $Message = "$($app.Version) -> $($app.AvailableVersion)"
+            $Title = $NotifLocal.local.outputs.output[2].title -f $($app.Name)
+            $Message = $NotifLocal.local.outputs.output[2].message -f $($app.Version), $($app.AvailableVersion)
             $MessageType = "info"
             $Balise = $($app.Name)
             Run-NotifTask $Title $Message $MessageType $Balise
@@ -243,8 +259,8 @@ if ($ping){
                 Write-Log "$($app.Name) updated to $($app.AvailableVersion) !" "Green"
                 
                 #Send Notif
-                $Title = "$($app.Name) a été mis à jour."
-                $Message = "Version installée : $($app.AvailableVersion)"
+                $Title = $NotifLocal.local.outputs.output[3].title -f $($app.Name)
+                $Message = $NotifLocal.local.outputs.output[3].message -f $($app.AvailableVersion)
                 $MessageType = "success"
                 $Balise = $($app.Name)
                 Run-NotifTask $Title $Message $MessageType $Balise
@@ -256,15 +272,15 @@ if ($ping){
                 Write-Log "$($app.Name) update failed." "Red"
                 
                 #Send Notif
-                $Title = "$($app.Name) n'a pas pu être mis à jour !"
-                $Message = "Contacter le support."
+                $Title = $NotifLocal.local.outputs.output[4].title -f $($app.Name)
+                $Message = $NotifLocal.local.outputs.output[4].message
                 $MessageType = "error"
                 $Balise = $($app.Name)
                 Run-NotifTask $Title $Message $MessageType $Balise
             }
 		        }
         else{
-            Write-Log "Skipped upgrade because $($app.Name) is in the excluded app list" "Gray"
+            Write-Log "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
         }
     }
 
@@ -278,8 +294,8 @@ if ($ping){
 else{
     Write-Log "Timeout. No internet connection !" "Red"
     #Send Notif
-    $Title = "Aucune connexion réseau"
-    $Message = "Les mises à jour logicielles n'ont pas pu être vérifiées !"
+    $Title = $NotifLocal.local.outputs.output[1].title
+    $Message = $NotifLocal.local.outputs.output[1].message
     $MessageType = "error"
     $Balise = "connection"
     Run-NotifTask $Title $Message $MessageType $Balise

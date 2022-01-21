@@ -94,7 +94,7 @@ function Test-Network {
             $Message = $NotifLocal.local.outputs.output[0].message
             $MessageType = "warning"
             $Balise = "connection"
-            n $Title $Message $MessageType $Balise
+            Start-NotifTask $Title $Message $MessageType $Balise
         }
     }
     return $ping
@@ -227,7 +227,7 @@ if ($ping){
             $Message = $NotifLocal.local.outputs.output[2].message -f $($app.Version), $($app.AvailableVersion)
             $MessageType = "info"
             $Balise = $($app.Name)
-            n $Title $Message $MessageType $Balise
+            Start-NotifTask $Title $Message $MessageType $Balise
 
             #Install update
             $Log = "#--- Winget - $($app.Name) Upgrade Starts ---"
@@ -261,7 +261,7 @@ if ($ping){
                 $Message = $NotifLocal.local.outputs.output[3].message -f $($app.AvailableVersion)
                 $MessageType = "success"
                 $Balise = $($app.Name)
-                n $Title $Message $MessageType $Balise
+                Start-NotifTask $Title $Message $MessageType $Balise
 
                 $InstallOK += 1
             }
@@ -274,7 +274,7 @@ if ($ping){
                 $Message = $NotifLocal.local.outputs.output[4].message
                 $MessageType = "error"
                 $Balise = $($app.Name)
-                n $Title $Message $MessageType $Balise
+                Start-NotifTask $Title $Message $MessageType $Balise
             }
 		        }
         else{
@@ -296,6 +296,6 @@ else{
     $Message = $NotifLocal.local.outputs.output[1].message
     $MessageType = "error"
     $Balise = "connection"
-    n $Title $Message $MessageType $Balise
+    Start-NotifTask $Title $Message $MessageType $Balise
 }
 Write-Log "End of process!" "Cyan"

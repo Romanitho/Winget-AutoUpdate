@@ -42,7 +42,7 @@ function Write-Log ($LogMsg,$LogColor = "White") {
     $Log | out-file -filepath $LogFile -Append
 }
 
-function Run-NotifTask ($Title,$Message,$MessageType,$Balise) {    
+function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {    
 
     #Add XML variables
 [xml]$ToastTemplate = @"
@@ -65,8 +65,8 @@ function Run-NotifTask ($Title,$Message,$MessageType,$Balise) {
     Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
     #Wait for notification to display
     while ((Get-ScheduledTask -TaskName "Winget Update Notify").State  -ne 'Ready') {
-        echo "Waiting on scheduled task..."
-	Sleep 3
+        Write-Output "Waiting on scheduled task..."
+        Start-Sleep 3
     }
 }
 
@@ -83,7 +83,7 @@ function Test-Network {
             return 
         }
         catch{
-            sleep 10
+            Start-Sleep 10
             $timeout += 10
             Write-Log "Checking internet connection. $($timeout)s." "Yellow"
         }
@@ -94,7 +94,7 @@ function Test-Network {
             $Message = $NotifLocal.local.outputs.output[0].message
             $MessageType = "warning"
             $Balise = "connection"
-            Run-NotifTask $Title $Message $MessageType $Balise
+            n $Title $Message $MessageType $Balise
         }
     }
     return $ping
@@ -115,11 +115,11 @@ function Get-WingetOutdated {
     }
     elseif (Test-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe"){
         #WinGet < 1.17
-        $script:upgradecmd = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe" | Select -ExpandProperty Path
+        $script:upgradecmd = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe" | Select-Object -ExpandProperty Path
     }
     elseif (Test-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"){
         #WinGet > 1.17
-        $script:upgradecmd = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe" | Select -ExpandProperty Path
+        $script:upgradecmd = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe" | Select-Object -ExpandProperty Path
     }
     else{
         Write-Log "No Winget installed !"
@@ -132,11 +132,12 @@ function Get-WingetOutdated {
     #Get list of available upgrades on winget format
     $upgradeResult = & $upgradecmd upgrade | Out-String
 
-    #Start Convertion of winget format to an array
+    #Start Convertion of winget format to an array. Check if "-----" exists
     if (!($upgradeResult -match "-----")){
         return
     }
 
+    #Split winget output to lines
     $lines = $upgradeResult.Split([Environment]::NewLine)
 
     # Find the line that starts with "------"
@@ -197,13 +198,11 @@ $ping = Test-Network
 
 if ($ping){
 
-    #Exclude apps (auto update)
+    #Get exclude apps list
     $toSkip = Get-ExcludedApps
 
-    #Get outdated packages
+    #Get outdated Winget packages
     Write-Log "Checking available updates..." "yellow"
-    
-    #Get outdated apps
     $outdated = Get-WingetOutdated
 
     #Log list of app to update
@@ -224,13 +223,11 @@ if ($ping){
 
             #Send available update notification
             Write-Log "Updating $($app.Name) from $($app.Version) to $($app.AvailableVersion)..." "Cyan"
-            
-            #Send Notif
             $Title = $NotifLocal.local.outputs.output[2].title -f $($app.Name)
             $Message = $NotifLocal.local.outputs.output[2].message -f $($app.Version), $($app.AvailableVersion)
             $MessageType = "info"
             $Balise = $($app.Name)
-            Run-NotifTask $Title $Message $MessageType $Balise
+            n $Title $Message $MessageType $Balise
 
             #Install update
             $Log = "#--- Winget - $($app.Name) Upgrade Starts ---"
@@ -239,7 +236,7 @@ if ($ping){
 
             #Winget upgrade
             & $upgradecmd upgrade -e --id $($app.Id) --accept-package-agreements --accept-source-agreements -h
-            Sleep 3
+            Start-Sleep 3
 
             $Log = "#--- Winget - $($app.Name) Upgrade Finished ---"
             $Log | Write-host -ForegroundColor Gray
@@ -264,7 +261,7 @@ if ($ping){
                 $Message = $NotifLocal.local.outputs.output[3].message -f $($app.AvailableVersion)
                 $MessageType = "success"
                 $Balise = $($app.Name)
-                Run-NotifTask $Title $Message $MessageType $Balise
+                n $Title $Message $MessageType $Balise
 
                 $InstallOK += 1
             }
@@ -277,7 +274,7 @@ if ($ping){
                 $Message = $NotifLocal.local.outputs.output[4].message
                 $MessageType = "error"
                 $Balise = $($app.Name)
-                Run-NotifTask $Title $Message $MessageType $Balise
+                n $Title $Message $MessageType $Balise
             }
 		        }
         else{
@@ -299,6 +296,6 @@ else{
     $Message = $NotifLocal.local.outputs.output[1].message
     $MessageType = "error"
     $Balise = "connection"
-    Run-NotifTask $Title $Message $MessageType $Balise
+    n $Title $Message $MessageType $Balise
 }
 Write-Log "End of process!" "Cyan"

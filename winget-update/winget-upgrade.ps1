@@ -66,6 +66,7 @@ function Run-NotifTask ($Title,$Message,$MessageType,$Balise) {
     #Wait for notification to display
     while ((Get-ScheduledTask -TaskName "Winget Update Notify").State  -ne 'Ready') {
         echo "Waiting on scheduled task..."
+	Sleep 3
     }
 }
 

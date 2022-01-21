@@ -59,7 +59,11 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
 "@
 
     #Save XML File
-    $ToastTemplate.Save("$WorkingDir\notif.xml")
+    $ToastTemplateLocation = "C:\ProgramData\winget-update\"
+    if (!(Test-Path $ToastTemplateLocation)){
+        New-Item -ItemType Directory -Force -Path $ToastTemplateLocation
+    }
+    $ToastTemplate.Save("$ToastTemplateLocation\notif.xml")
 
     #Send Notification to user
     Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue

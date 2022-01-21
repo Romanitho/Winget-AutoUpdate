@@ -2,6 +2,7 @@ Google.Chrome
 Mozilla.Firefox
 Mozilla.Firefox.ESR
 Microsoft.Edge
+Microsoft.EdgeWebView2Runtime
 Microsoft.Office
 Microsoft.OneDrive
 Microsoft.Teams

@@ -9,4 +9,4 @@ You can exclude app to update :
 Add the apps' ID you want to disable autoupdate to 'sample-excluded_apps.txt' and rename it to 'excluded_apps.txt'.
 
 ## Optimization
-As I am not originaly a script dev, fell free to give me any advise or optimisation in code. Thanks :ok_hand:
+As I am not originaly a script dev, fell free to give me any advise or optimizations in code. Thanks :ok_hand:

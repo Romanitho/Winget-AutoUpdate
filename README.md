@@ -1,6 +1,9 @@
 # Winget-AutoUpdate
 Scripts to create scheduled tasks to daily update apps as system and notify connected users.
 
+
+![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
+
 ## Intallation
 Just download project, unzip, run install.bat as admin.
 

@@ -18,18 +18,18 @@
 
     #Get locale file for Notification
     #Default en-US
-    $DefaultLocal = "$WorkingDir\locale\en-US.xml"
+    $DefaultLocale = "$WorkingDir\locale\en-US.xml"
     #Get OS locale
     $Locale = Get-WinSystemLocale
     #Test if OS locale config file exists
-    $LocalFile = "$WorkingDir\locale\$($locale.Name).xml"
-    if(Test-Path $LocalFile){
-        [xml]$Script:NotifLocal = Get-Content $LocalFile -Encoding UTF8 -ErrorAction SilentlyContinue
-        Write-Log "Local : $($locale.Name)"
+    $LocaleFile = "$WorkingDir\locale\$($locale.Name).xml"
+    if(Test-Path $LocaleFile){
+        [xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
+        Write-Log "Notification Langugage : $($locale.Name)"
     }
     else{
-        [xml]$Script:NotifLocal = Get-Content $DefaultLocal -Encoding UTF8 -ErrorAction SilentlyContinue
-        Write-Log "Local : en-US"
+        [xml]$Script:NotifLocale = Get-Content $DefaultLocale -Encoding UTF8 -ErrorAction SilentlyContinue
+        Write-Log "Notification Langugage : en-US"
     } 
 }
 
@@ -69,7 +69,7 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
     Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
     #Wait for notification to display
     while ((Get-ScheduledTask -TaskName "Winget Update Notify").State  -ne 'Ready') {
-        Write-Output "Waiting on scheduled task..."
+        Write-Output "Waiting for scheduled task..."
         Start-Sleep 3
     }
 }
@@ -81,7 +81,7 @@ function Test-Network {
     Write-Log "Checking internet connection..." "Yellow"
     while (!$ping -and $timeout -lt 1800){
         try{
-            Invoke-RestMethod -Uri "https://ifconfig.me/"
+            Invoke-RestMethod -Uri "https://api.github.com/zen"
             Write-Log "Coonected !" "Green"
             $ping = $true
             return 
@@ -94,8 +94,8 @@ function Test-Network {
         if ($timeout -eq 300){            
             #Send Notif if no connection for 5 min
             Write-Log "Notify 'No connection'" "Yellow"
-            $Title = $NotifLocal.local.outputs.output[0].title
-            $Message = $NotifLocal.local.outputs.output[0].message
+            $Title = $NotifLocale.local.outputs.output[0].title
+            $Message = $NotifLocale.local.outputs.output[0].message
             $MessageType = "warning"
             $Balise = "connection"
             Start-NotifTask $Title $Message $MessageType $Balise
@@ -227,8 +227,8 @@ if ($ping){
 
             #Send available update notification
             Write-Log "Updating $($app.Name) from $($app.Version) to $($app.AvailableVersion)..." "Cyan"
-            $Title = $NotifLocal.local.outputs.output[2].title -f $($app.Name)
-            $Message = $NotifLocal.local.outputs.output[2].message -f $($app.Version), $($app.AvailableVersion)
+            $Title = $NotifLocale.local.outputs.output[2].title -f $($app.Name)
+            $Message = $NotifLocale.local.outputs.output[2].message -f $($app.Version), $($app.AvailableVersion)
             $MessageType = "info"
             $Balise = $($app.Name)
             Start-NotifTask $Title $Message $MessageType $Balise
@@ -261,8 +261,8 @@ if ($ping){
                 Write-Log "$($app.Name) updated to $($app.AvailableVersion) !" "Green"
                 
                 #Send Notif
-                $Title = $NotifLocal.local.outputs.output[3].title -f $($app.Name)
-                $Message = $NotifLocal.local.outputs.output[3].message -f $($app.AvailableVersion)
+                $Title = $NotifLocale.local.outputs.output[3].title -f $($app.Name)
+                $Message = $NotifLocale.local.outputs.output[3].message -f $($app.AvailableVersion)
                 $MessageType = "success"
                 $Balise = $($app.Name)
                 Start-NotifTask $Title $Message $MessageType $Balise
@@ -274,8 +274,8 @@ if ($ping){
                 Write-Log "$($app.Name) update failed." "Red"
                 
                 #Send Notif
-                $Title = $NotifLocal.local.outputs.output[4].title -f $($app.Name)
-                $Message = $NotifLocal.local.outputs.output[4].message
+                $Title = $NotifLocale.local.outputs.output[4].title -f $($app.Name)
+                $Message = $NotifLocale.local.outputs.output[4].message
                 $MessageType = "error"
                 $Balise = $($app.Name)
                 Start-NotifTask $Title $Message $MessageType $Balise
@@ -296,8 +296,8 @@ if ($ping){
 else{
     Write-Log "Timeout. No internet connection !" "Red"
     #Send Notif
-    $Title = $NotifLocal.local.outputs.output[1].title
-    $Message = $NotifLocal.local.outputs.output[1].message
+    $Title = $NotifLocale.local.outputs.output[1].title
+    $Message = $NotifLocale.local.outputs.output[1].message
     $MessageType = "error"
     $Balise = "connection"
     Start-NotifTask $Title $Message $MessageType $Balise

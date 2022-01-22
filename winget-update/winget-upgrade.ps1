@@ -25,12 +25,13 @@
     $LocaleFile = "$WorkingDir\locale\$($locale.Name).xml"
     if(Test-Path $LocaleFile){
         [xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
-        Write-Log "Notification Langugage : $($locale.Name)"
+        $LocaleNotif = "Notification Langugage : $($locale.Name)"
     }
     else{
         [xml]$Script:NotifLocale = Get-Content $DefaultLocale -Encoding UTF8 -ErrorAction SilentlyContinue
-        Write-Log "Notification Langugage : en-US"
-    } 
+        $LocaleNotif = "Notification Langugage : en-US"
+    }
+    Write-Log $LocaleNotif "Cyan"
 }
 
 function Write-Log ($LogMsg,$LogColor = "White") {
@@ -65,6 +66,7 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
     }
     $ToastTemplate.Save("$ToastTemplateLocation\notif.xml")
 
+
     #Send Notification to user
     Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
     #Wait for notification to display
@@ -82,9 +84,9 @@ function Test-Network {
     while (!$ping -and $timeout -lt 1800){
         try{
             Invoke-RestMethod -Uri "https://api.github.com/zen"
-            Write-Log "Coonected !" "Green"
+            Write-Log "Connected !" "Green"
             $ping = $true
-            return 
+            return $ping
         }
         catch{
             Start-Sleep 10
@@ -146,8 +148,7 @@ function Get-WingetOutdated {
 
     # Find the line that starts with "------"
     $fl = 0
-    while (-not $lines[$fl].StartsWith("-----"))
-    {
+    while (-not $lines[$fl].StartsWith("-----")){
         $fl++
     }
     
@@ -165,21 +166,18 @@ function Get-WingetOutdated {
 
     # Now cycle in real package and split accordingly
     $upgradeList = @()
-    For ($i = $fl + 2; $i -le $lines.Length; $i++) 
-    {
+    For ($i = $fl + 2; $i -le $lines.Length; $i++){
         $line = $lines[$i]
-        if ($line.Length -gt ($availableStart + 1) -and -not $line.StartsWith('-'))
-        {
-            $name = $line.Substring(0, $idStart).TrimEnd()
-            $id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()
-            $version = $line.Substring($versionStart, $availableStart - $versionStart).TrimEnd()
-            $available = $line.Substring($availableStart, $sourceStart - $availableStart).TrimEnd()
+        if ($line.Length -gt ($sourceStart) -and -not $line.StartsWith('-')){
             $software = [Software]::new()
-            $software.Name = $name;
-            $software.Id = $id;
-            $software.Version = $version
-            $software.AvailableVersion = $available;
-            $upgradeList += $software
+            $software.Name = $line.Substring(0, $idStart).TrimEnd()
+            $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()
+            $software.Version = $line.Substring($versionStart, $availableStart - $versionStart).TrimEnd()
+            $software.AvailableVersion = $line.Substring($availableStart, $sourceStart - $availableStart).TrimEnd()
+            #check if Avalaible Version is > than Current Version
+            if ([version]$software.AvailableVersion -gt [version]$software.Version){
+                $upgradeList += $software
+            }
         }
     }
 

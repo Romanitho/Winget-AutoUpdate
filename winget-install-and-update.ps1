@@ -18,7 +18,7 @@ try{
     $taskAction = New-ScheduledTaskAction –Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
     $taskTrigger1 = New-ScheduledTaskTrigger -AtLogOn
     $taskTrigger2 = New-ScheduledTaskTrigger  -Daily -At 6AM
-    $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -RunLevel Highest
+    $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
     $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
 
     # Set up the task, and register it
@@ -27,7 +27,7 @@ try{
 
     # Settings for the scheduled task for Notifications
     $taskAction = New-ScheduledTaskAction –Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
-    $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-32-545
+    $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
     $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
 
     # Set up the task, and register it

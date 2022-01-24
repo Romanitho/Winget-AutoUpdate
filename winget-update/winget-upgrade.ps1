@@ -66,13 +66,19 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
     }
     $ToastTemplate.Save("$ToastTemplateLocation\notif.xml")
 
-
-    #Send Notification to user
-    Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
-    #Wait for notification to display
-    while ((Get-ScheduledTask -TaskName "Winget Update Notify").State  -ne 'Ready') {
-        Write-Output "Waiting for scheduled task..."
-        Start-Sleep 3
+    #Send Notification to user. First, check if script it is run as admin (or system)
+    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
+        Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+        #Wait for notification to display
+        while ((Get-ScheduledTask -TaskName "Winget Update Notify").State  -ne 'Ready') {
+            Write-Output "Waiting for scheduled task..."
+            Start-Sleep 3
+        }
+    }
+    #else, run as user
+    else{
+        & wscript.exe "$WorkingDir\Invisible.vbs" "powershell.exe -ExecutionPolicy Bypass -File """$WorkingDir\winget-notify.ps1""
     }
 }
 
@@ -174,8 +180,9 @@ function Get-WingetOutdated {
             $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()
             $software.Version = $line.Substring($versionStart, $availableStart - $versionStart).TrimEnd()
             $software.AvailableVersion = $line.Substring($availableStart, $sourceStart - $availableStart).TrimEnd()
-            #check if Avalaible Version is > than Current Version
-            if ([version]$software.AvailableVersion -gt [version]$software.Version){
+            #check if Avalaible Version is > than Current Version (block "unknow" versions loop)
+            $IsNewVersion = [version]$software.AvailableVersion -gt [version]$software.Version
+            if ($IsNewVersion){
                 $upgradeList += $software
             }
         }
@@ -301,3 +308,4 @@ else{
     Start-NotifTask $Title $Message $MessageType $Balise
 }
 Write-Log "End of process!" "Cyan"
+Sleep 3

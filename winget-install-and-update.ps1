@@ -14,6 +14,20 @@ try{
     & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
     & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f | Out-Null
 
+    #Check if Visual C++ 2015-2019 is installed. If not, download and install
+    $app = "Microsoft Visual C++ 2019 X64*"
+    $path = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -like $app } | Select-Object -Property Displayname, DisplayVersion
+    if (!($path)){
+        Write-host "MS Visual C++ 2015-2019 is not installed."
+        Write-host "Downloading VC_redist.x64.exe..."
+        $SourceURL = "https://aka.ms/vs/16/release/VC_redist.x64.exe"
+        $Installer = $env:TEMP + "\vscode.exe"
+        Invoke-WebRequest $SourceURL -OutFile $Installer
+        Write-host "Installing VC_redist.x64.exe..."
+        Start-Process -FilePath $Installer -Args "-q" -Wait
+        Remove-Item $Installer
+    }
+
     # Settings for the scheduled task for Updates
     $taskAction = New-ScheduledTaskAction –Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
     $taskTrigger1 = New-ScheduledTaskTrigger -AtLogOn
@@ -36,10 +50,10 @@ try{
 
     # Run Winget
     Get-ScheduledTask -TaskName "Winget Update" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
-    Write-host "Installation succeeded!" -ForegroundColor Green
+    Write-host "`nInstallation succeeded!" -ForegroundColor Green
     Start-sleep 5
 }
 catch{
-    Write-host "Installation failed! Run me with admin rights" -ForegroundColor Red
+    Write-host "`nInstallation failed! Run me with admin rights" -ForegroundColor Red
     Start-sleep 5
 }

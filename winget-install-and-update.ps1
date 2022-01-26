@@ -1,5 +1,10 @@
-﻿#Create winget-update folder and content structure
+#Create winget-update folder and content structure
 $WingetUpdatePath = "$env:ProgramData\winget-update"
+Write-host "###################################"
+Write-host "#                                 #"
+Write-host "#        Winget AutoUpdate        #"
+Write-host "#                                 #"
+Write-host "################################### `n"
 Write-host "Instaling to $WingetUpdatePath\"
 
 #Check if Visual C++ 2015-2019 is installed. If not, download and install
@@ -13,7 +18,7 @@ if (!($path)){
     Invoke-WebRequest $SourceURL -OutFile $Installer
     Write-host "Installing VC_redist.x64.exe..."
     Start-Process -FilePath $Installer -Args "-q" -Wait
-    Remove-Item $Installer
+    Remove-Item $Installer -ErrorAction SilentlyContinue
 }
 
 try{

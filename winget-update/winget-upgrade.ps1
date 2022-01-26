@@ -1,4 +1,6 @@
-﻿function Init {
+### FUNCTIONS ###
+
+function Init {
     #Var
     $Script:WorkingDir = $PSScriptRoot
 
@@ -66,25 +68,26 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
     }
     $ToastTemplate.Save("$ToastTemplateLocation\notif.xml")
 
-    #Send Notification to user. First, check if script it is run as admin (or system)
+    #Send Notification to user. First, check if script is run as admin (or system)
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
+        #Run Notify scheduled task to notify conneted users
         Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
-        #Wait for notification to display
-        while ((Get-ScheduledTask -TaskName "Winget Update Notify").State  -ne 'Ready') {
-            Write-Output "Waiting for scheduled task..."
-            Start-Sleep 3
-        }
     }
     #else, run as user
     else{
-        & wscript.exe "$WorkingDir\Invisible.vbs" "powershell.exe -ExecutionPolicy Bypass -File """$WorkingDir\winget-notify.ps1""
+        Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -File `"$WorkingDir\winget-notify.ps1`"" -NoNewWindow -Wait
     }
+
+    #Wait for notification to display
+    Start-Sleep 3
 }
 
 function Test-Network {
+    #init
     $timeout = 0
     $ping = $false
+
     #test connectivity during 30 min then timeout
     Write-Log "Checking internet connection..." "Yellow"
     while (!$ping -and $timeout -lt 1800){
@@ -109,6 +112,13 @@ function Test-Network {
             Start-NotifTask $Title $Message $MessageType $Balise
         }
     }
+    Write-Log "Timeout. No internet connection !" "Red"
+    #Send Notif if no connection for 30 min
+    $Title = $NotifLocale.local.outputs.output[1].title
+    $Message = $NotifLocale.local.outputs.output[1].message
+    $MessageType = "error"
+    $Balise = "connection"
+    Start-NotifTask $Title $Message $MessageType $Balise
     return $ping
 }
 
@@ -174,15 +184,14 @@ function Get-WingetOutdated {
     $upgradeList = @()
     For ($i = $fl + 2; $i -le $lines.Length; $i++){
         $line = $lines[$i]
-        if ($line.Length -gt ($sourceStart) -and -not $line.StartsWith('-')){
+        if ($line.Length -gt ($sourceStart+5) -and -not $line.StartsWith('-')){
             $software = [Software]::new()
             $software.Name = $line.Substring(0, $idStart).TrimEnd()
             $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()
             $software.Version = $line.Substring($versionStart, $availableStart - $versionStart).TrimEnd()
             $software.AvailableVersion = $line.Substring($availableStart, $sourceStart - $availableStart).TrimEnd()
             #check if Avalaible Version is > than Current Version (block "unknow" versions loop)
-            $IsNewVersion = [version]$software.AvailableVersion -gt [version]$software.Version
-            if ($IsNewVersion){
+            if ([version]$software.AvailableVersion -gt [version]$software.Version){
                 $upgradeList += $software
             }
         }
@@ -196,6 +205,8 @@ function Get-ExcludedApps{
         return Get-Content -Path "$WorkingDir\excluded_apps.txt"
     }
 }
+
+
 
 ### MAIN ###
 
@@ -245,7 +256,6 @@ if ($ping){
 
             #Winget upgrade
             & $upgradecmd upgrade -e --id $($app.Id) --accept-package-agreements --accept-source-agreements -h
-            Start-Sleep 3
 
             $Log = "#--- Winget - $($app.Name) Upgrade Finished ---"
             $Log | Write-host -ForegroundColor Gray
@@ -298,14 +308,7 @@ if ($ping){
         Write-Log "No new update." "Green"
     }
 }
-else{
-    Write-Log "Timeout. No internet connection !" "Red"
-    #Send Notif
-    $Title = $NotifLocale.local.outputs.output[1].title
-    $Message = $NotifLocale.local.outputs.output[1].message
-    $MessageType = "error"
-    $Balise = "connection"
-    Start-NotifTask $Title $Message $MessageType $Balise
-}
+
+#End
 Write-Log "End of process!" "Cyan"
 Sleep 3

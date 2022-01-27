@@ -1,4 +1,4 @@
-### FUNCTIONS ###
+﻿<# FUNCTIONS #>
 
 function Init {
     #Var
@@ -62,7 +62,7 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
 "@
 
     #Save XML File
-    $ToastTemplateLocation = "C:\ProgramData\winget-update\"
+    $ToastTemplateLocation = "$env:ProgramData\winget-update\"
     if (!(Test-Path $ToastTemplateLocation)){
         New-Item -ItemType Directory -Force -Path $ToastTemplateLocation
     }
@@ -101,15 +101,15 @@ function Test-Network {
             Start-Sleep 10
             $timeout += 10
             Write-Log "Checking internet connection. $($timeout)s." "Yellow"
-        }
-        if ($timeout -eq 300){            
             #Send Notif if no connection for 5 min
-            Write-Log "Notify 'No connection'" "Yellow"
-            $Title = $NotifLocale.local.outputs.output[0].title
-            $Message = $NotifLocale.local.outputs.output[0].message
-            $MessageType = "warning"
-            $Balise = "connection"
-            Start-NotifTask $Title $Message $MessageType $Balise
+            if ($timeout -eq 300){
+                Write-Log "Notify 'No connection'" "Yellow"
+                $Title = $NotifLocale.local.outputs.output[0].title
+                $Message = $NotifLocale.local.outputs.output[0].message
+                $MessageType = "warning"
+                $Balise = "connection"
+                Start-NotifTask $Title $Message $MessageType $Balise
+            }
         }
     }
     Write-Log "Timeout. No internet connection !" "Red"
@@ -207,16 +207,13 @@ function Get-ExcludedApps{
 }
 
 
-
-### MAIN ###
+<# MAIN #>
 
 #Run initialisation
 Init
 
 #Check network connectivity
-$ping = Test-Network
-
-if ($ping){
+if (Test-Network){
 
     #Get exclude apps list
     $toSkip = Get-ExcludedApps
@@ -249,17 +246,10 @@ if ($ping){
             $Balise = $($app.Name)
             Start-NotifTask $Title $Message $MessageType $Balise
 
-            #Install update
-            $Log = "#--- Winget - $($app.Name) Upgrade Starts ---"
-            $Log | Write-host -ForegroundColor Gray
-            $Log | out-file -filepath $LogFile -Append
-
             #Winget upgrade
+            Write-Log "------ Winget - $($app.Name) Upgrade Starts ------" "Gray"
             & $upgradecmd upgrade -e --id $($app.Id) --accept-package-agreements --accept-source-agreements -h
-
-            $Log = "#--- Winget - $($app.Name) Upgrade Finished ---"
-            $Log | Write-host -ForegroundColor Gray
-            $Log | out-file -filepath $LogFile -Append
+            Write-Log "----- Winget - $($app.Name) Upgrade Finished -----" "Gray"   
 
             #Check installed version
             $checkoutdated = Get-WingetOutdated

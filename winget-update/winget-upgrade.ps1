@@ -130,7 +130,7 @@ function Get-WingetOutdated {
         [string]$AvailableVersion
     }
 
-    #Get WinGet Location to run as system
+    #Get WinGet Location
     $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
     if ($WingetCmd){
         $script:upgradecmd = $WingetCmd.Source
@@ -144,7 +144,7 @@ function Get-WingetOutdated {
         $script:upgradecmd = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe" | Select-Object -ExpandProperty Path
     }
     else{
-        Write-Log "No Winget installed !"
+        Write-Log "Winget not installed !"
         return
     }
 

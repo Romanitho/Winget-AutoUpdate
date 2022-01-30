@@ -5,7 +5,7 @@ Scripts to create scheduled tasks to daily update apps as system and notify conn
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 
 ## Intallation
-Just download project, unzip, run install.bat as admin.
+Just [download project](https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/heads/main.zip), unzip, run install.bat as admin.
 
 ## Info
 ### Keep some apps out of Winget-AutoUpdate

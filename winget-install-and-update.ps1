@@ -29,8 +29,8 @@ param(
 <# FUNCTIONS #>
 
 function Check-Prerequisites{
-    #Check if Visual C++ 2019 installed
-    $app = "Microsoft Visual C++*2019*"
+    #Check if Visual C++ 2022 installed
+    $app = "Microsoft Visual C++*2022*"
     $path = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -like $app } | Select-Object -Property Displayname, DisplayVersion
     
     #If not installed, ask for installation
@@ -42,7 +42,7 @@ function Check-Prerequisites{
         else{
             #Ask for installation
             while("y","n" -notcontains $InstallApp){
-	            $InstallApp = Read-Host "[Prerequisite for Winget] Microsoft Visual C++ 2019 is not installed. Would you like to install it? [Y/N]"
+	            $InstallApp = Read-Host "[Prerequisite for Winget] Microsoft Visual C++ 2022 is not installed. Would you like to install it? [Y/N]"
             }
         }
         if ($InstallApp -eq "y"){
@@ -54,16 +54,17 @@ function Check-Prerequisites{
                     $OSArch = "x86"
                 }
                 Write-host "Downloading VC_redist.$OSArch.exe..."
-                $SourceURL = "https://aka.ms/vs/16/release/VC_redist.$OSArch.exe"
+                $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
                 $Installer = $WingetUpdatePath + "\VC_redist.$OSArch.exe"
+                $ProgressPreference = 'SilentlyContinue'
                 Invoke-WebRequest $SourceURL -OutFile $Installer
                 Write-host "Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "-q" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
-                Write-host "MS Visual C++ 2015-2019 installed successfully" -ForegroundColor Green
+                Write-host "MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
             }
             catch{
-                Write-host "MS Visual C++ 2015-2019 installation failed." -ForegroundColor Red
+                Write-host "MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
                 Start-Sleep 3
             }
         }

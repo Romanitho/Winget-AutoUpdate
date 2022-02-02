@@ -1,13 +1,12 @@
 # Winget-AutoUpdate
-Scripts to create scheduled tasks to daily update apps as system and notify connected users.
-
+This project uses the Winget tool to daily update apps (with system context) and notify users when upadtes are available and installed.
 
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 
 ## Intallation
 Just [download project](https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/heads/main.zip), unzip, run install.bat as admin.
 
-## Info
+## Configurations
 ### Keep some apps out of Winget-AutoUpdate
 You can exclude apps from update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update):
 Add the apps' ID you want to disable autoupdate to 'sample-excluded_apps.txt' and rename it to 'excluded_apps.txt'. (File must be placed in scripts' installation folder, or re-run install.bat).

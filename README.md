@@ -1,5 +1,5 @@
 # Winget-AutoUpdate
-This project uses the Winget tool to daily update apps (with system context) and notify users when upadtes are available and installed.
+This project uses the Winget tool to daily update apps (with system context) and notify users when updates are available and installed.
 
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 

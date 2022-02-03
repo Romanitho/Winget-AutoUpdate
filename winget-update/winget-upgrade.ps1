@@ -160,7 +160,7 @@ function Get-WingetOutdated {
     }
 
     #Split winget output to lines
-    $lines = $upgradeResult.Split([Environment]::NewLine)
+    $lines = $upgradeResult.Split([Environment]::NewLine).Replace("¦ ","")
 
     # Find the line that starts with "------"
     $fl = 0
@@ -183,7 +183,7 @@ function Get-WingetOutdated {
     # Now cycle in real package and split accordingly
     $upgradeList = @()
     For ($i = $fl + 2; $i -le $lines.Length; $i++){
-        $line = $lines[$i].Replace("¦ ","")
+        $line = $lines[$i]
         if ($line.Length -gt ($sourceStart+5) -and -not $line.StartsWith('-')){
             $software = [Software]::new()
             $software.Name = $line.Substring(0, $idStart).TrimEnd()

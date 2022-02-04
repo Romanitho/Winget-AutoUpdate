@@ -9,7 +9,7 @@ Just [download project](https://github.com/Romanitho/Winget-AutoUpdate/archive/r
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
 You can exclude apps from update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update):
-Add the apps' ID you want to disable autoupdate to 'sample-excluded_apps.txt' and rename it to 'excluded_apps.txt'. (File must be placed in scripts' installation folder, or re-run install.bat).
+Add the apps' ID you want to disable autoupdate to 'excluded_apps.txt'. (File must be placed in scripts' installation folder, or re-run install.bat).
 ### Default install location
 By default, scripts and componants will be placed in ProgramData location (inside a Winget-autoupdate folder). You can change this with script argument.
 ### Notification language

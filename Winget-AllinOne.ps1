@@ -1,150 +1,91 @@
 ﻿<#
 .SYNOPSIS
-Configure Winget to daily update installed apps.
+Install apps with Winget-Install and configure Winget-AutoUpdate
 
 .DESCRIPTION
-Install powershell scripts and scheduled task to daily run Winget upgrade and notify connected users.
-Possible to exclude apps from auto-update
-
-.PARAMETER Silent
-Install Winget-AutoUpdate and prerequisites silently
-
-.PARAMETER WingetUpdatePath
-Specify Winget-AutoUpdate installation localtion. Default: C:\ProgramData\winget-update\
-
-.PARAMETER DoNotUpdate
-Do not run Winget-autoupdate after installation. By default, Winget-AutoUpdate is run just after installation.
-
-.EXAMPLE
-.\winget-install-and-update.ps1 -Silent -DoNotUpdate
+Install apps with Winget from a list file (apps.txt).
+Install Winget-AutoUpdate to get apps daily updated
+https://github.com/Romanitho/Winget-AllinOne
 #>
 
-[CmdletBinding()]
-param(
-    [Parameter(Mandatory=$False)] [Alias('S')] [Switch] $Silent = $false,
-    [Parameter(Mandatory=$False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\winget-update",
-    [Parameter(Mandatory=$False)] [Switch] $DoNotUpdate = $false
-)
 
 <# FUNCTIONS #>
 
-function Check-Prerequisites{
-    #Check if Visual C++ 2019 installed
-    $app = "Microsoft Visual C++*2019*"
-    $path = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -like $app } | Select-Object -Property Displayname, DisplayVersion
-    
-    #If not installed, ask for installation
-    if (!($path)){
-        #If -silent option, force installation
-        if ($Silent){
-            $InstallApp = "y"
-        }
-        else{
-            #Ask for installation
-            while("y","n" -notcontains $InstallApp){
-	            $InstallApp = Read-Host "[Prerequisite for Winget] Microsoft Visual C++ 2019 is not installed. Would you like to install it? [Y/N]"
-            }
-        }
-        if ($InstallApp -eq "y"){
-            try{
-                if((Get-CimInStance Win32_OperatingSystem).OSArchitecture -like "*64*"){
-                    $OSArch = "x64"
-                }
-                else{
-                    $OSArch = "x86"
-                }
-                Write-host "Downloading VC_redist.$OSArch.exe..."
-                $SourceURL = "https://aka.ms/vs/16/release/VC_redist.$OSArch.exe"
-                $Installer = $WingetUpdatePath + "\VC_redist.$OSArch.exe"
-                $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest $SourceURL -OutFile $Installer
-                Write-host "Installing VC_redist.$OSArch.exe..."
-                Start-Process -FilePath $Installer -Args "-q" -Wait
-                Remove-Item $Installer -ErrorAction Ignore
-                Write-host "MS Visual C++ 2015-2019 installed successfully" -ForegroundColor Green
-            }
-            catch{
-                Write-host "MS Visual C++ 2015-2019 installation failed." -ForegroundColor Red
-                Start-Sleep 3
-            }
-        }
+function Download-GitHubRepository { 
+    param( 
+       [Parameter()] [string] $Url,
+       [Parameter()] [string] $Location
+    ) 
+     
+    # Force to create a zip file 
+    $ZipFile = "$location\temp.zip"
+    New-Item $ZipFile -ItemType File -Force | Out-Null
+
+    # download the zip 
+    Write-Host 'Starting downloading the GitHub Repository'
+    Invoke-RestMethod -Uri $Url -OutFile $ZipFile
+    Write-Host 'Download finished'
+ 
+    #Extract Zip File
+    Write-Host 'Starting unzipping the GitHub Repository locally'
+    Expand-Archive -Path $ZipFile -DestinationPath $Location -Force
+    Get-ChildItem -Path $Location -Recurse | Unblock-File
+    Write-Host 'Unzip finished'
+     
+    # remove the zip file
+    Remove-Item -Path $ZipFile -Force
+}
+
+function Get-WingetStatus{
+    $hasAppInstaller = Get-AppXPackage -name 'Microsoft.DesktopAppInstaller' 
+    if (!($hasAppInstaller)){
+        Write-Host -ForegroundColor Yellow "Installing WinGet..."
+        Add-AppxPackage -Path https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx
+        $releases_url = "https://api.github.com/repos/microsoft/winget-cli/releases/latest"
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        $releases = Invoke-RestMethod -uri "$($releases_url)"
+        $latestRelease = $releases.assets | Where-Object { $_.browser_download_url.EndsWith("msixbundle") } | Select-Object -First 1
+        Add-AppxPackage -Path $latestRelease.browser_download_url
+        Write-Host -ForegroundColor Green "WinGet successfully installed."
     }
-    else{
-        Write-Host "Prerequisites checked. OK" -ForegroundColor Green
+else {
+    Write-Host -ForegroundColor Green "WinGet is already installed."
     }
 }
 
-function Install-WingetAutoUpdate{
-    try{
-        #Copy files to location
-        if (!(Test-Path $WingetUpdatePath)){
-            New-Item -ItemType Directory -Force -Path $WingetUpdatePath
-        }
-        Copy-Item -Path "$PSScriptRoot\winget-update\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
-        Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
-
-        # Set dummy regkeys for notification name and icon
-        & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
-        & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f | Out-Null
-
-        # Settings for the scheduled task for Updates
-        $taskAction = New-ScheduledTaskAction –Execute "powershell.exe" -Argument "-ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
-        $taskTrigger1 = New-ScheduledTaskTrigger -AtLogOn
-        $taskTrigger2 = New-ScheduledTaskTrigger  -Daily -At 6AM
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
-        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-
-        # Set up the task, and register it
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTrigger2,$taskTrigger1
-        Register-ScheduledTask -TaskName 'Winget Update' -InputObject $task -Force
-
-        # Settings for the scheduled task for Notifications
-        $taskAction = New-ScheduledTaskAction –Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
-        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
-
-        # Set up the task, and register it
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        Register-ScheduledTask -TaskName 'Winget Update Notify' -InputObject $task -Force
-
-        Write-host "`nInstallation succeeded!" -ForegroundColor Green
-        Start-sleep 1
-        
-        #Run Winget ?
-        Start-WingetAutoUpdate
+function Get-WingetCmd {
+    #Get WinGet Location in User context
+    $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
+    if ($WingetCmd){
+        $Script:winget = $WingetCmd.Source
     }
-    catch{
-        Write-host "`nInstallation failed! Run me with admin rights" -ForegroundColor Red
-        Start-sleep 1
-        return $False
+    #Get WinGet Location in System context (WinGet < 1.17)
+    elseif (Test-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe"){
+        $Script:winget = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe" | Select-Object -ExpandProperty Path
+    }
+    #Get WinGet Location in System context (WinGet > 1.17)
+    elseif (Test-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"){
+        $Script:winget = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe" | Select-Object -ExpandProperty Path
+    }
+    else{
+        break
     }
 }
 
-function Start-WingetAutoUpdate{
-    #If -DoNotUpdate is true, skip.
-    if (!($DoNotUpdate)){
-            #If -Silent, run Winget-AutoUpdate now
-            if ($Silent){
-                $RunWinget = "y"
-            }
-            #Ask for WingetAutoUpdate
-            else{
-                while("y","n" -notcontains $RunWinget){
-	                $RunWinget = Read-Host "Start Winget-AutoUpdate now? [Y/N]"
-                }
-            }
-        if ($RunWinget -eq "y"){
-            try{
-                Write-host "Running Winget-AutoUpdate..." -ForegroundColor Yellow
-                Get-ScheduledTask -TaskName "Winget Update" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
-            }
-            catch{
-                Write-host "Failed to run Winget-AutoUpdate..." -ForegroundColor Red
-            }
-        }
+function Get-AppList{
+    if (Test-Path "$PSScriptRoot\apps.txt"){
+        $AppList = Get-Content -Path "$PSScriptRoot\apps_to_install.txt"
+        return $AppList -join ","
+    }
+}
+
+function Get-ExcludedApps{
+    if (Test-Path "$PSScriptRoot\excluded_apps.txt"){
+        Write-Host "Installing Custom 'excluded_apps.txt' file"
+        Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination "$env:ProgramData\winget-update" -Recurse -Force -ErrorAction SilentlyContinue
     }
     else{
-        Write-host "Skip running Winget-AutoUpdate"
+        Write-Host "Keeping default 'excluded_apps.txt' file"
     }
 }
 
@@ -153,14 +94,40 @@ function Start-WingetAutoUpdate{
 
 Write-host "###################################"
 Write-host "#                                 #"
-Write-host "#        Winget AutoUpdate        #"
+Write-host "#         Winget AllinOne         #"
 Write-host "#                                 #"
 Write-host "###################################`n"
-Write-host "Installing to $WingetUpdatePath\"
 
-Check-Prerequisites
+#Temp folder
+$Location = "$env:ProgramData\Winget"
 
-Install-WingetAutoUpdate
+#Download Winget-AutoUpdate
+Download-GitHubRepository "https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/heads/main.zip" $Location
 
-Write-host "End of process."
+#Download Winget-Install
+Download-GitHubRepository "https://github.com/Romanitho/Winget-Install/archive/refs/heads/main.zip" $Location
+
+#Check Winget is installed, and install if not
+Get-WingetStatus
+
+#Get App List
+$AppToInstall = Get-AppList
+
+#Install Winget-Autoupdate
+Write-Host 'Installing Winget-AutoUpdate...'
+Start-Process "powershell.exe" -Argument "-executionpolicy bypass -file `"$Location\Winget-AutoUpdate-main\winget-install-and-update.ps1`" -Silent -DoNotUpdate" -Wait
+
+#Run Winget-Install
+Write-Host 'Running Winget-Install...'
+Start-Process "powershell.exe" -Argument "-executionpolicy bypass -command `"$Location\Winget-Install-main\winget-install.ps1 -AppIDs $AppToInstall`"" -Wait
+
+#Configure ExcludedApps
+Get-ExcludedApps
+
+#Run WAU
+Write-Host "Running Winget-AutoUpdate"
+Get-ScheduledTask -TaskName "Winget Update" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+
+Remove-Item -Path $Location -Force -Recurse
+Write-Host "End." -ForegroundColor Cyan
 Start-Sleep 3

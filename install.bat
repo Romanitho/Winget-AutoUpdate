@@ -1,2 +1,2 @@
 @echo off
-powershell -Command "Start-Process 'powershell.exe' -Argument '-executionpolicy bypass -file """%~dp0winget-install-and-update.ps1"" -Silent'" -Verb RunAs
+powershell -Command "Get-ChildItem -Path '%~dp0' -Recurse | Unblock-File; Start-Process 'powershell.exe' -Windowstyle Maximized -Wait -Argument '-executionpolicy bypass -file """%~dp0Winget-AllinOne.ps1"" '" -Verb RunAs

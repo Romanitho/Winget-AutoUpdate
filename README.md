@@ -24,3 +24,12 @@ You can find logs in install location, in log folder.
 
 ## Optimization
 As scripting is not my main job, feel free to give us any suggestions or optimizations in code.
+
+## Security context
+As these scripts are unkonwn for Defender (or other AV), it can scream to protect your PC.
+Always check the script before running them.
+
+![defender_issue](https://user-images.githubusercontent.com/96626929/151709095-a4b44be5-8394-4d71-8b24-69a1cf37bba4.PNG)
+
+Once everything is checked, click "more info" and execute.
+

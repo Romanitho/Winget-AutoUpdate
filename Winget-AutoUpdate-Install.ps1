@@ -11,7 +11,7 @@ https://github.com/Romanitho/Winget-AutoUpdate
 Install Winget-AutoUpdate and prerequisites silently
 
 .PARAMETER WingetUpdatePath
-Specify Winget-AutoUpdate installation localtion. Default: C:\ProgramData\winget-update\
+Specify Winget-AutoUpdate installation localtion. Default: C:\ProgramData\Winget-AutoUpdate\
 
 .PARAMETER DoNotUpdate
 Do not run Winget-autoupdate after installation. By default, Winget-AutoUpdate is run just after installation.
@@ -23,7 +23,7 @@ Do not run Winget-autoupdate after installation. By default, Winget-AutoUpdate i
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$False)] [Alias('S')] [Switch] $Silent = $false,
-    [Parameter(Mandatory=$False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\winget-update",
+    [Parameter(Mandatory=$False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
     [Parameter(Mandatory=$False)] [Switch] $DoNotUpdate = $false
 )
 
@@ -78,11 +78,19 @@ function Check-Prerequisites{
 
 function Install-WingetAutoUpdate{
     try{
+        #Check if previous version location exists and delete
+        $OldWingetUpdatePath = $WingetUpdatePath.Replace("\Winget-AutoUpdate","\winget-update")
+        if (Test-Path ($OldWingetUpdatePath)){
+            Remove-Item $OldWingetUpdatePath -Force -Recurse
+        }
+        Get-ScheduledTask -TaskName "Winget Update" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+        Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+
         #Copy files to location
         if (!(Test-Path $WingetUpdatePath)){
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath
         }
-        Copy-Item -Path "$PSScriptRoot\winget-update\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+        Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
         Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
 
         # Set dummy regkeys for notification name and icon
@@ -98,7 +106,7 @@ function Install-WingetAutoUpdate{
 
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTrigger2,$taskTrigger1
-        Register-ScheduledTask -TaskName 'Winget Update' -InputObject $task -Force
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force
 
         # Settings for the scheduled task for Notifications
         $taskAction = New-ScheduledTaskAction –Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
@@ -107,7 +115,7 @@ function Install-WingetAutoUpdate{
 
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        Register-ScheduledTask -TaskName 'Winget Update Notify' -InputObject $task -Force
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force
 
         Write-host "`nInstallation succeeded!" -ForegroundColor Green
         Start-sleep 1
@@ -138,7 +146,7 @@ function Start-WingetAutoUpdate{
         if ($RunWinget -eq "y"){
             try{
                 Write-host "Running Winget-AutoUpdate..." -ForegroundColor Yellow
-                Get-ScheduledTask -TaskName "Winget Update" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+                Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
             }
             catch{
                 Write-host "Failed to run Winget-AutoUpdate..." -ForegroundColor Red

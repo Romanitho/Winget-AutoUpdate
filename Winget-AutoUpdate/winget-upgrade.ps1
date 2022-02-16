@@ -72,7 +72,7 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
         #Run Notify scheduled task to notify conneted users
-        Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+        Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
     }
     #else, run as user
     else{

@@ -4,19 +4,28 @@ function Init {
     #Var
     $Script:WorkingDir = $PSScriptRoot
 
-    #Logs initialisation
-    $LogPath = "$WorkingDir\logs"
-    if (!(Test-Path $LogPath)){
-        New-Item -ItemType Directory -Force -Path $LogPath
-    }
-
-    #Log file
-    $Script:LogFile = "$LogPath\updates.log"
-
     #Log Header
     $Log = "##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format 'dd/MM/yyyy')`n##################################################"
     $Log | Write-host
-    $Log | out-file -filepath $LogFile -Append
+    try{
+        #Logs initialisation
+        $LogPath = "$WorkingDir\logs"
+        if (!(Test-Path $LogPath)){
+            New-Item -ItemType Directory -Force -Path $LogPath
+        }
+        #Log file
+        $Script:LogFile = "$LogPath\updates.log"
+        $Log | out-file -filepath $LogFile -Append
+    }
+    catch{
+        #Logs initialisation
+        $LogPath = "$env:USERPROFILE\Winget-AutoUpdate\logs"
+        if (!(Test-Path $LogPath)){
+            New-Item -ItemType Directory -Force -Path $LogPath
+        }
+        $Script:LogFile = "$LogPath\updates.log"
+        $Log | out-file -filepath $LogFile -Append
+    }
 
     #Get locale file for Notification
     #Default en-US

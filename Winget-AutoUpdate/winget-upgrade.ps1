@@ -94,8 +94,7 @@ function Test-Network {
         try{
             Invoke-RestMethod -Uri "https://api.github.com/zen"
             Write-Log "Connected !" "Green"
-            $ping = $true
-            return $ping
+            return $true
         }
         catch{
             Start-Sleep 10

@@ -33,7 +33,7 @@ param(
 function Check-Prerequisites{
     #Check if Visual C++ 2019 installed
     $app = "Microsoft Visual C++*2019*"
-    $path = Get-ChildItem -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall | Get-ItemProperty | Where-Object {$_.DisplayName -like $app } | Select-Object -Property Displayname, DisplayVersion
+    $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.GetValue("DisplayName") -like $app}
     
     #If not installed, ask for installation
     if (!($path)){

@@ -19,7 +19,7 @@ param(
 function Update-WingetAutoUpdate{
     try{
         #Check if previous version location exists and delete
-        Get-ScheduledTask -TaskName "Winget Update" -ErrorAction Stop -OutVariable $task
+        Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue -OutVariable $task
 
         if ($task) {
             # Settings for the scheduled task for Updates

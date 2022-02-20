@@ -54,6 +54,6 @@ Write-host "#                                 #"
 Write-host "###################################`n"
 Write-host "Applying customisations..."
 
-Install-WingetAutoUpdate
+Update-WingetAutoUpdate
 
 Start-Sleep 3

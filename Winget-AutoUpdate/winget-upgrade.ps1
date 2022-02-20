@@ -4,19 +4,28 @@ function Init {
     #Var
     $Script:WorkingDir = $PSScriptRoot
 
-    #Logs initialisation
-    $LogPath = "$WorkingDir\logs"
-    if (!(Test-Path $LogPath)){
-        New-Item -ItemType Directory -Force -Path $LogPath
-    }
-
-    #Log file
-    $Script:LogFile = "$LogPath\updates.log"
-
     #Log Header
     $Log = "##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format 'dd/MM/yyyy')`n##################################################"
     $Log | Write-host
-    $Log | out-file -filepath $LogFile -Append
+    try{
+        #Logs initialisation
+        $LogPath = "$WorkingDir\logs"
+        if (!(Test-Path $LogPath)){
+            New-Item -ItemType Directory -Force -Path $LogPath
+        }
+        #Log file
+        $Script:LogFile = "$LogPath\updates.log"
+        $Log | out-file -filepath $LogFile -Append
+    }
+    catch{
+        #Logs initialisation
+        $LogPath = "$env:USERPROFILE\Winget-AutoUpdate\logs"
+        if (!(Test-Path $LogPath)){
+            New-Item -ItemType Directory -Force -Path $LogPath
+        }
+        $Script:LogFile = "$LogPath\updates.log"
+        $Log | out-file -filepath $LogFile -Append
+    }
 
     #Get locale file for Notification
     #Default en-US
@@ -42,10 +51,10 @@ function Write-Log ($LogMsg,$LogColor = "White") {
     #Echo log
     $Log | Write-host -ForegroundColor $LogColor
     #Write log to file
-    $Log | out-file -filepath $LogFile -Append
+    $Log | Out-File -filepath $LogFile -Append
 }
 
-function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {    
+function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
 
     #Add XML variables
 [xml]$ToastTemplate = @"
@@ -61,22 +70,37 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
 </toast>
 "@
 
-    #Save XML File
-    $ToastTemplateLocation = "$env:ProgramData\Winget-AutoUpdate\"
-    if (!(Test-Path $ToastTemplateLocation)){
-        New-Item -ItemType Directory -Force -Path $ToastTemplateLocation
-    }
-    $ToastTemplate.Save("$ToastTemplateLocation\notif.xml")
+    #Check if running account is system or interactive logon
+    $currentPrincipal = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-4")
+    #if not "Interactive" user, run as system
+    if ($currentPrincipal -eq $false){
+        #Save XML to File
+        $ToastTemplateLocation = "$env:ProgramData\Winget-AutoUpdate\"
+        if (!(Test-Path $ToastTemplateLocation)){
+            New-Item -ItemType Directory -Force -Path $ToastTemplateLocation
+        }
+        $ToastTemplate.Save("$ToastTemplateLocation\notif.xml")
 
-    #Send Notification to user. First, check if script is run as admin (or system)
-    $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
-    if ($currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)){
         #Run Notify scheduled task to notify conneted users
         Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
     }
-    #else, run as user
+    #else, run as connected user
     else{
-        Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -File `"$WorkingDir\winget-notify.ps1`"" -NoNewWindow -Wait
+        #Load Assemblies
+        [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+        [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
+
+        #Prepare XML
+        $ToastXml = [Windows.Data.Xml.Dom.XmlDocument]::New()
+        $ToastXml.LoadXml($ToastTemplate.OuterXml)
+
+        #Specify Launcher App ID
+        $LauncherID = "Windows.SystemToast.Winget.Notification"
+        
+        #Prepare and Create Toast
+        $ToastMessage = [Windows.UI.Notifications.ToastNotification]::New($ToastXml)
+        $ToastMessage.Tag = $ToastTemplate.toast.tag
+        [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($LauncherID).Show($ToastMessage)
     }
 
     #Wait for notification to display

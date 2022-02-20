@@ -19,7 +19,7 @@ param(
 function Update-WingetAutoUpdate{
     try{
         #Check if previous version location exists and delete
-        Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue -OutVariable $task
+        $task = Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue
 
         if ($task) {
             # Settings for the scheduled task for Updates
@@ -31,7 +31,7 @@ function Update-WingetAutoUpdate{
 
             Write-host "`nInstallation succeeded!" -ForegroundColor Green
         } else {
-            Write-host "`nInstallation failed! Make sure Winget-AutoUpdate has installed successfully before running this script." -ForegroundColor Green
+            Write-host "`nInstallation failed! Make sure Winget-AutoUpdate has installed successfully before running this script." -ForegroundColor Red
             return $False
         }
 

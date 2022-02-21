@@ -213,10 +213,8 @@ function Get-WingetOutdated {
             $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()
             $software.Version = $line.Substring($versionStart, $availableStart - $versionStart).TrimEnd()
             $software.AvailableVersion = $line.Substring($availableStart, $sourceStart - $availableStart).TrimEnd()
-            #check if Avalaible Version is > than Current Version (block "unknow" versions loop)
-            if ([version]$software.AvailableVersion -gt [version]$software.Version){
-                $upgradeList += $software
-            }
+            #add formated soft to list
+            $upgradeList += $software
         }
     }
 
@@ -259,7 +257,7 @@ if (Test-Network){
     #For each app, notify and update
     foreach ($app in $outdated){
 
-        if (-not ($toSkip -contains $app.Id)){
+        if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown"){
 
             #Send available update notification
             Write-Log "Updating $($app.Name) from $($app.Version) to $($app.AvailableVersion)..." "Cyan"
@@ -308,7 +306,11 @@ if (Test-Network){
                 $Balise = $($app.Name)
                 Start-NotifTask $Title $Message $MessageType $Balise
             }
-		        }
+		}
+        #if current app version is unknown
+        elseif($($app.Version) -eq "Unknown"){
+            Write-Log "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
+        #if app is in "excluded list"
         else{
             Write-Log "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
         }
@@ -324,4 +326,4 @@ if (Test-Network){
 
 #End
 Write-Log "End of process!" "Cyan"
-Sleep 3
+Start-Sleep 3

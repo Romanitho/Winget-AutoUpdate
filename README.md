@@ -26,6 +26,4 @@ You can find logs in install location, in log folder.
 As scripting is not my main job, feel free to give us any suggestions or optimizations in code.
 
 ## Help
-In some cases, you need to "unblock" the "intall.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it:
-
-
+In some cases, you need to "unblock" the "intall.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

@@ -28,4 +28,4 @@ As scripting is not my main job, feel free to give us any suggestions or optimiz
 ## Help
 In some cases, you need to "unblock" the "intall.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it:
 
-![image](https://user-images.githubusercontent.com/96626929/154966780-44ac1cca-5e0c-47f1-ab4c-4e4dc6b956a5.png)
+

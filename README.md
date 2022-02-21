@@ -1,4 +1,4 @@
-# Winget-AutoUpdate
+# Winget-AutoUpdate (WAU)
 This project uses the Winget tool to daily update apps (with system context) and notify users when updates are available and installed.
 
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
@@ -22,8 +22,11 @@ This way, even without connected user, powered on computers get updated anyway.
 ### Log location
 You can find logs in install location, in log folder.
 
-## Optimization
-As scripting is not my main job, feel free to give us any suggestions or optimizations in code.
+## Update WAU
+Same process as new installation : download, unzip and run "install.bat"
 
 ## Help
 In some cases, you need to "unblock" the "intall.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.
+
+## Optimization
+As scripting is not my main job, feel free to give us any suggestions or optimizations in code.

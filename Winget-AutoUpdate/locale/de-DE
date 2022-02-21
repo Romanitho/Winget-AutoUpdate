@@ -1,0 +1,34 @@
+<local>
+	<outputs>
+		<output id="0">
+			<!--Check network connection-->
+			<title>Prüfen Sie Ihre Internet Verbindung</title>
+			<!--Unable to check for software updates at this time!-->
+			<message>Es konnte nicht nach Updates gesucht werden!</message>
+		</output>
+		<output id="1">
+			<!--No internet connction-->
+			<title>Keine Internet Verbindung!</title>
+			<!--Updates could not be verified-->
+			<message>Updates konnten nicht verifiziert werden.</message>
+		</output>
+		<output id="2">
+			<!--{App} will be updated-->
+			<title>{0} wird aktualisiert!</title>
+			<!--{v1.0} to {v2.0}-->
+			<message>Von {0} auf {1}</message>
+		</output>
+		<output id="3">
+			<!--{App} updated-->
+			<title>{0} wurde aktualisiert.</title>
+			<!--Installed version: {v1.0}-->
+			<message>Installierte Version: {0}</message>
+		</output>
+		<output id="4">
+			<!--{App} could not be updated-->
+			<title>{0} konnte nicht aktualisiert werden!</title>
+			<!--Please contact support-->
+			<message>Bitte wenden sie sich an den Support.</message>
+		</output>
+	</outputs>
+</local>

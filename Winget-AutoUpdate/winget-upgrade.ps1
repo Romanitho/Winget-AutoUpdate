@@ -269,7 +269,7 @@ if (Test-Network){
 
             #Winget upgrade
             Write-Log "------ Winget - $($app.Name) Upgrade Starts ------" "Gray"
-            & $upgradecmd upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h
+            & $upgradecmd upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
             Write-Log "----- Winget - $($app.Name) Upgrade Finished -----" "Gray"   
 
             #Check installed version

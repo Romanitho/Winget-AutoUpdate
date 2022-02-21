@@ -310,6 +310,7 @@ if (Test-Network){
         #if current app version is unknown
         elseif($($app.Version) -eq "Unknown"){
             Write-Log "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
+        }
         #if app is in "excluded list"
         else{
             Write-Log "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"

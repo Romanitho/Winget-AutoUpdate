@@ -269,24 +269,27 @@ if (Test-Network){
             Start-NotifTask $Title $Message $MessageType $Balise
 
             #Winget upgrade
-            Write-Log "##########   WINGET PROCESS STARTS FOR '$($app.Name)'   ##########" "Gray"
-            & $UpgradeCmd upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
-            $checkoutdated = Get-WingetOutdated
-            foreach ($checkapp in $checkoutdated){
-                if ($($checkapp.Id) -eq $($app.Id)) {
-                    $FailedToUpgrade = $true
+            Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR '$($app.Name)'   ##########" "Gray"
+                #Run Winget Upgrade command
+                & $UpgradeCmd upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+                
+                #Check if application updated properly
+                $CheckOutdated = Get-WingetOutdated
+                $FailedToUpgrade = $false
+                foreach ($CheckApp in $CheckOutdated){
+                    if ($($CheckApp.Id) -eq $($app.Id)) {
+                        #If app failed to upgrade, run Install command
+                        & $upgradecmd install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+                        #Check if application installed properly
+                        $CheckOutdated2 = Get-WingetOutdated
+                        foreach ($CheckApp2 in $CheckOutdated2){
+                            if ($($CheckApp2.Id) -eq $($app.Id)) {
+                                $FailedToUpgrade = $true
+                            }      
+                        }
+                    }
                 }
-            }
-            Write-Log "##########   WINGET PROCESS FINISHED FOR '$($app.Name)'   ##########" "Gray"   
-
-            #Check installed version
-            $checkoutdated = Get-WingetOutdated
-            $FailedToUpgrade = $false
-            foreach ($checkapp in $checkoutdated){
-                if ($($checkapp.Id) -eq $($app.Id)) {
-                    $FailedToUpgrade = $true
-                }      
-            }
+            Write-Log "##########   WINGET UPGRADE PROCESS FINISHED FOR '$($app.Name)'   ##########" "Gray"   
 
             #Notify installation
             if ($FailedToUpgrade -eq $false){   

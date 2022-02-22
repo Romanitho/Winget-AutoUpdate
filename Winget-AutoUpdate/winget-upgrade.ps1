@@ -9,7 +9,7 @@ function Init {
     $Log | Write-host
     try{
         #Logs initialisation
-	[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+	    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
         $LogPath = "$WorkingDir\logs"
         if (!(Test-Path $LogPath)){
             New-Item -ItemType Directory -Force -Path $LogPath
@@ -269,9 +269,15 @@ if (Test-Network){
             Start-NotifTask $Title $Message $MessageType $Balise
 
             #Winget upgrade
-            Write-Log "------ Winget - $($app.Name) Upgrade Starts ------" "Gray"
-            & $upgradecmd upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
-            Write-Log "----- Winget - $($app.Name) Upgrade Finished -----" "Gray"   
+            Write-Log "##########   WINGET PROCESS STARTS FOR '$($app.Name)'   ##########" "Gray"
+            & $UpgradeCmd upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+            $checkoutdated = Get-WingetOutdated
+            foreach ($checkapp in $checkoutdated){
+                if ($($checkapp.Id) -eq $($app.Id)) {
+                    $FailedToUpgrade = $true
+                }
+            }
+            Write-Log "##########   WINGET PROCESS FINISHED FOR '$($app.Name)'   ##########" "Gray"   
 
             #Check installed version
             $checkoutdated = Get-WingetOutdated

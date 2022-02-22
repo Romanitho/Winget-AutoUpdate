@@ -9,6 +9,7 @@ function Init {
     $Log | Write-host
     try{
         #Logs initialisation
+	[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
         $LogPath = "$WorkingDir\logs"
         if (!(Test-Path $LogPath)){
             New-Item -ItemType Directory -Force -Path $LogPath

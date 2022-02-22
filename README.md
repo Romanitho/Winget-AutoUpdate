@@ -21,6 +21,12 @@ Scheduled task is set to run:
 This way, even without connected user, powered on computers get updated anyway.
 ### Log location
 You can find logs in install location, in log folder.
+### "Unknown" App version
+As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255), Winget cannot detect the current version of some installed apps. We decided to skip managing these apps with WAU to avoid retries each time WAU runs:
+
+![image](https://user-images.githubusercontent.com/96626929/155092000-c774979d-2db7-4dc6-8b7c-bd11c7643950.png)
+
+Eventually, try to reinstall or update app manually to see if new version is detected.
 
 ## Update WAU
 Same process as new installation : download, unzip and run "install.bat"
@@ -29,4 +35,4 @@ Same process as new installation : download, unzip and run "install.bat"
 In some cases, you need to "unblock" the "intall.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.
 
 ## Optimization
-As scripting is not my main job, feel free to give us any suggestions or optimizations in code.
+Feel free to give us any suggestions or optimizations in code.

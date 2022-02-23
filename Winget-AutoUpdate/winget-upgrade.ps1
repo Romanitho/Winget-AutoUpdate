@@ -269,7 +269,7 @@ if (Test-Network){
             Start-NotifTask $Title $Message $MessageType $Balise
 
             #Winget upgrade
-            Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR '$($app.Name)'   ##########" "Gray"
+            Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
                 #Run Winget Upgrade command
                 & $UpgradeCmd upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
                 
@@ -289,7 +289,7 @@ if (Test-Network){
                         }
                     }
                 }
-            Write-Log "##########   WINGET UPGRADE PROCESS FINISHED FOR '$($app.Name)'   ##########" "Gray"   
+            Write-Log "##########   WINGET UPGRADE PROCESS FINISHED FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"   
 
             #Notify installation
             if ($FailedToUpgrade -eq $false){   

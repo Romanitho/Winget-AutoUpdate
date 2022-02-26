@@ -61,7 +61,7 @@ function Check-Prerequisites{
                 $ProgressPreference = 'SilentlyContinue'
                 Invoke-WebRequest $SourceURL -OutFile $Installer
                 Write-host "Installing VC_redist.$OSArch.exe..."
-                Start-Process -FilePath $Installer -Args "-q" -Wait
+                Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
                 Write-host "MS Visual C++ 2015-2019 installed successfully" -ForegroundColor Green
             }

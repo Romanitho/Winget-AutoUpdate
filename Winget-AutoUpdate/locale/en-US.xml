@@ -2,13 +2,13 @@
 	<outputs>
 		<output id="0">
 			<!--Check network connection-->
-			<title>Check network connection</title>
+			<title>Check network connection.</title>
 			<!--Unable to check for software updates at this time!-->
 			<message>Unable to check for software updates at this time!</message>
 		</output>
 		<output id="1">
 			<!--No internet connction-->
-			<title>No internet connction!</title>
+			<title>No internet connction.</title>
 			<!--Updates could not be verified-->
 			<message>Updates could not be verified.</message>
 		</output>

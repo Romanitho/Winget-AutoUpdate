@@ -2,13 +2,13 @@
 	<outputs>
 		<output id="0">
 			<!--Check network connection-->
-			<title>Vérifiez votre connexion réseau</title>
+			<title>Vérifiez votre connexion réseau.</title>
 			<!--Unable to check for software updates at this time!-->
 			<message>Impossible de vérifier les mises à jours logicielles pour le moment !</message>
 		</output>
 		<output id="1">
 			<!--No internet connction-->
-			<title>Aucune connexion réseau</title>
+			<title>Aucune connexion réseau.</title>
 			<!--Updates could not be verified-->
 			<message>Les mises à jour logicielles n'ont pas pu être vérifiées !</message>
 		</output>

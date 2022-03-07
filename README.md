@@ -4,7 +4,7 @@ This project uses the Winget tool to daily update apps (with system context) and
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 
 ## Intallation
-Just [download project](https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/heads/main.zip), unzip, run "install.bat" as admin.
+Just [download latest version](https://api.github.com/repos/Romanitho/Winget-AutoUpdate/zipball), unzip, run "install.bat" as admin.
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate

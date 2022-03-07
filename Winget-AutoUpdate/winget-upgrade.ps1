@@ -235,7 +235,7 @@ function Start-WAUUpdateCheck{
     
     #Get current installed version
     [xml]$About = Get-Content "$WorkingDir\config\about.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
-    [version]$CurrentVersion = $About.app.version
+    [version]$Script:CurrentVersion = $About.app.version
     
     #Check if AutoUpdate is enabled
     if ($AutoUpdateStatus -eq $false){
@@ -312,7 +312,8 @@ function Update-WAU{
         Start-NotifTask $Title $Message $MessageType $Balise
 
         #Rerun with newer version
-        Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+	Write-Log "Re-run WAU"
+        Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade`""
         exit
     }
     catch{

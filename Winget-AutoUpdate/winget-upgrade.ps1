@@ -57,7 +57,7 @@ function Write-Log ($LogMsg,$LogColor = "White") {
 
 function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
 
-    #Add XML variables
+#Add XML variables
 [xml]$ToastTemplate = @"
 <toast launch="ms-get-started://redirect?id=apps_action">
     <visual>
@@ -228,6 +228,103 @@ function Get-ExcludedApps{
     }
 }
 
+function Start-WAUUpdateCheck{
+    #Get AutoUpdate status
+    [xml]$UpdateStatus = Get-Content "$WorkingDir\config\config.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
+    $AutoUpdateStatus = $UpdateStatus.app.autoupdate
+    
+    #Check if AutoUpdate is enabled
+    if ($AutoUpdateStatus -eq $false){
+        Write-Log "WAU Current version: $CurrentVersion. AutoUpdate is disabled." "Cyan"
+        return $false
+    }
+    #If enabled, check online available version
+    else{
+        #Get Github latest version
+        $WAUurl = 'https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases/latest'
+        $LatestVersion = (Invoke-WebRequest $WAUurl | ConvertFrom-Json)[0].tag_name
+        [version]$AvailableVersion = $LatestVersion.Replace("v","")
+
+        #Get current installed version
+        [xml]$About = Get-Content "$WorkingDir\config\about.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
+        [version]$CurrentVersion = $About.app.version
+
+        #If newer version is avalable, return $True
+        if ($AvailableVersion -gt $CurrentVersion){
+            Write-Log "WAU Current version: $CurrentVersion. Version $AvailableVersion is available." "Yellow"
+            return $true
+        }
+        else{
+            Write-Log "WAU Current version: $CurrentVersion. Up to date." "Green"
+            return $false
+        }
+    }
+}
+
+function Update-WAU{
+    #Get WAU Github latest version
+    $WAUurl = 'https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases/latest'
+    $LatestVersion = (Invoke-WebRequest $WAUurl | ConvertFrom-Json)[0].tag_name
+
+    #Send available update notification
+    $Title = $NotifLocale.local.outputs.output[2].title -f "Winget-AutoUpdate"
+    $Message = $NotifLocale.local.outputs.output[2].message -f $CurrentVersion, $LatestVersion
+    $MessageType = "info"
+    $Balise = "Winget-AutoUpdate"
+    Start-NotifTask $Title $Message $MessageType $Balise
+
+    #Run WAU update
+    try{
+        #Force to create a zip file 
+        $ZipFile = "$WorkingDir\WAU_update.zip"
+        New-Item $ZipFile -ItemType File -Force | Out-Null
+
+        #Download the zip 
+        Write-Log "Starting downloading the GitHub Repository"
+        Invoke-RestMethod -Uri "$($WAUurl)/zipball/$($LatestVersion)" -OutFile $ZipFile
+        Write-Log 'Download finished'
+
+        #Extract Zip File
+        Write-Log "Starting unzipping the WAU GitHub Repository"
+        $location = "$WorkingDir\WAU_update"
+        Expand-Archive -Path $ZipFile -DestinationPath $location -Force
+        Get-ChildItem -Path $location -Recurse | Unblock-File
+        Write-Log "Unzip finished"
+        $TempPath = Resolve-Path "$location\Romanitho-Winget-AutoUpdate*\Winget-AutoUpdate\"
+        Copy-Item -Path "$TempPath\*" -Destination ".\" -Recurse -Force
+        
+        #Remove update zip file
+        Write-Log "Cleaning temp files"
+        Remove-Item -Path $ZipFile -Force -ErrorAction SilentlyContinue
+        #Remove update folder
+        Remove-Item -Path $location -Recurse -Force -ErrorAction SilentlyContinue
+
+        #Set new version to conf.xml
+        [xml]$XMLconf = Get-content "$WorkingDir\config\about.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
+        $XMLconf.app.version = $LatestVersion.Replace("v","")
+        $XMLconf.Save("$WorkingDir\config\about.xml")
+
+        #Send success Notif
+        $Title = $NotifLocale.local.outputs.output[3].title -f "Winget-AutoUpdate"
+        $Message = $NotifLocale.local.outputs.output[3].message -f $LatestVersion
+        $MessageType = "success"
+        $Balise = "Winget-AutoUpdate"
+        Start-NotifTask $Title $Message $MessageType $Balise
+
+        #Rerun with newer version
+        Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+        exit
+    }
+    catch{
+        #Send Error Notif
+        $Title = $NotifLocale.local.outputs.output[4].title -f "Winget-AutoUpdate"
+        $Message = $NotifLocale.local.outputs.output[4].message
+        $MessageType = "error"
+        $Balise = "Winget-AutoUpdate"
+        Start-NotifTask $Title $Message $MessageType $Balise
+        Write-Log "WAU Update failed"
+    }
+}
 
 <# MAIN #>
 
@@ -236,6 +333,12 @@ Init
 
 #Check network connectivity
 if (Test-Network){
+    #Check if WAU is up to date
+    $CheckWAUupdate = Start-WAUUpdateCheck
+    #If AutoUpdate is enabled and Update is avalaible, then run WAU update
+    if ($CheckWAUupdate){
+        Update-WAU
+    }
 
     #Get exclude apps list
     $toSkip = Get-ExcludedApps

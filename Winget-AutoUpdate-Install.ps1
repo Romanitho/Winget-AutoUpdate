@@ -14,7 +14,10 @@ Install Winget-AutoUpdate and prerequisites silently
 Specify Winget-AutoUpdate installation localtion. Default: C:\ProgramData\Winget-AutoUpdate\
 
 .PARAMETER DoNotUpdate
-Do not run Winget-autoupdate after installation. By default, Winget-AutoUpdate is run just after installation.
+Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate is run just after installation.
+
+.PARAMETER DisableWAUAutoUpdate
+Disable Winget-AutoUpdate update checking. By default, WAU auto update if new version is available on Github.
 
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -DoNotUpdate
@@ -24,7 +27,8 @@ Do not run Winget-autoupdate after installation. By default, Winget-AutoUpdate i
 param(
     [Parameter(Mandatory=$False)] [Alias('S')] [Switch] $Silent = $false,
     [Parameter(Mandatory=$False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
-    [Parameter(Mandatory=$False)] [Switch] $DoNotUpdate = $false
+    [Parameter(Mandatory=$False)] [Switch] $DoNotUpdate = $false,
+    [Parameter(Mandatory=$False)] [Switch] $DisableWAUAutoUpdate = $false
 )
 
 
@@ -116,6 +120,15 @@ function Install-WingetAutoUpdate{
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force
+
+        # Install config file
+        [xml]$ConfigXML = @"
+<?xml version="1.0"?>
+<app>
+    <WAUautoupdate>$(!($DisableWAUAutoUpdate))</WAUautoupdate>
+</app>
+"@
+        $ConfigXML.Save("$WingetUpdatePath\config\config.xml")
 
         Write-host "`nInstallation succeeded!" -ForegroundColor Green
         Start-sleep 1

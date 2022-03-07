@@ -268,7 +268,7 @@ function Update-WAU{
 
     #Send available update notification
     $Title = $NotifLocale.local.outputs.output[2].title -f "Winget-AutoUpdate"
-    $Message = $NotifLocale.local.outputs.output[2].message -f $CurrentVersion, $LatestVersion
+    $Message = $NotifLocale.local.outputs.output[2].message -f $CurrentVersion, $LatestVersion.Replace("v","")
     $MessageType = "info"
     $Balise = "Winget-AutoUpdate"
     Start-NotifTask $Title $Message $MessageType $Balise
@@ -281,7 +281,7 @@ function Update-WAU{
 
         #Download the zip 
         Write-Log "Starting downloading the GitHub Repository"
-        Invoke-RestMethod -Uri "$($WAUurl)/zipball/$($LatestVersion)" -OutFile $ZipFile
+        Invoke-RestMethod -Uri "https://api.github.com/repos/Romanitho/Winget-AutoUpdate/zipball/$($LatestVersion)" -OutFile $ZipFile
         Write-Log 'Download finished'
 
         #Extract Zip File
@@ -290,8 +290,8 @@ function Update-WAU{
         Expand-Archive -Path $ZipFile -DestinationPath $location -Force
         Get-ChildItem -Path $location -Recurse | Unblock-File
         Write-Log "Unzip finished"
-        $TempPath = Resolve-Path "$location\Romanitho-Winget-AutoUpdate*\Winget-AutoUpdate\"
-        Copy-Item -Path "$TempPath\*" -Destination ".\" -Recurse -Force
+        $TempPath = (Resolve-Path "$location\Romanitho-Winget-AutoUpdate*\Winget-AutoUpdate\").Path
+        Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Recurse -Force
         
         #Remove update zip file
         Write-Log "Cleaning temp files"

@@ -29,7 +29,12 @@ As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255)
 Eventually, try to reinstall or update app manually to see if new version is detected.
 
 ## Update WAU
+### Manual Update
 Same process as new installation : download, unzip and run "install.bat"
+
+### Automatic Update
+A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled.
+To disable WAU AutoUpdate, run the "winget-install-and-update.ps1" with "-DisableWAUAutoUpdate" parameter
 
 ## Help
 In some cases, you need to "unblock" the "intall.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

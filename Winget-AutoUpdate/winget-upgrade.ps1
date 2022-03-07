@@ -233,6 +233,10 @@ function Start-WAUUpdateCheck{
     [xml]$UpdateStatus = Get-Content "$WorkingDir\config\config.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
     $AutoUpdateStatus = $UpdateStatus.app.WAUautoupdate
     
+    #Get current installed version
+    [xml]$About = Get-Content "$WorkingDir\config\about.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
+    [version]$CurrentVersion = $About.app.version
+    
     #Check if AutoUpdate is enabled
     if ($AutoUpdateStatus -eq $false){
         Write-Log "WAU Current version: $CurrentVersion. AutoUpdate is disabled." "Cyan"
@@ -244,10 +248,6 @@ function Start-WAUUpdateCheck{
         $WAUurl = 'https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases/latest'
         $LatestVersion = (Invoke-WebRequest $WAUurl | ConvertFrom-Json)[0].tag_name
         [version]$AvailableVersion = $LatestVersion.Replace("v","")
-
-        #Get current installed version
-        [xml]$About = Get-Content "$WorkingDir\config\about.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
-        [version]$CurrentVersion = $About.app.version
 
         #If newer version is avalable, return $True
         if ($AvailableVersion -gt $CurrentVersion){

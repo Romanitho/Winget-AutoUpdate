@@ -2,7 +2,7 @@
 	<outputs>
 		<output id="0">
 			<!--Check network connection-->
-			<title>Prüfen Sie Ihre Internet Verbindung</title>
+			<title>Prüfen Sie Ihre Internet Verbindung.</title>
 			<!--Unable to check for software updates at this time!-->
 			<message>Es konnte nicht nach Updates gesucht werden!</message>
 		</output>

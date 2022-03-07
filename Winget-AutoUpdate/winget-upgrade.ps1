@@ -231,7 +231,7 @@ function Get-ExcludedApps{
 function Start-WAUUpdateCheck{
     #Get AutoUpdate status
     [xml]$UpdateStatus = Get-Content "$WorkingDir\config\config.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
-    $AutoUpdateStatus = $UpdateStatus.app.autoupdate
+    $AutoUpdateStatus = $UpdateStatus.app.WAUautoupdate
     
     #Check if AutoUpdate is enabled
     if ($AutoUpdateStatus -eq $false){

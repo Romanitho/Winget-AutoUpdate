@@ -9,7 +9,7 @@ function Init {
     $Log | Write-host
     try{
         #Logs initialisation
-	[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
         $LogPath = "$WorkingDir\logs"
         if (!(Test-Path $LogPath)){
             New-Item -ItemType Directory -Force -Path $LogPath
@@ -29,12 +29,12 @@ function Init {
     }
 
     #Get locale file for Notification
-    #Default en-US
-    $DefaultLocale = "$WorkingDir\locale\en-US.xml"
+    #Default english
+    $DefaultLocale = "$WorkingDir\locale\en.xml"
     #Get OS locale
-    $Locale = Get-WinSystemLocale
+    $Locale = (Get-Culture).Parent.Name
     #Test if OS locale config file exists
-    $LocaleFile = "$WorkingDir\locale\$($locale.Name).xml"
+    $LocaleFile = "$WorkingDir\locale\$locale.xml"
     if(Test-Path $LocaleFile){
         [xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
         $LocaleNotif = "Notification Langugage : $($locale.Name)"

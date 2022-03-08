@@ -32,16 +32,16 @@ function Init {
     #Default english
     $DefaultLocale = "$WorkingDir\locale\en.xml"
     #Get OS locale
-    $Locale = (Get-Culture).Parent.Name
+    $Locale = (Get-Culture).Parent
     #Test if OS locale config file exists
-    $LocaleFile = "$WorkingDir\locale\$locale.xml"
+    $LocaleFile = "$WorkingDir\locale\$($locale.Name).xml"
     if(Test-Path $LocaleFile){
         [xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
-        $LocaleNotif = "Notification Langugage : $($locale.Name)"
+        $LocaleNotif = "Notification Langugage : $($locale.DisplayName)"
     }
     else{
         [xml]$Script:NotifLocale = Get-Content $DefaultLocale -Encoding UTF8 -ErrorAction SilentlyContinue
-        $LocaleNotif = "Notification Langugage : en-US"
+        $LocaleNotif = "Notification Langugage : English"
     }
     Write-Log $LocaleNotif "Cyan"
 }

@@ -281,7 +281,7 @@ function Update-WAU{
 
         #Download the zip 
         Write-Log "Starting downloading the GitHub Repository"
-        Invoke-RestMethod -Uri "https://api.github.com/repos/Romanitho/Winget-AutoUpdate/zipball/$($LatestVersion)" -OutFile $ZipFile
+        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/$($LatestVersion).zip" -OutFile $ZipFile
         Write-Log 'Download finished'
 
         #Extract Zip File

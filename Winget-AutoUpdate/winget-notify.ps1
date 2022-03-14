@@ -1,7 +1,7 @@
 ﻿#Send Notif Script
 
 #get xml notif config
-[xml]$NotifConf = Get-Content "$env:ProgramData\Winget-AutoUpdate\notif.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
+[xml]$NotifConf = Get-Content "$env:ProgramData\Winget-AutoUpdate\config\notif.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
 if (!($NotifConf)) {break}
 
 #Load Assemblies

@@ -6,3 +6,5 @@ Microsoft.EdgeWebView2Runtime
 Microsoft.Office
 Microsoft.OneDrive
 Microsoft.Teams
+TeamViewer.TeamViewer
+TeamViewer.TeamViewer.Host

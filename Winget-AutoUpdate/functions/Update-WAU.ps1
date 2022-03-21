@@ -29,7 +29,7 @@ function Update-WAU{
         Get-ChildItem -Path $location -Recurse | Unblock-File
         Write-Log "Unzip finished"
         $TempPath = (Resolve-Path "$location\Romanitho-Winget-AutoUpdate*\Winget-AutoUpdate\").Path
-        Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Recurse -Force
+        Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
         
         #Remove update zip file
         Write-Log "Cleaning temp files"

@@ -50,7 +50,7 @@ function Update-WAU{
         Start-NotifTask $Title $Message $MessageType $Balise
 
         #Rerun with newer version
-	    Write-Log "Re-run WAU"
+	Write-Log "Re-run WAU"
         Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade`""
         exit
     }

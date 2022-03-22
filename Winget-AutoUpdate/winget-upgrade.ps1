@@ -5,21 +5,30 @@ $Script:WorkingDir = $PSScriptRoot
 #Get Functions
 Get-ChildItem "$WorkingDir\functions" | ForEach-Object {. $_.FullName}
 
+
 <# MAIN #>
 
 #Run log initialisation function
 Start-Init
 
 #Get Notif Locale function
-Get-NotifLocal
+Get-NotifLocale
 
 #Check network connectivity
 if (Test-Network){
-    #Check if WAU is up to date
-    $CheckWAUupdate = Start-WAUUpdateCheck
-    #If AutoUpdate is enabled and Update is avalaible, then run WAU update
-    if ($CheckWAUupdate){
-        Update-WAU
+    #Check if WAU update feature is enabled
+    $WAUAutoUpdateEnabled = Get-WAUUpdateStatus
+    #If yes then check WAU update
+    if ($WAUAutoUpdateEnabled){
+        #Get Current Version
+        $WAUCurrentVersion = Get-WAUCurrentVersion
+        #Get Available Version
+        $WAUAvailableVersion = Get-WAUAvailableVersion
+        #Compare
+        if ($WAUAvailableVersion -gt $WAUCurrentVersion){
+            #If new version is available, update it
+            Update-WAU $WAUAvailableVersion
+        }
     }
 
     #Get exclude apps list
@@ -27,7 +36,7 @@ if (Test-Network){
 
     #Get outdated Winget packages
     Write-Log "Checking available updates..." "yellow"
-    $outdated = Get-WingetOutdated
+    $outdated = Get-WingetOutdatedApps
 
     #Log list of app to update
     foreach ($app in $outdated){
@@ -37,7 +46,7 @@ if (Test-Network){
         $Log | out-file -filepath $LogFile -Append
     }
     
-    #Count good update installs
+    #Count good update installations
     $InstallOK = 0
 
     #For each app, notify and update
@@ -59,14 +68,14 @@ if (Test-Network){
                 & $UpgradeCmd upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
                 
                 #Check if application updated properly
-                $CheckOutdated = Get-WingetOutdated
+                $CheckOutdated = Get-WingetOutdatedApps
                 $FailedToUpgrade = $false
                 foreach ($CheckApp in $CheckOutdated){
                     if ($($CheckApp.Id) -eq $($app.Id)) {
                         #If app failed to upgrade, run Install command
                         & $upgradecmd install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
                         #Check if application installed properly
-                        $CheckOutdated2 = Get-WingetOutdated
+                        $CheckOutdated2 = Get-WingetOutdatedApps
                         foreach ($CheckApp2 in $CheckOutdated2){
                             if ($($CheckApp2.Id) -eq $($app.Id)) {
                                 $FailedToUpgrade = $true

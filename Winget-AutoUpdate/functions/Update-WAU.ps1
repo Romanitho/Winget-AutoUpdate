@@ -1,9 +1,5 @@
 
-function Update-WAU{
-    #Get WAU Github latest version
-    $WAUurl = 'https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases/latest'
-    $LatestVersion = (Invoke-WebRequest $WAUurl -UseBasicParsing | ConvertFrom-Json)[0].tag_name
-
+function Update-WAU ($VersionToUpdate){
     #Send available update notification
     $Title = $NotifLocale.local.outputs.output[2].title -f "Winget-AutoUpdate"
     $Message = $NotifLocale.local.outputs.output[2].message -f $CurrentVersion, $LatestVersion.Replace("v","")
@@ -18,16 +14,16 @@ function Update-WAU{
         New-Item $ZipFile -ItemType File -Force | Out-Null
 
         #Download the zip 
-        Write-Log "Starting downloading the GitHub Repository"
-        Invoke-RestMethod -Uri "https://api.github.com/repos/Romanitho/Winget-AutoUpdate/zipball/$($LatestVersion)" -OutFile $ZipFile
-        Write-Log 'Download finished'
+        Write-Log "Starting downloading the GitHub Repository version $VersionToUpdate"
+        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/v$($VersionToUpdate).zip/" -OutFile $ZipFile
+        Write-Log "Download finished" "Green"
 
         #Extract Zip File
         Write-Log "Starting unzipping the WAU GitHub Repository"
         $location = "$WorkingDir\WAU_update"
         Expand-Archive -Path $ZipFile -DestinationPath $location -Force
         Get-ChildItem -Path $location -Recurse | Unblock-File
-        Write-Log "Unzip finished"
+        Write-Log "Unzip finished" "Green"
         $TempPath = (Resolve-Path "$location\Romanitho-Winget-AutoUpdate*\Winget-AutoUpdate\").Path
         Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
         
@@ -37,9 +33,9 @@ function Update-WAU{
         #Remove update folder
         Remove-Item -Path $location -Recurse -Force -ErrorAction SilentlyContinue
 
-        #Set new version to conf.xml
+        #Set new version to about.xml
         [xml]$XMLconf = Get-content "$WorkingDir\config\about.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
-        $XMLconf.app.version = $LatestVersion.Replace("v","")
+        $XMLconf.app.version = $VersionToUpdate
         $XMLconf.Save("$WorkingDir\config\about.xml")
 
         #Send success Notif
@@ -50,8 +46,8 @@ function Update-WAU{
         Start-NotifTask $Title $Message $MessageType $Balise
 
         #Rerun with newer version
-	Write-Log "Re-run WAU"
-        Start-Process powershell -ArgumentList "-ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade`""
+	    Write-Log "Re-run WAU"
+        Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade`""
         exit
     }
     catch{

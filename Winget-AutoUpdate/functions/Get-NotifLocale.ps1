@@ -1,6 +1,6 @@
 #Get locale file for Notification.
 
-Function Get-NotifLocal {    
+Function Get-NotifLocale {    
     #Get OS locale
     $OSLocale = (Get-Culture).Parent
 

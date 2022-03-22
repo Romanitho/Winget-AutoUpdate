@@ -1,4 +1,4 @@
-function Get-WingetOutdated {
+function Get-WingetOutdatedApps {
     class Software {
         [string]$Name
         [string]$Id

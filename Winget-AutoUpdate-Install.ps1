@@ -63,7 +63,7 @@ function Check-Prerequisites{
                 $SourceURL = "https://aka.ms/vs/16/release/VC_redist.$OSArch.exe"
                 $Installer = $WingetUpdatePath + "\VC_redist.$OSArch.exe"
                 $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest $SourceURL -OutFile $Installer
+                Invoke-WebRequest $SourceURL -OutFile (New-Item -Path $Installer -Force)
                 Write-host "Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore

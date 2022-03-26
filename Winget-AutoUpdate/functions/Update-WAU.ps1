@@ -1,8 +1,8 @@
 
-function Update-WAU ($VersionToUpdate){
+function Update-WAU {
     #Send available update notification
     $Title = $NotifLocale.local.outputs.output[2].title -f "Winget-AutoUpdate"
-    $Message = $NotifLocale.local.outputs.output[2].message -f $CurrentVersion, $LatestVersion.Replace("v","")
+    $Message = $NotifLocale.local.outputs.output[2].message -f $WAUCurrentVersion, $WAUAvailableVersion
     $MessageType = "info"
     $Balise = "Winget-AutoUpdate"
     Start-NotifTask $Title $Message $MessageType $Balise
@@ -14,8 +14,8 @@ function Update-WAU ($VersionToUpdate){
         New-Item $ZipFile -ItemType File -Force | Out-Null
 
         #Download the zip 
-        Write-Log "Starting downloading the GitHub Repository version $VersionToUpdate"
-        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/v$($VersionToUpdate).zip/" -OutFile $ZipFile
+        Write-Log "Starting downloading the GitHub Repository version $WAUAvailableVersion"
+        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/v$($WAUAvailableVersion).zip/" -OutFile $ZipFile
         Write-Log "Download finished" "Green"
 
         #Extract Zip File
@@ -37,12 +37,12 @@ function Update-WAU ($VersionToUpdate){
 
         #Set new version to about.xml
         [xml]$XMLconf = Get-content "$WorkingDir\config\about.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
-        $XMLconf.app.version = $VersionToUpdate
+        $XMLconf.app.version = $WAUAvailableVersion
         $XMLconf.Save("$WorkingDir\config\about.xml")
 
         #Send success Notif
         $Title = $NotifLocale.local.outputs.output[3].title -f "Winget-AutoUpdate"
-        $Message = $NotifLocale.local.outputs.output[3].message -f $LatestVersion
+        $Message = $NotifLocale.local.outputs.output[3].message -f $WAUAvailableVersion
         $MessageType = "success"
         $Balise = "Winget-AutoUpdate"
         Start-NotifTask $Title $Message $MessageType $Balise

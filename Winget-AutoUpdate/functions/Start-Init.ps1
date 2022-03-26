@@ -5,7 +5,7 @@ function Start-Init {
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
     #Log Header
-    $Log = "`n##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format 'dd/MM/yyyy')`n##################################################"
+    $Log = "`n##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
     $Log | Write-host
 
     #Logs initialisation if admin

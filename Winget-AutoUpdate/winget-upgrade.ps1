@@ -27,7 +27,11 @@ if (Test-Network){
         #Compare
         if ($WAUAvailableVersion -gt $WAUCurrentVersion){
             #If new version is available, update it
+            Write-Log "WAU Current version: $WAUCurrentVersion - Available version: $WAUAvailableVersion" "Yellow"
             Update-WAU
+        }
+        else{
+            Write-Log "WAU Current version : $WAUCurrentVersion - Up to date." "Green"
         }
     }
 

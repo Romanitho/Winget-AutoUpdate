@@ -34,7 +34,7 @@ param(
 
 <# FUNCTIONS #>
 
-function Check-Prerequisites{
+function Install-Prerequisites{
     #Check if Visual C++ 2019 installed
     $app = "Microsoft Visual C++*2019*"
     $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.GetValue("DisplayName") -like $app}
@@ -181,7 +181,7 @@ Write-host "#                                 #"
 Write-host "###################################`n"
 Write-host "Installing to $WingetUpdatePath\"
 
-Check-Prerequisites
+Install-Prerequisites
 
 Install-WingetAutoUpdate
 

@@ -17,9 +17,9 @@ Get-NotifLocale
 #Check network connectivity
 if (Test-Network){
     #Check if WAU update feature is enabled
-    $WAUAutoUpdateEnabled = Get-WAUUpdateStatus
+    Get-WAUUpdateStatus
     #If yes then check WAU update
-    if ($WAUAutoUpdateEnabled){
+    if ($true -eq $WAUautoupdate){
         #Get Current Version
         $WAUCurrentVersion = Get-WAUCurrentVersion
         #Get Available Version

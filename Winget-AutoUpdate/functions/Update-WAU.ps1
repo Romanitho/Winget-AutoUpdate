@@ -25,10 +25,9 @@ function Update-WAU ($VersionToUpdate){
         Get-ChildItem -Path $location -Recurse | Unblock-File
         Write-Log "Unzip finished" "Green"
         $TempPath = (Resolve-Path "$location\*\Winget-AutoUpdate\")[0].Path
-	$TempPath = (Resolve-Path "$location\*\Winget-AutoUpdate\")[0].Path
-	if ($TempPath){
-		Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
-	}
+        if ($TempPath){
+            Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
+        }
         
         #Remove update zip file
         Write-Log "Cleaning temp files"

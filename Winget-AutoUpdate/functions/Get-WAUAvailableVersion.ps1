@@ -8,6 +8,5 @@ function Get-WAUAvailableVersion {
         #Get latest stable info
         $WAUurl = 'https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases/latest'
     }
-    $Script:WAULatestVersion = ((Invoke-WebRequest $WAUurl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v","")
-    return [version]$WAULatestVersion
+    $Script:WAUAvailableVersion = ((Invoke-WebRequest $WAUurl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v","")
 }

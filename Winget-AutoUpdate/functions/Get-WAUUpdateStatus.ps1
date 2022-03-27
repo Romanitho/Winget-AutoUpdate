@@ -4,12 +4,12 @@ function Get-WAUUpdateStatus{
     
     #Check if AutoUpdate is enabled
     if ($true -eq [System.Convert]::ToBoolean($UpdateStatus.app.WAUautoupdate)){
-        Write-Log "WAU AutoUpdate is enabled" "Green"
+        Write-Log "WAU AutoUpdate is Enabled. Current version : $WAUCurrentVersion" "Green"
         $Script:WAUautoupdate = $true
         
         #Check if pre-release versions are enabled
         if ($true -eq [System.Convert]::ToBoolean($UpdateStatus.app.WAUprerelease)){
-            Write-Log "WAU AutoUpdate Pre-release enabled" "Cyan"
+            Write-Log "WAU AutoUpdate Pre-release versions is Enabled" "Cyan"
             $Script:WAUprerelease = $true
         }
         else{
@@ -17,7 +17,7 @@ function Get-WAUUpdateStatus{
         }
     }
     else{
-        Write-Log "WAU AutoUpdate is Disabled" "Grey"
+        Write-Log "WAU AutoUpdate is Disabled. Current version : $WAUCurrentVersion" "Grey"
         $Script:WAUautoupdate = $false
     }
 }

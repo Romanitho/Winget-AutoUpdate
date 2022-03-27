@@ -25,13 +25,13 @@ if (Test-Network){
         #Get Available Version
         Get-WAUAvailableVersion
         #Compare
-        if ($WAUAvailableVersion -gt $WAUCurrentVersion){
+        if ([version]$WAUAvailableVersion -gt [version]$WAUCurrentVersion){
             #If new version is available, update it
-            Write-Log "WAU Current version: $WAUCurrentVersion - Available version: $WAUAvailableVersion" "Yellow"
+            Write-Log "WAU Available version: $WAUAvailableVersion" "Yellow"
             Update-WAU
         }
         else{
-            Write-Log "WAU Current version : $WAUCurrentVersion - Up to date." "Green"
+            Write-Log "WAU is up to date." "Green"
         }
     }
 
@@ -39,7 +39,7 @@ if (Test-Network){
     $toSkip = Get-ExcludedApps
 
     #Get outdated Winget packages
-    Write-Log "Checking available updates..." "yellow"
+    Write-Log "Checking application updates on Winget Repository..." "yellow"
     $outdated = Get-WingetOutdatedApps
 
     #Log list of app to update

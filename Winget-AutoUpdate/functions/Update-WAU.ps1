@@ -14,33 +14,32 @@ function Update-WAU {
         New-Item $ZipFile -ItemType File -Force | Out-Null
 
         #Download the zip 
-        Write-Log "Starting downloading the GitHub Repository version $WAUAvailableVersion"
+        Write-Log "Downloading the GitHub Repository version $WAUAvailableVersion" "Cyan"
         Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/v$($WAUAvailableVersion).zip/" -OutFile $ZipFile
-        Write-Log "Download finished" "Green"
 
         #Extract Zip File
-        Write-Log "Starting unzipping the WAU GitHub Repository"
+        Write-Log "Unzipping the WAU GitHub Repository" "Cyan"
         $location = "$WorkingDir\WAU_update"
         Expand-Archive -Path $ZipFile -DestinationPath $location -Force
         Get-ChildItem -Path $location -Recurse | Unblock-File
-        Write-Log "Unzip finished" "Green"
+        Write-Log "Updating WAU" "Yellow"
         $TempPath = (Resolve-Path "$location\*\Winget-AutoUpdate\")[0].Path
         if ($TempPath){
             Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
         }
         
-        #Remove update zip file
-        Write-Log "Cleaning temp files"
+        #Remove update zip file and update temp folder
+        Write-Log "Done. Cleaning temp files" "Cyan"
         Remove-Item -Path $ZipFile -Force -ErrorAction SilentlyContinue
-        #Remove update folder
         Remove-Item -Path $location -Recurse -Force -ErrorAction SilentlyContinue
 
-        #Set new version to about.xml
+        #Set new version to 'about.xml'
         [xml]$XMLconf = Get-content "$WorkingDir\config\about.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
         $XMLconf.app.version = $WAUAvailableVersion
         $XMLconf.Save("$WorkingDir\config\about.xml")
 
         #Send success Notif
+        Write-Log "WAU Update completed." "Green"
         $Title = $NotifLocale.local.outputs.output[3].title -f "Winget-AutoUpdate"
         $Message = $NotifLocale.local.outputs.output[3].message -f $WAUAvailableVersion
         $MessageType = "success"
@@ -59,6 +58,6 @@ function Update-WAU {
         $MessageType = "error"
         $Balise = "Winget-AutoUpdate"
         Start-NotifTask $Title $Message $MessageType $Balise
-        Write-Log "WAU Update failed"
+        Write-Log "WAU Update failed" "Red"
     }
 }

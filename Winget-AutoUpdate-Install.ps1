@@ -19,6 +19,9 @@ Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate i
 .PARAMETER DisableWAUAutoUpdate
 Disable Winget-AutoUpdate update checking. By default, WAU auto update if new version is available on Github.
 
+.PARAMETER Uninstall
+Remove scheduled tasks and scripts.
+
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -DoNotUpdate
 #>
@@ -28,7 +31,8 @@ param(
     [Parameter(Mandatory=$False)] [Alias('S')] [Switch] $Silent = $false,
     [Parameter(Mandatory=$False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
     [Parameter(Mandatory=$False)] [Switch] $DoNotUpdate = $false,
-    [Parameter(Mandatory=$False)] [Switch] $DisableWAUAutoUpdate = $false
+    [Parameter(Mandatory=$False)] [Switch] $DisableWAUAutoUpdate = $false,
+    [Parameter(Mandatory=$False)] [Switch] $Uninstall = $false
 )
 
 
@@ -143,6 +147,29 @@ function Install-WingetAutoUpdate{
     }
 }
 
+function Uninstall-WingetAutoUpdate{
+    Write-Host "Starting uninstall"
+    try{
+        #Check if installed location exists and delete
+        if (Test-Path ($WingetUpdatePath)){
+            Remove-Item $WingetUpdatePath -Force -Recurse
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
+            & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
+    
+            Write-host "Uninstallation succeeded!" -ForegroundColor Green
+            Start-sleep 1
+        }
+        else {
+            Write-host "$WingetUpdatePath not found! Uninstallation failed!" -ForegroundColor Red
+        }
+    }
+    catch{
+        Write-host "`nUninstallation failed! Run as admin ?" -ForegroundColor Red
+        Start-sleep 1
+    }
+}
+
 function Start-WingetAutoUpdate{
     #If -DoNotUpdate is true, skip.
     if (!($DoNotUpdate)){
@@ -160,6 +187,9 @@ function Start-WingetAutoUpdate{
             try{
                 Write-host "Running Winget-AutoUpdate..." -ForegroundColor Yellow
                 Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+                while ((Get-ScheduledTask -TaskName "Winget-AutoUpdate").State -ne  'Ready') {
+                    Start-Sleep 1
+                }
             }
             catch{
                 Write-host "Failed to run Winget-AutoUpdate..." -ForegroundColor Red
@@ -179,11 +209,15 @@ Write-host "#                                 #"
 Write-host "#        Winget AutoUpdate        #"
 Write-host "#                                 #"
 Write-host "###################################`n"
-Write-host "Installing to $WingetUpdatePath\"
 
-Install-Prerequisites
-
-Install-WingetAutoUpdate
+if (!$Uninstall){
+    Write-host "Installing to $WingetUpdatePath\"
+    Install-Prerequisites
+    Install-WingetAutoUpdate
+}
+else {
+    Uninstall-WingetAutoUpdate
+}
 
 Write-host "End of process."
 Start-Sleep 3

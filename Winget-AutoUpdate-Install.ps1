@@ -204,11 +204,13 @@ function Start-WingetAutoUpdate{
 
 <# MAIN #>
 
-Write-host "###################################"
-Write-host "#                                 #"
-Write-host "#        Winget AutoUpdate        #"
-Write-host "#                                 #"
-Write-host "###################################`n"
+Write-Host "`n"
+Write-Host "`t###################################"
+Write-Host "`t#                                 #"
+Write-Host "`t#        Winget AutoUpdate        #"
+Write-Host "`t#                                 #"
+Write-Host "`t###################################"
+Write-Host "`n"
 
 if (!$Uninstall){
     Write-host "Installing to $WingetUpdatePath\"

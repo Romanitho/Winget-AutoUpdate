@@ -220,4 +220,7 @@ else {
 }
 
 Write-host "End of process."
-Start-Sleep 3
+
+if (!$Silent) {
+    Timeout 10
+}

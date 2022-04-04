@@ -6,22 +6,23 @@ function Get-WingetOutdatedApps {
         [string]$AvailableVersion
     }
 
-    #Get WinGet Location
-    $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
+    #Get WinGet Path
+    $WingetPath = (Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe").Path 
+    #Get Winget Location in User context
     if ($WingetCmd){
-        $script:upgradecmd = $WingetCmd.Source
+        $Script:winget = (Get-Command winget.exe -ErrorAction SilentlyContinue).Source
     }
-    elseif (Test-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe"){
-        #WinGet < 1.17
-        $script:upgradecmd = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\AppInstallerCLI.exe" | Select-Object -ExpandProperty Path
+    #Get Winget Location in System context (WinGet < 1.17)
+    elseif (Test-Path "$WingetPath\AppInstallerCLI.exe"){
+        $Script:winget = "$WingetPath\AppInstallerCLI.exe"
     }
-    elseif (Test-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"){
-        #WinGet > 1.17
-        $script:upgradecmd = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe" | Select-Object -ExpandProperty Path
+    #Get Winget Location in System context (WinGet > 1.17)
+    elseif (Test-Path "$WingetPath\winget.exe"){
+        $Script:winget = "$WingetPath\winget.exe"
     }
     else{
-        Write-Log "Winget not installed !"
-        return
+        Write-Log "Winget not installed !" "Red"
+        break
     }
 
     #Run winget to list apps and accept source agrements (necessary on first run)

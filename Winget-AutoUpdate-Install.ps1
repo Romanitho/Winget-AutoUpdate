@@ -27,6 +27,10 @@ Remove scheduled tasks and scripts.
 
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -DoNotUpdate
+
+.EXAMPLE
+.\winget-install-and-update.ps1 -Silent -UseWhiteList
+
 #>
 
 [CmdletBinding()]

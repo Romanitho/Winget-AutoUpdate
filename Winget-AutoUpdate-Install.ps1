@@ -19,6 +19,9 @@ Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate i
 .PARAMETER DisableWAUAutoUpdate
 Disable Winget-AutoUpdate update checking. By default, WAU auto update if new version is available on Github.
 
+.PARAMETER UseWhiteList
+Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
+
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.
 
@@ -32,7 +35,8 @@ param(
     [Parameter(Mandatory=$False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
     [Parameter(Mandatory=$False)] [Switch] $DoNotUpdate = $false,
     [Parameter(Mandatory=$False)] [Switch] $DisableWAUAutoUpdate = $false,
-    [Parameter(Mandatory=$False)] [Switch] $Uninstall = $false
+    [Parameter(Mandatory=$False)] [Switch] $Uninstall = $false,
+    [Parameter(Mandatory=$False)] [Switch] $UseWhiteList = $false
 )
 
 
@@ -86,20 +90,23 @@ function Install-Prerequisites{
 
 function Install-WingetAutoUpdate{
     try{
-        #Check if previous version location exists and delete
-        $OldWingetUpdatePath = $WingetUpdatePath.Replace("\Winget-AutoUpdate","\winget-update")
-        if (Test-Path ($OldWingetUpdatePath)){
-            Remove-Item $OldWingetUpdatePath -Force -Recurse
-        }
-        Get-ScheduledTask -TaskName "Winget Update" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-        Get-ScheduledTask -TaskName "Winget Update Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-
         #Copy files to location
         if (!(Test-Path $WingetUpdatePath)){
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
-        Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+        #White List or Black List apps
+        if ($UseWhiteList){
+            if (Test-Path "$PSScriptRoot\included_apps.txt"){
+                Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            else{
+                New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file"
+            }
+        }
+        else {
+            Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+        }
 
         # Set dummy regkeys for notification name and icon
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
@@ -130,6 +137,7 @@ function Install-WingetAutoUpdate{
 <?xml version="1.0"?>
 <app>
     <WAUautoupdate>$(!($DisableWAUAutoUpdate))</WAUautoupdate>
+    <UseWAUWhiteList>$UseWhiteList</UseWAUWhiteList>
 </app>
 "@
         $ConfigXML.Save("$WingetUpdatePath\config\config.xml")

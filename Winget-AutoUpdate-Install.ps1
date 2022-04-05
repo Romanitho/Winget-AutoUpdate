@@ -142,6 +142,7 @@ function Install-WingetAutoUpdate{
 <?xml version="1.0"?>
 <app>
     <WAUautoupdate>$(!($DisableWAUAutoUpdate))</WAUautoupdate>
+    <WAUprerelease>False</WAUprerelease>
     <UseWAUWhiteList>$UseWhiteList</UseWAUWhiteList>
 </app>
 "@

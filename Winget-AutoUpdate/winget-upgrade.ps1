@@ -35,8 +35,14 @@ if (Test-Network){
         }
     }
 
-    #Get exclude apps list
-    $toSkip = Get-ExcludedApps
+    #Get White or Black list
+    Get-WAUConfig
+    if ($UseWhiteList){
+        $toUpdate = Get-IncludedApps
+    }
+    else{
+        $toSkip = Get-ExcludedApps
+    }
 
     #Get outdated Winget packages
     Write-Log "Checking application updates on Winget Repository..." "yellow"
@@ -51,80 +57,43 @@ if (Test-Network){
     }
     
     #Count good update installations
-    $InstallOK = 0
+    $Script:InstallOK = 0
 
-    #For each app, notify and update
-    foreach ($app in $outdated){
-
-        if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown"){
-
-            #Send available update notification
-            Write-Log "Updating $($app.Name) from $($app.Version) to $($app.AvailableVersion)..." "Cyan"
-            $Title = $NotifLocale.local.outputs.output[2].title -f $($app.Name)
-            $Message = $NotifLocale.local.outputs.output[2].message -f $($app.Version), $($app.AvailableVersion)
-            $MessageType = "info"
-            $Balise = $($app.Name)
-            Start-NotifTask $Title $Message $MessageType $Balise
-
-            #Winget upgrade
-            Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
-                #Run Winget Upgrade command
-                & $UpgradeCmd upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
-                
-                #Check if application updated properly
-                $CheckOutdated = Get-WingetOutdatedApps
-                $FailedToUpgrade = $false
-                foreach ($CheckApp in $CheckOutdated){
-                    if ($($CheckApp.Id) -eq $($app.Id)) {
-                        #If app failed to upgrade, run Install command
-                        & $upgradecmd install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
-                        #Check if application installed properly
-                        $CheckOutdated2 = Get-WingetOutdatedApps
-                        foreach ($CheckApp2 in $CheckOutdated2){
-                            if ($($CheckApp2.Id) -eq $($app.Id)) {
-                                $FailedToUpgrade = $true
-                            }      
-                        }
-                    }
-                }
-            Write-Log "##########   WINGET UPGRADE PROCESS FINISHED FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"   
-
-            #Notify installation
-            if ($FailedToUpgrade -eq $false){   
-                #Send success updated app notification
-                Write-Log "$($app.Name) updated to $($app.AvailableVersion) !" "Green"
-                
-                #Send Notif
-                $Title = $NotifLocale.local.outputs.output[3].title -f $($app.Name)
-                $Message = $NotifLocale.local.outputs.output[3].message -f $($app.AvailableVersion)
-                $MessageType = "success"
-                $Balise = $($app.Name)
-                Start-NotifTask $Title $Message $MessageType $Balise
-
-                $InstallOK += 1
+    #If White List
+    if ($UseWhiteList){
+        #For each app, notify and update
+        foreach ($app in $outdated){
+            if (($toUpdate -contains $app.Id) -and $($app.Version) -ne "Unknown"){
+                Update-App $app
             }
-            else {
-                #Send failed updated app notification
-                Write-Log "$($app.Name) update failed." "Red"
-                
-                #Send Notif
-                $Title = $NotifLocale.local.outputs.output[4].title -f $($app.Name)
-                $Message = $NotifLocale.local.outputs.output[4].message
-                $MessageType = "error"
-                $Balise = $($app.Name)
-                Start-NotifTask $Title $Message $MessageType $Balise
+            #if current app version is unknown
+            elseif($($app.Version) -eq "Unknown"){
+                Write-Log "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
             }
-		}
-        #if current app version is unknown
-        elseif($($app.Version) -eq "Unknown"){
-            Write-Log "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
-        }
-        #if app is in "excluded list"
-        else{
-            Write-Log "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+            #if app is in "excluded list"
+            else{
+                Write-Log "$($app.Name) : Skipped upgrade because it is not in the included app list" "Gray"
+            }
         }
     }
-
+    #If Black List
+    else{
+        #For each app, notify and update
+        foreach ($app in $outdated){
+            if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown"){
+                Update-App $app
+            }
+            #if current app version is unknown
+            elseif($($app.Version) -eq "Unknown"){
+                Write-Log "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
+            }
+            #if app is in "excluded list"
+            else{
+                Write-Log "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+            }
+        }
+    }
+    
     if ($InstallOK -gt 0){
         Write-Log "$InstallOK apps updated ! No more update." "Green"
     }

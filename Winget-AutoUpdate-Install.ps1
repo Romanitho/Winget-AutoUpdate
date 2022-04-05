@@ -95,13 +95,14 @@ function Install-WingetAutoUpdate{
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+        
         #White List or Black List apps
         if ($UseWhiteList){
             if (Test-Path "$PSScriptRoot\included_apps.txt"){
                 Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
             }
             else{
-                New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file"
+                New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue
             }
         }
         else {

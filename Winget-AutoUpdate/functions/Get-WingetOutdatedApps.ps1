@@ -10,15 +10,15 @@ function Get-WingetOutdatedApps {
     $WingetPath = (Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe").Path 
     #Get Winget Location in User context
     if ($WingetCmd){
-        $Script:winget = (Get-Command winget.exe -ErrorAction SilentlyContinue).Source
+        $Script:Winget = (Get-Command winget.exe -ErrorAction SilentlyContinue).Source
     }
     #Get Winget Location in System context (WinGet < 1.17)
     elseif (Test-Path "$WingetPath\AppInstallerCLI.exe"){
-        $Script:winget = "$WingetPath\AppInstallerCLI.exe"
+        $Script:Winget = "$WingetPath\AppInstallerCLI.exe"
     }
     #Get Winget Location in System context (WinGet > 1.17)
     elseif (Test-Path "$WingetPath\winget.exe"){
-        $Script:winget = "$WingetPath\winget.exe"
+        $Script:Winget = "$WingetPath\winget.exe"
     }
     else{
         Write-Log "Winget not installed !" "Red"
@@ -26,10 +26,10 @@ function Get-WingetOutdatedApps {
     }
 
     #Run winget to list apps and accept source agrements (necessary on first run)
-    & $upgradecmd list --accept-source-agreements | Out-Null
+    & $Winget list --accept-source-agreements | Out-Null
 
     #Get list of available upgrades on winget format
-    $upgradeResult = & $upgradecmd upgrade | Out-String
+    $upgradeResult = & $Winget upgrade | Out-String
 
     #Start Convertion of winget format to an array. Check if "-----" exists
     if (!($upgradeResult -match "-----")){

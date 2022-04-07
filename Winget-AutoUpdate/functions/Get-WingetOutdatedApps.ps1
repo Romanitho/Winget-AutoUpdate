@@ -14,8 +14,9 @@ function Get-WingetOutdatedApps {
     }
 
     #Get Winget Location in User context
+    $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
     if ($WingetCmd){
-        $Script:Winget = (Get-Command winget.exe -ErrorAction SilentlyContinue).Source
+        $Script:Winget = $WingetCmd.Source
     }
     #Get Winget Location in System context (WinGet < 1.17)
     elseif (Test-Path "$WingetPath\AppInstallerCLI.exe"){

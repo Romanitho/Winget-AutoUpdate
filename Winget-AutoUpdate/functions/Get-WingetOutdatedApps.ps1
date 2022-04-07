@@ -43,7 +43,7 @@ function Get-WingetOutdatedApps {
     }
 
     #Split winget output to lines
-    $lines = $upgradeResult.Split([Environment]::NewLine).Replace("¦ ","")
+    $lines = $upgradeResult.Split([Environment]::NewLine).Replace("¦ ","") | Where-Object {$_}
 
     # Find the line that starts with "------"
     $fl = 0
@@ -51,8 +51,8 @@ function Get-WingetOutdatedApps {
         $fl++
     }
     
-    #Get header line
-    $fl = $fl - 2
+    #Get header line 
+    $fl = $fl - 1
 
     #Get header titles
     $index = $lines[$fl] -split '\s+'

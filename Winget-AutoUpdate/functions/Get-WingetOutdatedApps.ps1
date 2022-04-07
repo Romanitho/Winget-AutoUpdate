@@ -6,8 +6,13 @@ function Get-WingetOutdatedApps {
         [string]$AvailableVersion
     }
 
-    #Get WinGet Path
-    $WingetPath = (Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe").Path 
+    #Get WinGet Path (if admin context)
+    $ResolveWingetPath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
+    if ($ResolveWingetPath){
+        #If multiple version, pick last one
+        $WingetPath = $ResolveWingetPath[-1].Path
+    }
+
     #Get Winget Location in User context
     if ($WingetCmd){
         $Script:Winget = (Get-Command winget.exe -ErrorAction SilentlyContinue).Source

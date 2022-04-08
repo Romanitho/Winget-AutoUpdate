@@ -34,7 +34,12 @@ function Get-WingetOutdatedApps {
     #Run winget to list apps and accept source agrements (necessary on first run)
     & $Winget list --accept-source-agreements | Out-Null
 
+    #Log Winget installed version
+    $WingerVer = & $Winget --version
+    Write-Log "Winget Version: $WingerVer"
+
     #Get list of available upgrades on winget format
+    Write-Log "Checking application updates on Winget Repository..." "yellow"
     $upgradeResult = & $Winget upgrade | Out-String
 
     #Start Convertion of winget format to an array. Check if "-----" exists

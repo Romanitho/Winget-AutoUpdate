@@ -55,15 +55,23 @@ function Install-Prerequisites{
     if (!($path)){
         #If -silent option, force installation
         if ($Silent){
-            $InstallApp = "y"
+            $InstallApp = 1
         }
         else{
             #Ask for installation
-            while("y","n" -notcontains $InstallApp){
-	            $InstallApp = Read-Host "[Prerequisite for Winget] Microsoft Visual C++ 2019 is not installed. Would you like to install it? [Y/N]"
+            $MsgBoxTitle = "Winget Prerequisites"
+            $MsgBoxContent = "Microsoft Visual C++ 2015-2019 is required. Would you like to install it?"
+            $MsgBoxTimeOut = 60
+            $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent,$MsgBoxTimeOut,$MsgBoxTitle,4+32)
+            if ($MsgBoxReturn -ne 7) {
+                $InstallApp = 1
+            }
+            else {
+                $InstallApp = 0
             }
         }
-        if ($InstallApp -eq "y"){
+        #Install if approved
+        if ($InstallApp -eq 1){
             try{
                 if((Get-CimInStance Win32_OperatingSystem).OSArchitecture -like "*64*"){
                     $OSArch = "x64"
@@ -85,6 +93,9 @@ function Install-Prerequisites{
                 Write-host "MS Visual C++ 2015-2019 installation failed." -ForegroundColor Red
                 Start-Sleep 3
             }
+        }
+        else{
+            Write-host "MS Visual C++ 2015-2019 wil not be installed." -ForegroundColor Magenta
         }
     }
     else{
@@ -126,7 +137,7 @@ function Install-WingetAutoUpdate{
 
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTrigger2,$taskTrigger1
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force | Out-Null
 
         # Settings for the scheduled task for Notifications
         $taskAction = New-ScheduledTaskAction –Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
@@ -135,7 +146,7 @@ function Install-WingetAutoUpdate{
 
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force | Out-Null
 
         # Install config file
         [xml]$ConfigXML = @"
@@ -162,7 +173,6 @@ function Install-WingetAutoUpdate{
 }
 
 function Uninstall-WingetAutoUpdate{
-    Write-Host "Starting uninstall"
     try{
         #Check if installed location exists and delete
         if (Test-Path ($WingetUpdatePath)){
@@ -189,15 +199,22 @@ function Start-WingetAutoUpdate{
     if (!($DoNotUpdate)){
             #If -Silent, run Winget-AutoUpdate now
             if ($Silent){
-                $RunWinget = "y"
+                $RunWinget = 1
             }
             #Ask for WingetAutoUpdate
             else{
-                while("y","n" -notcontains $RunWinget){
-	                $RunWinget = Read-Host "Start Winget-AutoUpdate now? [Y/N]"
+                $MsgBoxTitle = "Winget-AutoUpdate"
+                $MsgBoxContent = "Would you like to run Winget-AutoUpdate now?"
+                $MsgBoxTimeOut = 60
+                $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent,$MsgBoxTimeOut,$MsgBoxTitle,4+32)
+                if ($MsgBoxReturn -ne 7) {
+                    $RunWinget = 1
+                }
+                else {
+                    $RunWinget = 0
                 }
             }
-        if ($RunWinget -eq "y"){
+        if ($RunWinget -eq 1){
             try{
                 Write-host "Running Winget-AutoUpdate..." -ForegroundColor Yellow
                 Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
@@ -227,11 +244,12 @@ Write-Host "`t###################################"
 Write-Host "`n"
 
 if (!$Uninstall){
-    Write-host "Installing to $WingetUpdatePath\"
+    Write-host "Installing WAU to $WingetUpdatePath\"
     Install-Prerequisites
     Install-WingetAutoUpdate
 }
 else {
+    Write-Host "Uninstall WAU"
     Uninstall-WingetAutoUpdate
 }
 

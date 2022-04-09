@@ -14,8 +14,9 @@ function Get-WingetOutdatedApps {
     }
 
     #Get Winget Location in User context
+    $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
     if ($WingetCmd){
-        $Script:Winget = (Get-Command winget.exe -ErrorAction SilentlyContinue).Source
+        $Script:Winget = $WingetCmd.Source
     }
     #Get Winget Location in System context (WinGet < 1.17)
     elseif (Test-Path "$WingetPath\AppInstallerCLI.exe"){
@@ -33,7 +34,12 @@ function Get-WingetOutdatedApps {
     #Run winget to list apps and accept source agrements (necessary on first run)
     & $Winget list --accept-source-agreements | Out-Null
 
+    #Log Winget installed version
+    $WingerVer = & $Winget --version
+    Write-Log "Winget Version: $WingerVer"
+
     #Get list of available upgrades on winget format
+    Write-Log "Checking application updates on Winget Repository..." "yellow"
     $upgradeResult = & $Winget upgrade | Out-String
 
     #Start Convertion of winget format to an array. Check if "-----" exists
@@ -42,7 +48,7 @@ function Get-WingetOutdatedApps {
     }
 
     #Split winget output to lines
-    $lines = $upgradeResult.Split([Environment]::NewLine).Replace("¦ ","")
+    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object {$_}
 
     # Find the line that starts with "------"
     $fl = 0
@@ -50,13 +56,13 @@ function Get-WingetOutdatedApps {
         $fl++
     }
     
-    #Get header line
-    $fl = $fl - 2
+    #Get header line 
+    $fl = $fl - 1
 
     #Get header titles
     $index = $lines[$fl] -split '\s+'
 
-    # Line $i has the header, we can find char where we find ID and Version
+    # Line $fl has the header, we can find char where we find ID and Version
     $idStart = $lines[$fl].IndexOf($index[1])
     $versionStart = $lines[$fl].IndexOf($index[2])
     $availableStart = $lines[$fl].IndexOf($index[3])
@@ -66,7 +72,7 @@ function Get-WingetOutdatedApps {
     $upgradeList = @()
     For ($i = $fl + 2; $i -le $lines.Length; $i++){
         $line = $lines[$i]
-        if ($line.Length -gt ($sourceStart+5) -and -not $line.StartsWith('-')){
+        if ($line.Length -gt ($sourceStart+5) -and -not $line.Contains("--include-unknown")){
             $software = [Software]::new()
             $software.Name = $line.Substring(0, $idStart).TrimEnd()
             $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()

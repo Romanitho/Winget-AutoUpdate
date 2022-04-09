@@ -61,7 +61,7 @@ function Install-Prerequisites{
             #Ask for installation
             $MsgBoxTitle = "Winget Prerequisites"
             $MsgBoxContent = "Microsoft Visual C++ 2015-2019 is required. Would you like to install it?"
-            $MsgBoxTimeOut = 20
+            $MsgBoxTimeOut = 60
             $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent,$MsgBoxTimeOut,$MsgBoxTitle,4+32)
             if ($MsgBoxReturn -ne 7) {
                 $InstallApp = 1
@@ -137,7 +137,7 @@ function Install-WingetAutoUpdate{
 
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTrigger2,$taskTrigger1
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force | Out-Null
 
         # Settings for the scheduled task for Notifications
         $taskAction = New-ScheduledTaskAction –Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
@@ -146,7 +146,7 @@ function Install-WingetAutoUpdate{
 
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force | Out-Null
 
         # Install config file
         [xml]$ConfigXML = @"
@@ -205,7 +205,7 @@ function Start-WingetAutoUpdate{
             else{
                 $MsgBoxTitle = "Winget-AutoUpdate"
                 $MsgBoxContent = "Would you like to run Winget-AutoUpdate now?"
-                $MsgBoxTimeOut = 20
+                $MsgBoxTimeOut = 60
                 $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent,$MsgBoxTimeOut,$MsgBoxTitle,4+32)
                 if ($MsgBoxReturn -ne 7) {
                     $RunWinget = 1

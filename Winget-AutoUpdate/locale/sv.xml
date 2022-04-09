@@ -1,0 +1,34 @@
+<local>
+	<outputs>
+		<output id="0">
+			<!--Check network connection-->
+			<title>Kontrollera nätverksanslutningen.</title>
+			<!--Unable to check for software updates at this time!-->
+			<message>Det går inte att söka efter programuppdateringar just nu!</message>
+		</output>
+		<output id="1">
+			<!--No internet connction-->
+			<title>Ingen internetanslutning!</title>
+			<!--Updates could not be verified-->
+			<message>Uppdateringar kunde inte verifieras.</message>
+		</output>
+		<output id="2">
+			<!--{App} will be updated-->
+			<title>{0} kommer att uppdateras!</title>
+			<!--{v1.0} to {v2.0}-->
+			<message>{0} till {1}</message>
+		</output>
+		<output id="3">
+			<!--{App} updated-->
+			<title>{0} uppdaterad.</title>
+			<!--Installed version: {v1.0}-->
+			<message>Installerad version: {0}</message>
+		</output>
+		<output id="4">
+			<!--{App} could not be updated-->
+			<title>{0} kunde inte uppdateras!</title>
+			<!--Please contact support-->
+			<message>Vänligen kontakta supporten.</message>
+		</output>
+	</outputs>
+</local>

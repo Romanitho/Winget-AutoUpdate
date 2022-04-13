@@ -1,3 +1,5 @@
+#Function to Update an App
+
 Function Update-App ($app) {
 
     #Send available update notification
@@ -10,29 +12,34 @@ Function Update-App ($app) {
 
     #Winget upgrade
     Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
-        #Run Winget Upgrade command
-        & $Winget upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
-        
-        #Check if application updated properly
-        $CheckOutdated = Get-WingetOutdatedApps
-        $FailedToUpgrade = $false
-        foreach ($CheckApp in $CheckOutdated){
-            if ($($CheckApp.Id) -eq $($app.Id)) {
-                #If app failed to upgrade, run Install command
-                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
-                #Check if application installed properly
-                $CheckOutdated2 = Get-WingetOutdatedApps
-                foreach ($CheckApp2 in $CheckOutdated2){
-                    if ($($CheckApp2.Id) -eq $($app.Id)) {
-                        $FailedToUpgrade = $true
-                    }      
-                }
+    
+    #Run Winget Upgrade command
+    & $Winget upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+    
+    #Check if application updated properly
+    $CheckOutdated = Get-WingetOutdatedApps
+    $FailedToUpgrade = $false
+    foreach ($CheckApp in $CheckOutdated){
+        if ($($CheckApp.Id) -eq $($app.Id)) {
+            
+            #If app failed to upgrade, run Install command
+            & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+            
+            #Check if application installed properly
+            $CheckOutdated2 = Get-WingetOutdatedApps
+            foreach ($CheckApp2 in $CheckOutdated2){
+                if ($($CheckApp2.Id) -eq $($app.Id)) {
+                    $FailedToUpgrade = $true
+                }      
             }
         }
+    }
+
     Write-Log "##########   WINGET UPGRADE PROCESS FINISHED FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"   
 
     #Notify installation
     if ($FailedToUpgrade -eq $false){   
+
         #Send success updated app notification
         Write-Log "$($app.Name) updated to $($app.AvailableVersion) !" "Green"
         
@@ -44,8 +51,10 @@ Function Update-App ($app) {
         Start-NotifTask $Title $Message $MessageType $Balise
 
         $InstallOK += 1
+        
     }
     else {
+
         #Send failed updated app notification
         Write-Log "$($app.Name) update failed." "Red"
         
@@ -55,5 +64,7 @@ Function Update-App ($app) {
         $MessageType = "error"
         $Balise = $($app.Name)
         Start-NotifTask $Title $Message $MessageType $Balise
+    
     }
+
 }

@@ -1,16 +1,24 @@
+#Function to check connectivity
+
 function Test-Network {
+    
     #Init
     $timeout = 0
 
     #Test connectivity during 30 min then timeout
     Write-Log "Checking internet connection..." "Yellow"
     While ($timeout -lt 1800){
+        
         $TestNetwork = Test-NetConnection 8.8.8.8 -Port 443 -InformationLevel Quiet  
+        
         if ($TestNetwork){
+            
             Write-Log "Connected !" "Green"
             return $true
+        
         }
         else{
+
             Start-Sleep 10
             $timeout += 10
             
@@ -23,7 +31,9 @@ function Test-Network {
                 $Balise = "connection"
                 Start-NotifTask $Title $Message $MessageType $Balise
             }
+        
         }
+    
     }
     
     #Send Timeout Notif if no connection for 30 min
@@ -34,4 +44,5 @@ function Test-Network {
     $Balise = "connection"
     Start-NotifTask $Title $Message $MessageType $Balise
     return $false
+
 }

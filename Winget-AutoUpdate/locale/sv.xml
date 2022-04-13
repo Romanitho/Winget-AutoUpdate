@@ -20,7 +20,7 @@
 		</output>
 		<output id="3">
 			<!--{App} updated-->
-			<title>{0} uppdaterad.</title>
+			<title>{0} har uppdaterats.</title>
 			<!--Installed version: {v1.0}-->
 			<message>Installerad version: {0}</message>
 		</output>

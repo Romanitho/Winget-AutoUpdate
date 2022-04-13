@@ -13,4 +13,5 @@ function Get-WAUConfig{
         Write-Log "WAU uses Black List config"
         $Script:UseWhiteList = $false
     }
+    
 }

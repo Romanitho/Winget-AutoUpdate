@@ -16,7 +16,9 @@ Get-NotifLocale
 
 #Check network connectivity
 if (Test-Network){
+    #Check if Winget is installed and get Winget cmd
     $TestWinget = Get-WingetCmd
+    
     if ($TestWinget){
         #Get Current Version
         Get-WAUCurrentVersion

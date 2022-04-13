@@ -1,3 +1,5 @@
+#Function to get WAU Configs
+
 function Get-WAUConfig{
     
     [xml]$WAUConfig = Get-Content "$WorkingDir\config\config.xml" -Encoding UTF8 -ErrorAction SilentlyContinue

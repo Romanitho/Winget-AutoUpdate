@@ -1,5 +1,7 @@
+#Function to Update WAU
 
 function Update-WAU {
+
     #Send available update notification
     $Title = $NotifLocale.local.outputs.output[2].title -f "Winget-AutoUpdate"
     $Message = $NotifLocale.local.outputs.output[2].message -f $WAUCurrentVersion, $WAUAvailableVersion
@@ -9,6 +11,7 @@ function Update-WAU {
 
     #Run WAU update
     try{
+
         #Force to create a zip file 
         $ZipFile = "$WorkingDir\WAU_update.zip"
         New-Item $ZipFile -ItemType File -Force | Out-Null
@@ -22,6 +25,8 @@ function Update-WAU {
         $location = "$WorkingDir\WAU_update"
         Expand-Archive -Path $ZipFile -DestinationPath $location -Force
         Get-ChildItem -Path $location -Recurse | Unblock-File
+        
+        #Update scritps
         Write-Log "Updating WAU" "Yellow"
         $TempPath = (Resolve-Path "$location\*\Winget-AutoUpdate\")[0].Path
         if ($TempPath){
@@ -47,11 +52,15 @@ function Update-WAU {
         Start-NotifTask $Title $Message $MessageType $Balise
 
         #Rerun with newer version
-	    Write-Log "Re-run WAU"
+        Write-Log "Re-run WAU"
         Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade`""
+
         exit
+
     }
+
     catch{
+    
         #Send Error Notif
         $Title = $NotifLocale.local.outputs.output[4].title -f "Winget-AutoUpdate"
         $Message = $NotifLocale.local.outputs.output[4].message
@@ -59,5 +68,7 @@ function Update-WAU {
         $Balise = "Winget-AutoUpdate"
         Start-NotifTask $Title $Message $MessageType $Balise
         Write-Log "WAU Update failed" "Red"
+    
     }
+
 }

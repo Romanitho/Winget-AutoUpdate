@@ -1,6 +1,7 @@
-#Get locale file for Notification.
+#Function to get locale file for Notification.
 
-Function Get-NotifLocale {    
+Function Get-NotifLocale {
+    
     #Get OS locale
     $OSLocale = (Get-Culture).Parent
 
@@ -21,4 +22,5 @@ Function Get-NotifLocale {
     #Get locale XML file content
     Write-Log "Notification Langugage : $LocaleDisplayName" "Cyan"
     [xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
+
 }

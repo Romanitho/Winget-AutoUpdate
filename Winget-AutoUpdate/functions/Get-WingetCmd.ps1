@@ -1,4 +1,7 @@
+#Function to get Winget Command regarding execution context (User, System...)
+
 Function Get-WingetCmd {
+
     #Get WinGet Path (if admin context)
     $ResolveWingetPath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
     if ($ResolveWingetPath){
@@ -30,5 +33,7 @@ Function Get-WingetCmd {
     #Log Winget installed version
     $WingerVer = & $Winget --version
     Write-Log "Winget Version: $WingerVer"
+    
     return $true
+
 }

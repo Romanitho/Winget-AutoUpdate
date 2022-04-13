@@ -53,7 +53,7 @@ Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget
 Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate is run just after installation.
 
 **-DisableWAUAutoUpdate**  
-Disable Winget-AutoUpdate update checking. By default, WAU auto update if new version is available on Github.
+Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new version is available on Github.
 
 **-UseWhiteList**  
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"

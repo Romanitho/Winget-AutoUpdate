@@ -62,7 +62,7 @@ Use White List instead of Black List. This setting will not create the "exclude_
 Remove scheduled tasks and scripts.
 
 ## Help
-In some cases, you need to "unblock" the "intall.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.
+In some cases, you need to "unblock" the "install.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.
 
 ## Optimization
 Feel free to give us any suggestions or optimizations in code.

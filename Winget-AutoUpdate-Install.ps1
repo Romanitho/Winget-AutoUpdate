@@ -115,21 +115,21 @@ function Install-WinGet{
     
     }
     Else{
-        
+
         #Download WinGet MSIXBundle
-        Write-Host "Not installed. Downloading WinGet..." "Yellow"
+        Write-Host "Not installed. Downloading WinGet..."
         $WinGetURL = "https://aka.ms/getwinget"
         $WebClient=New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
         #Install WinGet MSIXBundle
         try{
-            Write-Host "Installing MSIXBundle for App Installer..." "Yellow"
+            Write-Host "Installing MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense
-            Write-Host "Installed MSIXBundle for App Installer" "Green"
+            Write-Host "Installed MSIXBundle for App Installer" -ForegroundColor Green
         }
         catch{
-            Write-Host "Failed to intall MSIXBundle for App Installer..." "Red"
+            Write-Host "Failed to intall MSIXBundle for App Installer..." -ForegroundColor Red
         }
     
         #Remove WinGet MSIXBundle

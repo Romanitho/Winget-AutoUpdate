@@ -195,14 +195,14 @@ function Install-WingetAutoUpdate{
 "@
         $ConfigXML.Save("$WingetUpdatePath\config\config.xml")
 
-        Write-host "`nInstallation succeeded!" -ForegroundColor Green
+        Write-host "`n WAU Installation succeeded!" -ForegroundColor Green
         Start-sleep 1
         
         #Run Winget ?
         Start-WingetAutoUpdate
     }
     catch{
-        Write-host "`nInstallation failed! Run me with admin rights" -ForegroundColor Red
+        Write-host "`n WAU Installation failed! Run me with admin rights" -ForegroundColor Red
         Start-sleep 1
         return $False
     }

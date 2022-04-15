@@ -31,8 +31,8 @@ Function Get-WingetCmd {
     & $Winget list --accept-source-agreements | Out-Null
 
     #Log Winget installed version
-    $WingerVer = & $Winget --version
-    Write-Log "Winget Version: $WingerVer"
+    $WingetVer = & $Winget --version
+    Write-Log "Winget Version: $WingetVer"
     
     return $true
 

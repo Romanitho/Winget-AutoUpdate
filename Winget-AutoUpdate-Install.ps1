@@ -48,8 +48,8 @@ param(
 
 function Install-Prerequisites{
     #Check if Visual C++ 2019 or 2022 installed
-    $Visual2019 = "Microsoft Visual C++*2019*"
-    $Visual2022 = "Microsoft Visual C++*2022*"
+    $Visual2019 = "Microsoft Visual C++ 2015-2019 Redistributable*"
+    $Visual2022 = "Microsoft Visual C++ 2015-2022 Redistributable*"
     $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.GetValue("DisplayName") -like $Visual2019 -or $_.GetValue("DisplayName") -like $Visual2022}
     
     #If not installed, ask for installation
@@ -102,6 +102,41 @@ function Install-Prerequisites{
     else{
         Write-Host "Prerequisites checked. OK" -ForegroundColor Green
     }
+}
+
+function Install-WinGet{
+
+    #Check Package Install
+    Write-Host "Checking if Winget is installed" -ForegroundColor Yellow
+    $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq "Microsoft.DesktopAppInstaller"}
+    If([Version]$TestWinGet.Version -gt "2022.0.0.0") {
+
+        Write-Host "WinGet is Installed" -ForegroundColor Green
+    
+    }
+    Else{
+        
+        #Download WinGet MSIXBundle
+        Write-Host "Not installed. Downloading WinGet..." "Yellow"
+        $WinGetURL = "https://aka.ms/getwinget"
+        $WebClient=New-Object System.Net.WebClient
+        $WebClient.DownloadFile($WinGetURL, "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+
+        #Install WinGet MSIXBundle
+        try{
+            Write-Host "Installing MSIXBundle for App Installer..." "Yellow"
+            Add-AppxProvisionedPackage -Online -PackagePath "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense
+            Write-Host "Installed MSIXBundle for App Installer" "Green"
+        }
+        catch{
+            Write-Host "Failed to intall MSIXBundle for App Installer..." "Red"
+        }
+    
+        #Remove WinGet MSIXBundle
+        Remove-Item -Path "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
+
+    }
+
 }
 
 function Install-WingetAutoUpdate{
@@ -247,6 +282,7 @@ Write-Host "`n"
 if (!$Uninstall){
     Write-host "Installing WAU to $WingetUpdatePath\"
     Install-Prerequisites
+    Install-WinGet
     Install-WingetAutoUpdate
 }
 else {

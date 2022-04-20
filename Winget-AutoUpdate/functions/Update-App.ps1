@@ -17,12 +17,19 @@ Function Update-App ($app) {
     & $Winget upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
     
     #Check if mods exist
-    $ModsUpgrade = Test-Mods $($app.Id)
+    $ModsTest = Test-Mods $($app.Id)
+
+    if (($null -ne $ModsTest) -And ($ModsTest -ne 0)){
+        $ModsTest = $ModsTest.split()
+        $ModsInstall = $ModsTest[0]
+        $ModsUpgrade = $ModsTest[1]
+    }
+    
     if ($ModsUpgrade){
         Write-Log "Modifications for $($app.Id) during upgrade are being applied..." "Yellow"
         & "$ModsUpgrade"
     }
-
+    
     #Check if application updated properly
     $CheckOutdated = Get-WingetOutdatedApps
     $FailedToUpgrade = $false
@@ -32,8 +39,6 @@ Function Update-App ($app) {
             #If app failed to upgrade, run Install command
             & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
-            #Check if mods exist
-            $ModsInstall = Test-Mods $($app.Id)
             if ($ModsInstall){
                 Write-Log "Modifications for $($app.Id) during install are being applied..." "Yellow"
                 & "$ModsInstall"

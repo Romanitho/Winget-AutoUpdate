@@ -31,10 +31,6 @@ function Update-WAU {
         $TempPath = (Resolve-Path "$location\*\Winget-AutoUpdate\")[0].Path
         if ($TempPath){
             Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
-            #Add 'mods' directory
-            if (!(Test-Path "$WorkingDir\mods")){
-                New-Item -ItemType Directory -Force -Path "$WingetUpdatePath\mods"
-            }
         }
         
         #Remove update zip file and update temp folder

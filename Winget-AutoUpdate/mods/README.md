@@ -2,9 +2,9 @@
 
 ## Mods
 
-The Mod feature allows you to run an additional script when installing or uninstalling an app.
-Just put the script with the App ID followed by the "-install" or "-uninstall" suffix to be considered.  
-`AppID-install.ps1` or `AppID-uninstall.ps1`  
+The Mod feature allows you to run an additional script when installing, upgrading or uninstalling an app.
+Just put the script with the App ID followed by the "-install", "-upgrade" or "-uninstall" suffix to be considered.  
+`AppID-install.ps1`, `AppID-upgrade.ps1` or `AppID-uninstall.ps1`  
 and put this in the Mods directory  
 > Example:  
 > If you want to run a script just after uninstalling FileZilla, call your script like this:

@@ -111,6 +111,8 @@ function Install-WingetAutoUpdate{
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+        #Add 'mods' directory
+        New-Item -ItemType Directory -Force -Path "$WingetUpdatePath\mods"
         
         #White List or Black List apps
         if ($UseWhiteList){

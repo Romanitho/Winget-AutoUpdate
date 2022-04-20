@@ -2,12 +2,12 @@
 
 ## Mods
 
-The Mod feature allows you to run an additional script when installing, upgrading or uninstalling an app.
-Just put the script with the App ID followed by the "-install", "-upgrade" or "-uninstall" suffix to be considered.  
-`AppID-install.ps1`, `AppID-upgrade.ps1` or `AppID-uninstall.ps1`  
+The Mod feature allows you to run an additional script when installing or upgrading an app.
+Just put the script with the App ID followed by the "-install" or "-upgrade" suffix to be considered.  
+`AppID-install.ps1` or `AppID-upgrade.ps1`
 and put this in the Mods directory  
 > Example:  
-> If you want to run a script just after uninstalling FileZilla, call your script like this:
-> `TimKosse.FileZilla.Client-uninstall.ps1`
+> If you want to run a script just after installing ".NET Desktop Runtime 6", call your script like this:
+> `Microsoft.dotnetRuntime.6-x64-install.ps1`
 
-In the case of FileZilla it spawns a process "Un_A.exe" (NullSoft) as a graphical uninstallation and this we will have to wait for completion of before moving on to checking if the uninstallation suceeded or not.
+In the case of ".NET Desktop Runtime 6" it spawns a new process and this we will have to wait for completion of before moving on to checking if the installation/upgrade suceeded or not.

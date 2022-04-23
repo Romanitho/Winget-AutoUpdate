@@ -63,7 +63,7 @@ Function Update-App ($app) {
         $Balise = $($app.Name)
         Start-NotifTask $Title $Message $MessageType $Balise
 
-        $InstallOK += 1
+        $Script:InstallOK += 1
         
     }
     else {

@@ -11,6 +11,9 @@ Get-ChildItem "$WorkingDir\functions" | ForEach-Object {. $_.FullName}
 #Run log initialisation function
 Start-Init
 
+#Get WAU Configurations
+Get-WAUConfig
+
 #Get Notif Locale function
 Get-NotifLocale
 
@@ -40,11 +43,12 @@ if (Test-Network){
         }
 
         #Get White or Black list
-        Get-WAUConfig
         if ($UseWhiteList){
+            Write-Log "WAU uses White List config"
             $toUpdate = Get-IncludedApps
         }
         else{
+            Write-Log "WAU uses Black List config"
             $toSkip = Get-ExcludedApps
         }
 

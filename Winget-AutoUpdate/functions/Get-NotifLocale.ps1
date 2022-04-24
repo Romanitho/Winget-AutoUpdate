@@ -20,7 +20,7 @@ Function Get-NotifLocale {
     }
 
     #Get locale XML file content
-    Write-Log "Notification Langugage : $LocaleDisplayName" "Cyan"
+    Write-Log "Notification Level: $NotificationLevel. Notification Language: $LocaleDisplayName" "Cyan"
     [xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
 
 }

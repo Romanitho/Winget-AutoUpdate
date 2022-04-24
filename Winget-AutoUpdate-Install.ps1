@@ -25,6 +25,9 @@ Use White List instead of Black List. This setting will not create the "exclude_
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.
 
+.PARAMETER NotificationLevel
+Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
+
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -DoNotUpdate
 
@@ -41,6 +44,7 @@ param(
     [Parameter(Mandatory=$False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory=$False)] [Switch] $Uninstall = $false,
     [Parameter(Mandatory=$False)] [Switch] $UseWhiteList = $false
+    [Parameter(Mandatory=$False)] [ValidateSet("Full","SuccessOnly","None")] [Switch] $NotificationLevel = "Full"
 )
 
 
@@ -191,6 +195,7 @@ function Install-WingetAutoUpdate{
     <WAUautoupdate>$(!($DisableWAUAutoUpdate))</WAUautoupdate>
     <WAUprerelease>False</WAUprerelease>
     <UseWAUWhiteList>$UseWhiteList</UseWAUWhiteList>
+    <NotificationLevel>$NotificationLevel</NotificationLevel>
 </app>
 "@
         $ConfigXML.Save("$WingetUpdatePath\config\config.xml")

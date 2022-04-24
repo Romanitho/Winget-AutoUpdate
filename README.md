@@ -14,17 +14,25 @@ You can exclude apps from update job (for instance, apps you want to keep at a s
 Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.txt'. (File must be placed in scripts' installation folder, or re-run install.bat).
 - #### Or White List
 From 1.7.0 version, you can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: https://github.com/Romanitho/Winget-AutoUpdate/issues/36
-### Default install location
-By default, scripts and components will be placed in ProgramData location (inside a Winget-AutoUpdate folder). You can change this with script argument.
+
+### Notification Level
+From version 1.9.0, you can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`
+
 ### Notification language
 You can easily translate toast notifications by creating your locale xml config file (and share it with us :) ).
+
+### Default install location
+By default, scripts and components will be placed in ProgramData location (inside a Winget-AutoUpdate folder). You can change this with script argument (Not Recommended).
+
 ### When does the script run?
 Scheduled task is set to run:
 - At user logon
 - At 6AM Everyday (with the -StartWhenAvailable option to be sure it is run at least once a day)
 This way, even without connected user, powered on computers get updated anyway.
+
 ### Log location
 You can find logs in install location, in log folder.
+
 ### "Unknown" App version
 As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255), Winget cannot detect the current version of some installed apps. We decided to skip managing these apps with WAU to avoid retries each time WAU runs:
 
@@ -58,21 +66,22 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 **-UseWhiteList**  
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
+**-NotificationLevel**  
+Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
+
 **-Uninstall**  
 Remove scheduled tasks and scripts.
 
 ## Custom scripts (Mods feature)
+From version 1.8.0, the Mods feature allows you to run an additional script when upgrading or installing an app.
+Just put the script in question with the App ID followed by the "-upgrade" or "-install" suffix in the "mods" folder.
+WAU will call `AppID-upgrade.ps1` and/or `AppID-install.ps1` (if they differs, otherwise the "-install" mod will be used for upgrades too) if it exists in the "mods" folder just after the upgrade/install.
 
-The Mods feature allows you to run an additional script when installing or upgrading an app.
-Just put the script with the App ID followed by the "-install" or "-upgrade" suffix to be considered.  
-`AppID-install.ps1` and/or `AppID-upgrade.ps1` (if it differs, otherwise the "-install" mod will be used for upgrade)
-and put this in the Mods directory  
-> Example:  
-> If you want to run a script just after installing ".NET Desktop Runtime 6", call your script like this:
-> `Microsoft.dotnetRuntime.6-x64-install.ps1`
+> Example:
+If you want to run a script that removes the shortcut from "%PUBLIC%\Desktop" (we don't want to fill the desktop with shortcuts our users can't delete) just after installing "Acrobat Reader DC" (32-bit), prepare a powershell script that removes the Public Desktop shortcut "Acrobat Reader DC.lnk" and name your script like this:
+`Adobe.Acrobat.Reader.32-bit-install.ps1` and put it in the "mods" folder.
 
-In the case of ".NET Desktop Runtime 6" it spawns a new process and this we will have to wait for completion of before moving on to checking if the installation/upgrade suceeded or not. - (this seems to be handled in Winget Version: v1.3.0-preview)
-
+You can find more information on Winget-Install Repo, as it's a related feature
 
 ## Help
 In some cases, you need to "unblock" the "install.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

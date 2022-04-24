@@ -73,15 +73,15 @@ Specify the Notification level: Full (Default, displays all notification), Succe
 Remove scheduled tasks and scripts.
 
 ## Custom scripts (Mods feature)
-From version 1.8.0, The Mods feature allows you to run an additional script when installing or upgrading an app.
-Just put the script with the App ID followed by the "-install" or "-upgrade" suffix to be considered.   
-Call `AppID-install.ps1` and/or `AppID-upgrade.ps1` (if it differs, otherwise the "-install" mod will be used for upgrade)
-and put this in the Mods directory  
-> Example:  
-> If you want to run a script that remove desktop shortcut just after installing "Google Chrome", prepare a powershell script that remove desktop shortcut, call your script like this:
-> `Google.Chrome-install.ps1` and put it in Mods folder.
+From version 1.8.0, the Mods feature allows you to run an additional script when upgrading or installing an app.
+Just put the script in question with the App ID followed by the "-upgrade" or "-install" suffix in the "mods" folder.
+WAU will call `AppID-upgrade.ps1` and/or `AppID-install.ps1` (if they differs, otherwise the "-install" mod will be used for upgrades too) if it exists in the "mods" folder just after the upgrade/install.
 
-You can find more information on [Winget-Install](https://github.com/Romanitho/Winget-Install) Repo, as it's a related feature
+> Example:
+If you want to run a script that removes the shortcut from "%PUBLIC%\Desktop" (we don't want to fill the desktop with shortcuts our users can't delete) just after installing "Acrobat Reader DC" (32-bit), prepare a powershell script that removes the Public Desktop shortcut "Acrobat Reader DC.lnk" and name your script like this:
+`Adobe.Acrobat.Reader.32-bit-install.ps1` and put it in the "mods" folder.
+
+You can find more information on Winget-Install Repo, as it's a related feature
 
 ## Help
 In some cases, you need to "unblock" the "install.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

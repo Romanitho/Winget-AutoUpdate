@@ -43,7 +43,7 @@ param(
     [Parameter(Mandatory=$False)] [Switch] $DoNotUpdate = $false,
     [Parameter(Mandatory=$False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory=$False)] [Switch] $Uninstall = $false,
-    [Parameter(Mandatory=$False)] [Switch] $UseWhiteList = $false
+    [Parameter(Mandatory=$False)] [Switch] $UseWhiteList = $false,
     [Parameter(Mandatory=$False)] [ValidateSet("Full","SuccessOnly","None")] [Switch] $NotificationLevel = "Full"
 )
 

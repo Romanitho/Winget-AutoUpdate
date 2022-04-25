@@ -9,10 +9,10 @@ Just [download latest version](https://github.com/Romanitho/Winget-AutoUpdate/ar
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
-- #### Black List
+- #### BlockList
 You can exclude apps from update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update):
 Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.txt'. (File must be placed in scripts' installation folder, or re-run install.bat).
-- #### Or White List
+- #### Or AllowList
 From 1.7.0 version, you can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: https://github.com/Romanitho/Winget-AutoUpdate/issues/36
 
 ### Notification Level

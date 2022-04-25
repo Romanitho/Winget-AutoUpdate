@@ -15,6 +15,8 @@ Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.tx
 - #### Or AllowList
 From 1.7.0 version, you can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: https://github.com/Romanitho/Winget-AutoUpdate/issues/36
 
+> You can use WiGui to create those lists: https://github.com/Romanitho/Winget-Install-GUI
+
 ### Notification Level
 From version 1.9.0, you can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`
 

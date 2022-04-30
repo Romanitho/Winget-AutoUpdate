@@ -32,6 +32,8 @@ Scheduled task is set to run:
 - At 6AM Everyday (with the -StartWhenAvailable option to be sure it is run at least once a day)
 This way, even without connected user, powered on computers get updated anyway.
 
+> From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, Weekly, Biweekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
+
 ### Log location
 You can find logs in install location, in log folder.
 
@@ -70,6 +72,14 @@ Use White List instead of Black List. This setting will not create the "exclude_
 
 **-NotificationLevel**  
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
+
+
+**-UpdatesAtLogon**  
+Set WAU to run at user logon.
+
+**-UpdatesInterval**  
+Specify the update frequency: Daily (Default), Weekly, Biweekly or Monthly.
+
 
 **-Uninstall**  
 Remove scheduled tasks and scripts.

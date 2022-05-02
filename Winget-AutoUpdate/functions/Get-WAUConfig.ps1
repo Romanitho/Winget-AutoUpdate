@@ -19,7 +19,7 @@ function Get-WAUConfig{
     }
     else{
         #Default: Full
-        $Script:NotificationLevel = $full
+        $Script:NotificationLevel = "Full"
     }
     
 }

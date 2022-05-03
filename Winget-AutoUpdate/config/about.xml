@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <app>
     <name>Winget-AutoUpdate (WAU)</name>
-    <version>1.9.0</version>
+    <version>1.9.1</version>
     <author>Romanitho</author>
     <info>https://github.com/Romanitho/Winget-AutoUpdate</info>
 </app>

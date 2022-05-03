@@ -1,4 +1,3 @@
-
 # Winget-AutoUpdate (WAU)
 This project uses the Winget tool to daily update apps (with system context) and notify users when updates are available and installed.
 

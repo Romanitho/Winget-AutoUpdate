@@ -16,34 +16,35 @@ Function Update-App ($app) {
     #Run Winget Upgrade command
     & $Winget upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
     
-    #Check if mods exist
-    $ModsInstall, $ModsUpgrade = Test-Mods $($app.Id)
-    
-    if ($ModsUpgrade){
-        Write-Log "Modifications for $($app.Id) during upgrade are being applied..." "Yellow"
-        & "$ModsUpgrade"
-    }
-    
     #Check if application updated properly
     $CheckOutdated = Get-WingetOutdatedApps
     $FailedToUpgrade = $false
+    #Check if mods exist
+    $ModsInstall, $ModsUpgrade = Test-Mods $($app.Id)
     foreach ($CheckApp in $CheckOutdated){
         if ($($CheckApp.Id) -eq $($app.Id)) {
             
             #If app failed to upgrade, run Install command
             & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
-
-            if ($ModsInstall){
-                Write-Log "Modifications for $($app.Id) during install are being applied..." "Yellow"
-                & "$ModsInstall"
-            }
             
             #Check if application installed properly
             $CheckOutdated2 = Get-WingetOutdatedApps
             foreach ($CheckApp2 in $CheckOutdated2){
                 if ($($CheckApp2.Id) -eq $($app.Id)) {
                     $FailedToUpgrade = $true
-                }      
+                }
+                else {
+                    if ($ModsInstall){
+                        Write-Log "Modifications for $($app.Id) during install are being applied..." "Yellow"
+                        & "$ModsInstall"
+                    }
+                }     
+            }
+        }
+        else {
+            if ($ModsUpgrade){
+                Write-Log "Modifications for $($app.Id) during upgrade are being applied..." "Yellow"
+                & "$ModsUpgrade"
             }
         }
     }

@@ -35,7 +35,7 @@ Function Update-App ($app) {
                 }
                 else {
                     if ($ModsInstall){
-                        Write-Log "Modifications for $($app.Id) during install are being applied..." "Yellow"
+                        Write-Log "Modifications for $($app.Id) after install are being applied..." "Yellow"
                         & "$ModsInstall"
                     }
                 }     
@@ -43,7 +43,7 @@ Function Update-App ($app) {
         }
         else {
             if ($ModsUpgrade){
-                Write-Log "Modifications for $($app.Id) during upgrade are being applied..." "Yellow"
+                Write-Log "Modifications for $($app.Id) after upgrade are being applied..." "Yellow"
                 & "$ModsUpgrade"
             }
         }

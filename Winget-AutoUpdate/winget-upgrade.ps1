@@ -11,6 +11,12 @@ Get-ChildItem "$WorkingDir\functions" | ForEach-Object {. $_.FullName}
 #Run log initialisation function
 Start-Init
 
+#Run Scope Machine funtion if run as system
+if ([System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) {
+    $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\settings.json"
+    Add-ScopeMachine $SettingsPath
+}
+
 #Get WAU Configurations
 Get-WAUConfig
 

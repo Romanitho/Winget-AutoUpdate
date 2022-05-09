@@ -1,8 +1,8 @@
 #Function to configure prefered scope option as Machine
-function Add-ScopeMachine ($path) {
+function Add-ScopeMachine ($SettingsPath) {
 
-    if (Test-Path $path){
-        $ConfigFile = Get-Content -Path $path | Where-Object {$_ -notmatch '//'} | ConvertFrom-Json
+    if (Test-Path $SettingsPath){
+        $ConfigFile = Get-Content -Path $SettingsPath | Where-Object {$_ -notmatch '//'} | ConvertFrom-Json
     }
     if (!$ConfigFile){
         $ConfigFile = @{}
@@ -17,6 +17,6 @@ function Add-ScopeMachine ($path) {
             })
         ) -Force
     }
-    $ConfigFile | ConvertTo-Json | Out-File $path -Encoding utf8 -Force
+    $ConfigFile | ConvertTo-Json | Out-File $SettingsPath -Encoding utf8 -Force
 
 }

@@ -213,26 +213,34 @@ function Install-WingetAutoUpdate{
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force | Out-Null
 
-        # Install config file
-        [xml]$ConfigXML = @"
-<?xml version="1.0"?>
-<app>
-    <WAUautoupdate>$(!($DisableWAUAutoUpdate))</WAUautoupdate>
-    <WAUprerelease>False</WAUprerelease>
-    <UseWAUWhiteList>$UseWhiteList</UseWAUWhiteList>
-    <NotificationLevel>$NotificationLevel</NotificationLevel>
-</app>
-"@
-        $ConfigXML.Save("$WingetUpdatePath\config\config.xml")
+        # Configure Reg Key
+        $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+        New-Item $regPath -Force
+        New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
+        New-ItemProperty $regPath -Name DisplayVersion -Value 1.10.0 -Force
+        New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force
+        New-ItemProperty $regPath -Name UninstallString -Value 1 -Force
+        New-ItemProperty $regPath -Name QuietUninstallString -Value 1 -Force
+        New-ItemProperty $regPath -Name NoModify -Value 1 -Force
+        New-ItemProperty $regPath -Name NoRepair -Value 1 -Force
+        New-ItemProperty $regPath -Name VersionMajor -Value 1 -Force
+        New-ItemProperty $regPath -Name VersionMinor -Value 10 -Force
+        New-ItemProperty $regPath -Name QuietUninstallString -Value 1 -Force
+        New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force
+        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force
+        New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value $DisableWAUAutoUpdate -PropertyType DWord -Force
+        New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force
+        New-ItemProperty $regPath -Name WAU_UseWhiteList -Value $UseWhiteList -PropertyType DWord -Force
+        New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -PropertyType DWord -Force
 
-        Write-host "`n WAU Installation succeeded!" -ForegroundColor Green
+        Write-host "`nWAU Installation succeeded!" -ForegroundColor Green
         Start-sleep 1
         
         #Run Winget ?
         Start-WingetAutoUpdate
     }
     catch{
-        Write-host "`n WAU Installation failed! Run me with admin rights" -ForegroundColor Red
+        Write-host "`nWAU Installation failed! Run me with admin rights" -ForegroundColor Red
         Start-sleep 1
         return $False
     }

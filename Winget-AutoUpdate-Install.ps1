@@ -231,7 +231,7 @@ function Install-WingetAutoUpdate{
         New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force
         if ($UseWhiteList) {New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force}
         New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force
-        New-ItemProperty $regPath -Name WAU_UpdatePostActions -Value 0 -PropertyType DWord -Force
+        New-ItemProperty $regPath -Name WAU_PostUpdateActions -Value 0 -PropertyType DWord -Force
 
         Write-host "`nWAU Installation succeeded!" -ForegroundColor Green
         Start-sleep 1

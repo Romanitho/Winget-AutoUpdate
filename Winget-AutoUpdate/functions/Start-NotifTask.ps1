@@ -2,7 +2,7 @@
 
 function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
 
-    if (($NotificationLevel -eq "Full") -or ($NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success")) {
+    if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success")) {
 
         #Add XML variables
         [xml]$ToastTemplate = @"

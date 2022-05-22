@@ -3,7 +3,7 @@
 function Get-WAUAvailableVersion {
 
     #Get Github latest version
-    if ($true -eq $WAUprerelease) {
+    if ($WAUConfig.WAU_UpdatePrerelease -eq 1) {
         
         #Get latest pre-release info
         $WAUurl = 'https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases'
@@ -16,6 +16,6 @@ function Get-WAUAvailableVersion {
     
     }
 
-    $Script:WAUAvailableVersion = ((Invoke-WebRequest $WAUurl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v","")
+    return ((Invoke-WebRequest $WAUurl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v","")
 
 }

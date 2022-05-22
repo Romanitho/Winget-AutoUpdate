@@ -217,14 +217,14 @@ function Install-WingetAutoUpdate{
         $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
         New-Item $regPath -Force
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
-        New-ItemProperty $regPath -Name DisplayVersion -Value 1.10.0 -Force
+        New-ItemProperty $regPath -Name DisplayVersion -Value 1.11.0 -Force
         New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force
         New-ItemProperty $regPath -Name UninstallString -Value "$WingetUpdatePath\WAU-Uninstall.bat" -Force
         New-ItemProperty $regPath -Name QuietUninstallString -Value "$WingetUpdatePath\WAU-Uninstall.bat" -Force
         New-ItemProperty $regPath -Name NoModify -Value 1 -Force
         New-ItemProperty $regPath -Name NoRepair -Value 1 -Force
         New-ItemProperty $regPath -Name VersionMajor -Value 1 -Force
-        New-ItemProperty $regPath -Name VersionMinor -Value 10 -Force
+        New-ItemProperty $regPath -Name VersionMinor -Value 11 -Force
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force
         New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force
         if ($DisableWAUAutoUpdate) {New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force}

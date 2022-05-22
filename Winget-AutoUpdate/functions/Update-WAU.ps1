@@ -39,12 +39,9 @@ function Update-WAU {
         Remove-Item -Path $location -Recurse -Force -ErrorAction SilentlyContinue
 
         #Set new version to registry
-        $WAUConfig | New-ItemProperty -Name DisplayVersion -Value $WAUAvailableVersion -Force
-        $WAUConfig | New-ItemProperty -Name VersionMajor -Value ([version]$WAUAvailableVersion).Major -Force
-        $WAUConfig | New-ItemProperty -Name VersionMinor -Value ([version]$WAUAvailableVersion).Minor -Force
-
-        #Set Post Update actions to 1
-        $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 1 -Force
+        $WAUConfig | New-ItemProperty $regPath -Name DisplayVersion -Value $WAUAvailableVersion -Force
+        $WAUConfig | New-ItemProperty $regPath -Name VersionMajor -Value ([version]$WAUAvailableVersion).Major -Force
+        $WAUConfig | New-ItemProperty $regPath -Name VersionMinor -Value ([version]$WAUAvailableVersion).Minor -Force
 
         #Send success Notif
         Write-Log "WAU Update completed." "Green"
@@ -56,7 +53,7 @@ function Update-WAU {
 
         #Rerun with newer version
         Write-Log "Re-run WAU"
-        Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
+        Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade`""
 
         exit
 

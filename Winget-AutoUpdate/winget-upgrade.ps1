@@ -11,14 +11,19 @@ Get-ChildItem "$WorkingDir\functions" | ForEach-Object {. $_.FullName}
 #Run log initialisation function
 Start-Init
 
+#Get WAU Configurations
+$Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+
+#Run post update actions
+if (!($WAUConfig.WAU_UpdatePostActions -eq 0)){
+    
+}
+
 #Run Scope Machine funtion if run as system
 if ([System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) {
     $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\settings.json"
     Add-ScopeMachine $SettingsPath
 }
-
-#Get WAU Configurations
-$Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
 #Get Notif Locale function
 Get-NotifLocale

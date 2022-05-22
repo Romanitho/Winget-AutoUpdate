@@ -219,19 +219,18 @@ function Install-WingetAutoUpdate{
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
         New-ItemProperty $regPath -Name DisplayVersion -Value 1.10.0 -Force
         New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force
-        New-ItemProperty $regPath -Name UninstallString -Value 1 -Force
-        New-ItemProperty $regPath -Name QuietUninstallString -Value 1 -Force
+        New-ItemProperty $regPath -Name UninstallString -Value "$WingetUpdatePath\Uninstall.bat" -Force
+        New-ItemProperty $regPath -Name QuietUninstallString -Value "$WingetUpdatePath\Uninstall.bat" -Force
         New-ItemProperty $regPath -Name NoModify -Value 1 -Force
         New-ItemProperty $regPath -Name NoRepair -Value 1 -Force
         New-ItemProperty $regPath -Name VersionMajor -Value 1 -Force
         New-ItemProperty $regPath -Name VersionMinor -Value 10 -Force
-        New-ItemProperty $regPath -Name QuietUninstallString -Value 1 -Force
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force
         New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force
-        New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value $DisableWAUAutoUpdate -PropertyType DWord -Force
+        if ($DisableWAUAutoUpdate) {New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force}
         New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force
-        New-ItemProperty $regPath -Name WAU_UseWhiteList -Value $UseWhiteList -PropertyType DWord -Force
-        New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -PropertyType DWord -Force
+        if ($UseWhiteList) {New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force}
+        New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force
 
         Write-host "`nWAU Installation succeeded!" -ForegroundColor Green
         Start-sleep 1

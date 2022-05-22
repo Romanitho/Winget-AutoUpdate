@@ -38,10 +38,10 @@ function Update-WAU {
         Remove-Item -Path $ZipFile -Force -ErrorAction SilentlyContinue
         Remove-Item -Path $location -Recurse -Force -ErrorAction SilentlyContinue
 
-        #Set new version to 'about.xml'
-        [xml]$XMLconf = Get-content "$WorkingDir\config\about.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
-        $XMLconf.app.version = $WAUAvailableVersion
-        $XMLconf.Save("$WorkingDir\config\about.xml")
+        #Set new version to registry
+        $WAUConfig | New-ItemProperty $regPath -Name DisplayVersion -Value $WAUAvailableVersion -Force
+        $WAUConfig | New-ItemProperty $regPath -Name VersionMajor -Value ([version]$WAUAvailableVersion).Major -Force
+        $WAUConfig | New-ItemProperty $regPath -Name VersionMinor -Value ([version]$WAUAvailableVersion).Minor -Force
 
         #Send success Notif
         Write-Log "WAU Update completed." "Green"

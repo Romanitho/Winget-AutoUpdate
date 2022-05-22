@@ -18,7 +18,7 @@ if ([System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) {
 }
 
 #Get WAU Configurations
-Get-WAUConfig
+$Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
 #Get Notif Locale function
 Get-NotifLocale
@@ -30,13 +30,18 @@ if (Test-Network){
     
     if ($TestWinget){
         #Get Current Version
-        Get-WAUCurrentVersion
-        #Check if WAU update feature is enabled
-        Get-WAUUpdateStatus
+        $WAUCurrentVersion = $WAUConfig.DisplayVersion
+        Write-Log "WAU current version: $WAUCurrentVersion"
+        #Check if WAU update feature is enabled or not
+        $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
         #If yes then check WAU update
-        if ($true -eq $WAUautoupdate){
+        if ($WAUDisableAutoUpdate -eq 1){
+            Write-Log "WAU AutoUpdate is Disabled." "Grey"
+        }
+        else{
+            Write-Log "WAU AutoUpdate is Enabled." "Green"
             #Get Available Version
-            Get-WAUAvailableVersion
+            $WAUAvailableVersion = Get-WAUAvailableVersion
             #Compare
             if ([version]$WAUAvailableVersion -gt [version]$WAUCurrentVersion){
                 #If new version is available, update it
@@ -49,9 +54,10 @@ if (Test-Network){
         }
 
         #Get White or Black list
-        if ($UseWhiteList){
+        if ($WAUConfig.WAU_UseWhiteList -eq 1){
             Write-Log "WAU uses White List config"
             $toUpdate = Get-IncludedApps
+            $UseWhiteList = $true
         }
         else{
             Write-Log "WAU uses Black List config"
@@ -89,7 +95,7 @@ if (Test-Network){
                 }
             }
         }
-        #If Black List
+        #If Black List or default
         else{
             #For each app, notify and update
             foreach ($app in $outdated){

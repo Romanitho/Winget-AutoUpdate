@@ -14,9 +14,9 @@ Start-Init
 #Get WAU Configurations
 $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
-#Run post update actions
-if (!($WAUConfig.WAU_UpdatePostActions -eq 0)){
-    
+#Run post update actions if necessary
+if (!($WAUConfig.WAU_PostUpdateActions -eq 0)){
+    Invoke-PostUpdateActions
 }
 
 #Run Scope Machine funtion if run as system

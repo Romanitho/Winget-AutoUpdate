@@ -59,4 +59,7 @@ function Invoke-PostUpdateActions {
     #Reset WAU_UpdatePostActions Value
     $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 0 -Force
 
+    #Get updated WAU Config
+    $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+
 }

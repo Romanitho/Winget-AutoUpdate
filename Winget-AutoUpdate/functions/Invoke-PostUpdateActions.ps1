@@ -17,6 +17,9 @@ function Invoke-PostUpdateActions {
         New-ItemProperty $regPath -Name UninstallString -Value "$WorkingDir\WAU-Uninstall.bat" -Force
         New-ItemProperty $regPath -Name QuietUninstallString -Value "$WorkingDir\WAU-Uninstall.bat" -Force
         New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force
+
+        #log
+        Write-Log "$regPath created." "green"
     }
     
     #Convert about.xml if exists (previous WAU versions) to reg
@@ -29,6 +32,9 @@ function Invoke-PostUpdateActions {
 
         #Remove file once converted
         Remove-Item $WAUAboutPath -Force -Confirm:$false
+
+        #log
+        Write-Log "$WAUAboutPath converted." "green"
     }
 
     #Convert config.xml if exists (previous WAU versions) to reg
@@ -42,6 +48,9 @@ function Invoke-PostUpdateActions {
 
         #Remove file once converted
         Remove-Item $WAUConfigPath -Force -Confirm:$false
+
+        #log
+        Write-Log "$WAUConfigPath converted." "green"
     }
 
     #Remove old functions
@@ -53,6 +62,9 @@ function Invoke-PostUpdateActions {
     foreach ($FileName in $FileNames){
         if (Test-Path $FileName) {
             Remove-Item $FileName -Force -Confirm:$false
+            
+            #log
+            Write-Log "$FileName removed." "green"
         }
     }
 

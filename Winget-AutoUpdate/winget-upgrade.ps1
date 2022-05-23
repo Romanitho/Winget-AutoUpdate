@@ -75,7 +75,7 @@ if (Test-Network){
         #Log list of app to update
         foreach ($app in $outdated){
             #List available updates
-            $Log = "Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
+            $Log = "-> Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
             $Log | Write-host
             $Log | out-file -filepath $LogFile -Append
         }

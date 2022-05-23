@@ -219,8 +219,8 @@ function Install-WingetAutoUpdate{
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
         New-ItemProperty $regPath -Name DisplayVersion -Value 1.11.0 -Force
         New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force
-        New-ItemProperty $regPath -Name UninstallString -Value "$WingetUpdatePath\WAU-Uninstall.bat" -Force
-        New-ItemProperty $regPath -Name QuietUninstallString -Value "$WingetUpdatePath\WAU-Uninstall.bat" -Force
+        New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force
+        New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force
         New-ItemProperty $regPath -Name NoModify -Value 1 -Force
         New-ItemProperty $regPath -Name NoRepair -Value 1 -Force
         New-ItemProperty $regPath -Name VersionMajor -Value 1 -Force

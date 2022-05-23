@@ -217,6 +217,7 @@ function Install-WingetAutoUpdate{
         $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
         New-Item $regPath -Force
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
+        New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force
         New-ItemProperty $regPath -Name DisplayVersion -Value 1.11.0 -Force
         New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force
         New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force

@@ -10,6 +10,7 @@ function Invoke-PostUpdateActions {
     if (!(test-path $regPath)) {
         New-Item $regPath -Force
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
+        New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force
         New-ItemProperty $regPath -Name NoModify -Value 1 -Force
         New-ItemProperty $regPath -Name NoRepair -Value 1 -Force
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force

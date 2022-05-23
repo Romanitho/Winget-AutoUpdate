@@ -15,8 +15,8 @@ function Invoke-PostUpdateActions {
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force
         New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force
         New-ItemProperty $regPath -Name InstallLocation -Value $WorkingDir -Force
-        New-ItemProperty $regPath -Name UninstallString -Value "$WorkingDir\WAU-Uninstall.bat" -Force
-        New-ItemProperty $regPath -Name QuietUninstallString -Value "$WorkingDir\WAU-Uninstall.bat" -Force
+        New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force
+        New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force
         New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force
 
         #log

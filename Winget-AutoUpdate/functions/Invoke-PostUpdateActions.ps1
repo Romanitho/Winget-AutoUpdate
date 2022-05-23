@@ -1,7 +1,8 @@
 #Function to make actions post WAU update
 
 function Invoke-PostUpdateActions {
-
+    
+    #log
     Write-Log "Running Post Update actions..." "yellow"
     
     #Create WAU Regkey if not present
@@ -19,7 +20,7 @@ function Invoke-PostUpdateActions {
         New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force
 
         #log
-        Write-Log "$regPath created." "green"
+        Write-Log "-> $regPath created." "green"
     }
     
     #Convert about.xml if exists (previous WAU versions) to reg
@@ -34,7 +35,7 @@ function Invoke-PostUpdateActions {
         Remove-Item $WAUAboutPath -Force -Confirm:$false
 
         #log
-        Write-Log "$WAUAboutPath converted." "green"
+        Write-Log "-> $WAUAboutPath converted." "green"
     }
 
     #Convert config.xml if exists (previous WAU versions) to reg
@@ -50,7 +51,7 @@ function Invoke-PostUpdateActions {
         Remove-Item $WAUConfigPath -Force -Confirm:$false
 
         #log
-        Write-Log "$WAUConfigPath converted." "green"
+        Write-Log "-> $WAUConfigPath converted." "green"
     }
 
     #Remove old functions
@@ -64,7 +65,7 @@ function Invoke-PostUpdateActions {
             Remove-Item $FileName -Force -Confirm:$false
             
             #log
-            Write-Log "$FileName removed." "green"
+            Write-Log "-> $FileName removed." "green"
         }
     }
 
@@ -74,4 +75,7 @@ function Invoke-PostUpdateActions {
     #Get updated WAU Config
     $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
+    #log
+    Write-Log "Post Update actions finished" "green"
+   
 }

@@ -164,9 +164,12 @@ function Install-WingetAutoUpdate{
     Write-Host "`nInstalling WAU..." -ForegroundColor Yellow
 
     try{
-        #Copy files to location
+        #Copy files to location (and clean old install)
         if (!(Test-Path $WingetUpdatePath)){
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
+        }
+        else {
+            Remove-Item -Path "$WingetUpdatePath\*" -Recurse -Force
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
         

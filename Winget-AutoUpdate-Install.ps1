@@ -62,6 +62,9 @@ param(
 <# FUNCTIONS #>
 
 function Install-Prerequisites{
+
+    Write-Host "`nChecking prerequisites..." -ForegroundColor Yellow
+    
     #Check if Visual C++ 2019 or 2022 installed
     $Visual2019 = "Microsoft Visual C++ 2015-2019 Redistributable*"
     $Visual2022 = "Microsoft Visual C++ 2015-2022 Redistributable*"
@@ -95,23 +98,23 @@ function Install-Prerequisites{
                 else{
                     $OSArch = "x86"
                 }
-                Write-host "Downloading VC_redist.$OSArch.exe..."
+                Write-host "-> Downloading VC_redist.$OSArch.exe..."
                 $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
                 $Installer = $WingetUpdatePath + "\VC_redist.$OSArch.exe"
                 $ProgressPreference = 'SilentlyContinue'
                 Invoke-WebRequest $SourceURL -OutFile (New-Item -Path $Installer -Force)
-                Write-host "Installing VC_redist.$OSArch.exe..."
+                Write-host "-> Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
-                Write-host "MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
+                Write-host "-> MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
             }
             catch{
-                Write-host "MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
+                Write-host "-> MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
                 Start-Sleep 3
             }
         }
         else{
-            Write-host "MS Visual C++ 2015-2022 wil not be installed." -ForegroundColor Magenta
+            Write-host "-> MS Visual C++ 2015-2022 will not be installed." -ForegroundColor Magenta
         }
     }
     else{
@@ -121,9 +124,11 @@ function Install-Prerequisites{
 
 function Install-WinGet{
 
+    Write-Host "`nChecking if Winget is installed" -ForegroundColor Yellow
+
     #Check Package Install
-    Write-Host "Checking if Winget is installed" -ForegroundColor Yellow
     $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq "Microsoft.DesktopAppInstaller"}
+
     If([Version]$TestWinGet.Version -gt "2022.519.1908.0") {
 
         Write-Host "WinGet is Installed" -ForegroundColor Green
@@ -132,19 +137,19 @@ function Install-WinGet{
     Else{
 
         #Download WinGet MSIXBundle
-        Write-Host "Not installed. Downloading WinGet..."
+        Write-Host "-> Not installed. Downloading WinGet..."
         $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.3.1391-preview/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient=New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
         #Install WinGet MSIXBundle
         try{
-            Write-Host "Installing MSIXBundle for App Installer..."
-            Add-AppxProvisionedPackage -Online -PackagePath "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense
-            Write-Host "Installed MSIXBundle for App Installer" -ForegroundColor Green
+            Write-Host "-> Installing Winget MSIXBundle for App Installer..."
+            Add-AppxProvisionedPackage -Online -PackagePath "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
+            Write-Host "Installed Winget MSIXBundle for App Installer" -ForegroundColor Green
         }
         catch{
-            Write-Host "Failed to intall MSIXBundle for App Installer..." -ForegroundColor Red
+            Write-Host "Failed to intall Winget MSIXBundle for App Installer..." -ForegroundColor Red
         }
     
         #Remove WinGet MSIXBundle
@@ -155,10 +160,13 @@ function Install-WinGet{
 }
 
 function Install-WingetAutoUpdate{
+
+    Write-Host "`nInstalling WAU..." -ForegroundColor Yellow
+
     try{
         #Copy files to location
         if (!(Test-Path $WingetUpdatePath)){
-            New-Item -ItemType Directory -Force -Path $WingetUpdatePath
+            New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
         
@@ -168,7 +176,7 @@ function Install-WingetAutoUpdate{
                 Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
             }
             else{
-                New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue
+                New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
             }
         }
         else {
@@ -215,39 +223,46 @@ function Install-WingetAutoUpdate{
 
         # Configure Reg Key
         $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
-        New-Item $regPath -Force
-        New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
-        New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force
-        New-ItemProperty $regPath -Name DisplayVersion -Value 1.11.0 -Force
-        New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force
-        New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force
-        New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force
-        New-ItemProperty $regPath -Name NoModify -Value 1 -Force
-        New-ItemProperty $regPath -Name NoRepair -Value 1 -Force
-        New-ItemProperty $regPath -Name VersionMajor -Value 1 -Force
-        New-ItemProperty $regPath -Name VersionMinor -Value 11 -Force
-        New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force
-        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force
-        if ($DisableWAUAutoUpdate) {New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force}
-        New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force
-        if ($UseWhiteList) {New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force}
-        New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force
-        New-ItemProperty $regPath -Name WAU_PostUpdateActions -Value 0 -PropertyType DWord -Force
+        New-Item $regPath -Force | Out-Null
+        New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force | Out-Null
+        New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
+        New-ItemProperty $regPath -Name DisplayVersion -Value 1.11.0 -Force | Out-Null
+        New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force | Out-Null
+        New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null
+        New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null
+        New-ItemProperty $regPath -Name NoModify -Value 1 -Force | Out-Null
+        New-ItemProperty $regPath -Name NoRepair -Value 1 -Force | Out-Null
+        New-ItemProperty $regPath -Name VersionMajor -Value 1 -Force | Out-Null
+        New-ItemProperty $regPath -Name VersionMinor -Value 11 -Force | Out-Null
+        New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force | Out-Null
+        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force | Out-Null
+        New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force | Out-Null
+        New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force | Out-Null
+        New-ItemProperty $regPath -Name WAU_PostUpdateActions -Value 0 -PropertyType DWord -Force | Out-Null
+        if ($DisableWAUAutoUpdate) {
+            New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force | Out-Null
+        }
+        if ($UseWhiteList) {
+            New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force | Out-Null
+        }
 
-        Write-host "`nWAU Installation succeeded!" -ForegroundColor Green
+        Write-host "WAU Installation succeeded!" -ForegroundColor Green
         Start-sleep 1
         
         #Run Winget ?
         Start-WingetAutoUpdate
     }
     catch{
-        Write-host "`nWAU Installation failed! Run me with admin rights" -ForegroundColor Red
+        Write-host "WAU Installation failed! Run me with admin rights" -ForegroundColor Red
         Start-sleep 1
         return $False
     }
 }
 
 function Uninstall-WingetAutoUpdate{
+    
+    Write-Host "`nUninstalling WAU..." -ForegroundColor Yellow
+    
     try{
         #Get registry install location
         $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
@@ -329,11 +344,11 @@ if (!$Uninstall){
     Install-WingetAutoUpdate
 }
 else {
-    Write-Host "Uninstall WAU"
+    Write-Host "Uninstalling WAU..."
     Uninstall-WingetAutoUpdate
 }
 
-Write-host "End of process."
+Write-host "`nEnd of process." -ForegroundColor Cyan
 
 if (!$Silent) {
     Timeout 10

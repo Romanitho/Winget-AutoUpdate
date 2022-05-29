@@ -51,6 +51,12 @@ Same process as new installation : download, unzip and run "install.bat".
 A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...
 To disable WAU AutoUpdate, run the "winget-install-and-update.ps1" with "-DisableWAUAutoUpdate" parameter
 
+## Uninstall WAU
+Simply uninstall it from your programs:  
+
+![image](https://user-images.githubusercontent.com/96626929/170879336-ef034956-4778-41f0-b8fd-d307b77b70a9.png)
+
+
 ## Advanced installation
 You can run the `winget-install-and-update.ps1` script with parameters :
 

@@ -56,6 +56,10 @@ Simply uninstall it from your programs:
 
 ![image](https://user-images.githubusercontent.com/96626929/170879336-ef034956-4778-41f0-b8fd-d307b77b70a9.png)
 
+## GUI installation
+[WiGui](https://github.com/Romanitho/Winget-Install-GUI/) can be used to install WAU even easier:  
+
+<img src="https://user-images.githubusercontent.com/96626929/167912772-de5a55fe-68a8-44ed-91fb-fcf5b34d891f.png" width="400">
 
 ## Advanced installation
 You can run the `winget-install-and-update.ps1` script with parameters :

@@ -93,6 +93,9 @@ Specify the update frequency: Daily (Default), Weekly, Biweekly or Monthly.
 **-Uninstall**  
 Remove scheduled tasks and scripts.
 
+## Intune/SCCM use
+See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
+
 ## Custom scripts (Mods feature)
 From version 1.8.0, the Mods feature allows you to run an additional script when upgrading or installing an app.
 Just put the script in question with the App ID followed by the "-upgrade" or "-install" suffix in the "mods" folder.

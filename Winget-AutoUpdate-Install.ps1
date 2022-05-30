@@ -343,7 +343,7 @@ Write-Host "`t        888 d888b 888     d88P 888   888     888" -ForegroundColor
 Write-Host "`t        888d88888b888    d88P  888   888     888" -ForegroundColor Cyan
 Write-Host "`t        88888P Y88888   d88P   888   888     888" -ForegroundColor Magenta
 Write-Host "`t        888P     Y888 d88P     888    Y8888888P`n" -ForegroundColor Magenta
-Write-Host "`t                   Winget-AutoUpdate`n" -ForegroundColor Cyan
+Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n" -ForegroundColor Cyan
 Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
 Write-Host "`t________________________________________________________`n`n"
 

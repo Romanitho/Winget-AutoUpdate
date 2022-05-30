@@ -58,6 +58,9 @@ param(
     [Parameter(Mandatory=$False)] [ValidateSet("Daily","Weekly","BiWeekly","Monthly")] [String] $UpdatesInterval = "Daily"
 )
 
+<# APP INFO #>
+
+$WAUVersion  = "1.11.3"
 
 <# FUNCTIONS #>
 
@@ -229,14 +232,14 @@ function Install-WingetAutoUpdate{
         New-Item $regPath -Force | Out-Null
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force | Out-Null
         New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
-        New-ItemProperty $regPath -Name DisplayVersion -Value 1.11.1 -Force | Out-Null
+        New-ItemProperty $regPath -Name DisplayVersion -Value $WAUVersion -Force | Out-Null
         New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force | Out-Null
         New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null
         New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null
         New-ItemProperty $regPath -Name NoModify -Value 1 -Force | Out-Null
         New-ItemProperty $regPath -Name NoRepair -Value 1 -Force | Out-Null
-        New-ItemProperty $regPath -Name VersionMajor -Value 1 -Force | Out-Null
-        New-ItemProperty $regPath -Name VersionMinor -Value 11 -Force | Out-Null
+        New-ItemProperty $regPath -Name VersionMajor -Value ([version]$WAUVersion).Major -Force | Out-Null
+        New-ItemProperty $regPath -Name VersionMinor -Value ([version]$WAUVersion).Minor -Force | Out-Null
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force | Out-Null
         New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force | Out-Null
@@ -286,7 +289,7 @@ function Uninstall-WingetAutoUpdate{
         }
     }
     catch{
-        Write-host "`nUninstallation failed! Run as admin ?" -ForegroundColor Red
+        Write-host "Uninstallation failed! Run as admin ?" -ForegroundColor Red
         Start-sleep 1
     }
 }
@@ -313,7 +316,7 @@ function Start-WingetAutoUpdate{
             }
         if ($RunWinget -eq 1){
             try{
-                Write-host "Running Winget-AutoUpdate..." -ForegroundColor Yellow
+                Write-host "`nRunning Winget-AutoUpdate..." -ForegroundColor Yellow
                 Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
                 while ((Get-ScheduledTask -TaskName "Winget-AutoUpdate").State -ne  'Ready') {
                     Start-Sleep 1

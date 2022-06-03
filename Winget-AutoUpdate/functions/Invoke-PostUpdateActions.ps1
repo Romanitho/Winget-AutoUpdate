@@ -4,6 +4,15 @@ function Invoke-PostUpdateActions {
     
     #log
     Write-Log "Running Post Update actions..." "yellow"
+
+    #Reset Winget Sources
+    $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"
+    if ($ResolveWingetPath){
+        #If multiple version, pick last one
+        $WingetPath = $ResolveWingetPath[-1].Path
+        & $WingetPath source reset --force
+        Write-Log "-> Winget sources reseted." "green"
+    }
     
     #Create WAU Regkey if not present
     $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"

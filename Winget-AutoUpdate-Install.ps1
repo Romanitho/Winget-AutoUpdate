@@ -172,7 +172,7 @@ function Install-WingetAutoUpdate{
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
         }
         else {
-            Remove-Item -Path "$WingetUpdatePath\*" -Recurse -Force
+            Remove-Item -Path "$WingetUpdatePath\*" -Exclude *.log -Recurse -Force
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
         

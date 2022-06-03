@@ -340,8 +340,9 @@ Write-Host "`t        888       888        d8888  888     888" -ForegroundColor 
 Write-Host "`t        888   o   888       d88888  888     888" -ForegroundColor Magenta
 Write-Host "`t        888  d8b  888      d88P888  888     888" -ForegroundColor Magenta
 Write-Host "`t        888 d888b 888     d88P 888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888d88888b888    d88P  888  888     888" -ForegroundColor Cyan
-Write-Host "`t        88888P Y88888   d88P   888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888d88888b888    d88P  888  888     888" -ForegroundColor Magenta
+Write-Host "`t        88888P Y88888   d88P   888  888     888" -ForegroundColor Cyan
+Write-Host "`t        8888P   Y8888  d88P    888  888     888" -ForegroundColor Magenta
 Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n" -ForegroundColor Magenta
 Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n" -ForegroundColor Cyan
 Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
@@ -362,4 +363,7 @@ Write-host "`nEnd of process." -ForegroundColor Cyan
 
 if (!$Silent) {
     Timeout 10
+}
+else {
+    Start-Sleep 1
 }

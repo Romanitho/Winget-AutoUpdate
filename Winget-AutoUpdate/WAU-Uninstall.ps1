@@ -1,10 +1,24 @@
+Write-Host "`n"
+Write-Host "`t        888       888        d8888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888   o   888       d88888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888  d8b  888      d88P888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888 d888b 888     d88P 888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888d88888b888    d88P  888  888     888" -ForegroundColor Magenta
+Write-Host "`t        88888P Y88888   d88P   888  888     888" -ForegroundColor Cyan
+Write-Host "`t        8888P   Y8888  d88P    888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n" -ForegroundColor Magenta
+Write-Host "`t                    Winget-AutoUpdate`n" -ForegroundColor Cyan
+Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
+Write-Host "`t________________________________________________________`n`n"
+
 try{
+    Write-host "Uninstalling WAU..." -ForegroundColor Yellow
     #Get registry install location
     $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
     
     #Check if installed location exists and delete
     if (Test-Path ($InstallLocation)){
-        Remove-Item $InstallLocation -Force -Recurse
+        Remove-Item "$InstallLocation\*" -Force -Recurse -Exclude "*.log"
         Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
         Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
         & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
@@ -14,7 +28,6 @@ try{
         }
 
         Write-host "Uninstallation succeeded!" -ForegroundColor Green
-        Start-sleep 1
     }
     else {
         Write-host "$InstallLocation not found! Uninstallation failed!" -ForegroundColor Red
@@ -22,5 +35,6 @@ try{
 }
 catch{
     Write-host "`nUninstallation failed! Run as admin ?" -ForegroundColor Red
-    Start-sleep 1
 }
+
+Start-sleep 2

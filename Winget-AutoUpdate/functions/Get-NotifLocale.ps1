@@ -9,12 +9,12 @@ Function Get-NotifLocale {
     $TestOSLocalPath = "$WorkingDir\locale\$($OSLocale.Name).xml"   
     
     #Set OS Local if file exists
-    if(Test-Path $TestOSLocalPath){
+    if (Test-Path $TestOSLocalPath) {
         $LocaleDisplayName = $OSLocale.DisplayName
         $LocaleFile = $TestOSLocalPath
     }
     #Set English if file doesn't exist
-    else{
+    else {
         $LocaleDisplayName = "English"
         $LocaleFile = "$WorkingDir\locale\en.xml"
     }

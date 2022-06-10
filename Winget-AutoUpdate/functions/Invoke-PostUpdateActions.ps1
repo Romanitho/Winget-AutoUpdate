@@ -7,7 +7,7 @@ function Invoke-PostUpdateActions {
 
     #Reset Winget Sources
     $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe"
-    if ($ResolveWingetPath){
+    if ($ResolveWingetPath) {
         #If multiple version, pick last one
         $WingetPath = $ResolveWingetPath[-1].Path
         & $WingetPath source reset --force
@@ -52,10 +52,10 @@ function Invoke-PostUpdateActions {
     $WAUConfigPath = "$WorkingDir\config\config.xml"
     if (test-path $WAUConfigPath) {
         [xml]$Config = Get-Content $WAUConfigPath -Encoding UTF8 -ErrorAction SilentlyContinue
-        if ($Config.app.WAUautoupdate -eq "False") {New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force}
-        if ($Config.app.NotificationLevel) {New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $Config.app.NotificationLevel -Force}
-        if ($Config.app.UseWAUWhiteList -eq "True") {New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force}
-        if ($Config.app.WAUprerelease -eq "True") {New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 1 -PropertyType DWord -Force}
+        if ($Config.app.WAUautoupdate -eq "False") { New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force }
+        if ($Config.app.NotificationLevel) { New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $Config.app.NotificationLevel -Force }
+        if ($Config.app.UseWAUWhiteList -eq "True") { New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force }
+        if ($Config.app.WAUprerelease -eq "True") { New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 1 -PropertyType DWord -Force }
 
         #Remove file once converted
         Remove-Item $WAUConfigPath -Force -Confirm:$false
@@ -70,7 +70,7 @@ function Invoke-PostUpdateActions {
         "$WorkingDir\functions\Get-WAUCurrentVersion.ps1",
         "$WorkingDir\functions\Get-WAUUpdateStatus.ps1"
     )
-    foreach ($FileName in $FileNames){
+    foreach ($FileName in $FileNames) {
         if (Test-Path $FileName) {
             Remove-Item $FileName -Force -Confirm:$false
             

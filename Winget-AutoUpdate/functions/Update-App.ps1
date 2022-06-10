@@ -21,7 +21,7 @@ Function Update-App ($app) {
     $FailedToUpgrade = $false
     #Check if mods exist
     $ModsInstall, $ModsUpgrade = Test-Mods $($app.Id)
-    foreach ($CheckApp in $CheckOutdated){
+    foreach ($CheckApp in $CheckOutdated) {
         if ($($CheckApp.Id) -eq $($app.Id)) {
             
             #If app failed to upgrade, run Install command
@@ -29,12 +29,12 @@ Function Update-App ($app) {
             
             #Check if application installed properly
             $CheckOutdated2 = Get-WingetOutdatedApps
-            foreach ($CheckApp2 in $CheckOutdated2){
+            foreach ($CheckApp2 in $CheckOutdated2) {
                 if ($($CheckApp2.Id) -eq $($app.Id)) {
                     $FailedToUpgrade = $true
                 }
                 else {
-                    if ($ModsInstall){
+                    if ($ModsInstall) {
                         Write-Log "Modifications for $($app.Id) after install are being applied..." "Yellow"
                         & "$ModsInstall"
                     }
@@ -42,7 +42,7 @@ Function Update-App ($app) {
             }
         }
         else {
-            if ($ModsUpgrade){
+            if ($ModsUpgrade) {
                 Write-Log "Modifications for $($app.Id) after upgrade are being applied..." "Yellow"
                 & "$ModsUpgrade"
             }
@@ -52,7 +52,7 @@ Function Update-App ($app) {
     Write-Log "##########   WINGET UPGRADE PROCESS FINISHED FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"   
 
     #Notify installation
-    if ($FailedToUpgrade -eq $false){   
+    if ($FailedToUpgrade -eq $false) {   
 
         #Send success updated app notification
         Write-Log "$($app.Name) updated to $($app.AvailableVersion) !" "Green"

@@ -11,13 +11,13 @@ Write-Host "`t                    Winget-AutoUpdate`n" -ForegroundColor Cyan
 Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
 Write-Host "`t________________________________________________________`n`n"
 
-try{
+try {
     Write-host "Uninstalling WAU..." -ForegroundColor Yellow
     #Get registry install location
     $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
     
     #Check if installed location exists and delete
-    if (Test-Path ($InstallLocation)){
+    if (Test-Path ($InstallLocation)) {
         Remove-Item "$InstallLocation\*" -Force -Recurse -Exclude "*.log"
         Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
         Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
@@ -33,7 +33,7 @@ try{
         Write-host "$InstallLocation not found! Uninstallation failed!" -ForegroundColor Red
     }
 }
-catch{
+catch {
     Write-host "`nUninstallation failed! Run as admin ?" -ForegroundColor Red
 }
 

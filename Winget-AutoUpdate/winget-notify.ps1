@@ -2,7 +2,9 @@
 
 #get xml notif config
 [xml]$NotifConf = Get-Content "$env:ProgramData\Winget-AutoUpdate\config\notif.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
-if (!($NotifConf)) {break}
+if (!($NotifConf)) {
+    break
+}
 
 #Load Assemblies
 [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null

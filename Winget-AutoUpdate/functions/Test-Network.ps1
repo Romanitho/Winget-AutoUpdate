@@ -7,23 +7,23 @@ function Test-Network {
 
     #Test connectivity during 30 min then timeout
     Write-Log "Checking internet connection..." "Yellow"
-    While ($timeout -lt 1800){
+    While ($timeout -lt 1800) {
         
         $TestNetwork = Test-NetConnection 8.8.8.8 -Port 443 -InformationLevel Quiet  
         
-        if ($TestNetwork){
+        if ($TestNetwork) {
             
             Write-Log "Connected !" "Green"
             return $true
         
         }
-        else{
+        else {
 
             Start-Sleep 10
             $timeout += 10
             
             #Send Warning Notif if no connection for 5 min
-            if ($timeout -eq 300){
+            if ($timeout -eq 300) {
                 Write-Log "Notify 'No connection' sent." "Yellow"
                 $Title = $NotifLocale.local.outputs.output[0].title
                 $Message = $NotifLocale.local.outputs.output[0].message

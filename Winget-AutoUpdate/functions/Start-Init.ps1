@@ -10,11 +10,11 @@ function Start-Init {
     $Log | Write-host
 
     #Logs initialisation if admin
-    try{
+    try {
 
         $LogPath = "$WorkingDir\logs"
         
-        if (!(Test-Path $LogPath)){
+        if (!(Test-Path $LogPath)) {
             New-Item -ItemType Directory -Force -Path $LogPath
         }
         
@@ -24,11 +24,11 @@ function Start-Init {
     
     }
     #Logs initialisation if non-admin
-    catch{
+    catch {
     
         $LogPath = "$env:USERPROFILE\Winget-AutoUpdate\logs"
     
-        if (!(Test-Path $LogPath)){
+        if (!(Test-Path $LogPath)) {
             New-Item -ItemType Directory -Force -Path $LogPath
         }
 

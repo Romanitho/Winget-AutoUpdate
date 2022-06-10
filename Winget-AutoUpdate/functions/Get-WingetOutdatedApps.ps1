@@ -13,16 +13,16 @@ function Get-WingetOutdatedApps {
     $upgradeResult = & $Winget upgrade | Out-String
 
     #Start Convertion of winget format to an array. Check if "-----" exists
-    if (!($upgradeResult -match "-----")){
+    if (!($upgradeResult -match "-----")) {
         return
     }
 
     #Split winget output to lines
-    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object {$_}
+    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object { $_ }
 
     # Find the line that starts with "------"
     $fl = 0
-    while (-not $lines[$fl].StartsWith("-----")){
+    while (-not $lines[$fl].StartsWith("-----")) {
         $fl++
     }
     
@@ -40,9 +40,9 @@ function Get-WingetOutdatedApps {
 
     # Now cycle in real package and split accordingly
     $upgradeList = @()
-    For ($i = $fl + 2; $i -le $lines.Length; $i++){
+    For ($i = $fl + 2; $i -le $lines.Length; $i++) {
         $line = $lines[$i]
-        if ($line.Length -gt ($sourceStart+5) -and -not $line.Contains("--include-unknown")){
+        if ($line.Length -gt ($sourceStart + 5) -and -not $line.Contains("--include-unknown")) {
             $software = [Software]::new()
             $software.Name = $line.Substring(0, $idStart).TrimEnd()
             $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()

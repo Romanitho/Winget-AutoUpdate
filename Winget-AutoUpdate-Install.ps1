@@ -47,44 +47,44 @@ Specify the update frequency: Daily (Default), Weekly, Biweekly or Monthly.
 
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory=$False)] [Alias('S')] [Switch] $Silent = $false,
-    [Parameter(Mandatory=$False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
-    [Parameter(Mandatory=$False)] [Switch] $DoNotUpdate = $false,
-    [Parameter(Mandatory=$False)] [Switch] $DisableWAUAutoUpdate = $false,
-    [Parameter(Mandatory=$False)] [Switch] $Uninstall = $false,
-    [Parameter(Mandatory=$False)] [Switch] $UseWhiteList = $false,
-    [Parameter(Mandatory=$False)] [ValidateSet("Full","SuccessOnly","None")] [String] $NotificationLevel = "Full",
-    [Parameter(Mandatory=$False)] [Switch] $UpdatesAtLogon = $false,
-    [Parameter(Mandatory=$False)] [ValidateSet("Daily","Weekly","BiWeekly","Monthly")] [String] $UpdatesInterval = "Daily"
+    [Parameter(Mandatory = $False)] [Alias('S')] [Switch] $Silent = $false,
+    [Parameter(Mandatory = $False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
+    [Parameter(Mandatory = $False)] [Switch] $DoNotUpdate = $false,
+    [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
+    [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
+    [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
+    [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
+    [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
+    [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly")] [String] $UpdatesInterval = "Daily"
 )
 
 <# APP INFO #>
 
-$WAUVersion  = "1.11.4"
+$WAUVersion = "1.11.4"
 
 <# FUNCTIONS #>
 
-function Install-Prerequisites{
+function Install-Prerequisites {
 
     Write-Host "`nChecking prerequisites..." -ForegroundColor Yellow
     
     #Check if Visual C++ 2019 or 2022 installed
     $Visual2019 = "Microsoft Visual C++ 2015-2019 Redistributable*"
     $Visual2022 = "Microsoft Visual C++ 2015-2022 Redistributable*"
-    $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object {$_.GetValue("DisplayName") -like $Visual2019 -or $_.GetValue("DisplayName") -like $Visual2022}
+    $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.GetValue("DisplayName") -like $Visual2019 -or $_.GetValue("DisplayName") -like $Visual2022 }
     
     #If not installed, ask for installation
-    if (!($path)){
+    if (!($path)) {
         #If -silent option, force installation
-        if ($Silent){
+        if ($Silent) {
             $InstallApp = 1
         }
-        else{
+        else {
             #Ask for installation
             $MsgBoxTitle = "Winget Prerequisites"
             $MsgBoxContent = "Microsoft Visual C++ 2015-2022 is required. Would you like to install it?"
             $MsgBoxTimeOut = 60
-            $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent,$MsgBoxTimeOut,$MsgBoxTitle,4+32)
+            $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent, $MsgBoxTimeOut, $MsgBoxTitle, 4 + 32)
             if ($MsgBoxReturn -ne 7) {
                 $InstallApp = 1
             }
@@ -93,12 +93,12 @@ function Install-Prerequisites{
             }
         }
         #Install if approved
-        if ($InstallApp -eq 1){
-            try{
-                if((Get-CimInStance Win32_OperatingSystem).OSArchitecture -like "*64*"){
+        if ($InstallApp -eq 1) {
+            try {
+                if ((Get-CimInStance Win32_OperatingSystem).OSArchitecture -like "*64*") {
                     $OSArch = "x64"
                 }
-                else{
+                else {
                     $OSArch = "x86"
                 }
                 Write-host "-> Downloading VC_redist.$OSArch.exe..."
@@ -111,47 +111,47 @@ function Install-Prerequisites{
                 Remove-Item $Installer -ErrorAction Ignore
                 Write-host "-> MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
             }
-            catch{
+            catch {
                 Write-host "-> MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
                 Start-Sleep 3
             }
         }
-        else{
+        else {
             Write-host "-> MS Visual C++ 2015-2022 will not be installed." -ForegroundColor Magenta
         }
     }
-    else{
+    else {
         Write-Host "Prerequisites checked. OK" -ForegroundColor Green
     }
 }
 
-function Install-WinGet{
+function Install-WinGet {
 
     Write-Host "`nChecking if Winget is installed" -ForegroundColor Yellow
 
     #Check Package Install
-    $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object {$_.DisplayName -eq "Microsoft.DesktopAppInstaller"}
+    $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
 
-    If([Version]$TestWinGet.Version -ge "2022.519.1908.0") {
+    If ([Version]$TestWinGet.Version -ge "2022.519.1908.0") {
 
         Write-Host "WinGet is Installed" -ForegroundColor Green
     
     }
-    Else{
+    Else {
 
         #Download WinGet MSIXBundle
         Write-Host "-> Not installed. Downloading WinGet..."
         $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.3.1391-preview/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        $WebClient=New-Object System.Net.WebClient
+        $WebClient = New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
         #Install WinGet MSIXBundle
-        try{
+        try {
             Write-Host "-> Installing Winget MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
             Write-Host "Installed Winget MSIXBundle for App Installer" -ForegroundColor Green
         }
-        catch{
+        catch {
             Write-Host "Failed to intall Winget MSIXBundle for App Installer..." -ForegroundColor Red
         }
     
@@ -162,13 +162,13 @@ function Install-WinGet{
 
 }
 
-function Install-WingetAutoUpdate{
+function Install-WingetAutoUpdate {
 
     Write-Host "`nInstalling WAU..." -ForegroundColor Yellow
 
-    try{
+    try {
         #Copy files to location (and clean old install)
-        if (!(Test-Path $WingetUpdatePath)){
+        if (!(Test-Path $WingetUpdatePath)) {
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
         }
         else {
@@ -177,11 +177,11 @@ function Install-WingetAutoUpdate{
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
         
         #White List or Black List apps
-        if ($UseWhiteList){
-            if (Test-Path "$PSScriptRoot\included_apps.txt"){
+        if ($UseWhiteList) {
+            if (Test-Path "$PSScriptRoot\included_apps.txt") {
                 Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
             }
-            else{
+            else {
                 New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
             }
         }
@@ -196,19 +196,19 @@ function Install-WingetAutoUpdate{
         # Settings for the scheduled task for Updates
         $taskAction = New-ScheduledTaskAction –Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
         $taskTriggers = @()
-        if ($UpdatesAtLogon){
+        if ($UpdatesAtLogon) {
             $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
         }
-        if ($UpdatesInterval -eq "Daily"){
+        if ($UpdatesInterval -eq "Daily") {
             $tasktriggers += New-ScheduledTaskTrigger -Daily -At 6AM
         }
-        elseif ($UpdatesInterval -eq "Weekly"){
+        elseif ($UpdatesInterval -eq "Weekly") {
             $tasktriggers += New-ScheduledTaskTrigger -Weekly -At 6AM -DaysOfWeek 2
         }
-        elseif ($UpdatesInterval -eq "BiWeekly"){
+        elseif ($UpdatesInterval -eq "BiWeekly") {
             $tasktriggers += New-ScheduledTaskTrigger -Weekly -At 6AM -DaysOfWeek 2 -WeeksInterval 2
         }
-        elseif ($UpdatesInterval -eq "Monthly"){
+        elseif ($UpdatesInterval -eq "Monthly") {
             $tasktriggers += New-ScheduledTaskTrigger -Weekly -At 6AM -DaysOfWeek 2 -WeeksInterval 4
         }
         $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
@@ -258,23 +258,23 @@ function Install-WingetAutoUpdate{
         #Run Winget ?
         Start-WingetAutoUpdate
     }
-    catch{
+    catch {
         Write-host "WAU Installation failed! Run me with admin rights" -ForegroundColor Red
         Start-sleep 1
         return $False
     }
 }
 
-function Uninstall-WingetAutoUpdate{
+function Uninstall-WingetAutoUpdate {
     
     Write-Host "`nUninstalling WAU..." -ForegroundColor Yellow
     
-    try{
+    try {
         #Get registry install location
         $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
         
         #Check if installed location exists and delete
-        if (Test-Path ($InstallLocation)){
+        if (Test-Path ($InstallLocation)) {
             Remove-Item $InstallLocation -Force -Recurse
             Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
@@ -288,46 +288,46 @@ function Uninstall-WingetAutoUpdate{
             Write-host "$InstallLocation not found! Uninstallation failed!" -ForegroundColor Red
         }
     }
-    catch{
+    catch {
         Write-host "Uninstallation failed! Run as admin ?" -ForegroundColor Red
         Start-sleep 1
     }
 }
 
-function Start-WingetAutoUpdate{
+function Start-WingetAutoUpdate {
     #If -DoNotUpdate is true, skip.
-    if (!($DoNotUpdate)){
-            #If -Silent, run Winget-AutoUpdate now
-            if ($Silent){
+    if (!($DoNotUpdate)) {
+        #If -Silent, run Winget-AutoUpdate now
+        if ($Silent) {
+            $RunWinget = 1
+        }
+        #Ask for WingetAutoUpdate
+        else {
+            $MsgBoxTitle = "Winget-AutoUpdate"
+            $MsgBoxContent = "Would you like to run Winget-AutoUpdate now?"
+            $MsgBoxTimeOut = 60
+            $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent, $MsgBoxTimeOut, $MsgBoxTitle, 4 + 32)
+            if ($MsgBoxReturn -ne 7) {
                 $RunWinget = 1
             }
-            #Ask for WingetAutoUpdate
-            else{
-                $MsgBoxTitle = "Winget-AutoUpdate"
-                $MsgBoxContent = "Would you like to run Winget-AutoUpdate now?"
-                $MsgBoxTimeOut = 60
-                $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent,$MsgBoxTimeOut,$MsgBoxTitle,4+32)
-                if ($MsgBoxReturn -ne 7) {
-                    $RunWinget = 1
-                }
-                else {
-                    $RunWinget = 0
-                }
+            else {
+                $RunWinget = 0
             }
-        if ($RunWinget -eq 1){
-            try{
+        }
+        if ($RunWinget -eq 1) {
+            try {
                 Write-host "`nRunning Winget-AutoUpdate..." -ForegroundColor Yellow
                 Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
-                while ((Get-ScheduledTask -TaskName "Winget-AutoUpdate").State -ne  'Ready') {
+                while ((Get-ScheduledTask -TaskName "Winget-AutoUpdate").State -ne 'Ready') {
                     Start-Sleep 1
                 }
             }
-            catch{
+            catch {
                 Write-host "Failed to run Winget-AutoUpdate..." -ForegroundColor Red
             }
         }
     }
-    else{
+    else {
         Write-host "Skip running Winget-AutoUpdate"
     }
 }
@@ -348,7 +348,7 @@ Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n" -ForegroundColor
 Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
 Write-Host "`t________________________________________________________`n`n"
 
-if (!$Uninstall){
+if (!$Uninstall) {
     Write-host "Installing WAU to $WingetUpdatePath\"
     Install-Prerequisites
     Install-WinGet

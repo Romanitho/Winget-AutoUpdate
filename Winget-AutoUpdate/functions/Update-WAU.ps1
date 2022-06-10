@@ -10,7 +10,7 @@ function Update-WAU {
     Start-NotifTask $Title $Message $MessageType $Balise
 
     #Run WAU update
-    try{
+    try {
 
         #Force to create a zip file 
         $ZipFile = "$WorkingDir\WAU_update.zip"
@@ -29,7 +29,7 @@ function Update-WAU {
         #Update scritps
         Write-Log "Updating WAU" "Yellow"
         $TempPath = (Resolve-Path "$location\*\Winget-AutoUpdate\")[0].Path
-        if ($TempPath){
+        if ($TempPath) {
             Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
         }
         
@@ -62,7 +62,7 @@ function Update-WAU {
 
     }
 
-    catch{
+    catch {
     
         #Send Error Notif
         $Title = $NotifLocale.local.outputs.output[4].title -f "Winget-AutoUpdate"

@@ -1,6 +1,6 @@
 #Function to send notifications to user
 
-function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
+function Start-NotifTask ($Title, $Message, $MessageType, $Balise) {
 
     if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success")) {
 
@@ -22,11 +22,11 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
         $currentPrincipal = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-4")
         
         #if not "Interactive" user, run as system
-        if ($currentPrincipal -eq $false){
+        if ($currentPrincipal -eq $false) {
 
             #Save XML to File
             $ToastTemplateLocation = "$env:ProgramData\Winget-AutoUpdate\config\"
-            if (!(Test-Path $ToastTemplateLocation)){
+            if (!(Test-Path $ToastTemplateLocation)) {
                 New-Item -ItemType Directory -Force -Path $ToastTemplateLocation
             }
             $ToastTemplate.Save("$ToastTemplateLocation\notif.xml")
@@ -36,7 +36,7 @@ function Start-NotifTask ($Title,$Message,$MessageType,$Balise) {
         
         }
         #else, run as connected user
-        else{
+        else {
 
             #Load Assemblies
             [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null

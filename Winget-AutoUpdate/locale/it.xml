@@ -14,21 +14,21 @@
 		</output>
 		<output id="2">
 			<!--{App} will be updated-->
-			<title>{0}</title>
+			<title>{0}Verrà aggiornato!</title>
 			<!--{v1.0} to {v2.0}-->
-			<message>{0} to {1}</message>
+			<message>Da {0} a {1}</message>
 		</output>
 		<output id="3">
 			<!--{App} updated-->
-			<title>{0} updated.</title>
+			<title>{0} aggiornato.</title>
 			<!--Installed version: {v1.0}-->
-			<message>Installed version: {0}</message>
+			<message>Versione installata: {0}</message>
 		</output>
 		<output id="4">
 			<!--{App} could not be updated-->
-			<title>{0} could not be updated!</title>
+			<title>{0} Non può essere aggiornato!</title>
 			<!--Please contact support-->
-			<message>Please contact support.</message>
+			<message>Per favore contatta il supporto.</message>
 		</output>
 	</outputs>
 </local>

@@ -34,7 +34,7 @@ function Invoke-PostUpdateActions {
     }
     #Fix Notif where WAU_NotificationLevel is not set
     $regNotif = Get-ItemProperty $regPath -Name WAU_NotificationLevel -ErrorAction SilentlyContinue
-    if (!$regNotif){
+    if (!$regNotif) {
         New-ItemProperty $regPath -Name WAU_NotificationLevel -Value Full -Force
 
         #log

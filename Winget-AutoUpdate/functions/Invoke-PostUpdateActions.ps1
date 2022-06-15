@@ -32,6 +32,14 @@ function Invoke-PostUpdateActions {
         #log
         Write-Log "-> $regPath created." "green"
     }
+    #Fix Notif where WAU_NotificationLevel is not set
+    $regNotif = Get-ItemProperty $regPath -Name WAU_NotificationLevel -ErrorAction SilentlyContinue
+    if (!$regNotif){
+        New-ItemProperty $regPath -Name WAU_NotificationLevel -Value Full -Force
+
+        #log
+        Write-Log "-> Notification level setting was missing. Fixed with 'Full' option."
+    }
     
     #Convert about.xml if exists (previous WAU versions) to reg
     $WAUAboutPath = "$WorkingDir\config\about.xml"

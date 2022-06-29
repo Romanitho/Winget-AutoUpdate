@@ -34,6 +34,9 @@ Set WAU to run at user logon.
 .PARAMETER UpdatesInterval
 Specify the update frequency: Daily (Default), Weekly, Biweekly or Monthly.
 
+.PARAMETER RunOnMetered
+Run WAU on metered connection. Default No.
+
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -DoNotUpdate
 
@@ -250,6 +253,9 @@ function Install-WingetAutoUpdate {
         }
         if ($UseWhiteList) {
             New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force | Out-Null
+        }
+        if (!$RunOnMetered) {
+            New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
         Write-host "WAU Installation succeeded!" -ForegroundColor Green

@@ -14,7 +14,34 @@ function Test-Network {
         if ($TestNetwork) {
             
             Write-Log "Connected !" "Green"
-            return $true
+
+            #Check for metered connection
+            [void][Windows.Networking.Connectivity.NetworkInformation, Windows, ContentType = WindowsRuntime]
+            $cost = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile().GetConnectionCost()
+            
+            if ($cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or ($cost.NetworkCostType -ne "Unrestricted")){
+                
+                Write-Log "Metered connection detected." "Yellow"
+                
+                if ($WAUConfig.WAU_DoNotRunOnMetered -eq 1) {
+                    
+                    Write-Log "WAU is configured to bypass update checking on metered connection"
+                    return $false
+                
+                }
+                else{
+                
+                    Write-Log "WAU is configured to force update checking on metered connection"
+                    return $true
+                
+                }
+            
+            }
+            else{
+
+                return $true
+
+            }
         
         }
         else {

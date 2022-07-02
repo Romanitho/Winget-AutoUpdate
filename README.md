@@ -4,7 +4,7 @@ This project uses the Winget tool to daily update apps (with system context) and
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 
 ## Intallation
-Just [download latest version](https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/v1.11.4.zip), unzip, run "install.bat" as admin to install by default.
+Just [download latest version](https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/v1.12.0.zip), unzip, run "install.bat" as admin to install by default.
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
@@ -43,13 +43,21 @@ As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255)
 
 Eventually, try to reinstall or update app manually to see if new version is detected.
 
+### Handle metered connections
+
+We might want to stop WAU on metered connection (to save cellular data on connection sharing for instance). That's why from v1.12.0 the default behavior will detect and stop WAU on limited connections (only for fresh install).
+
+> Previous installed versions will ignore this new setting on update to keep historical operation.
+
+To force WAU to run on metered connections anyway, run new installation with `-RunOnMetered` parameter.
+
 ## Update WAU
 ### Manual Update
-Same process as new installation : download, unzip and run "install.bat".
+Same process as new installation : download, unzip and run `install.bat`.
 
 ### Automatic Update
 A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...
-To disable WAU AutoUpdate, run the "winget-install-and-update.ps1" with "-DisableWAUAutoUpdate" parameter
+To disable WAU AutoUpdate, run the `winget-install-and-update.ps1` with `-DisableWAUAutoUpdate` parameter
 
 ## Uninstall WAU
 Simply uninstall it from your programs:  
@@ -89,6 +97,8 @@ Set WAU to run at user logon.
 **-UpdatesInterval**  
 Specify the update frequency: Daily (Default), Weekly, Biweekly or Monthly.
 
+**-RunOnMetered**
+Run WAU on metered connection. Default No.
 
 **-Uninstall**  
 Remove scheduled tasks and scripts.
@@ -98,7 +108,7 @@ See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 
 ## Custom scripts (Mods feature)
 From version 1.8.0, the Mods feature allows you to run an additional script when upgrading or installing an app.
-Just put the script in question with the App ID followed by the "-upgrade" or "-install" suffix in the "mods" folder.
+Just put the script in question with the App ID followed by the `-upgrade` or `-install` suffix in the "mods" folder.
 WAU will call `AppID-upgrade.ps1` and/or `AppID-install.ps1` (if they differs, otherwise the "-install" mod will be used for upgrades too) if it exists in the "mods" folder just after the upgrade/install.
 
 > Example:
@@ -108,7 +118,7 @@ If you want to run a script that removes the shortcut from "%PUBLIC%\Desktop" (w
 You can find more information on Winget-Install Repo, as it's a related feature
 
 ## Help
-In some cases, you need to "unblock" the "install.bat" file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.
+In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.
 
 ## Optimization
-Feel free to give us any suggestions or optimizations in code.
+Feel free to give us any suggestions or optimizations in code and support us by adding a star :)

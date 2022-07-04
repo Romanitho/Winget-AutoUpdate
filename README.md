@@ -116,7 +116,7 @@ You can find more information on Winget-Install Repo, as it's a related feature
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.
 
 ## Known issues
-* As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context
+* As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See https://github.com/Romanitho/Winget-AutoUpdate/issues/113
 
 ## Optimization
 Feel free to give us any suggestions or optimizations in code and support us by adding a star :)

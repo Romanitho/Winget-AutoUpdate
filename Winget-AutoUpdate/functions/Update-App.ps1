@@ -2,13 +2,16 @@
 
 Function Update-App ($app) {
 
+    #Get App Info
+    $OnClickAction = Get-AppInfo $app.Id
+
     #Send available update notification
     Write-Log "Updating $($app.Name) from $($app.Version) to $($app.AvailableVersion)..." "Cyan"
     $Title = $NotifLocale.local.outputs.output[2].title -f $($app.Name)
     $Message = $NotifLocale.local.outputs.output[2].message -f $($app.Version), $($app.AvailableVersion)
     $MessageType = "info"
     $Balise = $($app.Name)
-    Start-NotifTask $Title $Message $MessageType $Balise
+    Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
 
     #Winget upgrade
     Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
@@ -62,7 +65,7 @@ Function Update-App ($app) {
         $Message = $NotifLocale.local.outputs.output[3].message -f $($app.AvailableVersion)
         $MessageType = "success"
         $Balise = $($app.Name)
-        Start-NotifTask $Title $Message $MessageType $Balise
+        Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
 
         $Script:InstallOK += 1
         
@@ -77,7 +80,7 @@ Function Update-App ($app) {
         $Message = $NotifLocale.local.outputs.output[4].message
         $MessageType = "error"
         $Balise = $($app.Name)
-        Start-NotifTask $Title $Message $MessageType $Balise
+        Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
     
     }
 

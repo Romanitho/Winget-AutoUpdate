@@ -1,12 +1,17 @@
 #Function to send notifications to user
 
-function Start-NotifTask ($Title, $Message, $MessageType, $Balise) {
+function Start-NotifTask ($Title, $Message, $MessageType, $Balise, $OnClickAction) {
 
     if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success")) {
 
+        #Prepare OnClickAction (if set)
+        if ($OnClickAction){
+            $ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
+        }
+
         #Add XML variables
         [xml]$ToastTemplate = @"
-<toast launch="ms-get-started://redirect?id=apps_action">
+<toast $ToastOnClickAction>
     <visual>
         <binding template="ToastImageAndText03">
             <text id="1">$Title</text>

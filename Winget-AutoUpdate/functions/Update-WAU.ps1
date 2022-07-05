@@ -2,12 +2,14 @@
 
 function Update-WAU {
 
+    $OnClickAction = "https://github.com/Romanitho/Winget-AutoUpdate/releases"
+
     #Send available update notification
     $Title = $NotifLocale.local.outputs.output[2].title -f "Winget-AutoUpdate"
     $Message = $NotifLocale.local.outputs.output[2].message -f $WAUCurrentVersion, $WAUAvailableVersion
     $MessageType = "info"
     $Balise = "Winget-AutoUpdate"
-    Start-NotifTask $Title $Message $MessageType $Balise
+    Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
 
     #Run WAU update
     try {
@@ -52,7 +54,7 @@ function Update-WAU {
         $Message = $NotifLocale.local.outputs.output[3].message -f $WAUAvailableVersion
         $MessageType = "success"
         $Balise = "Winget-AutoUpdate"
-        Start-NotifTask $Title $Message $MessageType $Balise
+        Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
 
         #Rerun with newer version
         Write-Log "Re-run WAU"
@@ -69,7 +71,7 @@ function Update-WAU {
         $Message = $NotifLocale.local.outputs.output[4].message
         $MessageType = "error"
         $Balise = "Winget-AutoUpdate"
-        Start-NotifTask $Title $Message $MessageType $Balise
+        Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
         Write-Log "WAU Update failed" "Red"
     
     }

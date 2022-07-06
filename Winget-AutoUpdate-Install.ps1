@@ -64,7 +64,7 @@ param(
 
 <# APP INFO #>
 
-$WAUVersion = "1.12.0"
+$WAUVersion = "1.13.0"
 
 <# FUNCTIONS #>
 

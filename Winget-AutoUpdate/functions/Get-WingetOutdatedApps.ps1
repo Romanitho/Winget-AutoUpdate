@@ -10,7 +10,7 @@ function Get-WingetOutdatedApps {
 
     #Get list of available upgrades on winget format
     Write-Log "Checking application updates on Winget Repository..." "yellow"
-    $upgradeResult = & $Winget upgrade | Out-String
+    $upgradeResult = & $Winget upgrade --source winget | Out-String
 
     #Start Convertion of winget format to an array. Check if "-----" exists
     if (!($upgradeResult -match "-----")) {
@@ -36,18 +36,17 @@ function Get-WingetOutdatedApps {
     $idStart = $lines[$fl].IndexOf($index[1])
     $versionStart = $lines[$fl].IndexOf($index[2])
     $availableStart = $lines[$fl].IndexOf($index[3])
-    $sourceStart = $lines[$fl].IndexOf($index[4])
 
     # Now cycle in real package and split accordingly
     $upgradeList = @()
-    For ($i = $fl + 2; $i -le $lines.Length; $i++) {
+    For ($i = $fl + 2; $i -lt $lines.Length -1; $i++) {
         $line = $lines[$i]
-        if ($line.Length -gt ($sourceStart + 5) -and -not $line.Contains("--include-unknown")) {
+        if ($line) {
             $software = [Software]::new()
             $software.Name = $line.Substring(0, $idStart).TrimEnd()
             $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()
             $software.Version = $line.Substring($versionStart, $availableStart - $versionStart).TrimEnd()
-            $software.AvailableVersion = $line.Substring($availableStart, $sourceStart - $availableStart).TrimEnd()
+            $software.AvailableVersion = $line.Substring($availableStart).TrimEnd()
             #add formated soft to list
             $upgradeList += $software
         }

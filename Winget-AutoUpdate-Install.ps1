@@ -54,6 +54,7 @@ param(
     [Parameter(Mandatory = $False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
     [Parameter(Mandatory = $False)] [Switch] $DoNotUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
+    [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",

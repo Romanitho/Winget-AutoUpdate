@@ -18,7 +18,7 @@ function Get-WingetOutdatedApps {
     }
 
     #Split winget output to lines
-    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object { $_ }
+    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object { $_ -and $_ -notmatch "--include-unknown" }
 
     # Find the line that starts with "------"
     $fl = 0

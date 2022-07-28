@@ -19,6 +19,9 @@ Function Update-App ($app) {
     #Run Winget Upgrade command
     & $Winget upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
+    #Set mods to apply as an upgrade
+    $ModsMode = "Upgrade"
+
     #Check if application updated properly
     $CheckOutdated = Get-WingetOutdatedApps
     $FailedToUpgrade = $false
@@ -27,6 +30,9 @@ Function Update-App ($app) {
             
             #If app failed to upgrade, run Install command
             & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+
+            #Set mods to apply as an install
+            $ModsMode = "Install"
 
             #Check if application installed properly
             $CheckOutdated2 = Get-WingetOutdatedApps
@@ -42,9 +48,13 @@ Function Update-App ($app) {
 
         #Check if mods exist for install/upgrade
         $ModsInstall, $ModsUpgrade = Test-Mods $($app.Id)
-        if ($ModsUpgrade) {
+        if ($ModsMode = "Upgrade") {
             Write-Log "Modifications for $($app.Id) after upgrade are being applied..." "Yellow"
             & "$ModsUpgrade"
+        }
+        elseif ($ModsMode = "Install") {
+            Write-Log "Modifications for $($app.Id) after install are being applied..." "Yellow"
+            & "$ModsInstall"
         }
     }
 

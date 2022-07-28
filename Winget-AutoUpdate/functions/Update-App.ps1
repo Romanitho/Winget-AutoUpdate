@@ -48,11 +48,11 @@ Function Update-App ($app) {
 
         #Check if mods exist for install/upgrade
         $ModsInstall, $ModsUpgrade = Test-Mods $($app.Id)
-        if ($ModsMode = "Upgrade") {
+        if (($ModsUpgrade) -and ($ModsMode = "Upgrade")) {
             Write-Log "Modifications for $($app.Id) after upgrade are being applied..." "Yellow"
             & "$ModsUpgrade"
         }
-        elseif ($ModsMode = "Install") {
+        elseif (($ModsInstall) -and ($ModsMode = "Install")) {
             Write-Log "Modifications for $($app.Id) after install are being applied..." "Yellow"
             & "$ModsInstall"
         }

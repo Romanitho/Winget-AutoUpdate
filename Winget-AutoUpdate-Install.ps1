@@ -171,18 +171,18 @@ function Install-WingetAutoUpdate {
     Write-Host "`nInstalling WAU..." -ForegroundColor Yellow
 
     try {
-        #Copy files to location (and clean old install)
+        #Copy files to location (and clean old install, keeping critical files)
         if (!(Test-Path $WingetUpdatePath)) {
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
         }
         else {
-            Remove-Item -Path "$WingetUpdatePath\*" -Exclude *.log -Recurse -Force
+            Get-ChildItem -Path $WingetUpdatePath -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
         
         #White List or Black List apps
         if ($UseWhiteList) {
-            if (Test-Path "$PSScriptRoot\included_apps.txt") {
+            if ((Test-Path "$PSScriptRoot\included_apps.txt") -and !(Test-Path "$WingetUpdatePath\included_apps.txt")) {
                 Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
             }
             else {
@@ -280,9 +280,9 @@ function Uninstall-WingetAutoUpdate {
         #Get registry install location
         $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
         
-        #Check if installed location exists and delete
+        #Check if installed location exists and delete, keeping critical files
         if (Test-Path ($InstallLocation)) {
-            Remove-Item $InstallLocation -Force -Recurse
+            Get-ChildItem -Path $InstallLocation -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
             Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null

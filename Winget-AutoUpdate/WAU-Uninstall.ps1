@@ -16,9 +16,9 @@ try {
     #Get registry install location
     $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
     
-    #Check if installed location exists and delete
+    #Check if installed location exists and delete, keeping critical files
     if (Test-Path ($InstallLocation)) {
-        Remove-Item "$InstallLocation\*" -Force -Recurse -Exclude "*.log"
+        Get-ChildItem -Path $InstallLocation -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
         Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
         Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
         & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null

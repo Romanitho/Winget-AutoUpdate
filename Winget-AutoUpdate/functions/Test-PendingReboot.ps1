@@ -23,8 +23,6 @@ function Test-PendingReboot {
         #     PendingReboot = $PendingReboot
         # }
     }
-    $null = $WMI_Reg
-    $null = $SCCM_Namespace
 
     return $PendingReboot
 

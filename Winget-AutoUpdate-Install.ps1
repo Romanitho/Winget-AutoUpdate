@@ -188,7 +188,7 @@ function Install-WingetAutoUpdate {
             }
             else {
                 #Keep critical files
-                Get-ChildItem -Path $WingetUpdatePath -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
+                Get-ChildItem -Path $WingetUpdatePath -Exclude *.txt,mods,logs | Remove-Item -Recurse -Force
             }
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
@@ -203,7 +203,9 @@ function Install-WingetAutoUpdate {
             }
         }
         else {
-            Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+            if (!$NoClean) {
+                Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+            }
         }
 
         # Set dummy regkeys for notification name and icon
@@ -301,7 +303,7 @@ function Uninstall-WingetAutoUpdate {
             }
             else {
                 #Keep critical files
-                Get-ChildItem -Path $InstallLocation -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
+                Get-ChildItem -Path $InstallLocation -Exclude *.txt,mods,logs | Remove-Item -Recurse -Force
             }
             Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    

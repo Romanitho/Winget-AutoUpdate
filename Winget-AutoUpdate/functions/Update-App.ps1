@@ -30,7 +30,7 @@ Function Update-App ($app) {
             
             #Upgrade failed for a reason? Check for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
             $PendingReboot = Test-PendingReboot
-            if ($PendingReboot) {
+            if ($PendingReboot -eq $true) {
                 $FailedToUpgrade = $true
                 Write-Log "A Pending Reboot prohibited $($app.Id) from upgrading..." "Red"
             }

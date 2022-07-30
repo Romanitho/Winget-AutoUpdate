@@ -184,7 +184,7 @@ function Install-WingetAutoUpdate {
         }
         else {
             if (!$NoClean) {
-                Remove-Item "$WingetUpdatePath\*" -Force -Recurse -Exclude "*.log"
+                Remove-Item -Path "$WingetUpdatePath\*" -Exclude *.log -Recurse -Force
             }
             else {
                 #Keep critical files
@@ -299,7 +299,7 @@ function Uninstall-WingetAutoUpdate {
         if (Test-Path ($InstallLocation)) {
 
             if (!$NoClean) {
-                Remove-Item "$InstallLocation\*" -Force -Recurse -Exclude "*.log"
+                Remove-Item $InstallLocation -Force -Recurse
             }
             else {
                 #Keep critical files

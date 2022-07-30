@@ -28,17 +28,25 @@ Function Update-App ($app) {
     foreach ($CheckApp in $CheckOutdated) {
         if ($($CheckApp.Id) -eq $($app.Id)) {
             
-            #If app failed to upgrade, run Install command
-            & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+            #Upgrade failed for a reason? Check for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
+            $PendingReboot = Test-PendingReboot
+            if ($PendingReboot) {
+                $FailedToUpgrade = $true
+                Write-Log "A Pending Reboot prohibited $($app.Id) from upgrading..." "Red"
+            }
+            else {
+                #If app failed to upgrade, run Install command
+                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
-            #Set mods to apply as an install
-            $ModsMode = "Install"
+                #Set mods to apply as an install
+                $ModsMode = "Install"
 
-            #Check if application installed properly
-            $CheckOutdated2 = Get-WingetOutdatedApps
-            foreach ($CheckApp2 in $CheckOutdated2) {
-                if ($($CheckApp2.Id) -eq $($app.Id)) {
-                    $FailedToUpgrade = $true
+                #Check if application installed properly
+                $CheckOutdated2 = Get-WingetOutdatedApps
+                foreach ($CheckApp2 in $CheckOutdated2) {
+                    if ($($CheckApp2.Id) -eq $($app.Id)) {
+                        $FailedToUpgrade = $true
+                    }
                 }
             }
         }

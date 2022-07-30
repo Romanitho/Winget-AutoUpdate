@@ -50,7 +50,7 @@ Run WAU on metered connection. Default No.
 .\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
 
 .EXAMPLE
-.\WAU-Uninstall.ps1 -Silent -Uninstall -NoClean
+.\Winget-AutoUpdate-Install.ps1 -Silent -Uninstall -NoClean
 
 #>
 

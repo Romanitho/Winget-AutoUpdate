@@ -1,3 +1,24 @@
+<#
+.SYNOPSIS
+Uninstall Winget-AutoUpdate 
+
+.DESCRIPTION
+Uninstall Winget-AutoUpdate (DEFAULT: clean old install)
+https://github.com/Romanitho/Winget-AutoUpdate
+
+.PARAMETER NoClean
+Uninstall Winget-AutoUpdate (keep critical files)
+
+.EXAMPLE
+.\WAU-Uninstall.ps1 -NoClean
+
+#>
+
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $False)] [Switch] $NoClean = $false
+)
+
 Write-Host "`n"
 Write-Host "`t        888       888        d8888  888     888" -ForegroundColor Magenta
 Write-Host "`t        888   o   888       d88888  888     888" -ForegroundColor Magenta
@@ -16,9 +37,16 @@ try {
     #Get registry install location
     $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
     
-    #Check if installed location exists and delete, keeping critical files
+    #Check if installed location exists and delete
     if (Test-Path ($InstallLocation)) {
-        Get-ChildItem -Path $InstallLocation -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
+
+        if (!$NoClean) {
+            Remove-Item "$InstallLocation\*" -Force -Recurse -Exclude "*.log"
+        }
+        else {
+            #Keep critical files
+            Get-ChildItem -Path $InstallLocation -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
+        }
         Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
         Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
         & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null

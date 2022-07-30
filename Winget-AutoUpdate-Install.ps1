@@ -25,6 +25,9 @@ Use White List instead of Black List. This setting will not create the "exclude_
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.
 
+.PARAMETER NoClean
+Keep critical files when uninstalling
+
 .PARAMETER NotificationLevel
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
 
@@ -46,6 +49,9 @@ Run WAU on metered connection. Default No.
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
 
+.EXAMPLE
+.\WAU-Uninstall.ps1 -Silent -Uninstall -NoClean
+
 #>
 
 [CmdletBinding()]
@@ -56,6 +62,7 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
+    [Parameter(Mandatory = $False)] [Switch] $NoClean = $false,
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
@@ -171,12 +178,18 @@ function Install-WingetAutoUpdate {
     Write-Host "`nInstalling WAU..." -ForegroundColor Yellow
 
     try {
-        #Copy files to location (and clean old install, keeping critical files)
+        #Copy files to location (and clean old install)
         if (!(Test-Path $WingetUpdatePath)) {
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
         }
         else {
-            Get-ChildItem -Path $WingetUpdatePath -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
+            if (!$NoClean) {
+                Remove-Item "$WingetUpdatePath\*" -Force -Recurse -Exclude "*.log"
+            }
+            else {
+                #Keep critical files
+                Get-ChildItem -Path $WingetUpdatePath -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
+            }
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
         
@@ -280,9 +293,16 @@ function Uninstall-WingetAutoUpdate {
         #Get registry install location
         $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
         
-        #Check if installed location exists and delete, keeping critical files
+        #Check if installed location exists and delete
         if (Test-Path ($InstallLocation)) {
-            Get-ChildItem -Path $InstallLocation -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
+
+            if (!$NoClean) {
+                Remove-Item "$InstallLocation\*" -Force -Recurse -Exclude "*.log"
+            }
+            else {
+                #Keep critical files
+                Get-ChildItem -Path $InstallLocation -Exclude included_apps.txt,mods,logs | Remove-Item -Recurse -Force
+            }
             Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null

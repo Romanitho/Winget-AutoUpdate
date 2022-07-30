@@ -26,7 +26,7 @@ Use White List instead of Black List. This setting will not create the "exclude_
 Remove scheduled tasks and scripts.
 
 .PARAMETER NoClean
-Keep critical files when uninstalling
+Keep critical files when installing/uninstalling
 
 .PARAMETER NotificationLevel
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).

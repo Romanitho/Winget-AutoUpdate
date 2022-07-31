@@ -32,7 +32,7 @@ Function Update-App ($app) {
             $PendingReboot = Test-PendingReboot
             if ($PendingReboot -eq $true) {
                 $FailedToUpgrade = $true
-                Write-Log "A Pending Reboot prohibited $($app.Id) from upgrading..." "Red"
+                Write-Log "A Pending Reboot probably prohibited $($app.Id) from upgrading..." "Red"
             }
             else {
                 #If app failed to upgrade, run Install command

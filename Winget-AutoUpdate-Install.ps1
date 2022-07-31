@@ -25,6 +25,9 @@ Use White List instead of Black List. This setting will not create the "exclude_
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.
 
+.PARAMETER NoClean
+Keep critical files when installing/uninstalling
+
 .PARAMETER NotificationLevel
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
 
@@ -46,6 +49,9 @@ Run WAU on metered connection. Default No.
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
 
+.EXAMPLE
+.\Winget-AutoUpdate-Install.ps1 -Silent -Uninstall -NoClean
+
 #>
 
 [CmdletBinding()]
@@ -56,6 +62,7 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
+    [Parameter(Mandatory = $False)] [Switch] $NoClean = $false,
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
@@ -176,21 +183,34 @@ function Install-WingetAutoUpdate {
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
         }
         else {
-            Remove-Item -Path "$WingetUpdatePath\*" -Exclude *.log -Recurse -Force
+            if (!$NoClean) {
+                Remove-Item -Path "$WingetUpdatePath\*" -Exclude *.log -Recurse -Force
+            }
+            else {
+                #Keep critical files
+                Get-ChildItem -Path $WingetUpdatePath -Exclude *.txt,mods,logs | Remove-Item -Recurse -Force
+            }
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
         
         #White List or Black List apps
         if ($UseWhiteList) {
-            if (Test-Path "$PSScriptRoot\included_apps.txt") {
-                Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+            if (!$NoClean) {
+                if ((Test-Path "$PSScriptRoot\included_apps.txt")) {
+                    Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+                }
+                else {
+                    New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                }
             }
-            else {
+            elseif (!(Test-Path "$WingetUpdatePath\included_apps.txt")) {
                 New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
             }
         }
         else {
-            Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+            if (!$NoClean) {
+                Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+            }
         }
 
         # Set dummy regkeys for notification name and icon
@@ -282,7 +302,14 @@ function Uninstall-WingetAutoUpdate {
         
         #Check if installed location exists and delete
         if (Test-Path ($InstallLocation)) {
-            Remove-Item $InstallLocation -Force -Recurse
+
+            if (!$NoClean) {
+                Remove-Item $InstallLocation -Force -Recurse
+            }
+            else {
+                #Keep critical files
+                Get-ChildItem -Path $InstallLocation -Exclude *.txt,mods,logs | Remove-Item -Recurse -Force
+            }
             Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null

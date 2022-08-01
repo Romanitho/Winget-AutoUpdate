@@ -16,12 +16,6 @@ Function Update-App ($app) {
     #Winget upgrade
     Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
     
-    #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
-    $PendingReboot = Test-PendingReboot
-    if ($PendingReboot -eq $true) {
-        Write-Log "A Pending Reboot exists and can prohibit ugrades/installs..." "Yellow"
-    }
-
     #Run Winget Upgrade command
     & $Winget upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
@@ -34,7 +28,8 @@ Function Update-App ($app) {
     foreach ($CheckApp in $CheckOutdated) {
         if ($($CheckApp.Id) -eq $($app.Id)) {
             
-            #Upgrade failed for a reason?
+            #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
+            $PendingReboot = Test-PendingReboot
             if ($PendingReboot -eq $true) {
                 Write-Log "A Pending Reboot probably prohibited $($app.Id) from upgrading, now trying an install..." "Red"
             }
@@ -48,9 +43,9 @@ Function Update-App ($app) {
                 $CheckOutdated2 = Get-WingetOutdatedApps
                 foreach ($CheckApp2 in $CheckOutdated2) {
                     if ($($CheckApp2.Id) -eq $($app.Id)) {
-                        #Upgrade failed for a reason?
+                        #If app failed to install
                         if ($PendingReboot -eq $true) {
-                            Write-Log "...a Pending Reboot probably prohibited $($app.Id) from installing too..." "Red"
+                            Write-Log "...a Pending Reboot probably prohibited $($app.Id) also from installing..." "Red"
                         }
                         $FailedToUpgrade = $true
                     }

@@ -36,10 +36,8 @@ Function Update-App ($app) {
             
             #Upgrade failed for a reason?
             if ($PendingReboot -eq $true) {
-                $FailedToUpgrade = $true
-                Write-Log "A Pending Reboot probably prohibited $($app.Id) from upgrading..." "Red"
+                Write-Log "A Pending Reboot probably prohibited $($app.Id) from upgrading, now trying an install..." "Red"
             }
-            else {
                 #If app failed to upgrade, run Install command
                 & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
@@ -50,10 +48,13 @@ Function Update-App ($app) {
                 $CheckOutdated2 = Get-WingetOutdatedApps
                 foreach ($CheckApp2 in $CheckOutdated2) {
                     if ($($CheckApp2.Id) -eq $($app.Id)) {
+                        #Upgrade failed for a reason?
+                        if ($PendingReboot -eq $true) {
+                            Write-Log "...a Pending Reboot probably prohibited $($app.Id) from installing too..." "Red"
+                        }
                         $FailedToUpgrade = $true
                     }
                 }
-            }
         }
     }
 

@@ -16,6 +16,9 @@ Function Update-App ($app) {
     #Winget upgrade
     Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
     
+    #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
+    $PendingReboot = Test-PendingReboot
+
     #Run Winget Upgrade command
     & $Winget upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
@@ -28,28 +31,20 @@ Function Update-App ($app) {
     foreach ($CheckApp in $CheckOutdated) {
         if ($($CheckApp.Id) -eq $($app.Id)) {
             
-            #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
-            $PendingReboot = Test-PendingReboot
-            if ($PendingReboot -eq $true) {
-                Write-Log "A Pending Reboot probably prohibited $($app.Id) from upgrading, now trying an install..." "Red"
-            }
-                #If app failed to upgrade, run Install command
-                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+            #If app failed to upgrade, run Install command
+            & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
-                #Set mods to apply as an install
-                $ModsMode = "Install"
+            #Set mods to apply as an install
+            $ModsMode = "Install"
 
-                #Check if application installed properly
-                $CheckOutdated2 = Get-WingetOutdatedApps
-                foreach ($CheckApp2 in $CheckOutdated2) {
-                    if ($($CheckApp2.Id) -eq $($app.Id)) {
-                        #If app failed to install
-                        if ($PendingReboot -eq $true) {
-                            Write-Log "...a Pending Reboot probably prohibited $($app.Id) also from installing..." "Red"
-                        }
-                        $FailedToUpgrade = $true
-                    }
+            #Check if application installed properly
+            $CheckOutdated2 = Get-WingetOutdatedApps
+            foreach ($CheckApp2 in $CheckOutdated2) {
+                if ($($CheckApp2.Id) -eq $($app.Id)) {
+                    #If app failed to install
+                    $FailedToUpgrade = $true
                 }
+            }
         }
     }
 
@@ -87,6 +82,10 @@ Function Update-App ($app) {
         
     }
     else {
+
+        if ($PendingReboot -eq $true) {
+            Write-Log "A Pending Reboot probably prohibited $($app.Id) from upgrading..." "Red"
+        }
 
         #Send failed updated app notification
         Write-Log "$($app.Name) update failed." "Red"

@@ -16,9 +16,6 @@ Function Update-App ($app) {
     #Winget upgrade
     Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
     
-    #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
-    $PendingReboot = Test-PendingReboot
-
     #Run Winget Upgrade command
     & $Winget upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
@@ -31,7 +28,18 @@ Function Update-App ($app) {
     foreach ($CheckApp in $CheckOutdated) {
         if ($($CheckApp.Id) -eq $($app.Id)) {
             
+            #Upgrade failed!
+            #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
+            $PendingReboot = Test-PendingReboot
+            if ($PendingReboot -eq $true) {
+                Write-Log "A Pending Reboot lingers and probably prohibited $($app.Id) from upgrading..." "Red"
+                Write-Log "...an install for $($app.Id) is NOT executed!" "Red"
+                $FailedToUpgrade = $true
+                break
+            }
+    
             #If app failed to upgrade, run Install command
+            Write-Log "An upgrade for $($app.Id) failed, now trying an install..." "Yellow"
             & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
             #Set mods to apply as an install
@@ -41,7 +49,6 @@ Function Update-App ($app) {
             $CheckOutdated2 = Get-WingetOutdatedApps
             foreach ($CheckApp2 in $CheckOutdated2) {
                 if ($($CheckApp2.Id) -eq $($app.Id)) {
-                    #If app failed to install
                     $FailedToUpgrade = $true
                 }
             }
@@ -82,10 +89,6 @@ Function Update-App ($app) {
         
     }
     else {
-
-        if ($PendingReboot -eq $true) {
-            Write-Log "A Pending Reboot probably prohibited $($app.Id) from upgrading..." "Red"
-        }
 
         #Send failed updated app notification
         Write-Log "$($app.Name) update failed." "Red"

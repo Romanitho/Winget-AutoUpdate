@@ -52,5 +52,5 @@ function Get-WingetOutdatedApps {
         }
     }
 
-    return $upgradeList
+    return $upgradeList | Sort-Object {Get-Random}
 }

@@ -204,11 +204,19 @@ function Install-WingetAutoUpdate {
                 }
             }
             elseif (!(Test-Path "$WingetUpdatePath\included_apps.txt")) {
-                New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                if ((Test-Path "$PSScriptRoot\included_apps.txt")) {
+                    Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+                }
+                else {
+                    New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                }
             }
         }
         else {
             if (!$NoClean) {
+                Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            elseif (!(Test-Path "$WingetUpdatePath\excluded_apps.txt")) {
                 Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
             }
         }

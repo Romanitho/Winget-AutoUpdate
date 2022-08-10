@@ -17,7 +17,8 @@ Function Update-App ($app) {
     Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
     
     #Run Winget Upgrade command
-    & $Winget upgrade --id $($app.Id) --all --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+    Write-Log "-> Running: Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
+    & $Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
     #Set mods to apply as an upgrade
     $ModsMode = "Upgrade"
@@ -32,13 +33,14 @@ Function Update-App ($app) {
             #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
             $PendingReboot = Test-PendingReboot
             if ($PendingReboot -eq $true) {
-                Write-Log "A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n...an install for $($app.Name) is NOT executed!" "Red"
+                Write-Log "-> A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n...an install for $($app.Name) is NOT executed!" "Red"
                 $FailedToUpgrade = $true
                 break
             }
     
             #If app failed to upgrade, run Install command
-            Write-Log "An upgrade for $($app.Name) failed, now trying an install..." "Yellow"
+            Write-Log "-> An upgrade for $($app.Name) failed, now trying an install instead..." "Yellow"
+            Write-Log "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
             & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
             #Set mods to apply as an install

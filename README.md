@@ -82,9 +82,11 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 **-UseWhiteList**  
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
+**-NoClean**  
+Keep critical files when installing/uninstalling. This setting will keep "exclude_apps.txt", "include_apps.txt", "mods" and "logs" as they were.
+
 **-NotificationLevel**  
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
-
 
 **-UpdatesAtLogon**  
 Set WAU to run at user logon.

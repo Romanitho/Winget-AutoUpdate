@@ -21,7 +21,7 @@ if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {
 
 #Run Scope Machine funtion if run as system
 if ([System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) {
-    $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\settings.json"
+    $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\defaultState\settings.json"
     Add-ScopeMachine $SettingsPath
 }
 

@@ -3,7 +3,7 @@
 Function Get-WingetCmd {
 
     #Get WinGet Path (if admin context)
-    $ResolveWingetPath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe"
+    $ResolveWingetPath = Resolve-Path "C:\Program Files\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe" | Sort-Object -Property {$_.Path -as [int]}
     if ($ResolveWingetPath) {
         #If multiple version, pick last one
         $WingetPath = $ResolveWingetPath[-1].Path

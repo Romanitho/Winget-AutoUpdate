@@ -193,6 +193,12 @@ function Install-WingetAutoUpdate {
             }
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+
+        #White List or Black List source not Local if differs
+        if ($WingetUpdatePath -ne $ListPath){
+            Test-ListPath $ListPath $UseWhiteList
+        }
+        
         
         #White List or Black List apps
         if ($UseWhiteList) {

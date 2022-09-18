@@ -10,9 +10,10 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
     }
     $Path = $ListPath
     $PathInfo=[System.Uri]$Path
-    $ListPath = -join($Path, "\", "$ListType", "_apps.txt")
+
     if($PathInfo.IsUnc){
         $PathType="UNC Path"
+        $ListPath = -join($Path, "\", "$ListType", "_apps.txt")
         if(Test-Path -Path $ListPath -PathType leaf){
             Write-Output "Given path $Path type is $PathType and $ListPath is available..."
             }
@@ -20,17 +21,20 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
             Write-Output "Given path $Path type is $PathType and $ListPath is not available..."
         }
     }
-    elseif ($ListPath -like "http"){
+    elseif ($ListPath -like "http*"){
+        $PathType="Web Path"
+        $ListPath = -join($Path, "/", "$ListType", "_apps.txt")
         $wc = New-Object System.Net.WebClient
         try {
-            $wc.OpenRead('http://www.domain.com/test.csv') | Out-Null
-            Write-Output 'File Exists'
+            $wc.OpenRead("$ListPath") | Out-Null
+            Write-Output "Given path $Path type is $PathType and $ListPath is available..."
         } catch {
-            Write-Output 'Error / Not Found'
+            Write-Output "Given path $Path type is $PathType and $ListPath is not available..."
         }
     }
     else {
         $PathType="Local Path"
+        $ListPath = -join($Path, "\", "$ListType", "_apps.txt")
         if(Test-Path -Path $ListPath -PathType leaf){
             Write-Output "Given path $Path type is $PathType and $ListPath is available..."
             }
@@ -41,10 +45,10 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
 
 }
 
-$WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate"
-$ListPath = "D:\Temp"
-$UseWhiteList = $true
-#White List or Black List in share/online if differs
-if ($WingetUpdatePath -ne $ListPath){
-    Test-ListPath $ListPath $UseWhiteList
-}
+# $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate"
+# $ListPath = "https://www.knifmelti.se"
+# $UseWhiteList = $true
+# #White List or Black List in share/online if differs
+# if ($WingetUpdatePath -ne $ListPath){
+#     Test-ListPath $ListPath $UseWhiteList
+# }

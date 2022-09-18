@@ -58,6 +58,7 @@ Run WAU on metered connection. Default No.
 param(
     [Parameter(Mandatory = $False)] [Alias('S')] [Switch] $Silent = $false,
     [Parameter(Mandatory = $False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
+    [Parameter(Mandatory = $False)] [Alias('List')] [String] $ListPath = $WingetUpdatePath,
     [Parameter(Mandatory = $False)] [Switch] $DoNotUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,

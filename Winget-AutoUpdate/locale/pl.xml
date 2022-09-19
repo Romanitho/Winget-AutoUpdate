@@ -2,33 +2,33 @@
 	<outputs>
 		<output id="0">
 			<!--Check network connection-->
-			<title>Check network connection.</title>
+			<title>Sprawdź połączenie z siecią.</title>
 			<!--Unable to check for software updates at this time!-->
-			<message>Unable to check for software updates at this time!</message>
+			<message>Nie można sprawdzić dostępności aktualizacji!</message>
 		</output>
 		<output id="1">
 			<!--No internet connection-->
-			<title>No internet connection.</title>
+			<title>Brak połączenia z internetem.</title>
 			<!--Updates could not be verified-->
-			<message>Updates could not be verified.</message>
+			<message>Nie można zweryfikować aktualizacji.</message>
 		</output>
 		<output id="2">
 			<!--{App} will be updated-->
-			<title>{0} will be updated!</title>
+			<title>Aktualizowanie {0}!</title>
 			<!--{v1.0} to {v2.0}-->
-			<message>{0} to {1}</message>
+			<message>z {0} do {1}</message>
 		</output>
 		<output id="3">
 			<!--{App} updated-->
-			<title>{0} updated.</title>
+			<title>Zaktualizowano {0}.</title>
 			<!--Installed version: {v1.0}-->
-			<message>Installed version: {0}</message>
+			<message>Zainstalowana wersja: {0}</message>
 		</output>
 		<output id="4">
 			<!--{App} could not be updated-->
-			<title>{0} could not be updated!</title>
+			<title>Nie można zaktualizować {0}!</title>
 			<!--Please contact support-->
-			<message>Please contact support.</message>
+			<message>Skontaktuj się z pomocą techniczną.</message>
 		</output>
 	</outputs>
 </local>

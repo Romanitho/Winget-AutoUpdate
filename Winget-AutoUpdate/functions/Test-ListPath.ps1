@@ -9,7 +9,6 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
         $ListType="excluded"
     }
     $LocalList = -join($WingetUpdatePath, "\", $ListType, "_apps.txt")
-    $ExternalList = $ListPath
     $PathInfo=[System.Uri]$ListPath
 
     if($PathInfo.IsUnc){
@@ -17,11 +16,10 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
         $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
         if(Test-Path -Path $ExternalList -PathType leaf){
             Write-Output "Given path $ListPath type is $PathType and $ExternalList is available..."
-
             $dateLocal = (Get-Item "$LocalList").LastWriteTime 
             $dateExternal = (Get-Item "$ListPath").LastWriteTime
             if ($dateExternal -gt $dateLocal) {
-                Write-Host("$ExternalList was modified after $LocalList")
+                Write-Host("$ExternalList is newer than $LocalList")
             }
         }
         else {
@@ -33,8 +31,13 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
         $ExternalList = -join($ListPath, "/", $ListType, "_apps.txt")
         $wc = New-Object System.Net.WebClient
         try {
-            $wc.OpenRead("$ExternalList") | Out-Null
+            $wc.OpenRead("$ExternalList").Close() | Out-Null
             Write-Output "Given path $ListPath type is $PathType and $ExternalList is available..."
+            $dateLocal = (Get-Item "$LocalList").LastWriteTime 
+            $dateExternal = $wc.ResponseHeaders['Last-Modified']
+            if ($dateExternal -gt $dateLocal) {
+                Write-Host("$ExternalList is newer than $LocalList")
+            }
         }
         catch {
             Write-Output "Given path $ListPath type is $PathType and $ExternalList is not available..."
@@ -45,11 +48,10 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
         $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
         if(Test-Path -Path $ExternalList -PathType leaf){
             Write-Output "Given path $ListPath type is $PathType and $ExternalList is available..."
-
             $dateLocal = (Get-Item "$LocalList").LastWriteTime 
             $dateExternal = (Get-Item "$ListPath").LastWriteTime
             if ($dateExternal -gt $dateLocal) {
-                Write-Host("$ExternalList was modified after $LocalList")
+                Write-Host("$ExternalList is newer than $LocalList")
             }
         }
         else {
@@ -59,8 +61,8 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
 }
 
 $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate"
-$ListPath = "D:\Temp"
-$UseWhiteList = $false
+$ListPath = "https://www.knifmelti.se"
+#$UseWhiteList = $true
 #White List or Black List in share/online if differs
 if ($WingetUpdatePath -ne $ListPath){
     Test-ListPath $ListPath $UseWhiteList

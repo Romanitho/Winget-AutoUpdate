@@ -1,54 +1,67 @@
 #Function to check Black/White List Path
 
 function Test-ListPath ($ListPath, $UseWhiteList) {
-    # UNC or Local Path
+    # UNC, Web or Local Path
     if ($UseWhiteList){
         $ListType="included"
     }
     else {
         $ListType="excluded"
     }
-    $Path = $ListPath
-    $PathInfo=[System.Uri]$Path
+    $LocalList = -join($WingetUpdatePath, "\", $ListType, "_apps.txt")
+    $ExternalList = $ListPath
+    $PathInfo=[System.Uri]$ListPath
 
     if($PathInfo.IsUnc){
         $PathType="UNC Path"
-        $ListPath = -join($Path, "\", "$ListType", "_apps.txt")
-        if(Test-Path -Path $ListPath -PathType leaf){
-            Write-Output "Given path $Path type is $PathType and $ListPath is available..."
+        $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
+        if(Test-Path -Path $ExternalList -PathType leaf){
+            Write-Output "Given path $ListPath type is $PathType and $ExternalList is available..."
+
+            $dateLocal = (Get-Item "$LocalList").LastWriteTime 
+            $dateExternal = (Get-Item "$ListPath").LastWriteTime
+            if ($dateExternal -gt $dateLocal) {
+                Write-Host("$ExternalList was modified after $LocalList")
             }
+        }
         else {
-            Write-Output "Given path $Path type is $PathType and $ListPath is not available..."
+            Write-Output "Given path $ListPath type is $PathType and $ExternalList is not available..."
         }
     }
     elseif ($ListPath -like "http*"){
         $PathType="Web Path"
-        $ListPath = -join($Path, "/", "$ListType", "_apps.txt")
+        $ExternalList = -join($ListPath, "/", $ListType, "_apps.txt")
         $wc = New-Object System.Net.WebClient
         try {
-            $wc.OpenRead("$ListPath") | Out-Null
-            Write-Output "Given path $Path type is $PathType and $ListPath is available..."
-        } catch {
-            Write-Output "Given path $Path type is $PathType and $ListPath is not available..."
+            $wc.OpenRead("$ExternalList") | Out-Null
+            Write-Output "Given path $ListPath type is $PathType and $ExternalList is available..."
+        }
+        catch {
+            Write-Output "Given path $ListPath type is $PathType and $ExternalList is not available..."
         }
     }
     else {
         $PathType="Local Path"
-        $ListPath = -join($Path, "\", "$ListType", "_apps.txt")
-        if(Test-Path -Path $ListPath -PathType leaf){
-            Write-Output "Given path $Path type is $PathType and $ListPath is available..."
+        $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
+        if(Test-Path -Path $ExternalList -PathType leaf){
+            Write-Output "Given path $ListPath type is $PathType and $ExternalList is available..."
+
+            $dateLocal = (Get-Item "$LocalList").LastWriteTime 
+            $dateExternal = (Get-Item "$ListPath").LastWriteTime
+            if ($dateExternal -gt $dateLocal) {
+                Write-Host("$ExternalList was modified after $LocalList")
             }
+        }
         else {
-            Write-Output "Given path $Path type is $PathType and $ListPath is not available..."
+            Write-Output "Given path $ListPath type is $PathType and $ExternalList is not available..."
         }
     }
-
 }
 
-# $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate"
-# $ListPath = "https://www.knifmelti.se"
-# $UseWhiteList = $true
-# #White List or Black List in share/online if differs
-# if ($WingetUpdatePath -ne $ListPath){
-#     Test-ListPath $ListPath $UseWhiteList
-# }
+$WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate"
+$ListPath = "D:\Temp"
+$UseWhiteList = $false
+#White List or Black List in share/online if differs
+if ($WingetUpdatePath -ne $ListPath){
+    Test-ListPath $ListPath $UseWhiteList
+}

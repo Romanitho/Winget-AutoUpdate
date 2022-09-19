@@ -196,7 +196,7 @@ function Install-WingetAutoUpdate {
 
         #White List or Black List source not Local if differs
         if ($WingetUpdatePath -ne $ListPath){
-            Test-ListPath $ListPath $UseWhiteList
+            $NoClean = Test-ListPath $ListPath $UseWhiteList
         }
         
         

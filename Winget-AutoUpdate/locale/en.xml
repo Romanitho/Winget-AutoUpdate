@@ -7,8 +7,8 @@
 			<message>Unable to check for software updates at this time!</message>
 		</output>
 		<output id="1">
-			<!--No internet connction-->
-			<title>No internet connction.</title>
+			<!--No internet connection-->
+			<title>No internet connection.</title>
 			<!--Updates could not be verified-->
 			<message>Updates could not be verified.</message>
 		</output>

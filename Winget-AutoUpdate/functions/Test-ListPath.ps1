@@ -12,11 +12,11 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
     if (Test-Path "$LocalList") {
         $dateLocal = (Get-Item "$LocalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
     }
+    $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
     $PathInfo=[System.Uri]$ListPath
 
     if($PathInfo.IsUnc){
         $PathType="UNC Path"
-        $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
         if(Test-Path -Path $ExternalList -PathType leaf){
             Write-Host "Given path $ListPath type is $PathType and $ExternalList is available..."
             $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
@@ -48,7 +48,6 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
     }
     else {
         $PathType="Local Path"
-        $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
         if(Test-Path -Path $ExternalList -PathType leaf){
             Write-Host "Given path $ListPath type is $PathType and $ExternalList is available..."
             $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
@@ -68,8 +67,8 @@ $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate"
 $ListPath = "https://www.knifmelti.se"
 #$ListPath = "D:\Temp"
 #$ListPath = "\\TempSERVER"
-
 #$UseWhiteList = $true
+
 #White List or Black List in share/online if differs
 if ($WingetUpdatePath -ne $ListPath){
     $NoClean = Test-ListPath $ListPath $UseWhiteList

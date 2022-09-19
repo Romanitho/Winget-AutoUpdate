@@ -1,4 +1,4 @@
-#Function to check Black/White List Path
+#Function to check Black/White List External Path
 
 function Test-ListPath ($ListPath, $UseWhiteList) {
     # UNC, Web or Local Path
@@ -24,11 +24,9 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
                 Write-Host("$ExternalList is newer than $LocalList")
                 return $true
             }
-            return $false
         }
         else {
             Write-Host "Given path $ListPath type is $PathType and $ExternalList is not available..."
-            return $false
         }
     }
     elseif ($ListPath -like "http*"){
@@ -43,11 +41,9 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
                 Write-Host("$ExternalList is newer than $LocalList")
                 return $true
             }
-            return $false
         }
         catch {
             Write-Host "Given path $ListPath type is $PathType and $ExternalList is not available..."
-            return $false
         }
     }
     else {
@@ -60,18 +56,19 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
                 Write-Host("$ExternalList is newer than $LocalList")
                 return $true
             }
-            return $false
         }
         else {
             Write-Host "Given path $ListPath type is $PathType and $ExternalList is not available..."
-            return $false
         }
     }
+    return $false
 }
 
 $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate"
 $ListPath = "https://www.knifmelti.se"
 #$ListPath = "D:\Temp"
+#$ListPath = "\\TempSERVER"
+
 #$UseWhiteList = $true
 #White List or Black List in share/online if differs
 if ($WingetUpdatePath -ne $ListPath){

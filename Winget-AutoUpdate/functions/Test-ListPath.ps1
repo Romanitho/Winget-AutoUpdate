@@ -9,6 +9,7 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
         $ListType="excluded"
     }
     $LocalList = -join($WingetUpdatePath, "\", $ListType, "_apps.txt")
+    $dateLocal = (Get-Item "$LocalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
     $PathInfo=[System.Uri]$ListPath
 
     if($PathInfo.IsUnc){
@@ -16,7 +17,6 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
         $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
         if(Test-Path -Path $ExternalList -PathType leaf){
             Write-Output "Given path $ListPath type is $PathType and $ExternalList is available..."
-            $dateLocal = (Get-Item "$LocalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
             $dateExternal = (Get-Item "$ListPath").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
             if ($dateExternal -gt $dateLocal) {
                 Write-Host("$ExternalList is newer than $LocalList")
@@ -33,7 +33,6 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
         try {
             $wc.OpenRead("$ExternalList").Close() | Out-Null
             Write-Output "Given path $ListPath type is $PathType and $ExternalList is available..."
-            $dateLocal = (Get-Item "$LocalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
             $dateExternal = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
             if ($dateExternal -gt $dateLocal) {
                 Write-Host("$ExternalList is newer than $LocalList")
@@ -48,7 +47,6 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
         $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
         if(Test-Path -Path $ExternalList -PathType leaf){
             Write-Output "Given path $ListPath type is $PathType and $ExternalList is available..."
-            $dateLocal = (Get-Item "$LocalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
             $dateExternal = (Get-Item "$ListPath").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
             if ($dateExternal -gt $dateLocal) {
                 Write-Host("$ExternalList is newer than $LocalList")

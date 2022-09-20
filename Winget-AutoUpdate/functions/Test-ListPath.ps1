@@ -1,6 +1,6 @@
 #Function to check Black/White List External Path
 
-function Test-ListPath ($ListPath, $UseWhiteList) {
+function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
     # UNC, Web or Local Path
     if ($UseWhiteList){
         $ListType="included"
@@ -74,7 +74,7 @@ function Test-ListPath ($ListPath, $UseWhiteList) {
 
 # #White List or Black List in share/online if differs
 # if ($WingetUpdatePath -ne $ListPath){
-#     $NoClean = Test-ListPath $ListPath $UseWhiteList
+#     $NoClean = Test-ListPath $ListPath $UseWhiteList $WingetUpdatePath
 # }
 
 # Write-Host $NoClean

@@ -71,7 +71,7 @@ You can run the `winget-install-and-update.ps1` script with parameters :
 Install Winget-AutoUpdate and prerequisites silently
 
 **-WingetUpdatePath**  
-Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate\` (Recommended to leave default)
+Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default)
 
 **-DoNotUpdate**  
 Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate is run just after installation.
@@ -83,7 +83,7 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt"
 
 **-ListPath**  
-Get Black/White List from Path (UNC/Web/Local). Default: `C:\ProgramData\Winget-AutoUpdate\` (copy/download to Winget-AutoUpdate installation location if external list is newer)
+Get Black/White List from Path (UNC/Web/Local). Default: `C:\ProgramData\Winget-AutoUpdate` (copy/download to Winget-AutoUpdate installation location if external list is newer)
 
 **-NoClean**  
 Keep critical files when installing/uninstalling. This setting will keep "excluded_apps.txt", "included_apps.txt", "mods" and "logs" as they were.

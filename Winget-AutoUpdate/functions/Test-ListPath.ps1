@@ -65,16 +65,3 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
     }
     return $false
 }
-
-# $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate"
-# $ListPath = "https://www.knifmelti.se"
-# #$ListPath = "D:\Temp"
-# #$ListPath = "\\TempSERVER"
-# #$UseWhiteList = $true
-
-# #White List or Black List in share/online if differs
-# if ($WingetUpdatePath -ne $ListPath){
-#     $NoClean = Test-ListPath $ListPath $UseWhiteList $WingetUpdatePath
-# }
-
-# Write-Host $NoClean

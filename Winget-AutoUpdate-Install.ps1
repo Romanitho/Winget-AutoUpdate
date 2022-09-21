@@ -23,7 +23,7 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto update if new ve
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
 .PARAMETER ListPath
-Get Black/White List from Path (UNC/Web/Local). Default: C:\ProgramData\Winget-AutoUpdate\
+Get Black/White List from Path (UNC/Web/Local). Default: C:\ProgramData\Winget-AutoUpdate
 
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.

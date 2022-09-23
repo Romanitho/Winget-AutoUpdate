@@ -1,36 +1,26 @@
 #Function to check Black/White List External Path
 
 function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
-    # UNC, Web or Local Path
+    # URL, UNC or Local Path
     if ($UseWhiteList){
-        $ListType="included"
+        $ListType="included_apps.txt"
     }
     else {
-        $ListType="excluded"
+        $ListType="excluded_apps.txt"
     }
-    $LocalList = -join($WingetUpdatePath, "\", $ListType, "_apps.txt")
+
+    # Get local and external list paths
+    $LocalList = -join($WingetUpdatePath, "\", $ListType)
+    $ExternalList = -join($ListPath, "\", $ListType)
+
+    # Check if a list exists
     if (Test-Path "$LocalList") {
         $dateLocal = (Get-Item "$LocalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
     }
-    $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
-    $PathInfo=[System.Uri]$ListPath
 
-    if($PathInfo.IsUnc){
-        if(Test-Path -Path $ExternalList -PathType leaf){
-            $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
-            if ($dateExternal -gt $dateLocal) {
-                try {
-                    Copy-Item $ExternalList -Destination $LocalList -Force
-                }
-                catch {
-                    return $False
-                }
-                return $true
-            }
-        }
-    }
-    elseif ($ListPath -like "http*"){
-        $ExternalList = -join($ListPath, "/", $ListType, "_apps.txt")
+    # If path is URL
+    if ($ListPath -like "http*"){
+        $ExternalList = -join($ListPath, "/", $ListType)
         $wc = New-Object System.Net.WebClient
         try {
             $wc.OpenRead("$ExternalList").Close() | Out-Null
@@ -49,6 +39,7 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
             return $False
         }
     }
+    # If path is UNC or local
     else {
         if(Test-Path -Path $ExternalList -PathType leaf){
             $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")

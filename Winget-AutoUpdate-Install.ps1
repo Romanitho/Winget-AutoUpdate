@@ -23,7 +23,7 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto update if new ve
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
 .PARAMETER ListPath
-Get Black/White List from Path (UNC/Web/Local). Default: C:\ProgramData\Winget-AutoUpdate
+Get Black/White List from Path (URL/UNC/Local)
 
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.
@@ -64,7 +64,7 @@ Run WAU on metered connection. Default No.
 param(
     [Parameter(Mandatory = $False)] [Alias('S')] [Switch] $Silent = $false,
     [Parameter(Mandatory = $False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
-    [Parameter(Mandatory = $False)] [Alias('List')] [String] $ListPath = $WingetUpdatePath,
+    [Parameter(Mandatory = $False)] [Alias('List')] [String] $ListPath,
     [Parameter(Mandatory = $False)] [Switch] $DoNotUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
@@ -180,72 +180,6 @@ function Install-WinGet {
 
 }
 
-function Test-ListPath ($ListPath, $UseWhiteList) {
-    # UNC, Web or Local Path
-    if ($UseWhiteList){
-        $ListType="included"
-    }
-    else {
-        $ListType="excluded"
-    }
-    $LocalList = -join($WingetUpdatePath, "\", $ListType, "_apps.txt")
-    if (Test-Path "$LocalList") {
-        $dateLocal = (Get-Item "$LocalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
-    }
-    $ExternalList = -join($ListPath, "\", $ListType, "_apps.txt")
-    $PathInfo=[System.Uri]$ListPath
-
-    if($PathInfo.IsUnc){
-        if(Test-Path -Path $ExternalList -PathType leaf){
-            $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
-            if ($dateExternal -gt $dateLocal) {
-                try {
-                    Copy-Item $ExternalList -Destination $LocalList -Force
-                }
-                catch {
-                    return $False
-                }
-                return $true
-            }
-        }
-    }
-    elseif ($ListPath -like "http*"){
-        $ExternalList = -join($ListPath, "/", $ListType, "_apps.txt")
-        $wc = New-Object System.Net.WebClient
-        try {
-            $wc.OpenRead("$ExternalList").Close() | Out-Null
-            $dateExternal = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
-            if ($dateExternal -gt $dateLocal) {
-                try {
-                    $wc.DownloadFile($ExternalList, $LocalList)
-                }
-                catch {
-                    return $False
-                }
-                return $true
-            }
-        }
-        catch {
-            return $False
-        }
-    }
-    else {
-        if(Test-Path -Path $ExternalList -PathType leaf){
-            $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
-            if ($dateExternal -gt $dateLocal) {
-                try {
-                    Copy-Item $ExternalList -Destination $LocalList -Force
-                }
-                catch {
-                    return $False
-                }
-                return $true
-            }
-        }
-    }
-    return $false
-}
-
 function Install-WingetAutoUpdate {
 
     Write-Host "`nInstalling WAU..." -ForegroundColor Yellow
@@ -254,17 +188,8 @@ function Install-WingetAutoUpdate {
         #Copy files to location (and clean old install)
         if (!(Test-Path $WingetUpdatePath)) {
             New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
-            #White List or Black List source not Local if differs
-            if ($WingetUpdatePath -ne $ListPath){
-                $NoClean = Test-ListPath $ListPath $UseWhiteList
-            }
-
         }
         else {
-            #White List or Black List source not Local if differs
-            if ($WingetUpdatePath -ne $ListPath){
-                $NoClean = Test-ListPath $ListPath $UseWhiteList
-            }
             if (!$NoClean) {
                 Remove-Item -Path "$WingetUpdatePath\*" -Exclude *.log -Recurse -Force
             }
@@ -282,7 +207,9 @@ function Install-WingetAutoUpdate {
                     Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
                 }
                 else {
-                    New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                    if (!$ListPath){
+                        New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                    }
                 }
             }
             elseif (!(Test-Path "$WingetUpdatePath\included_apps.txt")) {
@@ -290,7 +217,9 @@ function Install-WingetAutoUpdate {
                     Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
                 }
                 else {
-                    New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                    if (!$ListPath){
+                        New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                    }
                 }
             }
         }
@@ -348,7 +277,7 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
         New-ItemProperty $regPath -Name DisplayVersion -Value $WAUVersion -Force | Out-Null
         New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force | Out-Null
-        if ($WingetUpdatePath -ne $ListPath){
+        if ($ListPath){
             New-ItemProperty $regPath -Name ListPath -Value $ListPath -Force | Out-Null
         }
         New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null

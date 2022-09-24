@@ -22,6 +22,9 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto update if new ve
 .PARAMETER UseWhiteList
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
+.PARAMETER ListPath
+Get Black/White List from Path (URL/UNC/Local)
+
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.
 
@@ -47,6 +50,9 @@ Run WAU on metered connection. Default No.
 .\winget-install-and-update.ps1 -Silent -UseWhiteList
 
 .EXAMPLE
+.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists
+
+.EXAMPLE
 .\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
 
 .EXAMPLE
@@ -58,6 +64,7 @@ Run WAU on metered connection. Default No.
 param(
     [Parameter(Mandatory = $False)] [Alias('S')] [Switch] $Silent = $false,
     [Parameter(Mandatory = $False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
+    [Parameter(Mandatory = $False)] [Alias('List')] [String] $ListPath,
     [Parameter(Mandatory = $False)] [Switch] $DoNotUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
@@ -192,7 +199,7 @@ function Install-WingetAutoUpdate {
             }
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
-        
+
         #White List or Black List apps
         if ($UseWhiteList) {
             if (!$NoClean) {
@@ -200,7 +207,9 @@ function Install-WingetAutoUpdate {
                     Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
                 }
                 else {
-                    New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                    if (!$ListPath){
+                        New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                    }
                 }
             }
             elseif (!(Test-Path "$WingetUpdatePath\included_apps.txt")) {
@@ -208,7 +217,9 @@ function Install-WingetAutoUpdate {
                     Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
                 }
                 else {
-                    New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                    if (!$ListPath){
+                        New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
+                    }
                 }
             }
         }
@@ -266,6 +277,9 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
         New-ItemProperty $regPath -Name DisplayVersion -Value $WAUVersion -Force | Out-Null
         New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force | Out-Null
+        if ($ListPath){
+            New-ItemProperty $regPath -Name ListPath -Value $ListPath -Force | Out-Null
+        }
         New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null
         New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null
         New-ItemProperty $regPath -Name NoModify -Value 1 -Force | Out-Null

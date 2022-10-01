@@ -318,6 +318,9 @@ function Install-WingetAutoUpdate {
             New-ItemProperty $regPath -Name ListPath -Value $ListPath -Force | Out-Null
         }
 
+        #Create Shortcut
+        Add-Shortcut "${env:SystemRoot}\System32\WindowsPowerShell\v1.0\powershell.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU).lnk" "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\user-start.ps1`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+
         Write-host "WAU Installation succeeded!" -ForegroundColor Green
         Start-sleep 1
         
@@ -359,8 +362,9 @@ function Uninstall-WingetAutoUpdate {
                 [System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) has been uninstalled.", "Information", 1)
                 [System.Diagnostics.EventLog]::DeleteEventSource("Winget-AutoUpdate (WAU)")
             }
+            Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU).lnk" -Force | Out-Null
 
-        Write-host "Uninstallation succeeded!" -ForegroundColor Green
+            Write-host "Uninstallation succeeded!" -ForegroundColor Green
             Start-sleep 1
         }
         else {
@@ -409,6 +413,16 @@ function Start-WingetAutoUpdate {
     else {
         Write-host "Skip running Winget-AutoUpdate"
     }
+}
+
+function Add-Shortcut ($Target, $Shortcut, $Arguments, $Icon, $Description) {
+    $WScriptShell = New-Object -ComObject WScript.Shell
+    $Shortcut = $WScriptShell.CreateShortcut($Shortcut)
+    $Shortcut.TargetPath = $Target
+    $Shortcut.Arguments = $Arguments
+    $Shortcut.IconLocation = $Icon
+    $Shortcut.Description = $Description
+    $Shortcut.Save()
 }
 
 

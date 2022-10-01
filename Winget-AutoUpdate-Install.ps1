@@ -236,6 +236,12 @@ function Install-WingetAutoUpdate {
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f | Out-Null
 
+        # Register WAU in the log system if it doesn't already exist
+        if ([System.Diagnostics.EventLog]::SourceExists("Winget-AutoUpdate (WAU)") -eq $False) {
+            [System.Diagnostics.EventLog]::CreateEventSource("Winget-AutoUpdate (WAU)", "Application")
+            [System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) have been installed.", "Information", 1)
+        }
+
         # Settings for the scheduled task for Updates
         $taskAction = New-ScheduledTaskAction –Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
         $taskTriggers = @()
@@ -254,6 +260,17 @@ function Install-WingetAutoUpdate {
         elseif ($UpdatesInterval -eq "Monthly") {
             $tasktriggers += New-ScheduledTaskTrigger -Weekly -At 6AM -DaysOfWeek 2 -WeeksInterval 4
         }
+
+        # Create TaskEventTrigger for WAU event 100
+        $CIMTriggerClass = Get-CimClass -ClassName MSFT_TaskEventTrigger -Namespace Root/Microsoft/Windows/TaskScheduler:MSFT_TaskEventTrigger
+        $trigger = New-CimInstance -CimClass $CIMTriggerClass -ClientOnly
+        $trigger.Subscription = 
+@"
+<QueryList><Query Id="0" Path="Application"><Select Path="Application">*[System[Provider[@Name="Winget-AutoUpdate (WAU)"] and EventID=100]]</Select></Query></QueryList>
+"@
+        $trigger.Enabled = $True 
+        $tasktriggers += $trigger
+
         $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
 

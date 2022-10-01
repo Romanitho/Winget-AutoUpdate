@@ -60,7 +60,7 @@ if (Test-Network) {
 
         #Get External ListPath
         if ($WAUConfig.ListPath) {
-            Write-Log "WAU uses External Lists from $WAUConfig.ListPath"
+            Write-Log "WAU uses External Lists"
             $NewList = Test-ListPath $WAUConfig.ListPath $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation
             if ($NewList) {
                 Write-Log "Newer List downloaded to local path"

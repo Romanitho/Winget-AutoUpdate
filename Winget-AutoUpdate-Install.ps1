@@ -239,7 +239,7 @@ function Install-WingetAutoUpdate {
         # Register WAU in the log system if it doesn't already exist
         if ([System.Diagnostics.EventLog]::SourceExists("Winget-AutoUpdate (WAU)") -eq $False) {
             [System.Diagnostics.EventLog]::CreateEventSource("Winget-AutoUpdate (WAU)", "Application")
-            [System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) have been installed.", "Information", 1)
+            [System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) has been installed.", "Information", 1)
         }
 
         # Settings for the scheduled task for Updates
@@ -354,7 +354,13 @@ function Uninstall-WingetAutoUpdate {
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
             & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
     
-            Write-host "Uninstallation succeeded!" -ForegroundColor Green
+            # Unregister WAU from the log system if it exist
+            if ([System.Diagnostics.EventLog]::SourceExists("Winget-AutoUpdate (WAU)") -eq $True) {
+                [System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) has been uninstalled.", "Information", 1)
+                [System.Diagnostics.EventLog]::DeleteEventSource("Winget-AutoUpdate (WAU)")
+            }
+
+        Write-host "Uninstallation succeeded!" -ForegroundColor Green
             Start-sleep 1
         }
         else {

@@ -1,5 +1,7 @@
 [System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) started by user shortcut.", "Information", 100)
 
+$OnClickAction = "$PSScriptRoot\logs\updates.log"
+$ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
 $Title = "Winget-AutoUpdate (WAU)"
 $Message = "Starting a manual check for updated apps..."
 $MessageType = "info"
@@ -7,7 +9,7 @@ $Balise = "Winget-AutoUpdate (WAU)"
 
 #Add XML variables
 [xml]$ToastTemplate = @"
-<toast>
+<toast $ToastOnClickAction>
     <visual>
         <binding template="ToastImageAndText03">
             <text id="1">$Title</text>

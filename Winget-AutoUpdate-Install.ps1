@@ -22,7 +22,7 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto update if new ve
 .PARAMETER UseWhiteList
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
-.PARAMETER UseShortcuts
+.PARAMETER UserShortcut
 Create shortcuts for user interaction
 
 .PARAMETER ListPath
@@ -53,7 +53,7 @@ Run WAU on metered connection. Default No.
 .\winget-install-and-update.ps1 -Silent -UseWhiteList
 
 .EXAMPLE
-.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists -UseShortcuts
+.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists -UserShortcut
 
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
@@ -74,7 +74,7 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
     [Parameter(Mandatory = $False)] [Switch] $NoClean = $false,
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
-    [Parameter(Mandatory = $False)] [Switch] $UseShortcuts = $false,
+    [Parameter(Mandatory = $False)] [Switch] $UserShortcut = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly")] [String] $UpdatesInterval = "Daily"
@@ -314,10 +314,13 @@ function Install-WingetAutoUpdate {
             New-ItemProperty $regPath -Name WAU_ListPath -Value $ListPath -Force | Out-Null
         }
 
-        #Create Shortcut
-        if ($UseShortcuts) {
-            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU).lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-start.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
-            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU) - Delta.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-start.ps1`" -Delta`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Delta compare and Manual start of Winget-AutoUpdate (WAU)..."
+        #Create Shortcuts
+        if ($UserShortcut) {
+            if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
+                New-Item -ItemType Directory -Force -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" | Out-Null
+            }
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Check for updated System Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-start.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Check for updated User Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-start.ps1`" -Delta`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Delta compare and Manual start of Winget-AutoUpdate (WAU)..."
         }
 
         Write-host "WAU Installation succeeded!" -ForegroundColor Green
@@ -356,7 +359,7 @@ function Uninstall-WingetAutoUpdate {
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
             & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
     
-            Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)*.lnk" -Force | Out-Null
+            Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null
 
             Write-host "Uninstallation succeeded!" -ForegroundColor Green
             Start-sleep 1

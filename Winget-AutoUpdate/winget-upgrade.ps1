@@ -63,10 +63,10 @@ if (Test-Network) {
             Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath)"
             $NewList = Test-ListPath $WAUConfig.WAU_ListPath $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation
             if ($NewList) {
-                Write-Log "Newer List copied/downloaded to local path: $($WAUConfig.InstallLocation)"
+                Write-Log "Newer List copied/downloaded to local path: $($WAUConfig.InstallLocation)" "Yellow"
             }
             else {
-                Write-Log "No newer List detected"
+                Write-Log "List is up to date." "Green"
             }
         }
 

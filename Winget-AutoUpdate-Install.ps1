@@ -266,6 +266,14 @@ function Install-WingetAutoUpdate {
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force | Out-Null
 
+        #Set task readable/runnable for all users (@Romanitho)
+        $scheduler = New-Object -ComObject "Schedule.Service"
+        $scheduler.Connect()
+        $task = $scheduler.GetFolder("").GetTask("Winget-AutoUpdate")
+        $sec = $task.GetSecurityDescriptor(0xF)
+        $sec = $sec + '(A;;GRGX;;;AU)'
+        $task.SetSecurityDescriptor($sec, 0)
+
         # Settings for the scheduled task for Notifications
         $taskAction = New-ScheduledTaskAction –Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
         $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
@@ -274,14 +282,6 @@ function Install-WingetAutoUpdate {
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force | Out-Null
-
-        #Set task readable/runnable for all users (@Romanitho)
-        $scheduler = New-Object -ComObject "Schedule.Service"
-        $scheduler.Connect()
-        $task = $scheduler.GetFolder("").GetTask("Winget-AutoUpdate")
-        $sec = $task.GetSecurityDescriptor(0xF)
-        $sec = $sec + '(A;;GRGX;;;AU)'
-        $task.SetSecurityDescriptor($sec, 0)
 
         # Configure Reg Key
         $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"

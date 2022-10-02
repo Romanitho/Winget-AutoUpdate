@@ -22,6 +22,9 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto update if new ve
 .PARAMETER UseWhiteList
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
+.PARAMETER UseShortcuts
+Create shortcuts for user interaction
+
 .PARAMETER ListPath
 Get Black/White List from Path (URL/UNC/Local)
 
@@ -50,7 +53,7 @@ Run WAU on metered connection. Default No.
 .\winget-install-and-update.ps1 -Silent -UseWhiteList
 
 .EXAMPLE
-.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists
+.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists -UseShortcuts
 
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
@@ -71,6 +74,7 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
     [Parameter(Mandatory = $False)] [Switch] $NoClean = $false,
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
+    [Parameter(Mandatory = $False)] [Switch] $UseShortcuts = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly")] [String] $UpdatesInterval = "Daily"
@@ -236,12 +240,6 @@ function Install-WingetAutoUpdate {
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f | Out-Null
 
-        # Register WAU in the log system if it doesn't already exist
-        if ([System.Diagnostics.EventLog]::SourceExists("Winget-AutoUpdate (WAU)") -eq $False) {
-            [System.Diagnostics.EventLog]::CreateEventSource("Winget-AutoUpdate (WAU)", "Application")
-            [System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) has been installed.", "Information", 1)
-        }
-
         # Settings for the scheduled task for Updates
         $taskAction = New-ScheduledTaskAction –Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
         $taskTriggers = @()
@@ -261,16 +259,6 @@ function Install-WingetAutoUpdate {
             $tasktriggers += New-ScheduledTaskTrigger -Weekly -At 6AM -DaysOfWeek 2 -WeeksInterval 4
         }
 
-        # Create TaskEventTrigger for WAU event 100
-        $CIMTriggerClass = Get-CimClass -ClassName MSFT_TaskEventTrigger -Namespace Root/Microsoft/Windows/TaskScheduler:MSFT_TaskEventTrigger
-        $trigger = New-CimInstance -CimClass $CIMTriggerClass -ClientOnly
-        $trigger.Subscription = 
-@"
-<QueryList><Query Id="0" Path="Application"><Select Path="Application">*[System[Provider[@Name="Winget-AutoUpdate (WAU)"] and EventID=100]]</Select></Query></QueryList>
-"@
-        $trigger.Enabled = $True 
-        $tasktriggers += $trigger
-
         $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
 
@@ -286,6 +274,14 @@ function Install-WingetAutoUpdate {
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force | Out-Null
+
+        #Set task readable/runnable for all users (@Romanitho)
+        $scheduler = New-Object -ComObject "Schedule.Service"
+        $scheduler.Connect()
+        $task = $scheduler.GetFolder("").GetTask("Winget-AutoUpdate")
+        $sec = $task.GetSecurityDescriptor(0xF)
+        $sec = $sec + '(A;;GRGX;;;AU)'
+        $task.SetSecurityDescriptor($sec, 0)
 
         # Configure Reg Key
         $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
@@ -315,11 +311,14 @@ function Install-WingetAutoUpdate {
             New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value 1 -PropertyType DWord -Force | Out-Null
         }
         if ($ListPath){
-            New-ItemProperty $regPath -Name ListPath -Value $ListPath -Force | Out-Null
+            New-ItemProperty $regPath -Name WAU_ListPath -Value $ListPath -Force | Out-Null
         }
 
         #Create Shortcut
-        Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU).lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-start.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+        if ($UseShortcuts) {
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU).lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-start.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU) - Delta.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-start.ps1`" -Delta`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Delta compare and Manual start of Winget-AutoUpdate (WAU)..."
+        }
 
         Write-host "WAU Installation succeeded!" -ForegroundColor Green
         Start-sleep 1
@@ -357,12 +356,7 @@ function Uninstall-WingetAutoUpdate {
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
             & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
     
-            # Unregister WAU from the log system if it exist
-            if ([System.Diagnostics.EventLog]::SourceExists("Winget-AutoUpdate (WAU)") -eq $True) {
-                [System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) has been uninstalled.", "Information", 1)
-                [System.Diagnostics.EventLog]::DeleteEventSource("Winget-AutoUpdate (WAU)")
-            }
-            Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU).lnk" -Force | Out-Null
+            Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)*.lnk" -Force | Out-Null
 
             Write-host "Uninstallation succeeded!" -ForegroundColor Green
             Start-sleep 1

@@ -1,4 +1,26 @@
-[System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) started by user shortcut.", "Information", 100)
+<#
+.SYNOPSIS
+Run the task Winget-AutoUpdate manually
+
+.DESCRIPTION
+If -Delta: Run under user context and get the delta between "system" apps and all apps (returned by user context command)
+
+.PARAMETER Delta
+Find user context installations
+
+.EXAMPLE
+.\user-start.ps1 -Delta
+
+#>
+
+<# APP ARGUMENTS #>
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory=$False)] [Switch] $Delta = $false
+)
+
+#Run Notify scheduled task
+Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
 
 $OnClickAction = "$PSScriptRoot\logs\updates.log"
 $ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
@@ -35,3 +57,7 @@ $LauncherID = "Windows.SystemToast.Winget.Notification"
 $ToastMessage = [Windows.UI.Notifications.ToastNotification]::New($ToastXml)
 $ToastMessage.Tag = $ToastTemplate.toast.tag
 [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($LauncherID).Show($ToastMessage)
+
+if ($Delta) {
+    #Do the comparision...
+}

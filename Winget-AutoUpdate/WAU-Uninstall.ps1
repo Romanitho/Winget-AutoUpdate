@@ -55,12 +55,7 @@ try {
             & reg delete "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
         }
 
-        # Unregister WAU from the log system if it exist
-        if ([System.Diagnostics.EventLog]::SourceExists("Winget-AutoUpdate (WAU)") -eq $True) {
-            [System.Diagnostics.EventLog]::WriteEntry("Winget-AutoUpdate (WAU)", "Winget-AutoUpdate (WAU) has been uninstalled.", "Information", 1)
-            [System.Diagnostics.EventLog]::DeleteEventSource("Winget-AutoUpdate (WAU)")
-        }
-        Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU).lnk" -Force | Out-Null
+        Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)*.lnk" -Force | Out-Null
 
         Write-host "Uninstallation succeeded!" -ForegroundColor Green
     }

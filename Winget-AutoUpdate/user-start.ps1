@@ -19,7 +19,7 @@ param(
     [Parameter(Mandatory=$False)] [Switch] $Delta = $false
 )
 
-#Run Notify scheduled task
+#Run scheduled task
 Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
 
 $OnClickAction = "$PSScriptRoot\logs\updates.log"

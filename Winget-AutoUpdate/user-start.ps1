@@ -2,26 +2,34 @@
 
 $Title = "Winget-AutoUpdate (WAU)"
 $Message = "Starting a manual check for updated apps..."
+$MessageType = "info"
+$Balise = "Winget-AutoUpdate (WAU)"
 
-[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
-[Windows.UI.Notifications.ToastNotification, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
-[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
-
-$APP_ID = 'Windows.SystemToast.Winget.Notification'
-
-$template = @"
+#Add XML variables
+[xml]$ToastTemplate = @"
 <toast>
     <visual>
         <binding template="ToastImageAndText03">
-            <text id="1">$($Title)</text>
-            <text id="2">$($Message)</text>0
-            <image id="1" src="$PSScriptRoot\icons\info.png" />
+            <text id="1">$Title</text>
+            <text id="2">$Message</text>
+            <image id="1" src="$PSScriptRoot\icons\$MessageType.png" />
         </binding>
     </visual>
+    <tag>$Balise</tag>
 </toast>
 "@
+#Load Assemblies
+[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] | Out-Null
+[Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
 
-$xml = New-Object Windows.Data.Xml.Dom.XmlDocument
-$xml.LoadXml($template)
-$toast = New-Object Windows.UI.Notifications.ToastNotification $xml
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($APP_ID).Show($toast)
+#Prepare XML
+$ToastXml = [Windows.Data.Xml.Dom.XmlDocument]::New()
+$ToastXml.LoadXml($ToastTemplate.OuterXml)
+
+#Specify Launcher App ID
+$LauncherID = "Windows.SystemToast.Winget.Notification"
+
+#Prepare and Create Toast
+$ToastMessage = [Windows.UI.Notifications.ToastNotification]::New($ToastXml)
+$ToastMessage.Tag = $ToastTemplate.toast.tag
+[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($LauncherID).Show($ToastMessage)

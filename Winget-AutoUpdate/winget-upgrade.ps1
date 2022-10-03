@@ -139,6 +139,12 @@ if (Test-Network) {
     }
 }
 
+
+#Run WAU in user context if currently as system
+if ($currentPrincipal -eq $false) {
+    Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+}
+
 #End
 Write-Log "End of process!" "Cyan"
 Start-Sleep 3

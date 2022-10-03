@@ -57,6 +57,9 @@ function Get-WingetOutdatedApps {
         $SystemApps = Get-Content -Path "$WorkingDir\winget_system_apps.txt"
         $upgradeList = $upgradeList | Where-Object {$SystemApps -notcontains $_}
     }
+    else {
+        Get-WingetSystemApps
+    }
 
     return $upgradeList | Sort-Object {Get-Random}
 }

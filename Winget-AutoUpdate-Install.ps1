@@ -38,7 +38,10 @@ Specify the Notification level: Full (Default, displays all notification), Succe
 Set WAU to run at user logon.
 
 .PARAMETER UpdatesInterval
-Specify the update frequency: Daily (Default), Weekly, Biweekly or Monthly.
+Specify the update frequency: Daily (Default), Weekly, Biweekly, Monthly or Never
+
+.PARAMETER UpdatesAtTime
+Specify the time of the update interval execution time. Default 6AM
 
 .PARAMETER RunOnMetered
 Run WAU on metered connection. Default No.
@@ -73,7 +76,8 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
-    [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly")] [String] $UpdatesInterval = "Daily"
+    [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
+    [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am")
 )
 
 <# APP INFO #>
@@ -243,16 +247,16 @@ function Install-WingetAutoUpdate {
             $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
         }
         if ($UpdatesInterval -eq "Daily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At 6AM
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $UpdatesAtTime
         }
         elseif ($UpdatesInterval -eq "Weekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At 6AM -DaysOfWeek 2
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2
         }
         elseif ($UpdatesInterval -eq "BiWeekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At 6AM -DaysOfWeek 2 -WeeksInterval 2
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2
         }
         elseif ($UpdatesInterval -eq "Monthly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At 6AM -DaysOfWeek 2 -WeeksInterval 4
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
         }
         $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00

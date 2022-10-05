@@ -22,6 +22,9 @@ function Start-NotifTask ($Title, $Message, $MessageType, $Balise, $OnClickActio
     <tag>$Balise</tag>
 </toast>
 "@
+
+        #Check if running account is system or interactive logon
+        $currentPrincipal = [bool](([System.Security.Principal.WindowsIdentity]::GetCurrent()).groups -match "S-1-5-4")
         
         #if not "Interactive" user, run as system
         if ($currentPrincipal -eq $false) {

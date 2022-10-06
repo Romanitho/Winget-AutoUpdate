@@ -22,7 +22,7 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto update if new ve
 .PARAMETER UseWhiteList
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
-.PARAMETER UserShortcut
+.PARAMETER UserShortcuts
 Create shortcuts for user interaction
 
 .PARAMETER ListPath
@@ -56,7 +56,7 @@ Run WAU on metered connection. Default No.
 .\winget-install-and-update.ps1 -Silent -UseWhiteList
 
 .EXAMPLE
-.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists -UserShortcut
+.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists -UserShortcuts
 
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
@@ -77,7 +77,7 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
     [Parameter(Mandatory = $False)] [Switch] $NoClean = $false,
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
-    [Parameter(Mandatory = $False)] [Switch] $UserShortcut = $false,
+    [Parameter(Mandatory = $False)] [Switch] $UserShortcuts = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
@@ -311,7 +311,7 @@ function Install-WingetAutoUpdate {
         }
 
         #Create Shortcut
-        if ($UserShortcut) {
+        if ($UserShortcuts) {
             if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
                 New-Item -ItemType Directory -Force -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" | Out-Null
             }

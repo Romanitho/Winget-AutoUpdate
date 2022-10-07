@@ -1,7 +1,10 @@
 function Show-Toast ($Title, $Message, $MessageType, $Balise, $OnClickAction) {
+
+	$ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
+
 	#Add XML variables
 	[xml]$ToastTemplate = @"
-<toast $OnClickAction>
+<toast $ToastOnClickAction>
 <visual>
     <binding template="ToastImageAndText03">
         <text id="1">$Title</text>
@@ -29,27 +32,21 @@ function Show-Toast ($Title, $Message, $MessageType, $Balise, $OnClickAction) {
 	[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($LauncherID).Show($ToastMessage)
 }
 
+$OnClickAction = "$PSScriptRoot\logs\updates.log"
+$Title = "Winget-AutoUpdate (WAU)"
+$Balise = "Winget-AutoUpdate (WAU)"
+
 try {
 	#Run scheduled task
 	Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
-
-	$OnClickAction = "$PSScriptRoot\logs\updates.log"
-	$ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
-	$Title = "Winget-AutoUpdate (WAU)"
+	#Send notification
 	$Message = "Starting a manual check for updated apps..."
 	$MessageType = "info"
-	$Balise = "Winget-AutoUpdate (WAU)"
-
-	Show-Toast $Title $Message $MessageType $Balise $ToastOnClickAction
+	Show-Toast $Title $Message $MessageType $Balise $OnClickAction
 }
 catch {
-	#Send notification
-	$OnClickAction = "$PSScriptRoot\logs\updates.log"
-	$ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
-	$Title = "Winget-AutoUpdate (WAU)"
+	#Just send notification
 	$Message = "Couldn't start a manual check for updated apps..."
 	$MessageType = "error"
-	$Balise = "Winget-AutoUpdate (WAU)"
-
-	Show-Toast $Title $Message $MessageType $Balise $ToastOnClickAction
+	Show-Toast $Title $Message $MessageType $Balise $OnClickAction
 }

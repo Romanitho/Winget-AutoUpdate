@@ -82,7 +82,7 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 **-UseWhiteList**  
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt"
 
-**-UserShortcuts**  
+**-Shortcuts**  
 Create shortcuts for user interaction to run task `Winget-AutoUpdate` etc.
 
 **-ListPath**  

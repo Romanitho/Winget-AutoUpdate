@@ -8,6 +8,9 @@ Get-ChildItem "$WorkingDir\functions" | ForEach-Object { . $_.FullName }
 
 <# MAIN #>
 
+#Check if running account is system or interactive logon
+$Script:IsSystem = ![System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
+
 #Run log initialisation function
 Start-Init
 
@@ -20,7 +23,7 @@ if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {
 }
 
 #Run Scope Machine funtion if run as system
-if ([System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) {
+if ($IsSystem) {
     $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\defaultState\settings.json"
     Add-ScopeMachine $SettingsPath
 }
@@ -51,7 +54,12 @@ if (Test-Network) {
             if ([version]$WAUAvailableVersion -gt [version]$WAUCurrentVersion) {
                 #If new version is available, update it
                 Write-Log "WAU Available version: $WAUAvailableVersion" "Yellow"
-                Update-WAU
+                if ($IsSystem) {
+                    Update-WAU
+                }
+                else{
+                    Write-Log "WAU Needs to run as system to update" "Yellow"
+                }
             }
             else {
                 Write-Log "WAU is up to date." "Green"
@@ -136,6 +144,23 @@ if (Test-Network) {
         if ($InstallOK -eq 0) {
             Write-Log "No new update." "Green"
         }
+    }
+}
+
+#Run WAU in user context if currently as system
+if ($IsSystem) {
+
+    #Get Winget system apps to excape them befor running user context
+    Get-WingetSystemApps
+
+    #Run user context scheduled task
+    $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
+    if ($UserScheduledTask){
+        Write-Log "Starting WAU in User context"
+        Start-ScheduledTask $UserScheduledTask -ErrorAction SilentlyContinue
+    }
+    else {
+        Write-Log "User context execution not installed"
     }
 }
 

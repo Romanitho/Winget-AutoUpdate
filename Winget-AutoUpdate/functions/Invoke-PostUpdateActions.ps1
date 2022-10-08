@@ -91,7 +91,7 @@ function Invoke-PostUpdateActions {
     $UserTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
     if (!$UserTask){
         # Settings for the scheduled task in User context
-        $taskAction = New-ScheduledTaskAction –Execute "wscript.exe" -Argument "`"$($WorkingDir)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WorkingDir)\winget-upgrade.ps1`"`""
+        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WorkingDir)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WorkingDir)\winget-upgrade.ps1`"`""
         $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
         # Set up the task for user apps

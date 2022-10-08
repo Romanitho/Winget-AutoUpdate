@@ -165,7 +165,7 @@ if ($IsSystem) {
     $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
     if ($UserScheduledTask){
         Write-Log "Starting WAU in User context"
-        Start-ScheduledTask $UserScheduledTask -ErrorAction SilentlyContinue
+        Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
         Exit 0
     }
     else {

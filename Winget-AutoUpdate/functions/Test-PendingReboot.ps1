@@ -18,10 +18,6 @@ function Test-PendingReboot {
             if (([WmiClass]"\\$Computer\ROOT\CCM\ClientSDK:CCM_ClientUtilities").DetermineIfRebootPending().RebootPending -eq $true) {$PendingReboot = $true}
         }
     
-        # [PSCustomObject]@{
-        #     ComputerName  = $Computer.ToUpper()
-        #     PendingReboot = $PendingReboot
-        # }
     }
 
     return $PendingReboot

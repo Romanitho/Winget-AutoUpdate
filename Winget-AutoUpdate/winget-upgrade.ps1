@@ -14,6 +14,14 @@ $Script:IsSystem = ![System.Security.Principal.WindowsIdentity]::GetCurrent().Is
 #Run log initialisation function
 Start-Init
 
+#Log running context
+if ($IsSystem) {
+    Write-Log "Running in System context"
+}
+else{
+    Write-Log "Runnind in User context"
+}
+
 #Get WAU Configurations
 $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
@@ -158,6 +166,7 @@ if ($IsSystem) {
     if ($UserScheduledTask){
         Write-Log "Starting WAU in User context"
         Start-ScheduledTask $UserScheduledTask -ErrorAction SilentlyContinue
+        Exit 0
     }
     else {
         Write-Log "User context execution not installed"

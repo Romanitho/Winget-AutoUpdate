@@ -72,7 +72,7 @@ else {
 	}
 	catch {
 		#Just send notification
-		$Message = "Couldn't start a manual check for updated apps..."
+		$Message = "Couldn't start a manual check for updated apps!"
 		$MessageType = "error"
 		Show-Toast $Title $Message $MessageType $Balise
 	}

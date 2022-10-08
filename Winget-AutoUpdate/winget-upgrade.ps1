@@ -19,7 +19,7 @@ if ($IsSystem) {
     Write-Log "Running in System context"
 }
 else{
-    Write-Log "Runnind in User context"
+    Write-Log "Running in User context"
 }
 
 #Get WAU Configurations

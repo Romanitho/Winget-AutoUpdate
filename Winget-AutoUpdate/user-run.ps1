@@ -1,3 +1,12 @@
+#User integration
+
+<# APP ARGUMENTS #>
+[CmdletBinding()]
+param(
+	[Parameter(Mandatory=$False)] [Switch] $Logs = $false,
+	[Parameter(Mandatory=$False)] [Switch] $Help = $false
+)
+
 function Show-Toast ($Title, $Message, $MessageType, $Balise, $OnClickAction) {
 
 	$ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
@@ -36,17 +45,32 @@ $OnClickAction = "$PSScriptRoot\logs\updates.log"
 $Title = "Winget-AutoUpdate (WAU)"
 $Balise = "Winget-AutoUpdate (WAU)"
 
-try {
-	#Run scheduled task
-	Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
-	#Send notification
-	$Message = "Starting a manual check for updated apps..."
-	$MessageType = "info"
-	Show-Toast $Title $Message $MessageType $Balise $OnClickAction
+if ($Logs) {
+	if ((Test-Path "$PSScriptRoot\logs\updates.log")) {
+		Invoke-Item "$PSScriptRoot\logs\updates.log"
+	}
+	else {
+		$Message = "Logs are not available yet!"
+		$MessageType = "warning"
+		Show-Toast $Title $Message $MessageType $Balise
+	}
 }
-catch {
-	#Just send notification
-	$Message = "Couldn't start a manual check for updated apps..."
-	$MessageType = "error"
-	Show-Toast $Title $Message $MessageType $Balise $OnClickAction
+elseif ($Help) {
+	Start-Process "https://github.com/Romanitho/Winget-AutoUpdate"
+}
+else {
+	try {
+		#Run scheduled task
+		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
+		#Send notification
+		$Message = "Starting a manual check for updated apps..."
+		$MessageType = "info"
+		Show-Toast $Title $Message $MessageType $Balise $OnClickAction
+	}
+	catch {
+		#Just send notification
+		$Message = "Couldn't start a manual check for updated apps..."
+		$MessageType = "error"
+		Show-Toast $Title $Message $MessageType $Balise $OnClickAction
+	}
 }

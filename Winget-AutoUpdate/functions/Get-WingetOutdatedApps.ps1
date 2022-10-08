@@ -55,7 +55,7 @@ function Get-WingetOutdatedApps {
     #If current user is not system, remove system apps from list
     if ($IsSystem -eq $false) {
         $SystemApps = Get-Content -Path "$WorkingDir\winget_system_apps.txt"
-        $upgradeList = $upgradeList | Where-Object {$SystemApps -notcontains $_}
+        $upgradeList = $upgradeList | Where-Object {$SystemApps -notcontains $_.Id}
     }
 
     return $upgradeList | Sort-Object {Get-Random}

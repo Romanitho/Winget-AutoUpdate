@@ -9,7 +9,10 @@ param(
 
 function Show-Toast ($Title, $Message, $MessageType, $Balise, $OnClickAction) {
 
-	$ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
+	#Prepare OnClickAction (if set)
+	if ($OnClickAction){
+		$ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
+	}
 
 	#Add XML variables
 	[xml]$ToastTemplate = @"
@@ -71,6 +74,6 @@ else {
 		#Just send notification
 		$Message = "Couldn't start a manual check for updated apps..."
 		$MessageType = "error"
-		Show-Toast $Title $Message $MessageType $Balise $OnClickAction
+		Show-Toast $Title $Message $MessageType $Balise
 	}
 }

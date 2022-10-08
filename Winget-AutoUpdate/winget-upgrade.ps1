@@ -9,7 +9,7 @@ Get-ChildItem "$WorkingDir\functions" | ForEach-Object { . $_.FullName }
 <# MAIN #>
 
 #Check if running account is system or interactive logon
-$Script:IsSystem = ![System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
+$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
 
 #Run log initialisation function
 Start-Init

@@ -60,7 +60,38 @@ function Show-Toast ($Title, $Message, $MessageType, $Balise, $OnClickAction) {
 	[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($LauncherID).Show($ToastMessage)
 }
 
+Function Get-ToastLocale {
+    
+    #Get OS locale
+    $OSLocale = (Get-Culture).Parent
+
+    #Test if OS locale notif file exists
+    $TestOSLocalPath = "$PSScriptRoot\locale\$($OSLocale.Name).xml"   
+    
+    #Set OS Local if file exists
+    if (Test-Path $TestOSLocalPath) {
+        $LocaleFile = $TestOSLocalPath
+    }
+    #Set English if file doesn't exist
+    else {
+        $LocaleFile = "$PSScriptRoot\locale\en.xml"
+    }
+
+	#Get locale XML file content
+    [xml]$Script:ToastLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
+
+	#Test if strings exist in $LocaleFile
+	if ($null -eq $ToastLocale.local.outputs.output[7].message){
+		$LocaleFile = "$PSScriptRoot\locale\en.xml"
+		#Get locale XML file content
+		[xml]$Script:ToastLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
+	}
+}
+
 <# MAIN #>
+
+#Get Toast Locale function
+Get-ToastLocale
 
 $OnClickAction = "$PSScriptRoot\logs\updates.log"
 $Title = "Winget-AutoUpdate (WAU)"
@@ -71,7 +102,7 @@ if ($Logs) {
 		Invoke-Item "$PSScriptRoot\logs\updates.log"
 	}
 	else {
-		$Message = "Logs are not available yet!"
+		$Message = $ToastLocale.local.outputs.output[5].message
 		$MessageType = "warning"
 		Show-Toast $Title $Message $MessageType $Balise
 	}
@@ -84,13 +115,13 @@ else {
 		#Run scheduled task
 		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
 		#Send notification
-		$Message = "Starting a manual check for updated apps..."
+		$Message = $ToastLocale.local.outputs.output[6].message
 		$MessageType = "info"
 		Show-Toast $Title $Message $MessageType $Balise $OnClickAction
 	}
 	catch {
 		#Just send notification
-		$Message = "Couldn't start a manual check for updated apps!"
+		$Message = $ToastLocale.local.outputs.output[7].message
 		$MessageType = "error"
 		Show-Toast $Title $Message $MessageType $Balise
 	}

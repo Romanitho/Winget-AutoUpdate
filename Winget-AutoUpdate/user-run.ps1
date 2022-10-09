@@ -1,6 +1,22 @@
-#User integration
+<#
+.SYNOPSIS
+Handle user interaction from shortcuts and show a Toast
 
-<# APP ARGUMENTS #>
+.DESCRIPTION
+Act on shortcut run (DEFAULT: Check for updated Apps)
+
+.PARAMETER Logs
+Open the Log file from Winget-AutoUpdate installation location
+
+.PARAMETER Help
+Open the Web Help page
+https://github.com/Romanitho/Winget-AutoUpdate
+
+.EXAMPLE
+.\user-run.ps1 -Logs
+
+#>
+
 [CmdletBinding()]
 param(
 	[Parameter(Mandatory=$False)] [Switch] $Logs = $false,
@@ -43,6 +59,8 @@ function Show-Toast ($Title, $Message, $MessageType, $Balise, $OnClickAction) {
 	$ToastMessage.Tag = $ToastTemplate.toast.tag
 	[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($LauncherID).Show($ToastMessage)
 }
+
+<# MAIN #>
 
 $OnClickAction = "$PSScriptRoot\logs\updates.log"
 $Title = "Winget-AutoUpdate (WAU)"

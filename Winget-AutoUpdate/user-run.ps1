@@ -90,9 +90,6 @@ Function Get-ToastLocale {
 
 <# MAIN #>
 
-#Get Toast Locale function
-Get-ToastLocale
-
 $OnClickAction = "$PSScriptRoot\logs\updates.log"
 $Title = "Winget-AutoUpdate (WAU)"
 $Balise = "Winget-AutoUpdate (WAU)"
@@ -102,6 +99,8 @@ if ($Logs) {
 		Invoke-Item "$PSScriptRoot\logs\updates.log"
 	}
 	else {
+		#Not available yet - Get Toast Locale function
+		Get-ToastLocale
 		$Message = $ToastLocale.local.outputs.output[5].message
 		$MessageType = "warning"
 		Show-Toast $Title $Message $MessageType $Balise
@@ -114,12 +113,16 @@ else {
 	try {
 		#Run scheduled task
 		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
+		#Starting check - Get Toast Locale function
+		Get-ToastLocale
 		#Send notification
 		$Message = $ToastLocale.local.outputs.output[6].message
 		$MessageType = "info"
 		Show-Toast $Title $Message $MessageType $Balise $OnClickAction
 	}
 	catch {
+		#Check failed - Get Toast Locale function
+		Get-ToastLocale
 		#Just send notification
 		$Message = $ToastLocale.local.outputs.output[7].message
 		$MessageType = "error"

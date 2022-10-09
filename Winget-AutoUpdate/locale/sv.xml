@@ -32,7 +32,7 @@
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Det finns inga loggfiler ännu!</message>
+			<message>Det finns inga loggar ännu!</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->

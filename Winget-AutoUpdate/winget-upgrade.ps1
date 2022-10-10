@@ -111,6 +111,12 @@ if (Test-Network) {
         #Count good update installations
         $Script:InstallOK = 0
 
+        #Trick under user context when -BypassListForUsers is used
+        if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq $true){
+            $UseWhiteList = $false
+            $toSkip = $null
+        }
+
         #If White List
         if ($UseWhiteList) {
             #For each app, notify and update

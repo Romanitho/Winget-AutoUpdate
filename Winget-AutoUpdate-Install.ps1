@@ -46,6 +46,9 @@ Specify the time of the update interval execution time. Default 6AM
 .PARAMETER RunOnMetered
 Run WAU on metered connection. Default No.
 
+.PARAMETER BypassListForUsers
+Configure WAU to bypass the Black/White list when run in user context
+
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -DoNotUpdate
 
@@ -77,7 +80,8 @@ param(
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
-    [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am")
+    [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
+    [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false
 )
 
 <# APP INFO #>
@@ -320,6 +324,9 @@ function Install-WingetAutoUpdate {
         }
         if ($ListPath){
             New-ItemProperty $regPath -Name ListPath -Value $ListPath -Force | Out-Null
+        }
+        if ($BypassListForUsers){
+            New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
         Write-host "WAU Installation succeeded!" -ForegroundColor Green

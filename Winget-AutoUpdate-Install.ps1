@@ -59,7 +59,7 @@ Run WAU on metered connection. Default No.
 .\winget-install-and-update.ps1 -Silent -UseWhiteList
 
 .EXAMPLE
-.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists -Shortcuts
+.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists -StartMenuShortcut
 
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly

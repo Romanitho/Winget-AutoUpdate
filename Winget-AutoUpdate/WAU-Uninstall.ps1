@@ -59,6 +59,10 @@ try {
             Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null
         }
 
+        if ((Test-Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk")) {
+            Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
+        }
+
         Write-host "Uninstallation succeeded!" -ForegroundColor Green
     }
     else {

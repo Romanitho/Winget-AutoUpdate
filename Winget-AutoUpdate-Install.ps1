@@ -22,8 +22,11 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto update if new ve
 .PARAMETER UseWhiteList
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
-.PARAMETER Shortcuts
-Create shortcuts for user interaction
+.PARAMETER DesktopShortcut
+Create a shortcut for user interaction on the Desktop to run task "Winget-AutoUpdate"
+
+.PARAMETER StartMenuShortcut
+Create shortcuts for user interaction in the Start Menu to run task "Winget-AutoUpdate", open Logs and Web Help
 
 .PARAMETER ListPath
 Get Black/White List from Path (URL/UNC/Local)
@@ -77,7 +80,8 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
     [Parameter(Mandatory = $False)] [Switch] $NoClean = $false,
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
-    [Parameter(Mandatory = $False)] [Switch] $Shortcuts = $false,
+    [Parameter(Mandatory = $False)] [Switch] $DesktopShortcut = $false,
+    [Parameter(Mandatory = $False)] [Switch] $StartMenuShortcut = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
@@ -311,13 +315,17 @@ function Install-WingetAutoUpdate {
         }
 
         #Create Shortcuts
-        if ($Shortcuts) {
+        if ($StartMenuShortcut) {
             if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
                 New-Item -ItemType Directory -Force -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" | Out-Null
             }
             Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Check for updated Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
             Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Open logs.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`" -Logs`"" "${env:SystemRoot}\System32\shell32.dll,-16763" "Open existing WAU logs..."
             Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Web Help.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`" -Help`"" "${env:SystemRoot}\System32\shell32.dll,-24" "Help for WAU..."
+        }
+
+        if ($DesktopShortcut) {
+            Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
         }
 
         Write-host "WAU Installation succeeded!" -ForegroundColor Green
@@ -360,7 +368,10 @@ function Uninstall-WingetAutoUpdate {
                 Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null
             }
 
-            Write-host "Uninstallation succeeded!" -ForegroundColor Green
+            if ((Test-Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk")) {
+                Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
+            }
+                Write-host "Uninstallation succeeded!" -ForegroundColor Green
             Start-sleep 1
         }
         else {

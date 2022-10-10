@@ -113,6 +113,7 @@ if (Test-Network) {
 
         #Trick under user context when -BypassListForUsers is used
         if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq $true){
+            Write-Log "Bypass system list in user context is Enabled."
             $UseWhiteList = $false
             $toSkip = $null
         }

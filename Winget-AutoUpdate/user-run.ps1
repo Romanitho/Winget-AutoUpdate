@@ -26,24 +26,24 @@ param(
 <# MAIN #>
 
 #Get Working Dir
-$Script:WorkingDir = $PSScriptRoot
+$Script:WorkingDir = $WorkingDir
 
 #Load functions
-. $PSScriptRoot\functions\Get-NotifLocale.ps1
-. $PSScriptRoot\functions\Start-NotifTask.ps1
+. $WorkingDir\functions\Get-NotifLocale.ps1
+. $WorkingDir\functions\Start-NotifTask.ps1
 
 #Set common variables
-$OnClickAction = "$PSScriptRoot\logs\updates.log"
+$OnClickAction = "$WorkingDir\logs\updates.log"
 $Title = "Winget-AutoUpdate (WAU)"
 $Balise = "Winget-AutoUpdate (WAU)"
-$userrun = $True
+$UserRun = $True
 
 #Get Toast Locale function
 Get-NotifLocale
 
 if ($Logs) {
-	if ((Test-Path "$PSScriptRoot\logs\updates.log")) {
-		Invoke-Item "$PSScriptRoot\logs\updates.log"
+	if ((Test-Path "$WorkingDir\logs\updates.log")) {
+		Invoke-Item "$WorkingDir\logs\updates.log"
 	}
 	else {
 		#Not available yet

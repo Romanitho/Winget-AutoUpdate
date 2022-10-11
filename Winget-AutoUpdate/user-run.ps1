@@ -60,35 +60,13 @@ function Show-Toast ($Title, $Message, $MessageType, $Balise, $OnClickAction) {
 	[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($LauncherID).Show($ToastMessage)
 }
 
-Function Get-ToastLocale {
-    
-    #Get OS locale
-    $OSLocale = (Get-Culture).Parent
-
-    #Test if OS locale notif file exists
-    $TestOSLocalPath = "$PSScriptRoot\locale\$($OSLocale.Name).xml"   
-    
-    #Set OS Local if file exists
-    if (Test-Path $TestOSLocalPath) {
-        $LocaleFile = $TestOSLocalPath
-    }
-    #Set English if file doesn't exist
-    else {
-        $LocaleFile = "$PSScriptRoot\locale\en.xml"
-    }
-
-	#Get locale XML file content
-    [xml]$Script:ToastLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
-
-	#Test if strings exist in $LocaleFile
-	if ($null -eq $ToastLocale.local.outputs.output[7].message){
-		$LocaleFile = "$PSScriptRoot\locale\en.xml"
-		#Get locale XML file content
-		[xml]$Script:ToastLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
-	}
-}
-
 <# MAIN #>
+
+#Get Working Dir
+$Script:WorkingDir = $PSScriptRoot
+
+. "$WorkingDir\functions\Start-NotifTask.ps1"
+. "$WorkingDir\functions\Get-NotifLocale.ps1"
 
 $OnClickAction = "$PSScriptRoot\logs\updates.log"
 $Title = "Winget-AutoUpdate (WAU)"
@@ -100,7 +78,7 @@ if ($Logs) {
 	}
 	else {
 		#Not available yet - Get Toast Locale function
-		Get-ToastLocale
+		Get-NotifLocale
 		$Message = $ToastLocale.local.outputs.output[5].message
 		$MessageType = "warning"
 		Show-Toast $Title $Message $MessageType $Balise
@@ -114,7 +92,7 @@ else {
 		#Run scheduled task
 		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
 		#Starting check - Get Toast Locale function
-		Get-ToastLocale
+		Get-NotifLocale
 		#Send notification
 		$Message = $ToastLocale.local.outputs.output[6].message
 		$MessageType = "info"
@@ -122,9 +100,9 @@ else {
 	}
 	catch {
 		#Check failed - Get Toast Locale function
-		Get-ToastLocale
+		Get-NotifLocale
 		#Just send notification
-		$Message = $ToastLocale.local.outputs.output[7].message
+		$Message = $NotifLocale.local.outputs.output[7].message
 		$MessageType = "error"
 		Show-Toast $Title $Message $MessageType $Balise
 	}

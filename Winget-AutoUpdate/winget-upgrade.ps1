@@ -83,7 +83,13 @@ if (Test-Network) {
                 Write-Log "Newer List copied/downloaded to local path: $($WAUConfig.InstallLocation)" "Yellow"
             }
             else {
-                Write-Log "List is up to date." "Green"
+                if ((Test-Path "$WorkingDir\included_apps.txt") -or (Test-Path "$WorkingDir\excluded_apps.txt")) {
+                    Write-Log "List is up to date." "Green"
+                }
+                else {
+                    Write-Log "List doesn't exist!." "Red"
+                    Exit 0
+                }
             }
         }
         

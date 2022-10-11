@@ -88,6 +88,12 @@ Get Black/White List from Path (URL/UNC/Local) (copy/download to Winget-AutoUpda
 **-NoClean**  
 Keep critical files when installing/uninstalling. This setting will keep "excluded_apps.txt", "included_apps.txt", "mods" and "logs" as they were.
 
+**-DesktopShortcut**
+Create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate`
+
+**-StartMenuShortcut**
+Create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate`, open Logs and Web Help
+
 **-NotificationLevel**  
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
 

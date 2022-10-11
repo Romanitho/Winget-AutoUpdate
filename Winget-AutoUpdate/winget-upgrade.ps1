@@ -37,7 +37,8 @@ if ($IsSystem) {
 }
 
 #Get Notif Locale function
-Get-NotifLocale
+$LocaleDisplayName = Get-NotifLocale
+Write-Log "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan"
 
 #Check network connectivity
 if (Test-Network) {

@@ -85,6 +85,9 @@ Use White List instead of Black List. This setting will not create the "excluded
 **-ListPath**  
 Get Black/White List from Path (URL/UNC/Local) (copy/download to Winget-AutoUpdate installation location if external list is newer).
 
+**-BypassListForUsers**  
+Bypass Black/White list when run in user context
+
 **-NoClean**  
 Keep critical files when installing/uninstalling. This setting will keep "excluded_apps.txt", "included_apps.txt", "mods" and "logs" as they were.
 

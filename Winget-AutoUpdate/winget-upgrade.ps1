@@ -87,7 +87,7 @@ if (Test-Network) {
                     Write-Log "List is up to date." "Green"
                 }
                 else {
-                    Write-Log "List doesn't exist!." "Red"
+                    Write-Log "List doesn't exist!" "Red"
                     Exit 0
                 }
             }

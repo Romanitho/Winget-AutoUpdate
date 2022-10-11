@@ -2,7 +2,7 @@
 
 function Start-NotifTask ($Title, $Message, $MessageType, $Balise, $OnClickAction) {
 
-    if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success")) {
+    if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success") -or ($userrun)) {
 
         #Prepare OnClickAction (if set)
         if ($OnClickAction){

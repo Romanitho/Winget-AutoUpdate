@@ -7,7 +7,7 @@ Function Get-NotifLocale {
 
     #Test if OS locale notif file exists
     $TestOSLocalPath = "$WorkingDir\locale\$($OSLocale.Name).xml"   
-    
+
     #Set OS Local if file exists
     if (Test-Path $TestOSLocalPath) {
         $LocaleDisplayName = $OSLocale.DisplayName
@@ -20,7 +20,9 @@ Function Get-NotifLocale {
     }
 
     #Get locale XML file content
-    Write-Log "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan"
     [xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
+
+    #Rerturn langague display name
+    Return $LocaleDisplayName
 
 }

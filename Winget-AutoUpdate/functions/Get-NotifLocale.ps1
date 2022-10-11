@@ -22,13 +22,6 @@ Function Get-NotifLocale {
     #Get locale XML file content
     [xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
 
-    #Test if new strings exist in $LocaleFile
-	if ($null -eq $NotifLocale.local.outputs.output[7].message){
-		$LocaleFile = "$WorkingDir\locale\en.xml"
-		#Get locale XML file content
-		[xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
-	}
-
     #Rerturn langague display name
     Return $LocaleDisplayName
 

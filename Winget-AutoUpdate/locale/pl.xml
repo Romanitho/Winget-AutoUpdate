@@ -30,5 +30,17 @@
 			<!--Please contact support-->
 			<message>Skontaktuj się z pomocą techniczną.</message>
 		</output>
+		<output id="5">
+			<!--Logs are not available yet-->
+			<message>Logs are not available yet!</message>
+		</output>
+		<output id="6">
+			<!--Starting a manual check for updated apps-->
+			<message>Starting a manual check for updated apps...</message>
+		</output>
+		<output id="7">
+			<!--Couldn't start a manual check for updated apps-->
+			<message>Couldn't start a manual check for updated apps!</message>
+		</output>
 	</outputs>
 </local>

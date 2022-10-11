@@ -87,6 +87,36 @@ function Invoke-PostUpdateActions {
         }
     }
 
+    #Set new User Context task and Set system task readable/runnable for all users
+    $UserTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
+    if (!$UserTask){
+        # Settings for the scheduled task in User context
+        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WorkingDir)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WorkingDir)\winget-upgrade.ps1`"`""
+        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+        # Set up the task for user apps
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -InputObject $task -Force | Out-Null
+
+        #Set System task runnable for users
+        $scheduler = New-Object -ComObject "Schedule.Service"
+        $scheduler.Connect()
+        $task = $scheduler.GetFolder("").GetTask("Winget-AutoUpdate")
+        $sec = $task.GetSecurityDescriptor(0xF)
+        $sec = $sec + '(A;;GRGX;;;AU)'
+        $task.SetSecurityDescriptor($sec, 0)
+    }
+
+    #Set ACL for users on logfile
+    $NewAcl = Get-Acl -Path $LogFile
+    $identity = New-Object System.Security.Principal.SecurityIdentifier S-1-5-11
+    $fileSystemRights = "Modify"
+    $type = "Allow"
+    $fileSystemAccessRuleArgumentList = $identity, $fileSystemRights, $type
+    $fileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $fileSystemAccessRuleArgumentList
+    $NewAcl.SetAccessRule($fileSystemAccessRule)
+    Set-Acl -Path $LogFile -AclObject $NewAcl
+
     #Reset WAU_UpdatePostActions Value
     $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 0 -Force
 

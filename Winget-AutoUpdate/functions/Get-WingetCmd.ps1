@@ -14,11 +14,7 @@ Function Get-WingetCmd {
     if ($WingetCmd) {
         $Script:Winget = $WingetCmd.Source
     }
-    #Get Winget Location in System context (WinGet < 1.17)
-    elseif (Test-Path "$WingetPath\AppInstallerCLI.exe") {
-        $Script:Winget = "$WingetPath\AppInstallerCLI.exe"
-    }
-    #Get Winget Location in System context (WinGet > 1.17)
+    #Get Winget Location in System context
     elseif (Test-Path "$WingetPath\winget.exe") {
         $Script:Winget = "$WingetPath\winget.exe"
     }
@@ -28,7 +24,7 @@ Function Get-WingetCmd {
     }
 
     #Run winget to list apps and accept source agrements (necessary on first run)
-    & $Winget list --accept-source-agreements | Out-Null
+    & $Winget list --accept-source-agreements -s winget | Out-Null
 
     #Log Winget installed version
     $WingetVer = & $Winget --version

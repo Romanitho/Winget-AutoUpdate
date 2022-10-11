@@ -26,7 +26,7 @@ param(
 <# MAIN #>
 
 #Get Working Dir
-$Script:WorkingDir = $WorkingDir
+$Script:WorkingDir = $PSScriptRoot
 
 #Load functions
 . $WorkingDir\functions\Get-NotifLocale.ps1

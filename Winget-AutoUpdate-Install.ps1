@@ -46,6 +46,9 @@ Specify the time of the update interval execution time. Default 6AM
 .PARAMETER RunOnMetered
 Run WAU on metered connection. Default No.
 
+.PARAMETER BypassListForUsers
+Configure WAU to bypass the Black/White list when run in user context
+
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -DoNotUpdate
 
@@ -77,7 +80,8 @@ param(
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
-    [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am")
+    [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
+    [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false
 )
 
 <# APP INFO #>
@@ -265,6 +269,15 @@ function Install-WingetAutoUpdate {
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force | Out-Null
 
+        # Settings for the scheduled task in User context
+        $taskAction = New-ScheduledTaskAction –Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+
+        # Set up the task for user apps
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -InputObject $task -Force | Out-Null
+
         # Settings for the scheduled task for Notifications
         $taskAction = New-ScheduledTaskAction –Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
         $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
@@ -273,6 +286,14 @@ function Install-WingetAutoUpdate {
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force | Out-Null
+
+        #Set task readable/runnable for all users
+        $scheduler = New-Object -ComObject "Schedule.Service"
+        $scheduler.Connect()
+        $task = $scheduler.GetFolder("").GetTask("Winget-AutoUpdate")
+        $sec = $task.GetSecurityDescriptor(0xF)
+        $sec = $sec + '(A;;GRGX;;;AU)'
+        $task.SetSecurityDescriptor($sec, 0)
 
         # Configure Reg Key
         $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
@@ -303,6 +324,9 @@ function Install-WingetAutoUpdate {
         }
         if ($ListPath){
             New-ItemProperty $regPath -Name ListPath -Value $ListPath -Force | Out-Null
+        }
+        if ($BypassListForUsers){
+            New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
         Write-host "WAU Installation succeeded!" -ForegroundColor Green
@@ -337,7 +361,8 @@ function Uninstall-WingetAutoUpdate {
                 Get-ChildItem -Path $InstallLocation -Exclude *.txt,mods,logs | Remove-Item -Recurse -Force
             }
             Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-            Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False    
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
             & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
     
@@ -420,10 +445,4 @@ else {
 }
 
 Write-host "`nEnd of process." -ForegroundColor Cyan
-
-if (!$Silent) {
-    Timeout 10
-}
-else {
-    Start-Sleep 1
-}
+Start-Sleep 3

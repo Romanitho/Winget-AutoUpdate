@@ -9,33 +9,25 @@ function Start-Init {
     $Log = "`n##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
     $Log | Write-host
 
-    #Logs initialisation if admin
-    try {
+    #Logs initialisation
+    $Script:LogFile = "$WorkingDir\logs\updates.log"
+    
+    if (!(Test-Path $LogFile)) {
+        #Create file if doesn't exist
+        New-Item -ItemType File -Path $LogFile -Force
 
-        $LogPath = "$WorkingDir\logs"
-        
-        if (!(Test-Path $LogPath)) {
-            New-Item -ItemType Directory -Force -Path $LogPath
-        }
-        
-        #Log file
-        $Script:LogFile = "$LogPath\updates.log"
-        $Log | out-file -filepath $LogFile -Append
-    
+        #Set ACL for users on logfile
+        $NewAcl = Get-Acl -Path $LogFile
+        $identity = New-Object System.Security.Principal.SecurityIdentifier S-1-5-11
+        $fileSystemRights = "Modify"
+        $type = "Allow"
+        $fileSystemAccessRuleArgumentList = $identity, $fileSystemRights, $type
+        $fileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $fileSystemAccessRuleArgumentList
+        $NewAcl.SetAccessRule($fileSystemAccessRule)
+        Set-Acl -Path $LogFile -AclObject $NewAcl
     }
-    #Logs initialisation if non-admin
-    catch {
-    
-        $LogPath = "$env:USERPROFILE\Winget-AutoUpdate\logs"
-    
-        if (!(Test-Path $LogPath)) {
-            New-Item -ItemType Directory -Force -Path $LogPath
-        }
 
-        #Log file
-        $Script:LogFile = "$LogPath\updates.log"
-        $Log | out-file -filepath $LogFile -Append
-    
-    }
+    #Log file
+    $Log | out-file -filepath $LogFile -Append
 
 }

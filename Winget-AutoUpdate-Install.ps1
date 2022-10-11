@@ -31,6 +31,12 @@ Remove scheduled tasks and scripts.
 .PARAMETER NoClean
 Keep critical files when installing/uninstalling
 
+.PARAMETER DesktopShortcut
+Create a shortcut for user interaction on the Desktop to run task "Winget-AutoUpdate"
+
+.PARAMETER StartMenuShortcut
+Create shortcuts for user interaction in the Start Menu to run task "Winget-AutoUpdate", open Logs and Web Help
+
 .PARAMETER NotificationLevel
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
 
@@ -56,7 +62,7 @@ Configure WAU to bypass the Black/White list when run in user context
 .\winget-install-and-update.ps1 -Silent -UseWhiteList
 
 .EXAMPLE
-.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists
+.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists -StartMenuShortcut
 
 .EXAMPLE
 .\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
@@ -76,6 +82,8 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
     [Parameter(Mandatory = $False)] [Switch] $NoClean = $false,
+    [Parameter(Mandatory = $False)] [Switch] $DesktopShortcut = $false,
+    [Parameter(Mandatory = $False)] [Switch] $StartMenuShortcut = $false,
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
@@ -323,10 +331,24 @@ function Install-WingetAutoUpdate {
             New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value 1 -PropertyType DWord -Force | Out-Null
         }
         if ($ListPath){
-            New-ItemProperty $regPath -Name ListPath -Value $ListPath -Force | Out-Null
+            New-ItemProperty $regPath -Name WAU_ListPath -Value $ListPath -Force | Out-Null
         }
         if ($BypassListForUsers){
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
+        }
+
+        #Create Shortcuts
+        if ($StartMenuShortcut) {
+            if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
+                New-Item -ItemType Directory -Force -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" | Out-Null
+            }
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Check for updated Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Open logs.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`" -Logs`"" "${env:SystemRoot}\System32\shell32.dll,-16763" "Open existing WAU logs..."
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Web Help.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`" -Help`"" "${env:SystemRoot}\System32\shell32.dll,-24" "Help for WAU..."
+        }
+
+        if ($DesktopShortcut) {
+            Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
         }
 
         Write-host "WAU Installation succeeded!" -ForegroundColor Green
@@ -366,6 +388,14 @@ function Uninstall-WingetAutoUpdate {
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
             & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
     
+            if ((Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
+                Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null
+            }
+
+            if ((Test-Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk")) {
+                Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
+            }
+
             Write-host "Uninstallation succeeded!" -ForegroundColor Green
             Start-sleep 1
         }
@@ -417,6 +447,15 @@ function Start-WingetAutoUpdate {
     }
 }
 
+function Add-Shortcut ($Target, $Shortcut, $Arguments, $Icon, $Description) {
+    $WScriptShell = New-Object -ComObject WScript.Shell
+    $Shortcut = $WScriptShell.CreateShortcut($Shortcut)
+    $Shortcut.TargetPath = $Target
+    $Shortcut.Arguments = $Arguments
+    $Shortcut.IconLocation = $Icon
+    $Shortcut.Description = $Description
+    $Shortcut.Save()
+}
 
 <# MAIN #>
 

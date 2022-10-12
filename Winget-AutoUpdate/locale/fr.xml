@@ -32,15 +32,15 @@
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Logs are not available yet!</message>
+			<message>Les logs ne sont pas encore disponibles</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Starting a manual check for updated apps...</message>
+			<message>Recherche de mises à jour logicielles en cours...</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Couldn't start a manual check for updated apps!</message>
+			<message>La recherche de mises à jour logicielles n'a pas pu démarrer !</message>
 		</output>
 	</outputs>
 </local>

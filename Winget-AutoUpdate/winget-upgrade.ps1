@@ -76,17 +76,23 @@ if (Test-Network) {
         }
 
         #Get External ListPath
-        if ($WAUConfig.ListPath) {
-            Write-Log "WAU uses External Lists from $WAUConfig.ListPath"
-            $NewList = Test-ListPath $WAUConfig.ListPath $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation
+        if ($WAUConfig.WAU_ListPath) {
+            Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath)"
+            $NewList = Test-ListPath $WAUConfig.WAU_ListPath $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation
             if ($NewList) {
-                Write-Log "Newer List downloaded to local path"
+                Write-Log "Newer List copied/downloaded to local path: $($WAUConfig.InstallLocation)" "Yellow"
             }
             else {
-                Write-Log "No newer List detected"
+                if ((Test-Path "$WorkingDir\included_apps.txt") -or (Test-Path "$WorkingDir\excluded_apps.txt")) {
+                    Write-Log "List is up to date." "Green"
+                }
+                else {
+                    Write-Log "List doesn't exist!" "Red"
+                    Exit 0
+                }
             }
         }
-
+        
         #Get White or Black list
         if ($WAUConfig.WAU_UseWhiteList -eq 1) {
             Write-Log "WAU uses White List config"

@@ -32,15 +32,15 @@
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Logs are not available yet!</message>
+			<message>Logitiedostoja ei ole vielä saatavilla!</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Starting a manual check for updated apps...</message>
+			<message>Aloitetaan manuaalinen tarkistus sovelluspäivityksistä...</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Couldn't start a manual check for updated apps!</message>
+			<message>Manuaalista tarkistusta sovelluspäivityksistä ei voitu suorittaa!</message>
 		</output>
 	</outputs>
 </local>

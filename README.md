@@ -46,6 +46,9 @@ We might want to stop WAU on metered connection (to save cellular data on connec
 
 To force WAU to run on metered connections anyway, run new installation with `-RunOnMetered` parameter.
 
+### System & user context
+From version 1.15.0, WAU run with system and user contexts. This way, even apps installed on User's scope are updated. Shorcuts for manually run can also be installed
+
 ## Update WAU
 ### Manual Update
 Same process as new installation : download, unzip and run `install.bat`.

@@ -57,12 +57,12 @@ elseif ($Help) {
 }
 else {
 	try {
-		#Run scheduled task
-		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
 		#Starting check - Send notification
 		$Message = $NotifLocale.local.outputs.output[6].message
 		$MessageType = "info"
 		Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
+		#Run scheduled task
+		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
 	}
 	catch {
 		#Check failed - Just send notification

@@ -337,6 +337,19 @@ function Install-WingetAutoUpdate {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
+        #Set ACL for users on logfile
+        $LogFile = "$WingetUpdatePath\logs\updates.log"
+        if (test-path $LogFile){
+            $NewAcl = Get-Acl -Path $LogFile
+            $identity = New-Object System.Security.Principal.SecurityIdentifier S-1-5-11
+            $fileSystemRights = "Modify"
+            $type = "Allow"
+            $fileSystemAccessRuleArgumentList = $identity, $fileSystemRights, $type
+            $fileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $fileSystemAccessRuleArgumentList
+            $NewAcl.SetAccessRule($fileSystemAccessRule)
+            Set-Acl -Path $LogFile -AclObject $NewAcl
+        }
+
         #Create Shortcuts
         if ($StartMenuShortcut) {
             if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {

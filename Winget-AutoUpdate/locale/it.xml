@@ -14,7 +14,7 @@
 		</output>
 		<output id="2">
 			<!--{App} will be updated-->
-			<title>{0}Verrà aggiornato!</title>
+			<title>{0}verrà aggiornato!</title>
 			<!--{v1.0} to {v2.0}-->
 			<message>Da {0} a {1}</message>
 		</output>
@@ -26,21 +26,21 @@
 		</output>
 		<output id="4">
 			<!--{App} could not be updated-->
-			<title>{0} Non può essere aggiornato!</title>
+			<title>{0} non può essere aggiornato!</title>
 			<!--Please contact support-->
 			<message>Per favore contatta il supporto.</message>
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Logs are not available yet!</message>
+			<message>I log non sono ancora disponibili!</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Starting a manual check for updated apps...</message>
+			<message>Avviando un controllo manuale delle app aggiornate...</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Couldn't start a manual check for updated apps!</message>
+			<message>Impossibile avviare un controllo manuale delle app aggiornate...!</message>
 		</output>
 	</outputs>
 </local>

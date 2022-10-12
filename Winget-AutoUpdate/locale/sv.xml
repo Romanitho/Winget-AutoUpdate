@@ -30,5 +30,17 @@
 			<!--Please contact support-->
 			<message>Vänligen kontakta supporten.</message>
 		</output>
+		<output id="5">
+			<!--Logs are not available yet-->
+			<message>Loggarna är inte tillgängliga ännu!</message>
+		</output>
+		<output id="6">
+			<!--Starting a manual check for updated apps-->
+			<message>Startar en manuell koll efter uppdaterade appar...</message>
+		</output>
+		<output id="7">
+			<!--Couldn't start a manual check for updated apps-->
+			<message>Kunde inte starta en manuell koll efter uppdaterade appar!</message>
+		</output>
 	</outputs>
 </local>

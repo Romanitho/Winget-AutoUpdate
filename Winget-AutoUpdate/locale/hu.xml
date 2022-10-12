@@ -28,19 +28,19 @@
 			<!--{App} could not be updated-->
 			<title>{0} nem sikerült frissíteni!</title>
 			<!--Please contact support-->
-			<message>Kérjük, forduljon az ügyfélszolgálathoz.</message>
+			<message>Kérjük, forduljon a támogatáshoz.</message>
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Logs are not available yet!</message>
+			<message>A naplók még nem érhetők el!</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Starting a manual check for updated apps...</message>
+			<message>A frissített alkalmazások kézi ellenőrzésének indítása...</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Couldn't start a manual check for updated apps!</message>
+			<message>Nem sikerült elindítani a frissített alkalmazások kézi ellenőrzését!</message>
 		</output>
 	</outputs>
 </local>

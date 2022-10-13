@@ -32,6 +32,12 @@ $Script:WorkingDir = $PSScriptRoot
 . $WorkingDir\functions\Get-NotifLocale.ps1
 . $WorkingDir\functions\Start-NotifTask.ps1
 
+function Check-WAUisRunning {
+	If (((Get-ScheduledTask -TaskName 'Winget-AutoUpdate').State -ne  'Ready') -or ((Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext').State -ne  'Ready')) {
+		Return 1
+	}
+}
+
 #Set common variables
 $OnClickAction = "$WorkingDir\logs\updates.log"
 $Title = "Winget-AutoUpdate (WAU)"
@@ -57,12 +63,21 @@ elseif ($Help) {
 }
 else {
 	try {
+		#Check if WAU is currently running
+		if (Check-WAUisRunning) {
+			break
+		}
 		#Starting check - Send notification
 		$Message = $NotifLocale.local.outputs.output[6].message
 		$MessageType = "info"
 		Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
 		#Run scheduled task
 		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
+		While (Check-WAUisRunning) {
+			Start-Sleep 3
+		}
+		$Message = "Check finished!"
+		Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
 	}
 	catch {
 		#Check failed - Just send notification

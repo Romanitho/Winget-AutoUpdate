@@ -56,16 +56,16 @@ Run WAU on metered connection. Default No.
 Configure WAU to bypass the Black/White list when run in user context
 
 .EXAMPLE
-.\winget-install-and-update.ps1 -Silent -DoNotUpdate
+.\Winget-AutoUpdate-Install.ps1 -Silent -DoNotUpdate
 
 .EXAMPLE
-.\winget-install-and-update.ps1 -Silent -UseWhiteList
+.\Winget-AutoUpdate-Install.ps1 -Silent -UseWhiteList
 
 .EXAMPLE
-.\winget-install-and-update.ps1 -Silent -ListPath https://www.domain.com/WAULists -StartMenuShortcut
+.\Winget-AutoUpdate-Install.ps1 -Silent -ListPath https://www.domain.com/WAULists -StartMenuShortcut
 
 .EXAMPLE
-.\winget-install-and-update.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
+.\Winget-AutoUpdate-Install.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
 
 .EXAMPLE
 .\Winget-AutoUpdate-Install.ps1 -Silent -Uninstall -NoClean

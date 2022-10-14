@@ -29,7 +29,7 @@ By default, scripts and components will be placed in ProgramData location (insid
 From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, Weekly, Biweekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
 
 ### Log location
-You can find logs in install location, in log folder.
+You can find logs in install location, in logs folder.
 
 ### "Unknown" App version
 As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255), Winget cannot detect the current version of some installed apps. We decided to skip managing these apps with WAU to avoid retries each time WAU runs:
@@ -68,7 +68,7 @@ Simply uninstall it from your programs:
 <img src="https://user-images.githubusercontent.com/96626929/167912772-de5a55fe-68a8-44ed-91fb-fcf5b34d891f.png" width="400">
 
 ## Advanced installation
-You can run the `winget-install-and-update.ps1` script with parameters :
+You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
 
 **-Silent**  
 Install Winget-AutoUpdate and prerequisites silently

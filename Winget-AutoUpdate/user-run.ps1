@@ -70,12 +70,12 @@ else {
 			Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
 			break
 		}
+		#Run scheduled task
+		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
 		#Starting check - Send notification
 		$Message = $NotifLocale.local.outputs.output[6].message
 		$MessageType = "info"
 		Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
-		#Run scheduled task
-		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
 		#Sleep until the task is done
 		While (Test-WAUisRunning) {
 			Start-Sleep 3

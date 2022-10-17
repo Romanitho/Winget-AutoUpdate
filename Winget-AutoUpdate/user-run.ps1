@@ -23,12 +23,18 @@ param(
 	[Parameter(Mandatory=$False)] [Switch] $Help = $false
 )
 
+function Test-WAUisRunning {
+	If (((Get-ScheduledTask -TaskName 'Winget-AutoUpdate').State -ne  'Ready') -or ((Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext').State -ne  'Ready')) {
+		Return $True
+	}
+}
+
 <# MAIN #>
 
 #Get Working Dir
 $Script:WorkingDir = $PSScriptRoot
 
-#Load functions
+#Load external functions
 . $WorkingDir\functions\Get-NotifLocale.ps1
 . $WorkingDir\functions\Start-NotifTask.ps1
 
@@ -57,12 +63,26 @@ elseif ($Help) {
 }
 else {
 	try {
+		#Check if WAU is currently running
+		if (Test-WAUisRunning) {
+			$Message = $NotifLocale.local.outputs.output[8].message
+			$MessageType = "warning"
+			Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
+			break
+		}
 		#Starting check - Send notification
 		$Message = $NotifLocale.local.outputs.output[6].message
 		$MessageType = "info"
 		Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
 		#Run scheduled task
 		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
+		#Sleep until the task is done
+		While (Test-WAUisRunning) {
+			Start-Sleep 3
+		}
+		$Message = $NotifLocale.local.outputs.output[9].message
+		$MessageType = "success"
+		Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
 	}
 	catch {
 		#Check failed - Just send notification

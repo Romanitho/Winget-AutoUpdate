@@ -89,7 +89,7 @@ function Invoke-PostUpdateActions {
 
     #Set new User Context task and Set system task readable/runnable for all users
     $UserTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
-    if (!$UserTask){
+    if (!$UserTask) {
         # Settings for the scheduled task in User context
         $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WorkingDir)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WorkingDir)\winget-upgrade.ps1`"`""
         $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11

@@ -5,7 +5,7 @@ function Start-NotifTask ($Title, $Message, $MessageType, $Balise, $OnClickActio
     if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success") -or ($UserRun)) {
 
         #Prepare OnClickAction (if set)
-        if ($OnClickAction){
+        if ($OnClickAction) {
             $ToastOnClickAction = "activationType='protocol' launch='$OnClickAction'"
         }
 

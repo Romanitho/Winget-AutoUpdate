@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
 Configure Winget to daily update installed apps.
 
@@ -211,7 +211,7 @@ function Install-WingetAutoUpdate {
             }
             else {
                 #Keep critical files
-                Get-ChildItem -Path $WingetUpdatePath -Exclude *.txt,mods,logs | Remove-Item -Recurse -Force
+                Get-ChildItem -Path $WingetUpdatePath -Exclude *.txt, mods, logs | Remove-Item -Recurse -Force
             }
         }
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
@@ -223,7 +223,7 @@ function Install-WingetAutoUpdate {
                     Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
                 }
                 else {
-                    if (!$ListPath){
+                    if (!$ListPath) {
                         New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
                     }
                 }
@@ -233,7 +233,7 @@ function Install-WingetAutoUpdate {
                     Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
                 }
                 else {
-                    if (!$ListPath){
+                    if (!$ListPath) {
                         New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
                     }
                 }
@@ -330,16 +330,16 @@ function Install-WingetAutoUpdate {
         if (!$RunOnMetered) {
             New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value 1 -PropertyType DWord -Force | Out-Null
         }
-        if ($ListPath){
+        if ($ListPath) {
             New-ItemProperty $regPath -Name WAU_ListPath -Value $ListPath -Force | Out-Null
         }
-        if ($BypassListForUsers){
+        if ($BypassListForUsers) {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
         #Set ACL for users on logfile
         $LogFile = "$WingetUpdatePath\logs\updates.log"
-        if (test-path $LogFile){
+        if (test-path $LogFile) {
             $NewAcl = Get-Acl -Path $LogFile
             $identity = New-Object System.Security.Principal.SecurityIdentifier S-1-5-11
             $fileSystemRights = "Modify"
@@ -393,7 +393,7 @@ function Uninstall-WingetAutoUpdate {
             }
             else {
                 #Keep critical files
-                Get-ChildItem -Path $InstallLocation -Exclude *.txt,mods,logs | Remove-Item -Recurse -Force
+                Get-ChildItem -Path $InstallLocation -Exclude *.txt, mods, logs | Remove-Item -Recurse -Force
             }
             Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False

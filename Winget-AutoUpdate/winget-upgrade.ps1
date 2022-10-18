@@ -1,4 +1,4 @@
-﻿<# LOAD FUNCTIONS #>
+<# LOAD FUNCTIONS #>
 
 #Get Working Dir
 $Script:WorkingDir = $PSScriptRoot
@@ -18,7 +18,7 @@ Start-Init
 if ($IsSystem) {
     Write-Log "Running in System context"
 }
-else{
+else {
     Write-Log "Running in User context"
 }
 
@@ -66,7 +66,7 @@ if (Test-Network) {
                 if ($IsSystem) {
                     Update-WAU
                 }
-                else{
+                else {
                     Write-Log "WAU Needs to run as system to update" "Yellow"
                 }
             }
@@ -76,7 +76,7 @@ if (Test-Network) {
         }
 
         if ($IsSystem) {
-        #Get External ListPath
+            #Get External ListPath
             if ($WAUConfig.WAU_ListPath) {
                 Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath)"
                 $NewList = Test-ListPath $WAUConfig.WAU_ListPath $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation
@@ -121,7 +121,7 @@ if (Test-Network) {
         $Script:InstallOK = 0
 
         #Trick under user context when -BypassListForUsers is used
-        if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq $true){
+        if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq $true) {
             Write-Log "Bypass system list in user context is Enabled."
             $UseWhiteList = $false
             $toSkip = $null
@@ -179,7 +179,7 @@ if ($IsSystem) {
 
     #Run user context scheduled task
     $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
-    if ($UserScheduledTask){
+    if ($UserScheduledTask) {
         Write-Log "Starting WAU in User context"
         Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
         Exit 0

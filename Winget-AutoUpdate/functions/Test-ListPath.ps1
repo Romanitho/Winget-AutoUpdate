@@ -2,16 +2,16 @@
 
 function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
     # URL, UNC or Local Path
-    if ($UseWhiteList){
-        $ListType="included_apps.txt"
+    if ($UseWhiteList) {
+        $ListType = "included_apps.txt"
     }
     else {
-        $ListType="excluded_apps.txt"
+        $ListType = "excluded_apps.txt"
     }
 
     # Get local and external list paths
-    $LocalList = -join($WingetUpdatePath, "\", $ListType)
-    $ExternalList = -join($ListPath, "\", $ListType)
+    $LocalList = -join ($WingetUpdatePath, "\", $ListType)
+    $ExternalList = -join ($ListPath, "\", $ListType)
 
     # Check if a list exists
     if (Test-Path "$LocalList") {
@@ -19,8 +19,8 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
     }
 
     # If path is URL
-    if ($ListPath -like "http*"){
-        $ExternalList = -join($ListPath, "/", $ListType)
+    if ($ListPath -like "http*") {
+        $ExternalList = -join ($ListPath, "/", $ListType)
         $wc = New-Object System.Net.WebClient
         try {
             $wc.OpenRead("$ExternalList").Close() | Out-Null
@@ -41,7 +41,7 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
     }
     # If path is UNC or local
     else {
-        if(Test-Path -Path $ExternalList -PathType leaf){
+        if (Test-Path -Path $ExternalList -PathType leaf) {
             $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
             if ($dateExternal -gt $dateLocal) {
                 try {

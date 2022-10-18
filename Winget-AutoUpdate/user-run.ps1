@@ -19,12 +19,12 @@ https://github.com/Romanitho/Winget-AutoUpdate
 
 [CmdletBinding()]
 param(
-	[Parameter(Mandatory=$False)] [Switch] $Logs = $false,
-	[Parameter(Mandatory=$False)] [Switch] $Help = $false
+	[Parameter(Mandatory = $False)] [Switch] $Logs = $false,
+	[Parameter(Mandatory = $False)] [Switch] $Help = $false
 )
 
 function Test-WAUisRunning {
-	If (((Get-ScheduledTask -TaskName 'Winget-AutoUpdate').State -ne  'Ready') -or ((Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext').State -ne  'Ready')) {
+	If (((Get-ScheduledTask -TaskName 'Winget-AutoUpdate').State -ne 'Ready') -or ((Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext').State -ne 'Ready')) {
 		Return $True
 	}
 }

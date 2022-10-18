@@ -39,7 +39,7 @@ function Get-WingetOutdatedApps {
 
     # Now cycle in real package and split accordingly
     $upgradeList = @()
-    For ($i = $fl + 2; $i -lt $lines.Length -1; $i++) {
+    For ($i = $fl + 2; $i -lt $lines.Length - 1; $i++) {
         $line = $lines[$i]
         if ($line) {
             $software = [Software]::new()
@@ -55,8 +55,8 @@ function Get-WingetOutdatedApps {
     #If current user is not system, remove system apps from list
     if ($IsSystem -eq $false) {
         $SystemApps = Get-Content -Path "$WorkingDir\winget_system_apps.txt"
-        $upgradeList = $upgradeList | Where-Object {$SystemApps -notcontains $_.Id}
+        $upgradeList = $upgradeList | Where-Object { $SystemApps -notcontains $_.Id }
     }
 
-    return $upgradeList | Sort-Object {Get-Random}
+    return $upgradeList | Sort-Object { Get-Random }
 }

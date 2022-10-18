@@ -11,6 +11,8 @@ function Invoke-PostUpdateActions {
         #If multiple version, pick last one
         $WingetPath = $ResolveWingetPath[-1].Path
         & $WingetPath source reset --force
+
+        #log
         Write-Log "-> Winget sources reseted." "green"
     }
     
@@ -105,6 +107,9 @@ function Invoke-PostUpdateActions {
         $sec = $task.GetSecurityDescriptor(0xF)
         $sec = $sec + '(A;;GRGX;;;AU)'
         $task.SetSecurityDescriptor($sec, 0)
+
+        #log
+        Write-Log "-> 'Winget-AutoUpdate-UserContext' scheduled task created." "green"
     }
 
     #Set ACL for users on logfile

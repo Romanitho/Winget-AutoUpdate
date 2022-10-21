@@ -8,10 +8,11 @@ function Test-Network {
     #Test connectivity during 30 min then timeout
     Write-Log "Checking internet connection..." "Yellow"
     While ($timeout -lt 1800) {
+
+        $URLtoTest = "https://raw.githubusercontent.com/Romanitho/Winget-AutoUpdate/main/LICENSE"
+        $URLcontent = ((Invoke-WebRequest -URI $URLtoTest).content)
         
-        $TestNetwork = Test-NetConnection 8.8.8.8 -Port 443 -InformationLevel Quiet  
-        
-        if ($TestNetwork) {
+        if ($URLcontent -like "*MIT License*") {
             
             Write-Log "Connected !" "Green"
 

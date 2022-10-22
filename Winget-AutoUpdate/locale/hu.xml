@@ -44,11 +44,11 @@
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->
-			<message>Check for updated apps already running...</message>
+			<message>Ellenőrizze, hogy vannak-e már futó frissített alkalmazások...</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Manual check for updated apps completed...</message>
+			<message>A frissített alkalmazások kézi ellenőrzése befejeződött...</message>
 		</output>
 	</outputs>
 </local>

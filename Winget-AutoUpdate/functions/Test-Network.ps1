@@ -10,7 +10,7 @@ function Test-Network {
     While ($timeout -lt 1800) {
 
         $URLtoTest = "https://raw.githubusercontent.com/Romanitho/Winget-AutoUpdate/main/LICENSE"
-        $URLcontent = ((Invoke-WebRequest -URI $URLtoTest).content)
+        $URLcontent = ((Invoke-WebRequest -URI $URLtoTest -UseBasicParsing).content)
         
         if ($URLcontent -like "*MIT License*") {
             

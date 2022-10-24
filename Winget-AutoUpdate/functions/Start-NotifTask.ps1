@@ -27,7 +27,7 @@ function Start-NotifTask ($Title, $Message, $MessageType, $Balise, $OnClickActio
         if ($IsSystem) {
 
             #Save XML to File
-            $ToastTemplateLocation = "$env:ProgramData\Winget-AutoUpdate\config\"
+            $ToastTemplateLocation = "$($WAUConfig.InstallLocation)\config\"
             if (!(Test-Path $ToastTemplateLocation)) {
                 New-Item -ItemType Directory -Force -Path $ToastTemplateLocation
             }

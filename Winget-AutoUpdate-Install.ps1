@@ -52,6 +52,9 @@ Specify the time of the update interval execution time. Default 6AM
 .PARAMETER RunOnMetered
 Run WAU on metered connection. Default No.
 
+.PARAMETER InstallUserContext
+Install WAU with system and user context executions
+
 .PARAMETER BypassListForUsers
 Configure WAU to bypass the Black/White list when run in user context
 
@@ -89,7 +92,8 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
     [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
-    [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false
+    [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false,
+    [Parameter(Mandatory = $False)] [Switch] $InstallUserContext = $false
 )
 
 <# APP INFO #>
@@ -277,15 +281,17 @@ function Install-WingetAutoUpdate {
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force | Out-Null
 
-        # Settings for the scheduled task in User context
-        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
-        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+        if ($InstallUserContext) {
+            # Settings for the scheduled task in User context
+            $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+            $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+            $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
 
-        # Set up the task for user apps
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -InputObject $task -Force | Out-Null
-
+            # Set up the task for user apps
+            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+            Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -InputObject $task -Force | Out-Null
+        }
+        
         # Settings for the scheduled task for Notifications
         $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
         $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11

@@ -24,7 +24,7 @@ param(
 )
 
 function Test-WAUisRunning {
-	If (((Get-ScheduledTask -TaskName 'Winget-AutoUpdate').State -ne 'Ready') -or ((Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext').State -ne 'Ready')) {
+	If (((Get-ScheduledTask -TaskName 'Winget-AutoUpdate').State -eq 'Running') -or ((Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext').State -eq 'Running')) {
 		Return $True
 	}
 }

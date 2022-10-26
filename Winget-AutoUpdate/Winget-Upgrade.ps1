@@ -88,7 +88,6 @@ if (Test-Network) {
                     }
                 }
             }
-
         }
 
         #Get White or Black list

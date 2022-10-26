@@ -165,23 +165,23 @@ if (Test-Network) {
         if ($InstallOK -eq 0) {
             Write-Log "No new update." "Green"
         }
-    }
-    
-    #Run WAU in user context if currently as system
-    if ($IsSystem) {
 
-        #Get Winget system apps to excape them befor running user context
-        Get-WingetSystemApps
+        #Run WAU in user context if currently as system
+        if ($IsSystem) {
 
-        #Run user context scheduled task
-        $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
-        if ($UserScheduledTask) {
-            Write-Log "Starting WAU in User context"
-            Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
-            Exit 0
-        }
-        else {
-            Write-Log "User context execution not installed"
+            #Get Winget system apps to excape them befor running user context
+            Get-WingetSystemApps
+
+            #Run user context scheduled task
+            $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
+            if ($UserScheduledTask) {
+                Write-Log "Starting WAU in User context"
+                Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
+                Exit 0
+            }
+            else {
+                Write-Log "User context execution not installed"
+            }
         }
     }
 }

@@ -88,6 +88,9 @@ Use White List instead of Black List. This setting will not create the "excluded
 **-ListPath**  
 Get Black/White List from Path (URL/UNC/Local) (copy/download to Winget-AutoUpdate installation location if external list is newer).
 
+**-InstallUserContext**  
+Install WAU with system and **user** context executions (From version 1.15.3)
+
 **-BypassListForUsers**  
 Bypass Black/White list when run in user context (From version 1.15.0)
 

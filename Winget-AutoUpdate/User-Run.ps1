@@ -38,15 +38,15 @@ $Script:WorkingDir = $PSScriptRoot
 . $WorkingDir\functions\Get-NotifLocale.ps1
 . $WorkingDir\functions\Start-NotifTask.ps1
 
+#Get Toast Locale function
+Get-NotifLocale
+
 #Set common variables
 $OnClickAction = "$WorkingDir\logs\updates.log"
 $Button1Text = $NotifLocale.local.outputs.output[11].message
 $Title = "Winget-AutoUpdate (WAU)"
 $Balise = "Winget-AutoUpdate (WAU)"
 $UserRun = $True
-
-#Get Toast Locale function
-Get-NotifLocale
 
 if ($Logs) {
 	if ((Test-Path "$WorkingDir\logs\updates.log")) {

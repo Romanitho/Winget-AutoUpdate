@@ -169,12 +169,16 @@ if (Test-Network) {
         if ($IsSystem -and $UserScheduledTask) {
 
             #Get Winget system apps to excape them befor running user context
+            Write-Log "Get list of installed Winget apps in System context..."
             Get-WingetSystemApps
 
             #Run user context scheduled task
             Write-Log "Starting WAU in User context"
             Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
             Exit 0
+        }
+        elseif (!$UserScheduledTask){
+            Write-Log "User context execution not installed"
         }
     }
 }

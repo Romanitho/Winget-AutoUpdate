@@ -7,5 +7,5 @@ function Get-ExcludedApps {
         return (Get-Content -Path "$WorkingDir\excluded_apps.txt").Trim() | Where-Object { $_.length -gt 0 }
 
     }
-    
+
 }

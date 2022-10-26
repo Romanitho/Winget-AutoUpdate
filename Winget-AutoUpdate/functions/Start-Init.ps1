@@ -11,7 +11,7 @@ function Start-Init {
 
     #Logs initialisation
     $Script:LogFile = "$WorkingDir\logs\updates.log"
-    
+
     if (!(Test-Path $LogFile)) {
         #Create file if doesn't exist
         New-Item -ItemType File -Path $LogFile -Force

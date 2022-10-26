@@ -55,7 +55,7 @@ if ($Logs) {
 		#Not available yet
 		$Message = $NotifLocale.local.outputs.output[5].message
 		$MessageType = "warning"
-		Start-NotifTask $Title $Message $MessageType $Balise
+		Start-NotifTask -Message $Message -MessageType $MessageType
 	}
 }
 elseif ($Help) {
@@ -67,7 +67,7 @@ else {
 		if (Test-WAUisRunning) {
 			$Message = $NotifLocale.local.outputs.output[8].message
 			$MessageType = "warning"
-			Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
+			Start-NotifTask -Message $Message -MessageType $MessageType
 			break
 		}
 		#Run scheduled task
@@ -75,19 +75,19 @@ else {
 		#Starting check - Send notification
 		$Message = $NotifLocale.local.outputs.output[6].message
 		$MessageType = "info"
-		Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
+		Start-NotifTask -Message $Message -MessageType $MessageType
 		#Sleep until the task is done
 		While (Test-WAUisRunning) {
 			Start-Sleep 3
 		}
 		$Message = $NotifLocale.local.outputs.output[9].message
 		$MessageType = "success"
-		Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
+		Start-NotifTask -Message $Message -MessageType $MessageType
 	}
 	catch {
 		#Check failed - Just send notification
 		$Message = $NotifLocale.local.outputs.output[7].message
 		$MessageType = "error"
-		Start-NotifTask $Title $Message $MessageType $Balise
+		Start-NotifTask -Message $Message -MessageType $MessageType
 	}
 }

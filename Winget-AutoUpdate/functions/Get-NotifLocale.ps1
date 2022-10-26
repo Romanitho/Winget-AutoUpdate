@@ -1,12 +1,12 @@
 #Function to get locale file for Notification.
 
 Function Get-NotifLocale {
-    
+
     #Get OS locale
     $OSLocale = (Get-Culture).Parent
 
     #Test if OS locale notif file exists
-    $TestOSLocalPath = "$WorkingDir\locale\$($OSLocale.Name).xml"   
+    $TestOSLocalPath = "$WorkingDir\locale\$($OSLocale.Name).xml"
 
     #Set OS Local if file exists
     if (Test-Path $TestOSLocalPath) {

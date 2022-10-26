@@ -143,7 +143,7 @@ function Start-NotifTask {
 
             #Run Notify scheduled task to notify conneted users
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
-        
+
         }
         #else, run as connected user
         else {
@@ -158,7 +158,7 @@ function Start-NotifTask {
 
             #Specify Launcher App ID
             $LauncherID = "Windows.SystemToast.Winget.Notification"
-            
+
             #Prepare and Create Toast
             $ToastMessage = [Windows.UI.Notifications.ToastNotification]::New($ToastXml)
             $ToastMessage.Tag = $ToastTemplate.toast.tag

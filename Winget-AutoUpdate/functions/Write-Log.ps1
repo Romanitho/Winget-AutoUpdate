@@ -1,7 +1,7 @@
 #Write Log Function
 
 function Write-Log ($LogMsg, $LogColor = "White") {
-    
+
     #Get log
     $Log = "$(Get-Date -UFormat "%T") - $LogMsg"
 

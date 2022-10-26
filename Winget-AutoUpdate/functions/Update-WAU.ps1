@@ -3,22 +3,22 @@
 function Update-WAU {
 
     $OnClickAction = "https://github.com/Romanitho/Winget-AutoUpdate/releases"
+    $Button1Text = $NotifLocale.local.outputs.output[10].message
 
     #Send available update notification
     $Title = $NotifLocale.local.outputs.output[2].title -f "Winget-AutoUpdate"
     $Message = $NotifLocale.local.outputs.output[2].message -f $WAUCurrentVersion, $WAUAvailableVersion
     $MessageType = "info"
-    $Balise = "Winget-AutoUpdate"
-    Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
+    Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
 
     #Run WAU update
     try {
 
-        #Force to create a zip file 
+        #Force to create a zip file
         $ZipFile = "$WorkingDir\WAU_update.zip"
         New-Item $ZipFile -ItemType File -Force | Out-Null
 
-        #Download the zip 
+        #Download the zip
         Write-Log "Downloading the GitHub Repository version $WAUAvailableVersion" "Cyan"
         Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/v$($WAUAvailableVersion).zip/" -OutFile $ZipFile
 
@@ -27,14 +27,14 @@ function Update-WAU {
         $location = "$WorkingDir\WAU_update"
         Expand-Archive -Path $ZipFile -DestinationPath $location -Force
         Get-ChildItem -Path $location -Recurse | Unblock-File
-        
+
         #Update scritps
         Write-Log "Updating WAU" "Yellow"
         $TempPath = (Resolve-Path "$location\*\Winget-AutoUpdate\")[0].Path
         if ($TempPath) {
             Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
         }
-        
+
         #Remove update zip file and update temp folder
         Write-Log "Done. Cleaning temp files" "Cyan"
         Remove-Item -Path $ZipFile -Force -ErrorAction SilentlyContinue
@@ -53,8 +53,7 @@ function Update-WAU {
         $Title = $NotifLocale.local.outputs.output[3].title -f "Winget-AutoUpdate"
         $Message = $NotifLocale.local.outputs.output[3].message -f $WAUAvailableVersion
         $MessageType = "success"
-        $Balise = "Winget-AutoUpdate"
-        Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
+        Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
 
         #Rerun with newer version
         Write-Log "Re-run WAU"
@@ -65,15 +64,14 @@ function Update-WAU {
     }
 
     catch {
-    
+
         #Send Error Notif
         $Title = $NotifLocale.local.outputs.output[4].title -f "Winget-AutoUpdate"
         $Message = $NotifLocale.local.outputs.output[4].message
         $MessageType = "error"
-        $Balise = "Winget-AutoUpdate"
-        Start-NotifTask $Title $Message $MessageType $Balise $OnClickAction
+        Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
         Write-Log "WAU Update failed" "Red"
-    
+
     }
 
 }

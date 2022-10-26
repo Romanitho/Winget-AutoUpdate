@@ -44,7 +44,7 @@ Write-Log "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification
 if (Test-Network) {
     #Check if Winget is installed and get Winget cmd
     $TestWinget = Get-WingetCmd
-    
+
     if ($TestWinget) {
         #Get Current Version
         $WAUCurrentVersion = $WAUConfig.DisplayVersion
@@ -116,7 +116,7 @@ if (Test-Network) {
             $Log | Write-host
             $Log | out-file -filepath $LogFile -Append
         }
-        
+
         #Count good update installations
         $Script:InstallOK = 0
 
@@ -161,7 +161,7 @@ if (Test-Network) {
                 }
             }
         }
-        
+
         if ($InstallOK -gt 0) {
             Write-Log "$InstallOK apps updated ! No more update." "Green"
         }

@@ -54,5 +54,9 @@
 			<!--See changelog-->
 			<message>Consulter le journal des modifications</message>
 		</output>
+		<output id="11">
+			<!--Open log file-->
+			<message>Ouvrir le fichier log</message>
+		</output>
 	</outputs>
 </local>

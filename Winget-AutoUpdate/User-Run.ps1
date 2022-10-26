@@ -40,6 +40,7 @@ $Script:WorkingDir = $PSScriptRoot
 
 #Set common variables
 $OnClickAction = "$WorkingDir\logs\updates.log"
+$Button1Text = $NotifLocale.local.outputs.output[11].message
 $Title = "Winget-AutoUpdate (WAU)"
 $Balise = "Winget-AutoUpdate (WAU)"
 $UserRun = $True
@@ -55,7 +56,7 @@ if ($Logs) {
 		#Not available yet
 		$Message = $NotifLocale.local.outputs.output[5].message
 		$MessageType = "warning"
-		Start-NotifTask -Message $Message -MessageType $MessageType
+		Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss
 	}
 }
 elseif ($Help) {
@@ -82,12 +83,12 @@ else {
 		}
 		$Message = $NotifLocale.local.outputs.output[9].message
 		$MessageType = "success"
-		Start-NotifTask -Message $Message -MessageType $MessageType
+		Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss
 	}
 	catch {
 		#Check failed - Just send notification
 		$Message = $NotifLocale.local.outputs.output[7].message
 		$MessageType = "error"
-		Start-NotifTask -Message $Message -MessageType $MessageType
+		Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss
 	}
 }

@@ -32,23 +32,23 @@
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Logs are not available yet!</message>
+			<message>Die Logs sind aktuell nicht verfügbar!</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Starting a manual check for updated apps...</message>
+			<message>Starte die manuelle Suche nach Updates.</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Couldn't start a manual check for updated apps!</message>
+			<message>Die manuelle Suche nach Updates konnte nicht gestartet werden!</message>
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->
-			<message>Check for updated apps already running...</message>
+			<message>Die Such nach Updates läuft bereits.</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Manual check for updated apps completed...</message>
+			<message>Die manuelle suche nach Updates wurde abgeschlossen.</message>
 		</output>
 	</outputs>
 </local>

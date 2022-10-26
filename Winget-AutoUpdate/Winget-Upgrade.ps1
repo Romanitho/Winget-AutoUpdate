@@ -49,10 +49,10 @@ if (Test-Network) {
         #Get Current Version
         $WAUCurrentVersion = $WAUConfig.DisplayVersion
         Write-Log "WAU current version: $WAUCurrentVersion"
-        #Check if WAU update feature is enabled or not
-        $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
-        #If yes then check WAU update if System
         if ($IsSystem) {
+            #Check if WAU update feature is enabled or not
+            $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
+            #If yes then check WAU update if System
             if ($WAUDisableAutoUpdate -eq 1) {
                 Write-Log "WAU AutoUpdate is Disabled." "Grey"
             }
@@ -70,10 +70,8 @@ if (Test-Network) {
                     Write-Log "WAU is up to date." "Green"
                 }
             }
-        }
 
-        if ($IsSystem) {
-            #Get External ListPath
+            #Get External ListPath if System
             if ($WAUConfig.WAU_ListPath) {
                 Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath)"
                 $NewList = Test-ListPath $WAUConfig.WAU_ListPath $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation
@@ -90,6 +88,7 @@ if (Test-Network) {
                     }
                 }
             }
+
         }
 
         #Get White or Black list

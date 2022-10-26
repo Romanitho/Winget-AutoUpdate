@@ -51,27 +51,24 @@ if (Test-Network) {
         Write-Log "WAU current version: $WAUCurrentVersion"
         #Check if WAU update feature is enabled or not
         $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
-        #If yes then check WAU update
-        if ($WAUDisableAutoUpdate -eq 1) {
-            Write-Log "WAU AutoUpdate is Disabled." "Grey"
-        }
-        else {
-            Write-Log "WAU AutoUpdate is Enabled." "Green"
-            #Get Available Version
-            $WAUAvailableVersion = Get-WAUAvailableVersion
-            #Compare
-            if ([version]$WAUAvailableVersion -gt [version]$WAUCurrentVersion) {
-                #If new version is available, update it
-                Write-Log "WAU Available version: $WAUAvailableVersion" "Yellow"
-                if ($IsSystem) {
+        #If yes then check WAU update if System
+        if ($IsSystem) {
+            if ($WAUDisableAutoUpdate -eq 1) {
+                Write-Log "WAU AutoUpdate is Disabled." "Grey"
+            }
+            else {
+                Write-Log "WAU AutoUpdate is Enabled." "Green"
+                #Get Available Version
+                $WAUAvailableVersion = Get-WAUAvailableVersion
+                #Compare
+                if ([version]$WAUAvailableVersion -gt [version]$WAUCurrentVersion) {
+                    #If new version is available, update it
+                    Write-Log "WAU Available version: $WAUAvailableVersion" "Yellow"
                     Update-WAU
                 }
                 else {
-                    Write-Log "WAU Needs to run as system to update" "Yellow"
+                    Write-Log "WAU is up to date." "Green"
                 }
-            }
-            else {
-                Write-Log "WAU is up to date." "Green"
             }
         }
 
@@ -169,23 +166,23 @@ if (Test-Network) {
             Write-Log "No new update." "Green"
         }
     }
-}
+    
+    #Run WAU in user context if currently as system
+    if ($IsSystem) {
 
-#Run WAU in user context if currently as system
-if ($IsSystem) {
+        #Get Winget system apps to excape them befor running user context
+        Get-WingetSystemApps
 
-    #Get Winget system apps to excape them befor running user context
-    Get-WingetSystemApps
-
-    #Run user context scheduled task
-    $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
-    if ($UserScheduledTask) {
-        Write-Log "Starting WAU in User context"
-        Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
-        Exit 0
-    }
-    else {
-        Write-Log "User context execution not installed"
+        #Run user context scheduled task
+        $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
+        if ($UserScheduledTask) {
+            Write-Log "Starting WAU in User context"
+            Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
+            Exit 0
+        }
+        else {
+            Write-Log "User context execution not installed"
+        }
     }
 }
 

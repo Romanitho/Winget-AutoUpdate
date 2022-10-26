@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Uninstall Winget-AutoUpdate 
+Uninstall Winget-AutoUpdate
 
 .DESCRIPTION
 Uninstall Winget-AutoUpdate (DEFAULT: clean old install)
@@ -36,7 +36,7 @@ try {
     Write-host "Uninstalling WAU..." -ForegroundColor Yellow
     #Get registry install location
     $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
-    
+
     #Check if installed location exists and delete
     if (Test-Path ($InstallLocation)) {
 
@@ -49,7 +49,7 @@ try {
         }
         Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
         Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-        Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False  
+        Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
         & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
         & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
         if (Test-Path "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate") {
@@ -63,7 +63,7 @@ try {
         if ((Test-Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk")) {
             Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
         }
-                
+
         Write-host "Uninstallation succeeded!" -ForegroundColor Green
     }
     else {

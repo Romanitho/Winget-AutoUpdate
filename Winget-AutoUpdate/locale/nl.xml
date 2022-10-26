@@ -50,5 +50,9 @@
 			<!--Manual check for updated apps completed-->
 			<message>Manual check for updated apps completed...</message>
 		</output>
+		<output id="10">
+			<!--See changelog-->
+			<message>See changelog</message>
+		</output>
 	</outputs>
 </local>

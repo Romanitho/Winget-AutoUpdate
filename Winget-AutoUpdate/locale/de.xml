@@ -49,6 +49,10 @@
 		<output id="9">
 			<!--Manual check for updated apps completed-->
 			<message>Die manuelle suche nach Updates wurde abgeschlossen.</message>
+		<output id="10">
+			<!--See changelog-->
+			<message>See changelog</message>
+		</output>
 		</output>
 	</outputs>
 </local>

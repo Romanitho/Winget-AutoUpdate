@@ -3,7 +3,9 @@
 Function Get-WingetCmd {
 
     #Get WinGet Path (if admin context)
-    $ResolveWingetPath = Resolve-Path "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
+    # Includes Workaround for ARM64 (removed X64 and replaces it with a wildcard)
+    $ResolveWingetPath = Resolve-Path "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
+
     if ($ResolveWingetPath) {
         #If multiple version, pick last one
         $WingetPath = $ResolveWingetPath[-1].Path
@@ -29,7 +31,7 @@ Function Get-WingetCmd {
     #Log Winget installed version
     $WingetVer = & $Winget --version
     Write-Log "Winget Version: $WingetVer"
-    
+
     return $true
 
 }

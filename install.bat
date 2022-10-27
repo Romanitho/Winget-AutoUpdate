@@ -1,5 +1,15 @@
 @echo off
 
-SET arguments=-UpdatesAtLogon -UpdatesInterval Weekly -StartMenuShortcut -InstallUserContext
+::::::::::::::::::::::::::::
+:: Put WAU Arguments here ::
+::::::::::::::::::::::::::::
 
-powershell -Command "Get-ChildItem -Path '%~dp0' -Recurse | Unblock-File; Start-Process powershell.exe -Argument '-noprofile -executionpolicy bypass -file """%~dp0Winget-AutoUpdate-Install.ps1"" %arguments%'" -Verb RunAs
+SET arguments=-UpdatesAtLogon -UpdatesInterval Weekly -InstallUserContext -StartMenuShortcut -DesktopShortcut
+
+
+::::::::::::::::::::::::::::
+:: Run Powershell Script  ::
+::::::::::::::::::::::::::::
+
+SET PowershellCmd=Start-Process powershell.exe -Argument '-noprofile -executionpolicy bypass -file "%~dp0Winget-AutoUpdate-Install.ps1" %arguments%
+powershell -Command "& {Get-ChildItem -Path '%~dp0' -Recurse | Unblock-File; %PowershellCmd%'}" -Verb RunAs

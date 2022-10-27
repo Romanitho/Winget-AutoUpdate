@@ -478,6 +478,14 @@ function Add-Shortcut ($Target, $Shortcut, $Arguments, $Icon, $Description) {
 
 <# MAIN #>
 
+#If running as a 32-bit process on an x64 system, re-launch as a 64-bit process
+if ("$env:PROCESSOR_ARCHITEW6432" -ne "ARM64") {
+    if (Test-Path "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe") {
+        Start-Process "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe" -Wait -NoNewWindow -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command $($MyInvocation.line)"
+        Exit $lastexitcode
+    }
+}
+
 Write-Host "`n"
 Write-Host "`t        888       888        d8888  888     888" -ForegroundColor Magenta
 Write-Host "`t        888   o   888       d88888  888     888" -ForegroundColor Magenta

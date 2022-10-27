@@ -1,7 +1,7 @@
 #Function to make actions post WAU update
 
 function Invoke-PostUpdateActions {
-    
+
     #log
     Write-Log "Running Post Update actions..." "yellow"
 
@@ -15,7 +15,7 @@ function Invoke-PostUpdateActions {
         #log
         Write-Log "-> Winget sources reseted." "green"
     }
-    
+
     #Create WAU Regkey if not present
     $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
     if (!(test-path $regPath)) {
@@ -42,7 +42,7 @@ function Invoke-PostUpdateActions {
         #log
         Write-Log "-> Notification level setting was missing. Fixed with 'Full' option."
     }
-    
+
     #Convert about.xml if exists (previous WAU versions) to reg
     $WAUAboutPath = "$WorkingDir\config\about.xml"
     if (test-path $WAUAboutPath) {
@@ -83,7 +83,7 @@ function Invoke-PostUpdateActions {
     foreach ($FileName in $FileNames) {
         if (Test-Path $FileName) {
             Remove-Item $FileName -Force -Confirm:$false
-            
+
             #log
             Write-Log "-> $FileName removed." "green"
         }
@@ -97,5 +97,5 @@ function Invoke-PostUpdateActions {
 
     #log
     Write-Log "Post Update actions finished" "green"
-   
+
 }

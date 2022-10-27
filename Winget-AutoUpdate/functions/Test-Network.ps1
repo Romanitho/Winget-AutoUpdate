@@ -55,12 +55,15 @@ function Test-Network {
 
             #Send Warning Notif if no connection for 5 min
             if ($timeout -eq 300) {
+                #Log
                 Write-Log "Notify 'No connection' sent." "Yellow"
+
+                #Notif
                 $Title = $NotifLocale.local.outputs.output[0].title
                 $Message = $NotifLocale.local.outputs.output[0].message
                 $MessageType = "warning"
-                $Balise = "connection"
-                Start-NotifTask $Title $Message $MessageType $Balise
+                $Balise = "Connection"
+                Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise
             }
 
         }
@@ -69,11 +72,14 @@ function Test-Network {
 
     #Send Timeout Notif if no connection for 30 min
     Write-Log "Timeout. No internet connection !" "Red"
+
+    #Notif
     $Title = $NotifLocale.local.outputs.output[1].title
     $Message = $NotifLocale.local.outputs.output[1].message
     $MessageType = "error"
-    $Balise = "connection"
-    Start-NotifTask $Title $Message $MessageType $Balise
+    $Balise = "Connection"
+    Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise
+
     return $false
 
 }

@@ -25,8 +25,8 @@ function Get-WingetOutdatedApps {
     while (-not $lines[$fl].StartsWith("-----")) {
         $fl++
     }
-    
-    #Get header line 
+
+    #Get header line
     $fl = $fl - 1
 
     #Get header titles

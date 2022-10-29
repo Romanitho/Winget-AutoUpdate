@@ -2,33 +2,33 @@
 	<outputs>
 		<output id="0">
 			<!--Check network connection-->
-			<title>Kontrollera nätverksanslutningen.</title>
+			<title>Kontrollera nätverksanslutningen</title>
 			<!--Unable to check for software updates at this time!-->
 			<message>Det går inte att söka efter programuppdateringar just nu!</message>
 		</output>
 		<output id="1">
 			<!--No internet connction-->
-			<title>Ingen internetanslutning!</title>
+			<title>Ingen internetanslutning</title>
 			<!--Updates could not be verified-->
-			<message>Uppdateringar kunde inte verifieras.</message>
+			<message>Uppdateringar kunde inte verifieras!</message>
 		</output>
 		<output id="2">
 			<!--{App} will be updated-->
-			<title>{0} kommer att uppdateras!</title>
+			<title>{0} kommer att uppdateras</title>
 			<!--{v1.0} to {v2.0}-->
 			<message>{0} till {1}</message>
 		</output>
 		<output id="3">
 			<!--{App} updated-->
-			<title>{0} har uppdaterats.</title>
+			<title>{0} har uppdaterats</title>
 			<!--Installed version: {v1.0}-->
 			<message>Installerad version: {0}</message>
 		</output>
 		<output id="4">
 			<!--{App} could not be updated-->
-			<title>{0} kunde inte uppdateras!</title>
+			<title>{0} kunde inte uppdateras</title>
 			<!--Please contact support-->
-			<message>Vänligen kontakta supporten.</message>
+			<message>Vänligen kontakta supporten!</message>
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
@@ -36,7 +36,7 @@
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Startar en manuell koll efter uppdaterade appar...</message>
+			<message>Startar en manuell koll efter uppdaterade appar</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
@@ -48,15 +48,15 @@
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Manuell koll efter uppdaterade appar slutförd...</message>
+			<message>Manuell koll efter uppdaterade appar slutförd</message>
 		</output>
 		<output id="10">
 			<!--See changelog-->
-			<message>See changelog</message>
+			<message>Se ändringslogg</message>
 		</output>
 		<output id="11">
 			<!--Open log file-->
-			<message>Open log file</message>
+			<message>Öppna loggar</message>
 		</output>
 	</outputs>
 </local>

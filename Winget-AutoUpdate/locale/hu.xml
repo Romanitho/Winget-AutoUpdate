@@ -52,11 +52,11 @@
 		</output>
 		<output id="10">
 			<!--See changelog-->
-			<message>See changelog</message>
+			<message>Lásd a változásnaplót</message>
 		</output>
 		<output id="11">
 			<!--Open log file-->
-			<message>Open log file</message>
+			<message>Naplófájl megnyitás</message>
 		</output>
 	</outputs>
 </local>

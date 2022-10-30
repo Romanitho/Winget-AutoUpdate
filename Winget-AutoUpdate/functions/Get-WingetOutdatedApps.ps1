@@ -9,7 +9,6 @@ function Get-WingetOutdatedApps {
     }
 
     #Get list of available upgrades on winget format
-    Write-Log "Checking application updates on Winget Repository..." "yellow"
     $upgradeResult = & $Winget upgrade --source winget | Out-String
 
     #Start Convertion of winget format to an array. Check if "-----" exists

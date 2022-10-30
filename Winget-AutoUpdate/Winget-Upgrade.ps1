@@ -102,6 +102,7 @@ if (Test-Network) {
         }
 
         #Get outdated Winget packages
+        Write-Log "Checking application updates on Winget Repository..." "yellow"
         $outdated = Get-WingetOutdatedApps
 
         #Log list of app to update

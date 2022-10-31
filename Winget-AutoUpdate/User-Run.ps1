@@ -29,24 +29,33 @@ function Test-WAUisRunning {
 	}
 }
 
-<# MAIN #>
+<# FUNCTIONS #>
 
 #Get Working Dir
 $Script:WorkingDir = $PSScriptRoot
 
-#Load external functions
-. $WorkingDir\functions\Get-NotifLocale.ps1
-. $WorkingDir\functions\Start-NotifTask.ps1
+Get-ChildItem "$WorkingDir\functions" | ForEach-Object { . $_.FullName }
+
+function Test-WAUisRunning {
+	If (((Get-ScheduledTask -TaskName 'Winget-AutoUpdate').State -eq 'Running') -or ((Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext').State -eq 'Running')) {
+		Return $True
+	}
+}
+
+<# MAIN #>
+
+#Run log initialisation function
+Start-Init
+Write-Log "User run initiated"
 
 #Get Toast Locale function
-Get-NotifLocale
+Get-NotifLocale | Out-Null
 
-#Set common variables
-$OnClickAction = "$WorkingDir\logs\updates.log"
-$Button1Text = $NotifLocale.local.outputs.output[11].message
-$Title = "Winget-AutoUpdate (WAU)"
-$Balise = "Winget-AutoUpdate (WAU)"
-$UserRun = $True
+#Get WingetCmd function
+Get-WingetCmd | Out-Null
+
+#Get WAU Configurations
+$Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
 if ($Logs) {
 	if ((Test-Path "$WorkingDir\logs\updates.log")) {
@@ -68,22 +77,40 @@ else {
 		if (Test-WAUisRunning) {
 			$Message = $NotifLocale.local.outputs.output[8].message
 			$MessageType = "warning"
-			Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss
+			$Button1Text = $NotifLocale.local.outputs.output[11].message
+			$Button1Action = "$WorkingDir\logs\updates.log"
+			Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $Button1Action -ButtonDismiss
 			break
 		}
-		#Run scheduled task
-		Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction Stop | Start-ScheduledTask -ErrorAction Stop
-		#Starting check - Send notification
-		$Message = $NotifLocale.local.outputs.output[6].message
-		$MessageType = "info"
-		Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss
-		#Sleep until the task is done
-		While (Test-WAUisRunning) {
-			Start-Sleep 3
+
+		#Get Outdated apps
+		$Outdated = Get-WingetOutdatedApps
+		$OutdatedApps = @()
+		#If White List
+		if ($WAUConfig.WAU_UseWhiteList -eq 1) {
+			$toUpdate = Get-IncludedApps
+			foreach ($app in $Outdated) {
+				if (($toUpdate -contains $app.Id) -and $($app.Version) -ne "Unknown") {
+					$OutdatedApps += $app.Name
+				}
+			}
 		}
-		$Message = $NotifLocale.local.outputs.output[9].message
-		$MessageType = "success"
-		Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss
+		#If Black List or default
+		else {
+			$toSkip = Get-ExcludedApps
+			foreach ($app in $Outdated) {
+				if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown") {
+					$OutdatedApps += $app.Name
+				}
+			}
+		}
+		$body = $OutdatedApps | Out-String
+		if ($body) {
+			Start-NotifTask -Title "New available updates" -Message "Do you want to update these apps ?" -Body $body -ButtonDismiss -Button1Text "Yes" -Button1Action "wau:" -MessageType "info"
+		}
+		else {
+			Start-NotifTask -Title "All good." -Message "No new update available" -MessageType "success"
+		}
 	}
 	catch {
 		#Check failed - Just send notification

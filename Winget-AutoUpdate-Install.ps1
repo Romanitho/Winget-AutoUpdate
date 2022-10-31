@@ -255,9 +255,9 @@ function Install-WingetAutoUpdate {
         # Set regkeys for notification name, icon and actions
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f | Out-Null
-        $WAUClass = "HKLM:\Software\Classes\WAU\shell\open\command"
+        $WAUClass = "HKLM:\Software\Classes\WAU"
         $WAUClassRun = "Wscript.exe ""$WingetUpdatePath\Invisible.vbs"" ""C:\Windows\System32\schtasks.exe /run /tn Winget-AutoUpdate"""
-        New-Item $WAUClass -Force -ErrorAction SilentlyContinue | Out-Null
+        New-Item "$WAUClass\shell\open\command" -Force -ErrorAction SilentlyContinue | Out-Null
         New-ItemProperty -LiteralPath $WAUClass -Name 'URL Protocol' -Value '' -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
         New-ItemProperty -LiteralPath $WAUClass -Name '(default)' -Value "URL:$($ActionType)" -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
         New-ItemProperty -LiteralPath $WAUClass -Name 'EditFlags' -Value '2162688' -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null

@@ -25,6 +25,9 @@ Use White List instead of Black List. This setting will not create the "exclude_
 .PARAMETER ListPath
 Get Black/White List from Path (URL/UNC/Local)
 
+.PARAMETER ModsPath
+Get mods from Path (URL/UNC/Local)
+
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.
 
@@ -68,6 +71,9 @@ Configure WAU to bypass the Black/White list when run in user context
 .\Winget-AutoUpdate-Install.ps1 -Silent -ListPath https://www.domain.com/WAULists -StartMenuShortcut
 
 .EXAMPLE
+.\Winget-AutoUpdate-Install.ps1 -Silent -ModsPath https://www.domain.com/WAUMods -DesktopShortcut
+
+.EXAMPLE
 .\Winget-AutoUpdate-Install.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
 
 .EXAMPLE
@@ -80,6 +86,7 @@ param(
     [Parameter(Mandatory = $False)] [Alias('S')] [Switch] $Silent = $false,
     [Parameter(Mandatory = $False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
     [Parameter(Mandatory = $False)] [Alias('List')] [String] $ListPath,
+    [Parameter(Mandatory = $False)] [Alias('Mods')] [String] $ModsPath,
     [Parameter(Mandatory = $False)] [Switch] $DoNotUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
@@ -338,6 +345,9 @@ function Install-WingetAutoUpdate {
         }
         if ($ListPath) {
             New-ItemProperty $regPath -Name WAU_ListPath -Value $ListPath -Force | Out-Null
+        }
+        if ($ModsPath) {
+            New-ItemProperty $regPath -Name WAU_ModsPath -Value $ModsPath -Force | Out-Null
         }
         if ($BypassListForUsers) {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null

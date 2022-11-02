@@ -101,7 +101,7 @@ if (Test-Network) {
                         Write-Log "Mods are up to date." "Green"
                     }
                     else {
-                        Write-Log "Mods aren't implemented..." "Yellow"
+                        Write-Log "No Mods are implemented..." "Yellow"
                     }
                 }
             }

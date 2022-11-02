@@ -76,7 +76,7 @@ if (Test-Network) {
                 Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath)"
                 $NewList = Test-ListPath $WAUConfig.WAU_ListPath $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation
                 if ($NewList) {
-                    Write-Log "Newer List copied/downloaded to local path: $($WAUConfig.InstallLocation)" "Yellow"
+                    Write-Log "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation)" "Yellow"
                 }
                 else {
                     if ((Test-Path "$WorkingDir\included_apps.txt") -or (Test-Path "$WorkingDir\excluded_apps.txt")) {
@@ -85,6 +85,24 @@ if (Test-Network) {
                     else {
                         Write-Log "List doesn't exist!" "Red"
                         Exit 0
+                    }
+                }
+            }
+
+            #Get External ModsPath if System
+            if ($WAUConfig.WAU_ModsPath) {
+                Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath)"
+                $NewMods = Test-ModsPath $WAUConfig.WAU_ModsPath $WAUConfig.InstallLocation
+                if ($NewMods) {
+                    Write-Log "Newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation)" "Yellow"
+                }
+                else {
+                    if (Test-Path "$WorkingDir\mods\*.ps1") {
+                        Write-Log "Mods is up to date." "Green"
+                    }
+                    else {
+                        Write-Log "Mods doesn't exist!" "Yellow"
+                        #Exit 0
                     }
                 }
             }

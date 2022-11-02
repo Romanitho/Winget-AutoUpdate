@@ -94,15 +94,14 @@ if (Test-Network) {
                 Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath)"
                 $NewMods = Test-ModsPath $WAUConfig.WAU_ModsPath $WAUConfig.InstallLocation
                 if ($NewMods) {
-                    Write-Log "Newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation)" "Yellow"
+                    Write-Log "Newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation)\mods" "Yellow"
                 }
                 else {
                     if (Test-Path "$WorkingDir\mods\*.ps1") {
-                        Write-Log "Mods is up to date." "Green"
+                        Write-Log "Mods are up to date." "Green"
                     }
                     else {
-                        Write-Log "Mods doesn't exist!" "Yellow"
-                        #Exit 0
+                        Write-Log "Mods aren't implemented..." "Yellow"
                     }
                 }
             }

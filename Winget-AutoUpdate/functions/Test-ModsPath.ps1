@@ -4,12 +4,10 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
     # URL, UNC or Local Path
     # Get local and external Mods paths
     $LocalMods = -join ($WingetUpdatePath, "\", "mods")
-    $ExternalMods = "$ModsPath\"
-
-    # Check if mods exists
-    if (Test-Path "$LocalMods\*.ps1") {
-        $dateLocal = (Get-Item "$LocalMods").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
-    }
+    $ExternalMods = "$ModsPath"
+ 
+    #Get File Names Locally
+    $InternalModsNames = Get-ChildItem -Path $LocalMods -Name -Recurse -Include *.ps1
 
     # If path is URL
     if ($ModsPath -like "http*") {
@@ -34,18 +32,41 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
     }
     # If path is UNC or local
     else {
-        if (Test-Path -Path $ExternalMods -PathType leaf) {
-            $dateExternal = (Get-Item "$ExternalMods").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
-            if ($dateExternal -gt $dateLocal) {
+        #Get File Names Externally
+        $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1
+        if (Test-Path -Path $ExternalMods"\*.ps1") {
+            #Delete Local Mods that doesn't exist Externally
+            foreach ($Mod in $InternalModsNames){
                 try {
-                    Copy-Item $ExternalMods -Destination $LocalMods -Force
+                    If($Mod -notin $ExternalModsNames ){
+                        Remove-Item $LocalMods\$Mod -Force | Out-Null
+                    }
                 }
                 catch {
-                    return $False
+                    #Do nothing
                 }
-                return $true
+            }
+            try {
+                foreach ($Mod in $ExternalModsNames){
+                    if (Test-Path -Path $LocalMods"\"$Mod) {
+                        $dateLocalMod = (Get-Item "$LocalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    }
+                    $dateExternalMod = (Get-Item "$ExternalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    if ($dateExternalMod -gt $dateLocalMod) {
+                        try {
+                            Copy-Item $ExternalMods\$Mod -Destination $LocalMods\$Mod -Force
+                            return $True
+                        }
+                        catch {
+                            return $False
+                        }
+                    }
+                }
+            }
+            catch {
+                return $False
             }
         }
     }
-    return $false
+    return $False
 }

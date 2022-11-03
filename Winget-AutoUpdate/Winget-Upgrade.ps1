@@ -93,7 +93,7 @@ if (Test-Network) {
             if ($WAUConfig.WAU_ModsPath) {
                 Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath)"
                 $NewMods = Test-ModsPath $WAUConfig.WAU_ModsPath $WAUConfig.InstallLocation
-                if ($NewMods) {
+                if ($NewMods -gt 0) {
                     Write-Log "Newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation)\mods" "Yellow"
                 }
                 else {

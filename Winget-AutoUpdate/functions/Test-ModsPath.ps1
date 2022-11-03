@@ -32,9 +32,9 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
     }
     # If path is UNC or local
     else {
-        #Get File Names Externally
-        $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1
         if (Test-Path -Path $ExternalMods"\*.ps1") {
+            #Get File Names Externally
+            $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1
             #Delete Local Mods that doesn't exist Externally
             foreach ($Mod in $InternalModsNames){
                 try {
@@ -55,17 +55,19 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                     if ($dateExternalMod -gt $dateLocalMod) {
                         try {
                             Copy-Item $ExternalMods\$Mod -Destination $LocalMods\$Mod -Force
-                            return $True
+                            $ModsUpdated++
                         }
                         catch {
                             return $False
                         }
                     }
                 }
+                
             }
             catch {
                 return $False
             }
+            return $ModsUpdated
         }
     }
     return $False

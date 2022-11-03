@@ -47,7 +47,6 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                         try {
                             $SaveMod = Join-Path -Path "$LocalMods\" -ChildPath $_
                             $Mod = '{0}/{1}' -f $ModsPath.TrimEnd('/'), $_
-                            #Write-Host "Downloading file $dateExternal -  $ExternalMods/$_ to $SaveMod"
                             Invoke-WebRequest -Uri "$Mod" -OutFile $SaveMod
                             $ModsUpdated++
                         }

@@ -23,19 +23,17 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             return $False
         }
 
+        # Get the list of links, skip the first one ("../") if listing is allowed
+        $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href -Skip 1
         #Delete Local Mods that doesn't exist Externally
-        if ($WebResponse) {
-            # Get the list of links, skip the first one ("../") if listing is allowed
-            $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href -Skip 1
-            foreach ($Mod in $InternalModsNames) {
-                try {
-                    If ($Mod -notin $ModLinks) {
-                        Remove-Item $LocalMods\$Mod -Force | Out-Null
-                    }
+        foreach ($Mod in $InternalModsNames) {
+            try {
+                If ($Mod -notin $ModLinks) {
+                    Remove-Item $LocalMods\$Mod -Force | Out-Null
                 }
-                catch {
-                    #Do nothing
-                }
+            }
+            catch {
+                #Do nothing
             }
         }
 

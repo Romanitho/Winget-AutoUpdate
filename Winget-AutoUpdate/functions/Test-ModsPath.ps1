@@ -16,22 +16,29 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         # enable TLS 1.2 and TLS 1.1 protocols
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12, [Net.SecurityProtocolType]::Tls11
         #Get Index of $ExternalMods (or index page with href listings of all the Mods)
-        $WebResponse = Invoke-WebRequest -Uri $ExternalMods
-        # Get the list of links, skip the first one ("../") if listing is allowed
-        $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href -Skip 1
-        
+        try {
+            $WebResponse = Invoke-WebRequest -Uri $ExternalMods
+        }
+        catch {
+            return $False
+        }
+
         #Delete Local Mods that doesn't exist Externally
-        foreach ($Mod in $InternalModsNames) {
-            try {
-                If ($Mod -notin $ModLinks) {
-                    Remove-Item $LocalMods\$Mod -Force | Out-Null
+        if ($WebResponse) {
+            # Get the list of links, skip the first one ("../") if listing is allowed
+            $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href -Skip 1
+            foreach ($Mod in $InternalModsNames) {
+                try {
+                    If ($Mod -notin $ModLinks) {
+                        Remove-Item $LocalMods\$Mod -Force | Out-Null
+                    }
+                }
+                catch {
+                    #Do nothing
                 }
             }
-            catch {
-                #Do nothing
-            }
         }
-        
+
         #Loop through all links
         $WebResponse.Links | Select-Object -ExpandProperty href -Skip 1 | ForEach-Object {
             #Check for .ps1 in listing/HREF:s in an index page pointing to .ps1

@@ -27,14 +27,9 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href -Skip 1
         #Delete Local Mods that doesn't exist Externally
         foreach ($Mod in $InternalModsNames) {
-            try {
-                If ($Mod -notin $ModLinks) {
-                    Remove-Item $LocalMods\$Mod -Force | Out-Null
-                    $DeletedMods++
-                }
-            }
-            catch {
-                #Do nothing
+            If ($Mod -notin $ModLinks) {
+                Remove-Item $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
+                $DeletedMods++
             }
         }
 
@@ -75,14 +70,9 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1
             #Delete Local Mods that doesn't exist Externally
             foreach ($Mod in $InternalModsNames){
-                try {
-                    If($Mod -notin $ExternalModsNames ){
-                        Remove-Item $LocalMods\$Mod -Force | Out-Null
-                        $DeletedMods++
-                    }
-                }
-                catch {
-                    #Do nothing
+                If($Mod -notin $ExternalModsNames ){
+                    Remove-Item $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
+                    $DeletedMods++
                 }
             }
             try {
@@ -92,13 +82,8 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                     }
                     $dateExternalMod = (Get-Item "$ExternalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                     if ($dateExternalMod -gt $dateLocalMod) {
-                        try {
-                            Copy-Item $ExternalMods\$Mod -Destination $LocalMods\$Mod -Force
-                            $ModsUpdated++
-                        }
-                        catch {
-                            return $False
-                        }
+                        Copy-Item $ExternalMods\$Mod -Destination $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
+                        $ModsUpdated++
                     }
                 }
                 
@@ -108,6 +93,6 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             }
             return $ModsUpdated, $DeletedMods
         }
+        return $False
     }
-    return $False
 }

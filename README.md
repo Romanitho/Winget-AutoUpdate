@@ -92,12 +92,12 @@ Get Black/White List from Path (URL/UNC/Local) (download/copy to Winget-AutoUpda
 Get Mods from Path (URL/UNC/Local) (download/copy to `mods` in Winget-AutoUpdate installation location if external mods is newer).  
 For URL: This requires a site with `Options +Indexes` in `.htaccess` and no index page overriding the listing of files.  
 Or an index page with href listings of all the Mods to be downloaded (with a first link to skip, emulating a directory list):  
-> <ul><li><a href="/wau/"> Parent Directory</a></li>  
+> `<ul><li><a href="/wau/"> Parent Directory</a></li>  
 > <li><a href="Adobe.Acrobat.Reader.32-bit-install.ps1"> Adobe.Acrobat.Reader.32-bit-install.ps1</a></li>  
 > <li><a href="Notepad++.Notepad++-install.ps1"> Notepad++.Notepad++-install.ps1</a></li>  
 > <li><a href="Notepad++.Notepad++-uninstall.ps1"> Notepad++.Notepad++-uninstall.ps1</a></li>  
 > <li><a href="WinMerge.WinMerge-install.ps1"> WinMerge.WinMerge-install.ps1</a></li>  
-> </ul>  
+> </ul>  `
 
 **-InstallUserContext**  
 Install WAU with system and **user** context executions (From version 1.15.3)

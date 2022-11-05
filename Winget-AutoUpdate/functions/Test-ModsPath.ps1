@@ -23,8 +23,8 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             return $False
         }
 
-        # Get the list of links, skip the first one ("../") if listing is allowed
-        $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href -Skip 1
+        # Collect the external list of href links
+        $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href
         #Delete Local Mods that doesn't exist Externally
         foreach ($Mod in $InternalModsNames) {
             If ($Mod -notin $ModLinks) {
@@ -34,7 +34,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         }
 
         #Loop through all links
-        $WebResponse.Links | Select-Object -ExpandProperty href -Skip 1 | ForEach-Object {
+        $WebResponse.Links | Select-Object -ExpandProperty href | ForEach-Object {
             #Check for .ps1 in listing/HREF:s in an index page pointing to .ps1
             if ($_ -like "*.ps1") {
                 try {

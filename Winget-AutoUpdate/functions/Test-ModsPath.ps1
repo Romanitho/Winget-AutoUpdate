@@ -30,6 +30,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             try {
                 If ($Mod -notin $ModLinks) {
                     Remove-Item $LocalMods\$Mod -Force | Out-Null
+                    $DeletedMods++
                 }
             }
             catch {
@@ -65,7 +66,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                 }
             }
         }
-        return $ModsUpdated
+        return $ModsUpdated, $DeletedMods
     }
     # If path is UNC or local
     else {
@@ -77,6 +78,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                 try {
                     If($Mod -notin $ExternalModsNames ){
                         Remove-Item $LocalMods\$Mod -Force | Out-Null
+                        $DeletedMods++
                     }
                 }
                 catch {
@@ -104,7 +106,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             catch {
                 return $False
             }
-            return $ModsUpdated
+            return $ModsUpdated, $DeletedMods
         }
     }
     return $False

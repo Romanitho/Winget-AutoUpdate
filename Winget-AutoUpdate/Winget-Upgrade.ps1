@@ -92,7 +92,7 @@ if (Test-Network) {
             #Get External ModsPath if System
             if ($WAUConfig.WAU_ModsPath) {
                 Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath)"
-                $NewMods = Test-ModsPath $WAUConfig.WAU_ModsPath $WAUConfig.InstallLocation
+                $NewMods, $DeletedMods = Test-ModsPath $WAUConfig.WAU_ModsPath $WAUConfig.InstallLocation
                 if ($NewMods -gt 0) {
                     Write-Log "Newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation)\mods" "Yellow"
                 }
@@ -103,6 +103,9 @@ if (Test-Network) {
                     else {
                         Write-Log "No Mods are implemented..." "Yellow"
                     }
+                }
+                if ($DeletedMods -gt 0) {
+                    Write-Log "Deleted Local Mods (not externally managed): $DeletedMods" "Green"
                 }
             }
         }

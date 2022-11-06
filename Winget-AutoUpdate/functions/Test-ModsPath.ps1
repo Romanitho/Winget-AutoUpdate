@@ -15,7 +15,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
 
         # enable TLS 1.2 and TLS 1.1 protocols
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12, [Net.SecurityProtocolType]::Tls11
-        #Get Index of $ExternalMods (or index page with href listings of all the Mods)
+        #Get Index of $ExternalMods (or index page with href listing of all the Mods)
         try {
             $WebResponse = Invoke-WebRequest -Uri $ExternalMods
         }
@@ -25,7 +25,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
 
         # Collect the external list of href links
         $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href
-        #Delete Local Mods that doesn't exist Externally
+        #Delete Local Mods that don't exist Externally
         foreach ($Mod in $InternalModsNames) {
             If ($Mod -notin $ModLinks) {
                 Remove-Item $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
@@ -68,7 +68,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         if (Test-Path -Path $ExternalMods"\*.ps1") {
             #Get File Names Externally
             $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1
-            #Delete Local Mods that doesn't exist Externally
+            #Delete Local Mods that don't exist Externally
             foreach ($Mod in $InternalModsNames){
                 If($Mod -notin $ExternalModsNames ){
                     Remove-Item $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null

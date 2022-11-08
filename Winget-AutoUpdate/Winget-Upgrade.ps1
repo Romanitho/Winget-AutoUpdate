@@ -105,7 +105,7 @@ if (Test-Network) {
                     }
                 }
                 if ($DeletedMods -gt 0) {
-                    Write-Log "$DeletedMods deleted Mods (not externally managed) from local path: $($WAUConfig.InstallLocation)\mods" "Red"
+                    Write-Log "$DeletedMods Mods deleted (not externally managed) from local path: $($WAUConfig.InstallLocation)\mods" "Red"
                 }
             }
         }

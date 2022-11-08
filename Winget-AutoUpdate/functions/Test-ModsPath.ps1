@@ -79,6 +79,8 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             }
             try {
                 foreach ($Mod in $ExternalModsNames){
+                    $dateExternalMod = ""
+                    $dateLocalMod =""
                     if (Test-Path -Path $LocalMods"\"$Mod) {
                         $dateLocalMod = (Get-Item "$LocalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                     }

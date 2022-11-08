@@ -94,7 +94,7 @@ if (Test-Network) {
                 Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath)"
                 $NewMods, $DeletedMods = Test-ModsPath $WAUConfig.WAU_ModsPath $WAUConfig.InstallLocation
                 if ($NewMods -gt 0) {
-                    Write-Log "Newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation)\mods" "Yellow"
+                    Write-Log "$NewMods newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation)\mods" "Yellow"
                 }
                 else {
                     if (Test-Path "$WorkingDir\mods\*.ps1") {

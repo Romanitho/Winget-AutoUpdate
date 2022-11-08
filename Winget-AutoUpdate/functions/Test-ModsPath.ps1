@@ -38,6 +38,8 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             #Check for .ps1 in listing/HREF:s in an index page pointing to .ps1
             if ($_ -like "*.ps1") {
                 try {
+                    $dateExternalMod = ""
+                    $dateLocalMod =""
                     $wc.OpenRead("$ExternalMods/$_").Close() | Out-Null
                     $dateExternalMod = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
                     if (Test-Path -Path $LocalMods"\"$_) {

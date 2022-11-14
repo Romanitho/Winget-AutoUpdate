@@ -17,7 +17,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12, [Net.SecurityProtocolType]::Tls11
         #Get Index of $ExternalMods (or index page with href listing of all the Mods)
         try {
-            $WebResponse = Invoke-WebRequest -Uri $ExternalMods
+            $WebResponse = Invoke-WebRequest -Uri $ExternalMods -UseBasicParsing
         }
         catch {
             return $False
@@ -50,7 +50,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                         try {
                             $SaveMod = Join-Path -Path "$LocalMods\" -ChildPath $_
                             $Mod = '{0}/{1}' -f $ModsPath.TrimEnd('/'), $_
-                            Invoke-WebRequest -Uri "$Mod" -OutFile $SaveMod
+                            Invoke-WebRequest -Uri "$Mod" -OutFile $SaveMod -UseBasicParsing
                             $ModsUpdated++
                         }
                         catch {

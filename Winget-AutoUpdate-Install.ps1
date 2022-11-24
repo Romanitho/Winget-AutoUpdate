@@ -47,7 +47,7 @@ Specify the Notification level: Full (Default, displays all notification), Succe
 Set WAU to run at user logon.
 
 .PARAMETER UpdatesInterval
-Specify the update frequency: Daily (Default), Weekly, Biweekly, Monthly or Never
+Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthly or Never
 
 .PARAMETER UpdatesAtTime
 Specify the time of the update interval execution time. Default 6AM
@@ -68,10 +68,10 @@ Configure WAU to bypass the Black/White list when run in user context
 .\Winget-AutoUpdate-Install.ps1 -Silent -UseWhiteList
 
 .EXAMPLE
-.\Winget-AutoUpdate-Install.ps1 -Silent -ListPath https://www.domain.com/WAULists -StartMenuShortcut
+.\Winget-AutoUpdate-Install.ps1 -Silent -ListPath https://www.domain.com/WAULists -StartMenuShortcut -UpdatesInterval BiDaily
 
 .EXAMPLE
-.\Winget-AutoUpdate-Install.ps1 -Silent -ModsPath https://www.domain.com/WAUMods -DesktopShortcut
+.\Winget-AutoUpdate-Install.ps1 -Silent -ModsPath https://www.domain.com/WAUMods -DesktopShortcut -UpdatesInterval Weekly
 
 .EXAMPLE
 .\Winget-AutoUpdate-Install.ps1 -Silent -UpdatesAtLogon -UpdatesInterval Weekly
@@ -97,7 +97,7 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Full", "SuccessOnly", "None")] [String] $NotificationLevel = "Full",
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
-    [Parameter(Mandatory = $False)] [ValidateSet("Daily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
+    [Parameter(Mandatory = $False)] [ValidateSet("Daily", "BiDaily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
     [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
     [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false,
     [Parameter(Mandatory = $False)] [Switch] $InstallUserContext = $false
@@ -271,6 +271,9 @@ function Install-WingetAutoUpdate {
         }
         if ($UpdatesInterval -eq "Daily") {
             $tasktriggers += New-ScheduledTaskTrigger -Daily -At $UpdatesAtTime
+        }
+        elseif ($UpdatesInterval -eq "BiDaily") {
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $UpdatesAtTime -DaysInterval 2
         }
         elseif ($UpdatesInterval -eq "Weekly") {
             $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2

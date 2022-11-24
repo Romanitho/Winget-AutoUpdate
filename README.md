@@ -26,7 +26,7 @@ You can easily translate toast notifications by creating your locale xml config 
 By default, scripts and components will be placed in ProgramData location (inside a Winget-AutoUpdate folder). You can change this with script argument (Not Recommended).
 
 ### When does the script run?
-From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, Weekly, Biweekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
+From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
 
 ### Log location
 You can find logs in install location, in logs folder.
@@ -123,7 +123,7 @@ Specify the Notification level: Full (Default, displays all notification), Succe
 Set WAU to run at user logon.
 
 **-UpdatesInterval**  
-Specify the update frequency: Daily (Default), BiDaily, Weekly, Biweekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance
+Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance
 
 **-UpdatesAtTime**  
 Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0)

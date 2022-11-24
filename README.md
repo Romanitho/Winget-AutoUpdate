@@ -123,7 +123,7 @@ Specify the Notification level: Full (Default, displays all notification), Succe
 Set WAU to run at user logon.
 
 **-UpdatesInterval**  
-Specify the update frequency: Daily (Default), Weekly, Biweekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance
+Specify the update frequency: Daily (Default), BiDaily, Weekly, Biweekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance
 
 **-UpdatesAtTime**  
 Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0)

@@ -16,6 +16,15 @@ Function Update-App ($app) {
     $Balise = $($app.Name)
     Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
 
+    #Check if mods exist for preinstall/install/upgrade
+    $ModsPreInstall, $ModsInstall, $ModsUpgrade = Test-Mods $($app.Id)
+
+    #If PreInstall script exist
+    if ($ModsPreInstall) {
+        Write-Log "Modifications for $($app.Id) before upgrade are being applied..." "Yellow"
+        & "$ModsPreInstall"
+    }
+
     #Winget upgrade
     Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
 
@@ -60,9 +69,6 @@ Function Update-App ($app) {
     }
 
     if ($FailedToUpgrade -eq $false) {
-
-        #Check if mods exist for install/upgrade
-        $ModsInstall, $ModsUpgrade = Test-Mods $($app.Id)
 
         if (($ModsUpgrade) -and ($ModsMode -eq "Upgrade")) {
             Write-Log "Modifications for $($app.Id) after upgrade are being applied..." "Yellow"

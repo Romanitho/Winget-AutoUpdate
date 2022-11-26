@@ -139,7 +139,7 @@ See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 
 ## Custom scripts (Mods feature)
 From version 1.8.0, the Mods feature allows you to run an additional script when upgrading or installing an app.
-Just put the script in question with the App ID followed by the `-preinstall`, `-install` or `-upgrade` suffix in the **mods** folder.
+Just put the script in question with the **AppID** followed by the `-preinstall`, `-install` or `-upgrade` suffix in the **mods** folder.  
 WAU will call `AppID-preinstall.ps1` before **winget** upgrades the app.  
 WAU will call `AppID-install.ps1` and/or `AppID-upgrade.ps1` (if the install modes differs, otherwise the **-install** mod will be used for upgrades too) if it exists in the **mods** folder just after the upgrade/install.
 
@@ -147,7 +147,7 @@ WAU will call `AppID-install.ps1` and/or `AppID-upgrade.ps1` (if the install mod
 If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this:
 `Adobe.Acrobat.Reader.32-bit-install.ps1` and put it in the **mods** folder.
 
-You can find more information on Winget-Install Repo, as it's a related feature
+You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

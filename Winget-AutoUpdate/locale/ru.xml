@@ -1,0 +1,54 @@
+<local>
+	<outputs>
+		<output id="0">
+			<!--Check network connection-->
+			<title>Проверка соединения.</title>
+			<!--Unable to check for software updates at this time!-->
+			<message>Невозможно проверить обновления в данный момент!</message>
+		</output>
+		<output id="1">
+			<!--No internet connection-->
+			<title>Нет соединения с Интернетом.</title>
+			<!--Updates could not be verified-->
+			<message>Невозможно проверить обновления.</message>
+		</output>
+		<output id="2">
+			<!--{App} will be updated-->
+			<title>{0} будет обновлено</title>
+			<!--{v1.0} to {v2.0}-->
+			<message>{0} to {1}</message>
+		</output>
+		<output id="3">
+			<!--{App} updated-->
+			<title>{0} обновлено.</title>
+			<!--Installed version: {v1.0}-->
+			<message>Установленная версия: {0}</message>
+		</output>
+		<output id="4">
+			<!--{App} could not be updated-->
+			<title>{0} не может быть обновлено!</title>
+			<!--Please contact support-->
+			<message>Пожалуйста свяжитесь со службой поддержки.</message>
+		</output>
+		<output id="5">
+			<!--Logs are not available yet-->
+			<message>Логи ещё недоступны!</message>
+		</output>
+		<output id="6">
+			<!--Starting a manual check for updated apps-->
+			<message>Запущена ручная проверка обновлённых приложений...</message>
+		</output>
+		<output id="7">
+			<!--Couldn't start a manual check for updated apps-->
+			<message>Невозможно запустить ручную проверку обновлений!</message>
+		</output>
+		<output id="8">
+			<!--Check for updated apps already running-->
+			<message>Проверка обновлений запущена...</message>
+		</output>
+		<output id="9">
+			<!--Manual check for updated apps completed-->
+			<message>Ручная проверка обновлений завершена...</message>
+		</output>
+	</outputs>
+</local>

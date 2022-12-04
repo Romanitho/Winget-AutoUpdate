@@ -17,7 +17,7 @@ Function Update-App ($app) {
     Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
 
     #Check if mods exist for preinstall/install/upgrade
-    $ModsPreInstall, $ModsInstall, $ModsUpgrade = Test-Mods $($app.Id)
+    $ModsPreInstall, $ModsUpgrade, $ModsInstall, $ModsInstalled = Test-Mods $($app.Id)
 
     #If PreInstall script exist
     if ($ModsPreInstall) {
@@ -32,8 +32,10 @@ Function Update-App ($app) {
     Write-Log "-> Running: Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
     & $Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
-    #Set mods to apply as an upgrade
-    $ModsMode = "Upgrade"
+    if ($ModsUpgrade) {
+        Write-Log "Modifications for $($app.Id) during upgrade are being applied..." "Yellow"
+        & "$ModsUpgrade"
+    }
 
     #Check if application updated properly
     $CheckOutdated = Get-WingetOutdatedApps
@@ -55,8 +57,10 @@ Function Update-App ($app) {
             Write-Log "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
             & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
 
-            #Set mods to apply as an install
-            $ModsMode = "Install"
+            if ($ModsInstall) {
+                Write-Log "Modifications for $($app.Id) during install are being applied..." "Yellow"
+                & "$ModsInstall"
+            }
 
             #Check if application installed properly
             $CheckOutdated2 = Get-WingetOutdatedApps
@@ -69,13 +73,8 @@ Function Update-App ($app) {
     }
 
     if ($FailedToUpgrade -eq $false) {
-
-        if (($ModsUpgrade) -and ($ModsMode -eq "Upgrade")) {
-            Write-Log "Modifications for $($app.Id) after upgrade are being applied..." "Yellow"
-            & "$ModsUpgrade"
-        }
-        elseif (($ModsInstall) -and ($ModsMode -eq "Install")) {
-            Write-Log "Modifications for $($app.Id) after install are being applied..." "Yellow"
+        if ($ModsInstalled) {
+            Write-Log "Modifications for $($app.Id) after upgrade/install are being applied..." "Yellow"
             & "$ModsInstall"
         }
     }

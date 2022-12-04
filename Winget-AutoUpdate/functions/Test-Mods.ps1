@@ -4,8 +4,9 @@ function Test-Mods ($app) {
 
     #Takes care of a null situation
     $ModsPreInstall = $null
-    $ModsInstall = $null
     $ModsUpgrade = $null
+    $ModsInstall = $null
+    $ModsInstalled = $null
 
     $Mods = "$WorkingDir\mods"
     if (Test-Path "$Mods\$app-*") {
@@ -19,8 +20,11 @@ function Test-Mods ($app) {
         if (Test-Path "$Mods\$app-upgrade.ps1") {
             $ModsUpgrade = "$Mods\$app-upgrade.ps1"
         }
+        if (Test-Path "$Mods\$app-installed.ps1") {
+            $ModsInstalled = "$Mods\$app-installed.ps1"
+        }
     }
 
-    return $ModsPreInstall, $ModsInstall, $ModsUpgrade
+    return $ModsPreInstall, $ModsUpgrade, $ModsInstall, $ModsInstalled
 
 }

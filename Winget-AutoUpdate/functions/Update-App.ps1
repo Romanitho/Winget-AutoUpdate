@@ -75,7 +75,7 @@ Function Update-App ($app) {
     if ($FailedToUpgrade -eq $false) {
         if ($ModsInstalled) {
             Write-Log "Modifications for $($app.Id) after upgrade/install are being applied..." "Yellow"
-            & "$ModsInstall"
+            & "$ModsInstalled"
         }
     }
 

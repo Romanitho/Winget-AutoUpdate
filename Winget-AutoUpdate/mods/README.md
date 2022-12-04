@@ -1,1 +1,1 @@
-Pre/Post install custom scripts should be placed here
+Pre/During/Post install custom scripts should be placed here

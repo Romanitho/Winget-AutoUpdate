@@ -140,13 +140,15 @@ See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 ## Custom scripts (Mods feature)
 From version 1.8.0, the Mods feature allows you to run an additional script when upgrading or installing an app.
 Just put the script in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.  
-WAU will call `AppID-preinstall.ps1` before **winget** upgrades the app.  
-WAU will call `AppID-upgrade.ps1` and `AppID-install.ps1` (the **-install** mod will be used for upgrades too if **-upgrade** doesn't exist) if it exists in the **mods** folder during (just after the **winget** upgrade/install).  
-WAU will call `AppID-installed.ps1` after the upgrade/installation has been confirmed.  
+> Runs before upgrade/install: `AppID-preinstall.ps1`  
+> Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`  
+> Runs after upgrade/install has been confirmed: `AppID-installed.ps1`  
 
-> Example:
+The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist  
+
+> Example:  
 If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this:
-`Adobe.Acrobat.Reader.32-bit-install.ps1` and put it in the **mods** folder.
+`Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
 You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature
 

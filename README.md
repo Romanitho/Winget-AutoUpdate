@@ -138,8 +138,8 @@ Remove scheduled tasks and scripts.
 See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 
 ## Custom scripts (Mods feature)
-From version 1.8.0, the Mods feature allows you to run an additional script when upgrading or installing an app.
-Just put the script in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.  
+From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
+Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.  
 > Runs before upgrade/install: `AppID-preinstall.ps1`  
 > Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`  
 > Runs after upgrade/install has been confirmed: `AppID-installed.ps1`  

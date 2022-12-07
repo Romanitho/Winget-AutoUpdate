@@ -76,7 +76,7 @@ if (Test-Network) {
                 Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath)"
                 $NewList = Test-ListPath $WAUConfig.WAU_ListPath $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation
                 if ($NewList) {
-                    Write-Log "Newer List copied/downloaded to local path: $($WAUConfig.InstallLocation)" "Yellow"
+                    Write-Log "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation)" "Yellow"
                 }
                 else {
                     if ((Test-Path "$WorkingDir\included_apps.txt") -or (Test-Path "$WorkingDir\excluded_apps.txt")) {
@@ -86,6 +86,26 @@ if (Test-Network) {
                         Write-Log "List doesn't exist!" "Red"
                         Exit 0
                     }
+                }
+            }
+
+            #Get External ModsPath if System
+            if ($WAUConfig.WAU_ModsPath) {
+                Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath)"
+                $NewMods, $DeletedMods = Test-ModsPath $WAUConfig.WAU_ModsPath $WAUConfig.InstallLocation
+                if ($NewMods -gt 0) {
+                    Write-Log "$NewMods newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation)\mods" "Yellow"
+                }
+                else {
+                    if (Test-Path "$WorkingDir\mods\*.ps1") {
+                        Write-Log "Mods are up to date." "Green"
+                    }
+                    else {
+                        Write-Log "No Mods are implemented..." "Yellow"
+                    }
+                }
+                if ($DeletedMods -gt 0) {
+                    Write-Log "$DeletedMods Mods deleted (not externally managed) from local path: $($WAUConfig.InstallLocation)\mods" "Red"
                 }
             }
         }

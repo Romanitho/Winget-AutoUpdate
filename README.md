@@ -26,7 +26,7 @@ You can easily translate toast notifications by creating your locale xml config 
 By default, scripts and components will be placed in ProgramData location (inside a Winget-AutoUpdate folder). You can change this with script argument (Not Recommended).
 
 ### When does the script run?
-From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, Weekly, Biweekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
+From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
 
 ### Log location
 You can find logs in install location, in logs folder.
@@ -86,7 +86,20 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt"
 
 **-ListPath**  
-Get Black/White List from Path (URL/UNC/Local) (copy/download to Winget-AutoUpdate installation location if external list is newer).
+Get Black/White List from Path (URL/UNC/Local) (download/copy to Winget-AutoUpdate installation location if external list is newer).
+
+**-ModsPath**  
+Get Mods from Path (URL/UNC/Local) (download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer).  
+For URL: This requires a site directory with `Options +Indexes` in `.htaccess` and no index page overriding the listing of files.  
+Or an index page with href listing of all the Mods to be downloaded:  
+```
+<ul>
+<li><a  href="Adobe.Acrobat.Reader.32-bit-install.ps1"> Adobe.Acrobat.Reader.32-bit-install.ps1</a></li>
+<li><a  href="Notepad++.Notepad++-install.ps1"> Notepad++.Notepad++-install.ps1</a></li>
+<li><a  href="Notepad++.Notepad++-uninstall.ps1"> Notepad++.Notepad++-uninstall.ps1</a></li>
+<li><a  href="WinMerge.WinMerge-install.ps1"> WinMerge.WinMerge-install.ps1</a></li>
+</ul>
+```
 
 **-InstallUserContext**  
 Install WAU with system and **user** context executions (From version 1.15.3)
@@ -110,7 +123,7 @@ Specify the Notification level: Full (Default, displays all notification), Succe
 Set WAU to run at user logon.
 
 **-UpdatesInterval**  
-Specify the update frequency: Daily (Default), Weekly, Biweekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance
+Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance
 
 **-UpdatesAtTime**  
 Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0)
@@ -125,15 +138,19 @@ Remove scheduled tasks and scripts.
 See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 
 ## Custom scripts (Mods feature)
-From version 1.8.0, the Mods feature allows you to run an additional script when upgrading or installing an app.
-Just put the script in question with the App ID followed by the `-upgrade` or `-install` suffix in the "mods" folder.
-WAU will call `AppID-upgrade.ps1` and/or `AppID-install.ps1` (if they differs, otherwise the "-install" mod will be used for upgrades too) if it exists in the "mods" folder just after the upgrade/install.
+From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
+Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.  
+> Runs before upgrade/install: `AppID-preinstall.ps1`  
+> Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`  
+> Runs after upgrade/install has been confirmed: `AppID-installed.ps1`  
 
-> Example:
-If you want to run a script that removes the shortcut from "%PUBLIC%\Desktop" (we don't want to fill the desktop with shortcuts our users can't delete) just after installing "Acrobat Reader DC" (32-bit), prepare a powershell script that removes the Public Desktop shortcut "Acrobat Reader DC.lnk" and name your script like this:
-`Adobe.Acrobat.Reader.32-bit-install.ps1` and put it in the "mods" folder.
+The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist  
 
-You can find more information on Winget-Install Repo, as it's a related feature
+> Example:  
+If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this:
+`Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
+
+You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

@@ -17,7 +17,10 @@ Function Update-App ($app) {
     Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
 
     #Check if mods exist for preinstall/install/upgrade
-    $ModsPreInstall, $ModsUpgrade, $ModsInstall, $ModsInstalled = Test-Mods $($app.Id)
+    $ModsPreInstall, $ModsOverride, $ModsUpgrade, $ModsInstall, $ModsInstalled = Test-Mods $($app.Id)
+
+    #Winget upgrade
+    Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
 
     #If PreInstall script exist
     if ($ModsPreInstall) {
@@ -25,12 +28,15 @@ Function Update-App ($app) {
         & "$ModsPreInstall"
     }
 
-    #Winget upgrade
-    Write-Log "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
-
     #Run Winget Upgrade command
-    Write-Log "-> Running: Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
-    & $Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+    if ($ModsOverride) {
+    	Write-Log "-> Running (overriding default): Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride"
+        & $Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride | Tee-Object -file $LogFile -Append
+    }
+    else {
+		Write-Log "-> Running: Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
+        & $Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+    }
 
     if ($ModsUpgrade) {
         Write-Log "Modifications for $($app.Id) during upgrade are being applied..." "Yellow"
@@ -54,8 +60,15 @@ Function Update-App ($app) {
 
             #If app failed to upgrade, run Install command
             Write-Log "-> An upgrade for $($app.Name) failed, now trying an install instead..." "Yellow"
-            Write-Log "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
-            & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+            
+            if ($ModsOverride) {
+            	Write-Log "-> Running (overriding default): Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride"
+                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride | Tee-Object -file $LogFile -Append
+            }
+            else {
+            	Write-Log "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
+                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+            }
 
             if ($ModsInstall) {
                 Write-Log "Modifications for $($app.Id) during install are being applied..." "Yellow"

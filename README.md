@@ -55,7 +55,7 @@ Same process as new installation : download, unzip and run `install.bat`.
 
 ### Automatic Update
 A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...
-To disable WAU AutoUpdate, run the `winget-install-and-update.ps1` with `-DisableWAUAutoUpdate` parameter
+To disable WAU AutoUpdate, run the `Winget-AutoUpdate-Install.ps1` with `-DisableWAUAutoUpdate` parameter
 
 ## Uninstall WAU
 Simply uninstall it from your programs:  
@@ -151,6 +151,13 @@ If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** 
 `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
 You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature
+
+Another finess is the **AppID-override.txt** you can place under the **mods** folder.  
+> Example:  
+> **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`  
+
+This will use the content as a native **winget --override** parameter when upgrading.
+
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

@@ -153,7 +153,7 @@ If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** 
 You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature
 
 ### Winget native parameters
-Another finess is the **AppID** followed by the `-override` suffix as a text file you can place under the **mods** folder.
+Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.txt) that you can place under the **mods** folder.
 > Example:  
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 

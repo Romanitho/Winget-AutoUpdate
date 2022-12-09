@@ -152,12 +152,12 @@ If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** 
 
 You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature
 
-Another finess is the **AppID-override.txt** you can place under the **mods** folder.  
-> Example:  
-> **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`  
+### Winget native parameters
+Another finess is the **AppID** followed by the `-override` suffix as a text file you can place under the **mods** folder.
+> Example:
+>  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
-This will use the content as a native **winget --override** parameter when upgrading.
-
+This will use the content from the text file as a native **winget --override** parameter when upgrading.  
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

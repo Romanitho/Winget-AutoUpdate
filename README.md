@@ -154,7 +154,7 @@ You can find more information on [Winget-Install Repo](https://github.com/Romani
 
 ### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a text file you can place under the **mods** folder.
-> Example:
+> Example:  
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
 This will use the content from the text file as a native **winget --override** parameter when upgrading.  

@@ -13,7 +13,7 @@ function Get-WingetOutdatedApps {
 
     #Start Convertion of winget format to an array. Check if "-----" exists (Winget Error Handling)
     if (!($upgradeResult -match "-----")) {
-        return "Problem:$upgradeResult"
+        return "Problem:`n$upgradeResult"
     }
 
     #Split winget output to lines

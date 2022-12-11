@@ -108,6 +108,11 @@ if (Test-Network) {
                     Write-Log "$DeletedMods Mods deleted (not externally managed) from local path: $($WAUConfig.InstallLocation)\mods" "Red"
                 }
             }
+
+            #Delete previous winget_error if exists and System
+            if (Test-Path "$WorkingDir\winget_error.txt") {
+                Remove-Item "$WorkingDir\winget_error.txt" -Force
+            }
         }
 
         #Get White or Black list
@@ -129,6 +134,15 @@ if (Test-Network) {
         if ($outdated -like "Problem:*") {
             Write-Log "An error occured, exiting..." "red"
             Write-Log "$outdated" "red"
+            $path = "$WorkingDir\winget_error.txt"
+            New-Item "$path" -Value "$outdated" -Force
+
+            #Setting file rights for everyone (so that it can be deleted by User-Run.ps1)
+            $rule= New-Object System.Security.AccessControl.FileSystemAccessRule ('Everyone', 'FullControl', 'Allow')
+            $acl = Get-ACL $path
+            $acl.SetAccessRule($rule)
+            Set-ACL -Path $path -AclObject $acl
+
             Exit 1
         }
 

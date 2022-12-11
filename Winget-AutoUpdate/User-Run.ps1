@@ -49,7 +49,7 @@ $Balise = "Winget-AutoUpdate (WAU)"
 $UserRun = $True
 
 if ($Logs) {
-	if ((Test-Path "$WorkingDir\logs\updates.log")) {
+	if (Test-Path "$WorkingDir\logs\updates.log") {
 		Invoke-Item "$WorkingDir\logs\updates.log"
 	}
 	else {
@@ -81,8 +81,14 @@ else {
 		While (Test-WAUisRunning) {
 			Start-Sleep 3
 		}
+		if (Test-Path "$WorkingDir\winget_error.txt") {
+			$MessageType = "error"
+			Remove-Item "$WorkingDir\winget_error.txt" -Force
+		}
+		else {
+			$MessageType = "success"
+		}
 		$Message = $NotifLocale.local.outputs.output[9].message
-		$MessageType = "success"
 		Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss
 	}
 	catch {

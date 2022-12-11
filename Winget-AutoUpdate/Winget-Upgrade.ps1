@@ -84,7 +84,7 @@ if (Test-Network) {
                     }
                     else {
                         Write-Log "List doesn't exist!" "Red"
-                        Exit 0
+                        Exit 1
                     }
                 }
             }
@@ -124,6 +124,13 @@ if (Test-Network) {
         #Get outdated Winget packages
         Write-Log "Checking application updates on Winget Repository..." "yellow"
         $outdated = Get-WingetOutdatedApps
+
+        #If something is wrong with the winget source, exit
+        if (($outdated -like "Problem:*")) {
+            Write-Log "An error occured, exiting..." "red"
+            Write-Log "$outdated" "red"
+            Exit 1
+        }
 
         #Log list of app to update
         foreach ($app in $outdated) {

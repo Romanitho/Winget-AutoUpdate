@@ -11,9 +11,9 @@ function Get-WingetOutdatedApps {
     #Get list of available upgrades on winget format
     $upgradeResult = & $Winget upgrade --source winget | Out-String
 
-    #Start Convertion of winget format to an array. Check if "-----" exists
+    #Start Convertion of winget format to an array. Check if "-----" exists (Winget Error Handling)
     if (!($upgradeResult -match "-----")) {
-        return
+        return "Problem:$upgradeResult"
     }
 
     #Split winget output to lines

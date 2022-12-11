@@ -53,7 +53,7 @@ Function Update-App ($app) {
             #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
             $PendingReboot = Test-PendingReboot
             if ($PendingReboot -eq $true) {
-                Write-Log "-> A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n...an install for $($app.Name) is NOT executed!" "Red"
+                Write-Log "-> A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n-> ...an install for $($app.Name) is NOT executed!" "Red"
                 $FailedToUpgrade = $true
                 break
             }

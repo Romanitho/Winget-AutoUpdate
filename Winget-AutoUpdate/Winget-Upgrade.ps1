@@ -126,7 +126,7 @@ if (Test-Network) {
         $outdated = Get-WingetOutdatedApps
 
         #If something is wrong with the winget source, exit
-        if (($outdated -like "Problem:*")) {
+        if ($outdated -like "Problem:*") {
             Write-Log "An error occured, exiting..." "red"
             Write-Log "$outdated" "red"
             Exit 1

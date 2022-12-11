@@ -81,9 +81,15 @@ else {
 		While (Test-WAUisRunning) {
 			Start-Sleep 3
 		}
+
+		#Test if there was a winget error as System/User
 		if (Test-Path "$WorkingDir\winget_error.txt") {
 			$MessageType = "error"
 			Remove-Item "$WorkingDir\winget_error.txt" -Force
+		}
+		elseif (Test-Path "${env:TEMP}\winget_error.txt") {
+			$MessageType = "error"
+			Remove-Item "${env:TEMP}\winget_error.txt" -Force
 		}
 		else {
 			$MessageType = "success"

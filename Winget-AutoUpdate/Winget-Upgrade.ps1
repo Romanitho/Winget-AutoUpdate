@@ -36,6 +36,14 @@ if ($IsSystem) {
     Add-ScopeMachine $SettingsPath
 }
 
+#Delete previous list/winget_error (if they exist) as System/User
+if ($IsSystem -and (Test-Path "$WorkingDir\*_error.txt")) {
+    Remove-Item "$WorkingDir\*_error.txt" -Force
+}
+elseif (!$IsSystem -and (Test-Path "${env:TEMP}\winget_error.txt")) {
+    Remove-Item "${env:TEMP}\winget_error.txt" -Force
+}
+
 #Get Notif Locale function
 $LocaleDisplayName = Get-NotifLocale
 Write-Log "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan"
@@ -83,7 +91,16 @@ if (Test-Network) {
                         Write-Log "List is up to date." "Green"
                     }
                     else {
-                        Write-Log "List doesn't exist!" "Red"
+                        Write-Log "Critical: List doesn't exist, exiting..." "Red"
+                        $path = "$WorkingDir\list_error.txt"
+                        New-Item "$path" -Force
+            
+                        #Setting file rights for everyone (so that it can be deleted by User in User-Run.ps1)
+                        $rule= New-Object System.Security.AccessControl.FileSystemAccessRule ('Everyone', 'FullControl', 'Allow')
+                        $acl = Get-ACL $path
+                        $acl.SetAccessRule($rule)
+                        Set-ACL -Path $path -AclObject $acl
+
                         Exit 1
                     }
                 }
@@ -108,14 +125,6 @@ if (Test-Network) {
                     Write-Log "$DeletedMods Mods deleted (not externally managed) from local path: $($WAUConfig.InstallLocation)\mods" "Red"
                 }
             }
-        }
-
-        #Delete previous winget_error (if exists) as System/User
-        if ($IsSystem -and (Test-Path "$WorkingDir\winget_error.txt")) {
-            Remove-Item "$WorkingDir\winget_error.txt" -Force
-        }
-        elseif (!$IsSystem -and (Test-Path "${env:TEMP}\winget_error.txt")) {
-            Remove-Item "${env:TEMP}\winget_error.txt" -Force
         }
 
         #Get White or Black list

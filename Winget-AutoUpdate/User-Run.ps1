@@ -82,14 +82,9 @@ else {
 			Start-Sleep 3
 		}
 
-		#Test if there was a list/winget error as System/User
+		#Test if there was a list_/winget_error
 		if (Test-Path "$WorkingDir\*_error.txt") {
 			$MessageType = "error"
-			Remove-Item "$WorkingDir\*_error.txt" -Force
-		}
-		elseif (Test-Path "${env:TEMP}\winget_error.txt") {
-			$MessageType = "error"
-			Remove-Item "${env:TEMP}\winget_error.txt" -Force
 		}
 		else {
 			$MessageType = "success"

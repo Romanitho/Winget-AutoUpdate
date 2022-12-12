@@ -36,14 +36,6 @@ if ($IsSystem) {
     Add-ScopeMachine $SettingsPath
 }
 
-#Delete previous list/winget_error (if they exist) as System/User
-if ($IsSystem -and (Test-Path "$WorkingDir\*_error.txt")) {
-    Remove-Item "$WorkingDir\*_error.txt" -Force
-}
-elseif (!$IsSystem -and (Test-Path "${env:TEMP}\winget_error.txt")) {
-    Remove-Item "${env:TEMP}\winget_error.txt" -Force
-}
-
 #Get Notif Locale function
 $LocaleDisplayName = Get-NotifLocale
 Write-Log "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan"
@@ -79,6 +71,11 @@ if (Test-Network) {
                 }
             }
 
+            #Delete previous list_/winget_error (if they exist) if System
+            if (Test-Path "$WorkingDir\*_error.txt") {
+                Remove-Item "$WorkingDir\*_error.txt" -Force
+            }
+
             #Get External ListPath if System
             if ($WAUConfig.WAU_ListPath) {
                 Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath)"
@@ -92,15 +89,7 @@ if (Test-Network) {
                     }
                     else {
                         Write-Log "Critical: List doesn't exist, exiting..." "Red"
-                        $path = "$WorkingDir\list_error.txt"
-                        New-Item "$path" -Force
-            
-                        #Setting file rights for everyone (so that it can be deleted by User in User-Run.ps1)
-                        $rule= New-Object System.Security.AccessControl.FileSystemAccessRule ('Everyone', 'FullControl', 'Allow')
-                        $acl = Get-ACL $path
-                        $acl.SetAccessRule($rule)
-                        Set-ACL -Path $path -AclObject $acl
-
+                        New-Item "$WorkingDir\list_error.txt" -Force
                         Exit 1
                     }
                 }
@@ -142,27 +131,11 @@ if (Test-Network) {
         Write-Log "Checking application updates on Winget Repository..." "yellow"
         $outdated = Get-WingetOutdatedApps
 
-        #If something is wrong with the winget source, exit as System/User
-        if ($IsSystem -and $outdated -like "Problem:*") {
+        #If something is wrong with the winget source, exit
+        if ($outdated -like "Problem:*") {
             Write-Log "An error occured, exiting..." "red"
             Write-Log "$outdated" "red"
-            $path = "$WorkingDir\winget_error.txt"
-            New-Item "$path" -Value "$outdated" -Force
-
-            #Setting file rights for everyone (so that it can be deleted by User in User-Run.ps1)
-            $rule= New-Object System.Security.AccessControl.FileSystemAccessRule ('Everyone', 'FullControl', 'Allow')
-            $acl = Get-ACL $path
-            $acl.SetAccessRule($rule)
-            Set-ACL -Path $path -AclObject $acl
-
-            Exit 1
-        }
-        elseif (!$IsSystem -and $outdated -like "Problem:*") {
-            Write-Log "An error occured, exiting..." "red"
-            Write-Log "$outdated" "red"
-            $path = "${env:TEMP}\winget_error.txt"
-            New-Item "$path" -Value "$outdated" -Force
-
+            New-Item "$WorkingDir\winget_error.txt" -Value "$outdated" -Force
             Exit 1
         }
 

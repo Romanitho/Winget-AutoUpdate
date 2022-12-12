@@ -72,8 +72,8 @@ if (Test-Network) {
             }
 
             #Delete previous list_/winget_error (if they exist) if System
-            if (Test-Path "$WorkingDir\*_error.txt") {
-                Remove-Item "$WorkingDir\*_error.txt" -Force
+            if (Test-Path "$WorkingDir\logs\*_error.txt") {
+                Remove-Item "$WorkingDir\logs\*_error.txt" -Force
             }
 
             #Get External ListPath if System
@@ -89,7 +89,7 @@ if (Test-Network) {
                     }
                     else {
                         Write-Log "Critical: List doesn't exist, exiting..." "Red"
-                        New-Item "$WorkingDir\list_error.txt" -Force
+                        New-Item "$WorkingDir\logs\list_error.txt" -Force
                         Exit 1
                     }
                 }
@@ -135,7 +135,7 @@ if (Test-Network) {
         if ($outdated -like "Problem:*") {
             Write-Log "An error occured, exiting..." "red"
             Write-Log "$outdated" "red"
-            New-Item "$WorkingDir\winget_error.txt" -Value "$outdated" -Force
+            New-Item "$WorkingDir\logs\winget_error.txt" -Value "$outdated" -Force
             Exit 1
         }
 

@@ -133,7 +133,7 @@ if (Test-Network) {
 
         #If something is wrong with the winget source, exit
         if ($outdated -like "Problem:*") {
-            Write-Log "An error occured, exiting..." "red"
+            Write-Log "Critical: An error occured, exiting..." "red"
             Write-Log "$outdated" "red"
             New-Item "$WorkingDir\logs\winget_error.txt" -Value "$outdated" -Force
             Exit 1

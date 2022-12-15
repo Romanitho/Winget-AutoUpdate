@@ -71,6 +71,11 @@ if (Test-Network) {
                 }
             }
 
+            #Delete previous list_/winget_error (if they exist) if System
+            if (Test-Path "$WorkingDir\logs\*_error.txt") {
+                Remove-Item "$WorkingDir\logs\*_error.txt" -Force
+            }
+
             #Get External ListPath if System
             if ($WAUConfig.WAU_ListPath) {
                 Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath)"
@@ -83,8 +88,9 @@ if (Test-Network) {
                         Write-Log "List is up to date." "Green"
                     }
                     else {
-                        Write-Log "List doesn't exist!" "Red"
-                        Exit 0
+                        Write-Log "Critical: List doesn't exist, exiting..." "Red"
+                        New-Item "$WorkingDir\logs\list_error.txt" -Force
+                        Exit 1
                     }
                 }
             }
@@ -124,6 +130,14 @@ if (Test-Network) {
         #Get outdated Winget packages
         Write-Log "Checking application updates on Winget Repository..." "yellow"
         $outdated = Get-WingetOutdatedApps
+
+        #If something is wrong with the winget source, exit
+        if ($outdated -like "Problem:*") {
+            Write-Log "Critical: An error occured, exiting..." "red"
+            Write-Log "$outdated" "red"
+            New-Item "$WorkingDir\logs\winget_error.txt" -Value "$outdated" -Force
+            Exit 1
+        }
 
         #Log list of app to update
         foreach ($app in $outdated) {

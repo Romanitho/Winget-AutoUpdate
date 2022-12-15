@@ -7,7 +7,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
     $ExternalMods = "$ModsPath"
  
     #Get File Names Locally
-    $InternalModsNames = Get-ChildItem -Path $LocalMods -Name -Recurse -Include *.ps1
+    $InternalModsNames = Get-ChildItem -Path $LocalMods -Name -Recurse -Include *.ps1, *.txt
 
     # If path is URL
     if ($ExternalMods -like "http*") {
@@ -35,8 +35,8 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
 
         #Loop through all links
         $WebResponse.Links | Select-Object -ExpandProperty href | ForEach-Object {
-            #Check for .ps1 in listing/HREF:s in an index page pointing to .ps1
-            if ($_ -like "*.ps1") {
+            #Check for .ps1/.txt in listing/HREF:s in an index page pointing to .ps1/.txt
+            if (($_ -like "*.ps1") -or ($_ -like "*.txt")) {
                 try {
                     $dateExternalMod = ""
                     $dateLocalMod =""
@@ -67,9 +67,9 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
     }
     # If path is UNC or local
     else {
-        if (Test-Path -Path $ExternalMods"\*.ps1") {
+        if ((Test-Path -Path $ExternalMods"\*.ps1") -or (Test-Path -Path $ExternalMods"\*.txt")) {
             #Get File Names Externally
-            $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1
+            $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1, *.txt
             #Delete Local Mods that don't exist Externally
             foreach ($Mod in $InternalModsNames){
                 If($Mod -notin $ExternalModsNames ){

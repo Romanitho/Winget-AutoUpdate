@@ -4,6 +4,7 @@ function Test-Mods ($app) {
 
     #Takes care of a null situation
     $ModsPreInstall = $null
+    $ModsOverride = $null
     $ModsUpgrade = $null
     $ModsInstall = $null
     $ModsInstalled = $null
@@ -12,6 +13,9 @@ function Test-Mods ($app) {
     if (Test-Path "$Mods\$app-*") {
         if (Test-Path "$Mods\$app-preinstall.ps1") {
             $ModsPreInstall = "$Mods\$app-preinstall.ps1"
+        }
+        if (Test-Path "$Mods\$app-override.txt") {
+            $ModsOverride = Get-Content "$Mods\$app-override.txt" -Raw
         }
         if (Test-Path "$Mods\$app-install.ps1") {
             $ModsInstall = "$Mods\$app-install.ps1"
@@ -25,6 +29,6 @@ function Test-Mods ($app) {
         }
     }
 
-    return $ModsPreInstall, $ModsUpgrade, $ModsInstall, $ModsInstalled
+    return $ModsPreInstall, $ModsOverride, $ModsUpgrade, $ModsInstall, $ModsInstalled
 
 }

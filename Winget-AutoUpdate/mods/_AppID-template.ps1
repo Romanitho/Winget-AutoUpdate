@@ -5,7 +5,7 @@ $Proc = @("")
 #Beginning of Process Name to Wait for to End - optional wildcard (*) after, without .exe, multiple: "proc1","proc2"
 $Wait = @("")
 
-#Beginning of App Name string to Silently Uninstall (MSI/NSIS/INNO) - required wildcard (*) after!
+#Beginning of App Name string to Silently Uninstall (MSI/NSIS/INNO/EXE with defined silent uninstall) - required wildcard (*) after!
 $App = ""
 
 #Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1","lnk2"

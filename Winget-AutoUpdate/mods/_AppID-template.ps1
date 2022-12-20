@@ -12,7 +12,7 @@ $App = ""
 $Lnk = @("")
 
 <# FUNCTIONS #>
-. $PSScriptRoot\_Common-Functions.ps1
+. $PSScriptRoot\_Mods-Functions.ps1
 
 <# MAIN #>
 if ($Proc) {

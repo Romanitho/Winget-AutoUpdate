@@ -89,7 +89,7 @@ if (Test-Network) {
                     }
                     else {
                         Write-Log "Critical: List doesn't exist, exiting..." "Red"
-                        New-Item "$WorkingDir\logs\list_error.txt" -Force
+                        New-Item "$WorkingDir\logs\list_error.txt" -Value "List doesn't exist!" -Force
                         Exit 1
                     }
                 }
@@ -215,6 +215,11 @@ if (Test-Network) {
         elseif (!$UserScheduledTask){
             Write-Log "User context execution not installed"
         }
+    }
+    else {
+        Write-Log "Critical: An error occured, exiting..." "red"
+        New-Item "$WorkingDir\logs\winget_error.txt" -Value "Winget not installed or detected!" -Force
+        Exit 1
     }
 }
 

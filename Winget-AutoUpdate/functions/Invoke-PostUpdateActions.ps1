@@ -6,7 +6,7 @@ function Invoke-PostUpdateActions {
     Write-Log "Running Post Update actions..." "yellow"
 
     #Reset Winget Sources
-    $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_x64__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
+    $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
     if ($ResolveWingetPath) {
         #If multiple version, pick last one
         $WingetPath = $ResolveWingetPath[-1].Path

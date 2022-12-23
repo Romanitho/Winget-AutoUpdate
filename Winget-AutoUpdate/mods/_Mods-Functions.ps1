@@ -39,7 +39,7 @@ function Uninstall-ModsApp ($App) {
                     Start-Process $Command -ArgumentList $Parameter -Wait
                 }
                 else {
-                    $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft.NSIS"
+                    $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft"
                     if ($NullSoft) {
                         #NSIS x64 Installer
                         Start-Process $UninstallString -ArgumentList "/S" -Wait
@@ -85,7 +85,7 @@ function Uninstall-ModsApp ($App) {
                         Start-Process $Command -ArgumentList $Parameter -Wait
                     }
                     else {
-                        $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft.NSIS"
+                        $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft"
                         if ($NullSoft) {
                             #NSIS x86 Installer
                             Start-Process $UninstallString -ArgumentList "/S" -Wait

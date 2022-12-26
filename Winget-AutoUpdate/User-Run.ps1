@@ -83,7 +83,7 @@ else {
 		}
 
 		#Test if there was a list_/winget_error
-		if (Test-Path "$WorkingDir\logs\*_error.txt") {
+		if (Test-Path "$WorkingDir\logs\error.txt") {
 			$MessageType = "error"
 		}
 		else {

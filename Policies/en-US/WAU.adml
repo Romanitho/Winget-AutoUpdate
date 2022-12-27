@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources revision="4.4" schemaVersion="1.0" >
+  <displayName/>
+  <description/>
+  <resources >
+    <stringTable >
+      <string id="WAU">Winget-AutoUpdate</string>
+      <string id="SUPPORTED_WAU_1_15_3">Winget-AutoUpdate version 1.15.3 or later</string>
+      <string id="BypassListForUsers_Name">Bypass Black/White list for User</string>
+      <string id="BypassListForUsers_Explain">This policy setting specifies whether to Bypass Black/White list when run in user context or not.</string>
+      <string id="DisableAutoUpdate_Name">Disable Winget-AutoUpdate update checking</string>
+      <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to Disable Winget-AutoUpdate update checking or not. By default, WAU auto updates if new version is available on Github.</string>
+      <string id="DoNotRunOnMetered_Name">Do not run WAU on metered connection</string>
+      <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to Run WAU on metered connection or not. Default No.</string>
+      <string id="UpdatePrerelease_Name">Update WAU to PreRelease versions</string>
+      <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU (if enabled) to PreRelease versions or not. Default No.</string>
+      <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
+      <string id="UseWhiteList_Explain">This policy setting specifies whether to use a WhiteList or not. Default Blacklist.</string>
+    </stringTable>
+  </resources>
+</policyDefinitionResources>

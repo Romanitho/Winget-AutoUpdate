@@ -25,6 +25,27 @@ else {
 #Get WAU Configurations
 $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
+if ($IsSystem) {
+    #Get WAU Policies and set the Configurations Registry Accordingly
+    $WAUPolicies = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
+    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+    if ($null -ne $WAUPolicies.WAU_BypassListForUsers) {
+        New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value $WAUPolicies.WAU_BypassListForUsers -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    if ($null -ne $WAUPolicies.WAU_DisableAutoUpdate) {
+        New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value $WAUPolicies.WAU_DisableAutoUpdate -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    if ($null -ne $WAUPolicies.WAU_DoNotRunOnMetered) {
+        New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value $WAUPolicies.WAU_DoNotRunOnMetered -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    if ($null -ne $WAUPolicies.WAU_UpdatePrerelease) {
+        New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value $WAUPolicies.WAU_UpdatePrerelease -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    if ($null -ne $WAUPolicies.WAU_UseWhiteList) {
+        New-ItemProperty $regPath -Name WAU_UseWhiteList -Value $WAUPolicies.WAU_UseWhiteList -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+}
+
 #Run post update actions if necessary
 if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {
     Invoke-PostUpdateActions

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitions revision="4.4" schemaVersion="1.0">
+  <policyNamespaces>
+    <target prefix="WAU" namespace="Romanitho.Policies.WAU"/>
+    <using prefix="Romanitho" namespace="Romanitho.Policies"/>
+  </policyNamespaces>
+  <resources minRequiredRevision="4.4"/>
+  <supportedOn>
+    <definitions>
+      <definition name="SUPPORTED_WAU_1_15_3" displayName="$(string.SUPPORTED_WAU_1_15_3)"/>
+    </definitions>
+  </supportedOn>
+  <categories>
+    <category displayName="$(string.WAU)" name="WAU">
+      <parentCategory ref="Romanitho:Cat_Romanitho"/>
+    </category>
+  </categories>
+  <policies>
+  	<policy name="BypassListForUsers_Enable" class="Machine" displayName="$(string.BypassListForUsers_Name)" explainText="$(string.BypassListForUsers_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_BypassListForUsers">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="DisableAutoUpdate_Enable" class="Machine" displayName="$(string.DisableAutoUpdate_Name)" explainText="$(string.DisableAutoUpdate_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_DisableAutoUpdate">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="DoNotRunOnMetered_Enable" class="Machine" displayName="$(string.DoNotRunOnMetered_Name)" explainText="$(string.DoNotRunOnMetered_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_DoNotRunOnMetered">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="UpdatePrerelease_Enable" class="Machine" displayName="$(string.UpdatePrerelease_Name)" explainText="$(string.UpdatePrerelease_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UpdatePrerelease">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="UseWhiteList_Enable" class="Machine" displayName="$(string.UseWhiteList_Name)" explainText="$(string.UseWhiteList_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UseWhiteList">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  </policies>
+</policyDefinitions>

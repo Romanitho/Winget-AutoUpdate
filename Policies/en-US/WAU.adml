@@ -6,6 +6,8 @@
     <stringTable >
       <string id="WAU">Winget-AutoUpdate</string>
       <string id="SUPPORTED_WAU_1_15_3">Winget-AutoUpdate version 1.15.3 or later</string>
+      <string id="ActivateGPOManagement_Name">Activate WAU GPO Management</string>
+      <string id="ActivateGPOManagement_Explain">This policy setting is an overriding toggle for GPO Management of Winget-AutoUpdate.</string>
       <string id="BypassListForUsers_Name">Bypass Black/White list for User</string>
       <string id="BypassListForUsers_Explain">This policy setting specifies whether to Bypass Black/White list when run in user context or not.</string>
       <string id="DisableAutoUpdate_Name">Disable Winget-AutoUpdate update checking</string>

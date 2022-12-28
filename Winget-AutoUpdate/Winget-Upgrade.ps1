@@ -14,18 +14,12 @@ $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsS
 #Run log initialisation function
 Start-Init
 
-#Log running context
-if ($IsSystem) {
-    Write-Log "Running in System context"
-}
-else {
-    Write-Log "Running in User context"
-}
-
 #Get WAU Configurations
 $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
+#Log running context and more...
 if ($IsSystem) {
+    Write-Log "Running in System context"
     #Get WAU Policies and set the Configurations Registry Accordingly
     $WAUPolicies = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
     if ($WAUPolicies) {
@@ -89,17 +83,16 @@ if ($IsSystem) {
             }
         }
     }
-}
-
-#Run post update actions if necessary
-if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {
-    Invoke-PostUpdateActions
-}
-
-#Run Scope Machine funtion if run as system
-if ($IsSystem) {
+    #Run post update actions if necessary if run as System
+    if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {
+        Invoke-PostUpdateActions
+    }
+    #Run Scope Machine funtion if run as System
     $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\defaultState\settings.json"
     Add-ScopeMachine $SettingsPath
+}
+else {
+    Write-Log "Running in User context"
 }
 
 #Get Notif Locale function
@@ -116,9 +109,9 @@ if (Test-Network) {
         $WAUCurrentVersion = $WAUConfig.DisplayVersion
         Write-Log "WAU current version: $WAUCurrentVersion"
         if ($IsSystem) {
-            #Check if WAU update feature is enabled or not
+            #Check if WAU update feature is enabled or not if run as System
             $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
-            #If yes then check WAU update if System
+            #If yes then check WAU update if run as System
             if ($WAUDisableAutoUpdate -eq 1) {
                 Write-Log "WAU AutoUpdate is Disabled." "Grey"
             }
@@ -137,12 +130,12 @@ if (Test-Network) {
                 }
             }
 
-            #Delete previous list_/winget_error (if they exist) if System
+            #Delete previous list_/winget_error (if they exist) if run as System
             if (Test-Path "$WorkingDir\logs\error.txt") {
                 Remove-Item "$WorkingDir\logs\error.txt" -Force
             }
 
-            #Get External ListPath if System
+            #Get External ListPath if run as System
             if ($WAUConfig.WAU_ListPath) {
                 Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
                 $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
@@ -161,7 +154,7 @@ if (Test-Network) {
                 }
             }
 
-            #Get External ModsPath if System
+            #Get External ModsPath if run as System
             if ($WAUConfig.WAU_ModsPath) {
                 Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))"
                 $NewMods, $DeletedMods = Test-ModsPath $WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/") $WAUConfig.InstallLocation.TrimEnd(" ", "\")

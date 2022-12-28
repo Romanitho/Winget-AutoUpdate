@@ -30,6 +30,7 @@ if ($IsSystem) {
     $WAUPolicies = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
     if ($WAUPolicies) {
         if ($WAUPolicies.WAU_ActivateGPOManagement -eq 1) {
+            Write-Log "Activated WAU GPO Management detected, comparing..."
             $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
             if ($null -ne $WAUPolicies.WAU_BypassListForUsers -and ($WAUPolicies.WAU_BypassListForUsers -ne $WAUConfig.WAU_BypassListForUsers)) {
                 New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value $WAUPolicies.WAU_BypassListForUsers -PropertyType DWord -Force | Out-Null

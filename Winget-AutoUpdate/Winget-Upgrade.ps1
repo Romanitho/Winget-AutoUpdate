@@ -24,63 +24,83 @@ if ($IsSystem) {
     $WAUPolicies = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
     if ($WAUPolicies) {
         if ($WAUPolicies.WAU_ActivateGPOManagement -eq 1) {
+            $ChangedSettings = -1
             Write-Log "Activated WAU GPO Management detected, comparing..."
             $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
             if ($null -ne $WAUPolicies.WAU_BypassListForUsers -and ($WAUPolicies.WAU_BypassListForUsers -ne $WAUConfig.WAU_BypassListForUsers)) {
                 New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value $WAUPolicies.WAU_BypassListForUsers -PropertyType DWord -Force | Out-Null
+                $ChangedSettings++
             }
             elseif ($null -eq $WAUPolicies.WAU_BypassListForUsers) {
                 Remove-ItemProperty $regPath"\" -Name WAU_BypassListForUsers -Force -ErrorAction SilentlyContinue | Out-Null
+                $ChangedSettings++
             }
     
             if ($null -ne $WAUPolicies.WAU_DisableAutoUpdate -and ($WAUPolicies.WAU_DisableAutoUpdate -ne $WAUConfig.WAU_DisableAutoUpdate)) {
                 New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value $WAUPolicies.WAU_DisableAutoUpdate -PropertyType DWord -Force | Out-Null
+                $ChangedSettings++
             }
             elseif ($null -eq $WAUPolicies.WAU_DisableAutoUpdate) {
                 Remove-ItemProperty $regPath"\" -Name WAU_DisableAutoUpdate -Force -ErrorAction SilentlyContinue | Out-Null
+                $ChangedSettings++
             }
     
             if ($null -ne $WAUPolicies.WAU_DoNotRunOnMetered -and ($WAUPolicies.WAU_DoNotRunOnMetered -ne $WAUConfig.WAU_DoNotRunOnMetered)) {
                 New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value $WAUPolicies.WAU_DoNotRunOnMetered -PropertyType DWord -Force | Out-Null
+                $ChangedSettings++
             }
             elseif ($null -eq $WAUPolicies.WAU_DoNotRunOnMetered) {
                 New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value 1 -PropertyType DWord -Force | Out-Null
+                $ChangedSettings++
             }
     
             if ($null -ne $WAUPolicies.WAU_UpdatePrerelease -and ($WAUPolicies.WAU_UpdatePrerelease -ne $WAUConfig.WAU_UpdatePrerelease)) {
                 New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value $WAUPolicies.WAU_UpdatePrerelease -PropertyType DWord -Force | Out-Null
+                $ChangedSettings++
             }
             elseif ($null -eq $WAUPolicies.WAU_UpdatePrerelease) {
                 New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force | Out-Null
+                $ChangedSettings++
             }
     
             if ($null -ne $WAUPolicies.WAU_UseWhiteList -and ($WAUPolicies.WAU_UseWhiteList -eq 1) -and ($WAUPolicies.WAU_UseWhiteList -ne $WAUConfig.WAU_UseWhiteList)) {
                 New-ItemProperty $regPath -Name WAU_UseWhiteList -Value $WAUPolicies.WAU_UseWhiteList -PropertyType DWord -Force | Out-Null
+                $ChangedSettings++
             }
             elseif ($null -eq $WAUPolicies.WAU_UseWhiteList -or $WAUPolicies.WAU_UseWhiteList -eq 0) {
                 Remove-ItemProperty $regPath -Name WAU_UseWhiteList -Force -ErrorAction SilentlyContinue | Out-Null
+                $ChangedSettings++
             }
     
             if ($null -ne $WAUPolicies.WAU_ListPath -and ($WAUPolicies.WAU_ListPath -ne $WAUConfig.WAU_ListPath)) {
                 New-ItemProperty $regPath -Name WAU_ListPath -Value $WAUPolicies.WAU_ListPath -Force | Out-Null
+                $ChangedSettings++
             }
             elseif ($null -eq $WAUPolicies.WAU_ListPath) {
                 Remove-ItemProperty $regPath"\" -Name WAU_ListPath -Force -ErrorAction SilentlyContinue | Out-Null
+                $ChangedSettings++
             }
     
             if ($null -ne $WAUPolicies.WAU_ModsPath -and ($WAUPolicies.WAU_ModsPath -ne $WAUConfig.WAU_ModsPath)) {
                 New-ItemProperty $regPath -Name WAU_ModsPath -Value $WAUPolicies.WAU_ModsPath -Force | Out-Null
+                $ChangedSettings++
             }
             elseif ($null -eq $WAUPolicies.WAU_ModsPath) {
                 Remove-ItemProperty $regPath"\" -Name WAU_ModsPath -Force -ErrorAction SilentlyContinue | Out-Null
+                $ChangedSettings++
             }
 
             if ($null -ne $WAUPolicies.WAU_NotificationLevel -and ($WAUPolicies.WAU_NotificationLevel -ne $WAUConfig.WAU_NotificationLevel)) {
                 New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $WAUPolicies.WAU_NotificationLevel -Force | Out-Null
+                $ChangedSettings++
             }
             elseif ($null -eq $WAUPolicies.WAU_NotificationLevel) {
                 New-ItemProperty $regPath -Name WAU_NotificationLevel -Value "Full" -Force | Out-Null
+                $ChangedSettings++
             }
+        }
+        if ($ChangedSettings -gt 0) {
+            Write-Log "Changed settings: $ChangedSettings" "Yellow"
         }
         #Get WAU Configurations after Policies change
         $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"

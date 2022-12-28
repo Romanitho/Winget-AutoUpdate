@@ -45,6 +45,12 @@ if ($IsSystem) {
         if ($null -ne $WAUPolicies.WAU_UseWhiteList -and ($WAUPolicies.WAU_UseWhiteList -ne $WAUConfig.WAU_UseWhiteList)) {
             New-ItemProperty $regPath -Name WAU_UseWhiteList -Value $WAUPolicies.WAU_UseWhiteList -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
         }
+        if ($null -ne $WAUPolicies.WAU_ListPath -and ($WAUPolicies.WAU_ListPath -ne $WAUConfig.WAU_ListPath)) {
+            New-ItemProperty $regPath -Name WAU_ListPath -Value $WAUPolicies.WAU_ListPath -Force -ErrorAction SilentlyContinue | Out-Null
+        }
+        if ($null -ne $WAUPolicies.WAU_ModsPath -and ($WAUPolicies.WAU_ModsPath -ne $WAUConfig.WAU_ModsPath)) {
+            New-ItemProperty $regPath -Name WAU_ModsPath -Value $WAUPolicies.WAU_ModsPath -Force -ErrorAction SilentlyContinue | Out-Null
+        }
     }
 }
 

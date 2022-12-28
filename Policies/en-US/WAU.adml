@@ -16,6 +16,22 @@
       <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU (if enabled) to PreRelease versions or not. Default No.</string>
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
       <string id="UseWhiteList_Explain">This policy setting specifies whether to use a WhiteList or not. Default Blacklist.</string>
+      <string id="ListPath">Get Black/White List from external Path (URL/UNC/Local)</string>
+      <string id="ListPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external lists other than the default. If this policy is disabled or not configured, the default ListPath is used.</string>
+      <string id="ModsPath">Get Mods from external Path (URL/UNC/Local)</string>
+      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external mods other than the default. If this policy is disabled or not configured, the default ModsPath is used.</string>
     </stringTable>
+    <presentationTable>
+      <presentation id="ListPath">
+        <textBox refId="ListPath">
+          <label>(URL/UNC/Local) Path:</label>
+        </textBox>
+      </presentation>
+      <presentation id="ModsPath">
+        <textBox refId="ModsPath">
+          <label>(URL/UNC/Local) Path:</label>
+        </textBox>
+      </presentation>
+    </presentationTable>
   </resources>
 </policyDefinitionResources>

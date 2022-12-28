@@ -66,5 +66,19 @@
         <decimal value="0" />
       </disabledValue>
     </policy>
+    <policy name="ListPath" class="Machine" displayName="$(string.ListPath)" explainText="$(string.ListPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.ListPath)" >
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <text id="ListPath" valueName="WAU_ListPath" required="true" />
+      </elements>
+    </policy>
+    <policy name="ModsPath" class="Machine" displayName="$(string.ModsPath)" explainText="$(string.ModsPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.ModsPath)" >
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <text id="ModsPath" valueName="WAU_ModsPath" required="true" />
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>

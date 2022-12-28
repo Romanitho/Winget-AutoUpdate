@@ -54,11 +54,11 @@ if ($IsSystem) {
                 New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force | Out-Null
             }
     
-            if ($null -ne $WAUPolicies.WAU_UseWhiteList -and ($WAUPolicies.WAU_UseWhiteList -ne $WAUConfig.WAU_UseWhiteList)) {
+            if ($null -ne $WAUPolicies.WAU_UseWhiteList -and ($WAUPolicies.WAU_UseWhiteList -eq 1) -and ($WAUPolicies.WAU_UseWhiteList -ne $WAUConfig.WAU_UseWhiteList)) {
                 New-ItemProperty $regPath -Name WAU_UseWhiteList -Value $WAUPolicies.WAU_UseWhiteList -PropertyType DWord -Force | Out-Null
             }
-            elseif ($null -eq $WAUPolicies.WAU_UseWhiteList) {
-                Remove-ItemProperty $regPath"\" -Name WAU_UseWhiteList -Force -ErrorAction SilentlyContinue | Out-Null
+            elseif ($null -eq $WAUPolicies.WAU_UseWhiteList -or $WAUPolicies.WAU_UseWhiteList -eq 0) {
+                Remove-ItemProperty $regPath -Name WAU_UseWhiteList -Force -ErrorAction SilentlyContinue | Out-Null
             }
     
             if ($null -ne $WAUPolicies.WAU_ListPath -and ($WAUPolicies.WAU_ListPath -ne $WAUConfig.WAU_ListPath)) {
@@ -82,6 +82,8 @@ if ($IsSystem) {
                 New-ItemProperty $regPath -Name WAU_NotificationLevel -Value "Full" -Force | Out-Null
             }
         }
+        #Get WAU Configurations after Policies change
+        $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
     }
     #Run post update actions if necessary if run as System
     if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {

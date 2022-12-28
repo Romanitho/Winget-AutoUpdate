@@ -90,5 +90,28 @@
         <text id="ModsPath" valueName="WAU_ModsPath" required="true" />
       </elements>
     </policy>
+    <policy name="NotificationLevel" class="Machine" displayName="$(string.NotificationLevel)" explainText="$(string.NotificationLevel_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.NotificationLevel)">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <enum id="NotificationLevel" valueName="WAU_NotificationLevel">
+          <item displayName="$(string.NotificationLevel_Full)">
+            <value>
+              <string>Full</string>
+            </value>
+          </item>
+          <item displayName="$(string.NotificationLevel_SuccessOnly)">
+            <value>
+              <string>SuccessOnly</string>
+            </value>
+          </item>
+          <item displayName="$(string.NotificationLevel_None)">
+            <value>
+              <string>None</string>
+            </value>
+          </item>
+        </enum>
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>

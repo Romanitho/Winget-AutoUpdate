@@ -79,6 +79,13 @@ if ($IsSystem) {
             elseif ($null -eq $WAUPolicies.WAU_ModsPath) {
                 Remove-ItemProperty $regPath"\" -Name WAU_ModsPath -Force -ErrorAction SilentlyContinue | Out-Null
             }
+
+            if ($null -ne $WAUPolicies.WAU_NotificationLevel -and ($WAUPolicies.WAU_NotificationLevel -ne $WAUConfig.WAU_NotificationLevel)) {
+                New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $WAUPolicies.WAU_NotificationLevel -Force | Out-Null
+            }
+            elseif ($null -eq $WAUPolicies.WAU_NotificationLevel) {
+                New-ItemProperty $regPath -Name WAU_NotificationLevel -Value "Full" -Force | Out-Null
+            }
         }
     }
 }

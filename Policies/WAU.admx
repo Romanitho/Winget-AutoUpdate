@@ -16,6 +16,16 @@
     </category>
   </categories>
   <policies>
+  	<policy name="ActivateGPOManagement_Enable" class="Machine" displayName="$(string.ActivateGPOManagement_Name)" explainText="$(string.ActivateGPOManagement_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_ActivateGPOManagement">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
   	<policy name="BypassListForUsers_Enable" class="Machine" displayName="$(string.BypassListForUsers_Name)" explainText="$(string.BypassListForUsers_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_BypassListForUsers">
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>

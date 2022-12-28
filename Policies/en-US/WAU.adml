@@ -23,8 +23,12 @@
       <string id="ModsPath">Get Mods from external Path (URL/UNC/Local)</string>
       <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external mods other than the default. If this policy is disabled or not configured, the default ModsPath is used.</string>
       <string id="NotificationLevel">Notification Level</string>
-      <string id="NotificationLevel_Explain">If this policy is enabled, you can configure Notification Level: Full (Default, displays all notifications), SuccessOnly (Only displays notifications for success) or None (Does not display any notification).
-If this policy is not configured or disabled, the default displays all notifications.</string>
+      <string id="NotificationLevel_Explain">If this policy is enabled, you can configure the Notification Level:
+1. Full (Default, displays all notifications)
+2. SuccessOnly (Only displays notifications for success)
+3. None (Does not display any notification)
+
+If this policy is not configured or disabled, the Default displays all notifications (1. Full).</string>
       <string id="NotificationLevel_Full">1. Full (Default, displays all notifications)</string>
       <string id="NotificationLevel_SuccessOnly">2. SuccessOnly (Only displays notifications for success)</string>
       <string id="NotificationLevel_None">3. None (Does not display any notification)</string>

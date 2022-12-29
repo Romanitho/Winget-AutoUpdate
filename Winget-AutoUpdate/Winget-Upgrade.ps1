@@ -72,8 +72,8 @@ if ($IsSystem) {
                 $ChangedSettings++
             }
     
-            if ($null -ne $($WAUPolicies.WAU_ListPath) -and ($($WAUPolicies.WAU_ListPath) -ne $($WAUConfig.WAU_ListPath))) {
-                New-ItemProperty $regPath -Name WAU_ListPath -Value $($WAUPolicies.WAU_ListPath) -Force | Out-Null
+            if ($null -ne $($WAUPolicies.WAU_ListPath) -and ($($WAUPolicies.WAU_ListPath.TrimEnd(" ", "\", "/")) -ne $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/")))) {
+                New-ItemProperty $regPath -Name WAU_ListPath -Value $($WAUPolicies.WAU_ListPath.TrimEnd(" ", "\", "/")) -Force | Out-Null
                 $ChangedSettings++
             }
             elseif ($null -eq $($WAUPolicies.WAU_ListPath) -and $($WAUConfig.WAU_ListPath)) {
@@ -81,8 +81,8 @@ if ($IsSystem) {
                 $ChangedSettings++
             }
     
-            if ($null -ne $($WAUPolicies.WAU_ModsPath) -and ($($WAUPolicies.WAU_ModsPath) -ne $($WAUConfig.WAU_ModsPath))) {
-                New-ItemProperty $regPath -Name WAU_ModsPath -Value $($WAUPolicies.WAU_ModsPath) -Force | Out-Null
+            if ($null -ne $($WAUPolicies.WAU_ModsPath) -and ($($WAUPolicies.WAU_ModsPath.TrimEnd(" ", "\", "/")) -ne $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/")))) {
+                New-ItemProperty $regPath -Name WAU_ModsPath -Value $($WAUPolicies.WAU_ModsPath.TrimEnd(" ", "\", "/")) -Force | Out-Null
                 $ChangedSettings++
             }
             elseif ($null -eq $($WAUPolicies.WAU_ModsPath) -and $($WAUConfig.WAU_ModsPath)) {

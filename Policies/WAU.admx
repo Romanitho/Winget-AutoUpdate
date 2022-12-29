@@ -113,5 +113,43 @@
         </enum>
       </elements>
     </policy>
+    <policy name="UpdatesInterval" class="Machine" displayName="$(string.UpdatesInterval)" explainText="$(string.UpdatesInterval_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.UpdatesInterval)">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <enum id="UpdatesInterval" valueName="WAU_UpdatesInterval">
+          <item displayName="$(string.UpdatesInterval_Daily)">
+            <value>
+              <string>-Daily -At 06am</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_BiDaily)">
+            <value>
+              <string>-Daily -At 06am -DaysInterval 2</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_Weekly)">
+            <value>
+              <string>-Weekly -At 06am</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_BiWeekly)">
+            <value>
+              <string>-Weekly -At 06am -WeeksInterval 2</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_Monthly)">
+            <value>
+              <string>-Weekly -At 06am -WeeksInterval 4</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_Never)">
+            <value>
+              <string>Never</string>
+            </value>
+          </item>
+        </enum>
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>

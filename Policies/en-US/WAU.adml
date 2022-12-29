@@ -32,6 +32,22 @@ If this policy is not configured or disabled, the Default displays all notificat
       <string id="NotificationLevel_Full">1. Full (Default, displays all notifications)</string>
       <string id="NotificationLevel_SuccessOnly">2. SuccessOnly (Only displays notifications for success)</string>
       <string id="NotificationLevel_None">3. None (Does not display any notification)</string>
+      <string id="UpdatesInterval">Update Frequency</string>
+      <string id="UpdatesInterval_Explain">If this policy is enabled, you can configure the Update Frequency:
+1. Daily (Default)
+2. BiDaily
+3. Weekly
+4. BiWeekly
+5. Monthly
+6. Never (Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance)
+
+If this policy is not configured or disabled, update frequency: (1. Daily).</string>
+      <string id="UpdatesInterval_Daily">1. Daily (Default)</string>
+      <string id="UpdatesInterval_BiDaily">2. BiDaily</string>
+      <string id="UpdatesInterval_Weekly">3. Weekly</string>
+      <string id="UpdatesInterval_BiWeekly">4. BiWeekly</string>
+      <string id="UpdatesInterval_Monthly">5. Monthly</string>
+      <string id="UpdatesInterval_Never">6. Never (Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance)</string>
     </stringTable>
     <presentationTable>
       <presentation id="ListPath">
@@ -46,6 +62,9 @@ If this policy is not configured or disabled, the Default displays all notificat
       </presentation>
       <presentation id="NotificationLevel">
         <dropdownList refId="NotificationLevel"/>
+      </presentation>
+      <presentation id="UpdatesInterval">
+        <dropdownList refId="UpdatesInterval"/>
       </presentation>
     </presentationTable>
   </resources>

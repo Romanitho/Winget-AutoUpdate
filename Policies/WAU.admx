@@ -120,27 +120,27 @@
         <enum id="UpdatesInterval" valueName="WAU_UpdatesInterval">
           <item displayName="$(string.UpdatesInterval_Daily)">
             <value>
-              <string>-Daily -At 06am</string>
+              <string>Daily</string>
             </value>
           </item>
           <item displayName="$(string.UpdatesInterval_BiDaily)">
             <value>
-              <string>-Daily -At 06am -DaysInterval 2</string>
+              <string>BiDaily</string>
             </value>
           </item>
           <item displayName="$(string.UpdatesInterval_Weekly)">
             <value>
-              <string>-Weekly -At 06am</string>
+              <string>Weekly</string>
             </value>
           </item>
           <item displayName="$(string.UpdatesInterval_BiWeekly)">
             <value>
-              <string>-Weekly -At 06am -WeeksInterval 2</string>
+              <string>BiWeekly</string>
             </value>
           </item>
           <item displayName="$(string.UpdatesInterval_Monthly)">
             <value>
-              <string>-Weekly -At 06am -WeeksInterval 4</string>
+              <string>Monthly</string>
             </value>
           </item>
           <item displayName="$(string.UpdatesInterval_Never)">

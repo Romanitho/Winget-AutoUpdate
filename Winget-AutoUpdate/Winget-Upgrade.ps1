@@ -99,21 +99,31 @@ if ($IsSystem) {
                 $ChangedSettings++
             }
 
-            if ($null -ne $($WAUPolicies.WAU_UpdatesInterval) -and ($($WAUPolicies.WAU_UpdatesInterval) -ne $($WAUConfig.UpdatesInterval))) {
+            if ($null -ne $($WAUPolicies.WAU_UpdatesInterval) -and ($($WAUPolicies.WAU_UpdatesInterval) -ne $($WAUConfig.WAU_UpdatesInterval))) {
                 New-ItemProperty $regPath -Name WAU_UpdatesInterval -Value $($WAUPolicies.WAU_UpdatesInterval) -Force | Out-Null
                 switch ($($WAUPolicies.WAU_UpdatesInterval)) {
-                   "-Daily -At 06am" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At 06am; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
-                   "-Daily -At 06am -DaysInterval 2" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At 06am -DaysInterval 2; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
-                   "-Weekly -At 06am" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At 06am; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
-                   "-Weekly -At 06am -WeeksInterval 2" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At 06am -WeeksInterval 2; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
-                   "-Weekly -At 06am -WeeksInterval 4" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At 06am -WeeksInterval 4; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
-                   "Never" {$service = New-Object -ComObject Schedule.Service; $service.Connect($env:COMPUTERNAME); $folder = $service.GetFolder('\'); $task = $folder.GetTask("Winget-AutoUpdate"); $definition = $task.Definition; $definition.Triggers.Remove(1); $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null; break}
+                   "Daily" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At 06am; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
+                   "BiDaily" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At 06am -DaysInterval 2; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
+                   "Weekly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At 06am -DaysOfWeek 2; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
+                   "BiWeekly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At 06am -DaysOfWeek 2 -WeeksInterval 2; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
+                   "Monthly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At 06am -DaysOfWeek 2 -WeeksInterval 4; Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger; break}
+                   "Never" {"Deleting the Scheduled trigger..."; break}
                    default {"Something else happened"; break}
+                }
+                if ($($WAUPolicies.WAU_UpdatesInterval) -eq "Never") {
+                    $service = New-Object -ComObject Schedule.Service
+                    $service.Connect($env:COMPUTERNAME)
+                    $folder = $service.GetFolder('\')
+                    $task = $folder.GetTask("Winget-AutoUpdate")
+                    $definition = $task.Definition
+                    $definition.Triggers.Remove(1)
+                    $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
+
                 }
                 $ChangedSettings++
             }
-            elseif ($null -eq $($WAUPolicies.WAU_UpdatesInterval) -and $($WAUConfig.WAU_UpdatesInterval) -ne "-Daily -At 06am") {
-                New-ItemProperty $regPath -Name WAU_UpdatesInterval -Value "-Daily -At 06am" -Force | Out-Null
+            elseif ($null -eq $($WAUPolicies.WAU_UpdatesInterval) -and $($WAUConfig.WAU_UpdatesInterval) -ne "Daily") {
+                New-ItemProperty $regPath -Name WAU_UpdatesInterval -Value "Daily" -Force | Out-Null
                 $tasktrigger = New-ScheduledTaskTrigger -Daily -At 06am
                 Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger
                 $ChangedSettings++

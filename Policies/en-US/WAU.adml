@@ -39,7 +39,7 @@ If this policy is not configured or disabled, the Default displays all notificat
 3. Weekly
 4. BiWeekly
 5. Monthly
-6. Never (Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance)
+6. Never (in combination with '-UpdatesAtLogon' for instance)
 
 If this policy is not configured or disabled, update frequency: (1. Daily).</string>
       <string id="UpdatesInterval_Daily">1. Daily (Default)</string>
@@ -47,7 +47,7 @@ If this policy is not configured or disabled, update frequency: (1. Daily).</str
       <string id="UpdatesInterval_Weekly">3. Weekly</string>
       <string id="UpdatesInterval_BiWeekly">4. BiWeekly</string>
       <string id="UpdatesInterval_Monthly">5. Monthly</string>
-      <string id="UpdatesInterval_Never">6. Never (Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance)</string>
+      <string id="UpdatesInterval_Never">6. Never (in combination with '-UpdatesAtLogon' for instance)</string>
     </stringTable>
     <presentationTable>
       <presentation id="ListPath">

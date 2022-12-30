@@ -159,8 +159,8 @@ Another finess is the **AppID** followed by the `-override` suffix as a **text f
 
 ## GPO Management
 In an enterprise environment it's crucial that different groups can have different settings in an application etc. or to implement other mandatory settings.  
-**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry as **Admin** for a few settings).  
-Now it's possible to manage every setting with **GPO**.  
+**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin** for a few settings).  
+Now it's possible to manage nearly every setting with **GPO**.  
 Read more in the `README.md` under the directory **Policies**
 
 ![image](https://user-images.githubusercontent.com/102996177/210110986-b19dca08-f653-498b-958e-66e8553c33ab.png)

@@ -157,7 +157,11 @@ Another finess is the **AppID** followed by the `-override` suffix as a **text f
 > Example:  
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
-This will use the content from the text file as a native **winget --override** parameter when upgrading (as proposed by [Nesovj](https://github.com/Nesovj) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).  
+## GPO Management
+In an enterprise environment it's crucial that different groups can have different settings in an application etc. or to implement other mandatory settings.  
+**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry as **Admin** for a few settings).  
+Now it's possible to manage every setting with **GPO**.  
+Read more in the `README.md` under the directory **Policies**
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

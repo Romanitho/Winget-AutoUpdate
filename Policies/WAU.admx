@@ -80,14 +80,14 @@
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
       <elements>
-        <text id="ListPath" valueName="WAU_ListPath" required="true" />
+        <text id="ListPath" valueName="WAU_ListPath" />
       </elements>
     </policy>
     <policy name="ModsPath_Enable" class="Machine" displayName="$(string.ModsPath_Name)" explainText="$(string.ModsPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.ModsPath)" >
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
       <elements>
-        <text id="ModsPath" valueName="WAU_ModsPath" required="true" />
+        <text id="ModsPath" valueName="WAU_ModsPath" />
       </elements>
     </policy>
     <policy name="NotificationLevel_Enable" class="Machine" displayName="$(string.NotificationLevel_Name)" explainText="$(string.NotificationLevel_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.NotificationLevel)">
@@ -160,6 +160,134 @@
       <disabledValue>
         <decimal value="0" />
       </disabledValue>
+    </policy>
+    <policy name="UpdatesAtTime_Enable" class="Machine" displayName="$(string.UpdatesAtTime_Name)" explainText="$(string.UpdatesAtTime_Explain)" presentation="$(presentation.UpdatesAtTime)" key="Software\Policies\Romanitho\Winget-AutoUpdate">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <enum id="UpdatesAtTime" valueName="WAU_UpdatesAtTime">
+          <item displayName="$(string.UpdatesAtTime01)">
+            <value>
+              <string>01:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime02)">
+            <value>
+              <string>02:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime03)">
+            <value>
+              <string>03:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime04)">
+            <value>
+              <string>04:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime05)">
+            <value>
+              <string>05:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime06)">
+            <value>
+              <string>06:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime07)">
+            <value>
+              <string>07:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime08)">
+            <value>
+              <string>08:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime09)">
+            <value>
+              <string>09:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime10)">
+            <value>
+              <string>10:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime11)">
+            <value>
+              <string>11:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime12)">
+            <value>
+              <string>12:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime13)">
+            <value>
+              <string>13:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime14)">
+            <value>
+              <string>14:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime15)">
+            <value>
+              <string>15:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime16)">
+            <value>
+              <string>16:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime17)">
+            <value>
+              <string>17:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime18)">
+            <value>
+              <string>18:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime19)">
+            <value>
+              <string>19:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime20)">
+            <value>
+              <string>20:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime21)">
+            <value>
+              <string>21:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime22)">
+            <value>
+              <string>22:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime23)">
+            <value>
+              <string>23:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime24)">
+            <value>
+              <string>24:00:00</string>
+            </value>
+          </item>
+        </enum>
+      </elements>
     </policy>
   </policies>
 </policyDefinitions>

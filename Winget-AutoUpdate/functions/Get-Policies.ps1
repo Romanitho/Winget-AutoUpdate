@@ -89,11 +89,17 @@ Function Get-Policies {
                 $definition = $task.Definition
                 for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
                     if(($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")){
+                        $UpdatesAtTime = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(11,8)
                         $definition.Triggers.Remove($triggerId)
                         $triggerId-=1
                     }
                 }
                 $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
+
+                if (!$($WAUConfig.WAU_UpdatesAtTime)) {
+                    New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $UpdatesAtTime -Force | Out-Null
+                    $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+                }
 
                 if ($($WAUPolicies.WAU_UpdatesInterval) -ne "Never") {
                     #Count Triggers (correctly)
@@ -104,11 +110,11 @@ Function Get-Policies {
                     $definition = $task.Definition
                     $definition.Triggers.Count | Out-Null
                     switch ($($WAUPolicies.WAU_UpdatesInterval)) {
-                        "Daily" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At 06am; break}
-                        "BiDaily" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At 06am -DaysInterval 2; break}
-                        "Weekly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At 06am -DaysOfWeek 2; break}
-                        "BiWeekly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At 06am -DaysOfWeek 2 -WeeksInterval 2; break}
-                        "Monthly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At 06am -DaysOfWeek 2 -WeeksInterval 4; break}
+                        "Daily" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At $($WAUConfig.WAU_UpdatesAtTime); break}
+                        "BiDaily" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At $($WAUConfig.WAU_UpdatesAtTime) -DaysInterval 2; break}
+                        "Weekly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At $($WAUConfig.WAU_UpdatesAtTime) -DaysOfWeek 2; break}
+                        "BiWeekly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At $($WAUConfig.WAU_UpdatesAtTime) -DaysOfWeek 2 -WeeksInterval 2; break}
+                        "Monthly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At $($WAUConfig.WAU_UpdatesAtTime) -DaysOfWeek 2 -WeeksInterval 4; break}
                     }
                     if ($definition.Triggers.Count -gt 0) {
                         $triggers = @()
@@ -131,13 +137,19 @@ Function Get-Policies {
                 $definition = $task.Definition
                 for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
                     if(($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")){
+                        $UpdatesAtTime = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(11,8)
                         $definition.Triggers.Remove($triggerId)
                         $triggerId-=1
                     }
                 }
                 $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
 
-                $tasktrigger = New-ScheduledTaskTrigger -Daily -At 06am
+                if (!$($WAUConfig.WAU_UpdatesAtTime)) {
+                    New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $UpdatesAtTime -Force | Out-Null
+                    $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+                }
+
+                $tasktrigger = New-ScheduledTaskTrigger -Daily -At $($WAUConfig.WAU_UpdatesAtTime)
 
                 #Count Triggers (correctly)
                 $service = New-Object -ComObject Schedule.Service

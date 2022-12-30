@@ -76,21 +76,21 @@
         <decimal value="0" />
       </disabledValue>
     </policy>
-    <policy name="ListPath" class="Machine" displayName="$(string.ListPath)" explainText="$(string.ListPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.ListPath)" >
+    <policy name="ListPath_Enable" class="Machine" displayName="$(string.ListPath_Name)" explainText="$(string.ListPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.ListPath)" >
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
       <elements>
         <text id="ListPath" valueName="WAU_ListPath" required="true" />
       </elements>
     </policy>
-    <policy name="ModsPath" class="Machine" displayName="$(string.ModsPath)" explainText="$(string.ModsPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.ModsPath)" >
+    <policy name="ModsPath_Enable" class="Machine" displayName="$(string.ModsPath_Name)" explainText="$(string.ModsPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.ModsPath)" >
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
       <elements>
         <text id="ModsPath" valueName="WAU_ModsPath" required="true" />
       </elements>
     </policy>
-    <policy name="NotificationLevel" class="Machine" displayName="$(string.NotificationLevel)" explainText="$(string.NotificationLevel_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.NotificationLevel)">
+    <policy name="NotificationLevel_Enable" class="Machine" displayName="$(string.NotificationLevel_Name)" explainText="$(string.NotificationLevel_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.NotificationLevel)">
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
       <elements>
@@ -113,7 +113,7 @@
         </enum>
       </elements>
     </policy>
-    <policy name="UpdatesInterval" class="Machine" displayName="$(string.UpdatesInterval)" explainText="$(string.UpdatesInterval_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.UpdatesInterval)">
+    <policy name="UpdatesInterval_Enable" class="Machine" displayName="$(string.UpdatesInterval_Name)" explainText="$(string.UpdatesInterval_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.UpdatesInterval)">
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
       <elements>
@@ -150,6 +150,16 @@
           </item>
         </enum>
       </elements>
+    </policy>
+  	<policy name="UpdatesAtLogon_Enable" class="Machine" displayName="$(string.UpdatesAtLogon_Name)" explainText="$(string.UpdatesAtLogon_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UpdatesAtLogon">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
     </policy>
   </policies>
 </policyDefinitions>

@@ -97,6 +97,10 @@ If this policy is not configured or disabled, Updates at Time: (06:00 AM).</stri
       <string id="UpdatesAtTime22">22:00</string>
       <string id="UpdatesAtTime23">23:00</string>
       <string id="UpdatesAtTime24">24:00</string>
+      <string id="UserContext_Name">User context execution</string>
+      <string id="UserContext_Explain">This policy setting specifies whether to enable User context execution or not .
+
+If this policy is disabled or not configured, the default is No.</string>
     </stringTable>
     <presentationTable>
       <presentation id="ListPath">

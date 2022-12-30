@@ -237,6 +237,25 @@ Function Get-Policies {
                 $ChangedSettings++
             }
 
+            if ($null -ne $($WAUPolicies.WAU_UserContext) -and ($($WAUPolicies.WAU_UserContext) -ne $($WAUConfig.WAU_UserContext))) {
+                #Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+                New-ItemProperty $regPath -Name WAU_UserContext -Value $($WAUPolicies.WAU_UserContext) -PropertyType DWord -Force | Out-Null
+                # Settings for the scheduled task in User context
+                $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+                $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+                $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+
+                # Set up the task for user apps
+                $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+                Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -InputObject $task -Force | Out-Null
+                $ChangedSettings++
+            }
+            elseif ($null -eq $($WAUPolicies.WAU_UserContext) -and ($($WAUConfig.WAU_UserContext) -or $($WAUConfig.WAU_UserContext) -eq 0)) {
+                Remove-ItemProperty $regPath -Name WAU_UserContext -Force -ErrorAction SilentlyContinue | Out-Null
+                Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+                $ChangedSettings++
+            }
+
             if ($ChangedSettings -gt 0) {
                 Write-Log "Changed settings: $ChangedSettings" "Yellow"
             }

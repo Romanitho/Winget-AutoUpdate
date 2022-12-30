@@ -9,7 +9,9 @@
       <string id="ActivateGPOManagement_Name">Activate WAU GPO Management</string>
       <string id="ActivateGPOManagement_Explain">This policy setting is an overriding toggle for GPO Management of Winget-AutoUpdate.</string>
       <string id="BypassListForUsers_Name">Bypass Black/White list for User</string>
-      <string id="BypassListForUsers_Explain">This policy setting specifies whether to Bypass Black/White list when run in user context or not.</string>
+      <string id="BypassListForUsers_Explain">This policy setting specifies whether to Bypass Black/White list when run in user context or not.
+
+If this policy is disabled or not configured, the default is No.</string>
       <string id="DisableAutoUpdate_Name">Disable Winget-AutoUpdate update checking</string>
       <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to Disable Winget-AutoUpdate update checking or not.
 
@@ -17,7 +19,7 @@ If this policy is disabled or not configured, the default is No.</string>
       <string id="DoNotRunOnMetered_Name">Do not run WAU on metered connection</string>
       <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to Run WAU on metered connection or not.
 
-If this policy is disabled or not configured, the default is No.</string>
+If this policy is disabled or not configured, the default is Yes.</string>
       <string id="UpdatePrerelease_Name">Update WAU to PreRelease versions</string>
       <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU to PreRelease versions or not.
 
@@ -25,7 +27,7 @@ If this policy is disabled or not configured, the default is No.</string>
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
       <string id="UseWhiteList_Explain">This policy setting specifies whether to use a WhiteList or not.
 
-If this policy is disabled or not configured, the default is Blacklist.</string>
+If this policy is disabled or not configured, the default is No.</string>
       <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/Local)</string>
       <string id="ListPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external lists other than the default.
       
@@ -51,7 +53,7 @@ If this policy is not configured or disabled, Notification Level: (1. Full).</st
 3. Weekly
 4. BiWeekly
 5. Monthly
-6. Never (e.g. in combination with '-Updates at Logon')
+6. Never (e.g. in combination with 'Updates at Logon')
 
 If this policy is not configured or disabled, Updates Interval: (1. Daily).</string>
       <string id="UpdatesInterval_Daily">1. Daily (Default)</string>
@@ -70,7 +72,7 @@ From 01:00 to 24:00 (Military/24 Hour Time)
 
 If set, it will not take effect until 'Updates Interval' also has been changed!
 
-If this policy is not configured or disabled, Sheduled Task Update time: (06:00 AM).</string>
+If this policy is not configured or disabled, Updates at Time: (06:00 AM).</string>
       <string id="UpdatesAtTime01">01:00 AM</string>
       <string id="UpdatesAtTime02">02:00</string>
       <string id="UpdatesAtTime03">03:00</string>

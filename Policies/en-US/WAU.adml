@@ -52,24 +52,24 @@ If this policy is not configured or disabled, Updates Interval: (1. Daily).</str
       <string id="UpdatesAtLogon_Explain">This policy setting specifies whether to set WAU to run at user logon or not. By default, No.</string>
       <string id="UpdatesAtTime_Name">Updates at Time</string>
       <string id="UpdatesAtTime_Explain">If this policy is enabled, you can configure the Sheduled Task Update time:
-From 01:00 to 24:00 (Military Time/24 Hour Time)
+From 01:00 to 24:00 (Military/24 Hour Time)
 
 If set, it will not take effect until the setting "Updates Interval" also been changed!
 
-If this policy is not configured or disabled, Sheduled Task Update time: 06:00.</string>
-      <string id="UpdatesAtTime01">01:00</string>
+If this policy is not configured or disabled, Sheduled Task Update time: 06:00 AM.</string>
+      <string id="UpdatesAtTime01">01:00 AM</string>
       <string id="UpdatesAtTime02">02:00</string>
       <string id="UpdatesAtTime03">03:00</string>
       <string id="UpdatesAtTime04">04:00</string>
       <string id="UpdatesAtTime05">05:00</string>
-      <string id="UpdatesAtTime06">06:00</string>
+      <string id="UpdatesAtTime06">06:00 (Default)</string>
       <string id="UpdatesAtTime07">07:00</string>
       <string id="UpdatesAtTime08">08:00</string>
       <string id="UpdatesAtTime09">09:00</string>
       <string id="UpdatesAtTime10">10:00</string>
       <string id="UpdatesAtTime11">11:00</string>
       <string id="UpdatesAtTime12">12:00</string>
-      <string id="UpdatesAtTime13">13:00</string>
+      <string id="UpdatesAtTime13">13:00 PM</string>
       <string id="UpdatesAtTime14">14:00</string>
       <string id="UpdatesAtTime15">15:00</string>
       <string id="UpdatesAtTime16">16:00</string>

@@ -11,27 +11,39 @@
       <string id="BypassListForUsers_Name">Bypass Black/White list for User</string>
       <string id="BypassListForUsers_Explain">This policy setting specifies whether to Bypass Black/White list when run in user context or not.</string>
       <string id="DisableAutoUpdate_Name">Disable Winget-AutoUpdate update checking</string>
-      <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to Disable Winget-AutoUpdate update checking or not. By default, WAU auto updates if new version is available on Github.</string>
+      <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to Disable Winget-AutoUpdate update checking or not.
+
+If this policy is disabled or not configured, the default is No.</string>
       <string id="DoNotRunOnMetered_Name">Do not run WAU on metered connection</string>
-      <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to Run WAU on metered connection or not. Default No.</string>
+      <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to Run WAU on metered connection or not.
+
+If this policy is disabled or not configured, the default is No.</string>
       <string id="UpdatePrerelease_Name">Update WAU to PreRelease versions</string>
-      <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU (if enabled) to PreRelease versions or not. Default No.</string>
+      <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU to PreRelease versions or not.
+
+If this policy is disabled or not configured, the default is No.</string>
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
-      <string id="UseWhiteList_Explain">This policy setting specifies whether to use a WhiteList or not. Default Blacklist.</string>
+      <string id="UseWhiteList_Explain">This policy setting specifies whether to use a WhiteList or not.
+
+If this policy is disabled or not configured, the default is Blacklist.</string>
       <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/Local)</string>
-      <string id="ListPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external lists other than the default. If this policy is disabled or not configured, the default ListPath is used.</string>
+      <string id="ListPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external lists other than the default.
+      
+If this policy is disabled or not configured, the default ListPath is used (WAU InstallLocation).</string>
       <string id="ModsPath_Name">Get Mods from external Path (URL/UNC/Local)</string>
-      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external mods other than the default. If this policy is disabled or not configured, the default ModsPath is used.</string>
+      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external mods other than the default.
+      
+If this policy is disabled or not configured, the default ModsPath is used (WAU InstallLocation).</string>
       <string id="NotificationLevel_Name">Notification Level</string>
       <string id="NotificationLevel_Explain">If this policy is enabled, you can configure the Notification Level:
-1. Full (Default, displays all notifications)
-2. SuccessOnly (Only displays notifications for success)
-3. None (Does not display any notification)
+1. Full (Default)
+2. SuccessOnly
+3. None
 
-If this policy is not configured or disabled, the Default displays all notifications (1. Full).</string>
-      <string id="NotificationLevel_Full">1. Full (Default, displays all notifications)</string>
-      <string id="NotificationLevel_SuccessOnly">2. SuccessOnly (Only displays notifications for success)</string>
-      <string id="NotificationLevel_None">3. None (Does not display any notification)</string>
+If this policy is not configured or disabled, Notification Level: (1. Full).</string>
+      <string id="NotificationLevel_Full">1. Full (Default)</string>
+      <string id="NotificationLevel_SuccessOnly">2. SuccessOnly</string>
+      <string id="NotificationLevel_None">3. None</string>
       <string id="UpdatesInterval_Name">Updates Interval</string>
       <string id="UpdatesInterval_Explain">If this policy is enabled, you can configure the Updates Interval:
 1. Daily (Default)
@@ -39,7 +51,7 @@ If this policy is not configured or disabled, the Default displays all notificat
 3. Weekly
 4. BiWeekly
 5. Monthly
-6. Never (in combination with '-UpdatesAtLogon' for instance)
+6. Never (e.g. in combination with '-Updates at Logon')
 
 If this policy is not configured or disabled, Updates Interval: (1. Daily).</string>
       <string id="UpdatesInterval_Daily">1. Daily (Default)</string>
@@ -47,16 +59,18 @@ If this policy is not configured or disabled, Updates Interval: (1. Daily).</str
       <string id="UpdatesInterval_Weekly">3. Weekly</string>
       <string id="UpdatesInterval_BiWeekly">4. BiWeekly</string>
       <string id="UpdatesInterval_Monthly">5. Monthly</string>
-      <string id="UpdatesInterval_Never">6. Never (in combination with '-UpdatesAtLogon' for instance)</string>
+      <string id="UpdatesInterval_Never">6. Never (e.g. in combination with 'Updates Interval')</string>
       <string id="UpdatesAtLogon_Name">Updates at Logon</string>
-      <string id="UpdatesAtLogon_Explain">This policy setting specifies whether to set WAU to run at user logon or not. By default, No.</string>
+      <string id="UpdatesAtLogon_Explain">This policy setting specifies whether to set WAU to run at user logon or not.
+
+If this policy is disabled or not configured, the default is No.</string>
       <string id="UpdatesAtTime_Name">Updates at Time</string>
       <string id="UpdatesAtTime_Explain">If this policy is enabled, you can configure the Sheduled Task Update time:
 From 01:00 to 24:00 (Military/24 Hour Time)
 
-If set, it will not take effect until the setting "Updates Interval" also been changed!
+If set, it will not take effect until 'Updates Interval' also has been changed!
 
-If this policy is not configured or disabled, Sheduled Task Update time: 06:00 AM.</string>
+If this policy is not configured or disabled, Sheduled Task Update time: (06:00 AM).</string>
       <string id="UpdatesAtTime01">01:00 AM</string>
       <string id="UpdatesAtTime02">02:00</string>
       <string id="UpdatesAtTime03">03:00</string>

@@ -80,6 +80,17 @@ Function Get-Policies {
                 $ChangedSettings++
             }
 
+            if ($null -ne $($WAUPolicies.WAU_UpdatesAtTime) -and ($($WAUPolicies.WAU_UpdatesAtTime) -ne $($WAUConfig.WAU_UpdatesAtTime))) {
+                New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $($WAUPolicies.WAU_UpdatesAtTime) -Force | Out-Null
+                $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+                $ChangedSettings++
+            }
+            elseif ($null -eq $($WAUPolicies.WAU_UpdatesAtTime) -and $($WAUConfig.WAU_UpdatesAtTime) -ne "06:00:00") {
+                New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value "06:00:00" -Force | Out-Null
+                $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+                $ChangedSettings++
+            }
+
             if ($null -ne $($WAUPolicies.WAU_UpdatesInterval) -and (($($WAUPolicies.WAU_UpdatesInterval) -ne $($WAUConfig.WAU_UpdatesInterval)))) {
                 New-ItemProperty $regPath -Name WAU_UpdatesInterval -Value $($WAUPolicies.WAU_UpdatesInterval) -Force | Out-Null
                 $service = New-Object -ComObject Schedule.Service

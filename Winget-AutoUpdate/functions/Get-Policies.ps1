@@ -21,7 +21,7 @@ Function Get-Policies {
                 New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value $($WAUPolicies.WAU_DisableAutoUpdate) -PropertyType DWord -Force | Out-Null
                 $ChangedSettings++
             }
-            elseif ($null -eq $($WAUPolicies.WAU_DisableAutoUpdate) -and ($($WAUConfig.WAU_DisableAutoUpdate) -or $($WAUConfig.WAU_DisableAutoUpdate) -eq 0)) {
+            elseif ($null -eq $($WAUPolicies.WAU_DisableAutoUpdate) -and (($($WAUConfig.WAU_DisableAutoUpdate) -or $($WAUConfig.WAU_DisableAutoUpdate) -eq 0))) {
                 Remove-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Force -ErrorAction SilentlyContinue | Out-Null
                 $ChangedSettings++
             }
@@ -53,7 +53,7 @@ Function Get-Policies {
                 $ChangedSettings++
             }
     
-            if ($null -ne $($WAUPolicies.WAU_ListPath) -and ($($WAUPolicies.WAU_ListPath.TrimEnd(" ", "\", "/")) -ne $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/")))) {
+            if ($null -ne $($WAUPolicies.WAU_ListPath) -and ($($WAUPolicies.WAU_ListPath) -ne $($WAUConfig.WAU_ListPath))) {
                 New-ItemProperty $regPath -Name WAU_ListPath -Value $($WAUPolicies.WAU_ListPath.TrimEnd(" ", "\", "/")) -Force | Out-Null
                 $ChangedSettings++
             }
@@ -62,7 +62,7 @@ Function Get-Policies {
                 $ChangedSettings++
             }
     
-            if ($null -ne $($WAUPolicies.WAU_ModsPath) -and ($($WAUPolicies.WAU_ModsPath.TrimEnd(" ", "\", "/")) -ne $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/")))) {
+            if ($null -ne $($WAUPolicies.WAU_ModsPath) -and ($($WAUPolicies.WAU_ModsPath) -ne $($WAUConfig.WAU_ModsPath))) {
                 New-ItemProperty $regPath -Name WAU_ModsPath -Value $($WAUPolicies.WAU_ModsPath.TrimEnd(" ", "\", "/")) -Force | Out-Null
                 $ChangedSettings++
             }
@@ -91,7 +91,7 @@ Function Get-Policies {
                 $ChangedSettings++
             }
 
-            if ($null -ne $($WAUPolicies.WAU_UpdatesInterval) -and (($($WAUPolicies.WAU_UpdatesInterval) -ne $($WAUConfig.WAU_UpdatesInterval)))) {
+            if ($null -ne $($WAUPolicies.WAU_UpdatesInterval) -and ($($WAUPolicies.WAU_UpdatesInterval) -ne $($WAUConfig.WAU_UpdatesInterval))) {
                 New-ItemProperty $regPath -Name WAU_UpdatesInterval -Value $($WAUPolicies.WAU_UpdatesInterval) -Force | Out-Null
                 $service = New-Object -ComObject Schedule.Service
                 $service.Connect($env:COMPUTERNAME)
@@ -238,16 +238,20 @@ Function Get-Policies {
             }
 
             if ($null -ne $($WAUPolicies.WAU_UserContext) -and ($($WAUPolicies.WAU_UserContext) -ne $($WAUConfig.WAU_UserContext))) {
-                #Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
                 New-ItemProperty $regPath -Name WAU_UserContext -Value $($WAUPolicies.WAU_UserContext) -PropertyType DWord -Force | Out-Null
-                # Settings for the scheduled task in User context
-                $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
-                $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
-                $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+                if ($WAUPolicies.WAU_UserContext -eq 1) {
+                    # Settings for the scheduled task in User context
+                    $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+                    $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+                    $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
 
-                # Set up the task for user apps
-                $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-                Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -InputObject $task -Force | Out-Null
+                    # Set up the task for user apps
+                    $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+                    Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -InputObject $task -Force
+                }
+                else {
+                    Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+                }
                 $ChangedSettings++
             }
             elseif ($null -eq $($WAUPolicies.WAU_UserContext) -and ($($WAUConfig.WAU_UserContext) -or $($WAUConfig.WAU_UserContext) -eq 0)) {

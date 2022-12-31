@@ -107,7 +107,7 @@ WAU - Check for updated Apps
 
 If this policy is disabled or not configured, the default is No.</string>
       <string id="StartMenuShortcut_Name">Enable Start Menu Shortcuts</string>
-      <string id="StartMenuShortcut_Explain">This policy setting specifies whether to enable Start Menu Shortcuts or not:
+      <string id="StartMenuShortcut_Explain">This policy setting specifies whether to enable the Start Menu Shortcuts or not:
 WAU - Check for updated Apps
 WAU - Open logs
 WAU - Web Help

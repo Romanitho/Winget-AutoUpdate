@@ -166,7 +166,7 @@ In an enterprise environment it's crucial that different groups can have differe
 It's now possible to manage every setting within **GPO**.  
 Read more in the `README.md` under the directory **Policies**
 
-![image](https://user-images.githubusercontent.com/102996177/210131296-0e0286e1-bf8e-4f94-81bd-76559ae49b7a.png)
+![image](https://user-images.githubusercontent.com/102996177/210137062-1f65457f-953a-4026-ad47-4a60535d1fdc.png)
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

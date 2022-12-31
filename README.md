@@ -158,15 +158,15 @@ Another finess is the **AppID** followed by the `-override` suffix as a **text f
 > Example:  
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
-This will use the content from the text file as a native **winget --override** parameter when upgrading (as proposed by [Nesovj](https://github.com/Nesovj) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).  
+This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).  
 
 ## GPO Management
-In an enterprise environment it's crucial that different groups can have different settings in an application etc. or to implement other mandatory settings.  
-**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin** for a few settings).  
-It's now possible to manage every setting within **GPO**.  
+In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.  
+**WAU** doesn't have any settings that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).  
+With the use of **ADML/ADMX** files you can manage every setting from within **GPO**.  
 Read more in the `README.md` under the directory **Policies**
 
-![image](https://user-images.githubusercontent.com/102996177/210137062-1f65457f-953a-4026-ad47-4a60535d1fdc.png)
+![image](https://user-images.githubusercontent.com/102996177/210157417-60e84023-088e-4299-9d76-b34bb0c5f088.png)
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

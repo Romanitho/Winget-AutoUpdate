@@ -12,8 +12,10 @@
       <string id="BypassListForUsers_Explain">This policy setting specifies whether to Bypass Black/White list when run in user context or not.
 
 If this policy is disabled or not configured, the default is No.</string>
-      <string id="DisableAutoUpdate_Name">Disable Winget-AutoUpdate update checking</string>
-      <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to Disable Winget-AutoUpdate update checking or not.
+      <string id="DisableAutoUpdate_Name">Disable WAU AutoUpdate</string>
+      <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to Disable WAU AutoUpdate or not:
+By default, WAU AutoUpdate is enabled.
+It will not overwrite the configurations, icons (if personalised), excluded_apps list...
 
 If this policy is disabled or not configured, the default is No.</string>
       <string id="DoNotRunOnMetered_Name">Do not run WAU on metered connection</string>

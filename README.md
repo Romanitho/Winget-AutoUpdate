@@ -163,7 +163,7 @@ This will use the content from the text file as a native **winget --override** p
 ## GPO Management
 In an enterprise environment it's crucial that different groups can have different settings in an application etc. or to implement other mandatory settings.  
 **WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin** for a few settings).  
-It's now possible to manage every setting with **GPO**.  
+It's now possible to manage every setting within **GPO**.  
 Read more in the `README.md` under the directory **Policies**
 
 ![image](https://user-images.githubusercontent.com/102996177/210131296-0e0286e1-bf8e-4f94-81bd-76559ae49b7a.png)

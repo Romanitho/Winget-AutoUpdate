@@ -1,6 +1,5 @@
 #Function to get Domain/Local Policies (GPO)
 
-
 Function Get-Policies {
     #Get WAU Policies and set the Configurations Registry Accordingly
     $WAUPolicies = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
@@ -83,6 +82,7 @@ Function Get-Policies {
 
             if ($null -ne $($WAUPolicies.WAU_UpdatesAtTime) -and ($($WAUPolicies.WAU_UpdatesAtTime) -ne $($WAUConfig.WAU_UpdatesAtTime))) {
                 New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $($WAUPolicies.WAU_UpdatesAtTime) -Force | Out-Null
+                $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
                 $service = New-Object -ComObject Schedule.Service
                 $service.Connect($env:COMPUTERNAME)
                 $folder = $service.GetFolder('\')
@@ -103,6 +103,7 @@ Function Get-Policies {
             }
             elseif ($null -eq $($WAUPolicies.WAU_UpdatesAtTime) -and $($WAUConfig.WAU_UpdatesAtTime) -ne "06:00:00") {
                 New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value "06:00:00" -Force | Out-Null
+                $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
                 $service = New-Object -ComObject Schedule.Service
                 $service.Connect($env:COMPUTERNAME)
                 $folder = $service.GetFolder('\')

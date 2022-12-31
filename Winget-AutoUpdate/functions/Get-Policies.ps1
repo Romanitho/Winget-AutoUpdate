@@ -1,5 +1,6 @@
 #Function to get Domain/Local Policies (GPO)
 
+
 Function Get-Policies {
     #Get WAU Policies and set the Configurations Registry Accordingly
     $WAUPolicies = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
@@ -82,12 +83,42 @@ Function Get-Policies {
 
             if ($null -ne $($WAUPolicies.WAU_UpdatesAtTime) -and ($($WAUPolicies.WAU_UpdatesAtTime) -ne $($WAUConfig.WAU_UpdatesAtTime))) {
                 New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $($WAUPolicies.WAU_UpdatesAtTime) -Force | Out-Null
-                $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+                $service = New-Object -ComObject Schedule.Service
+                $service.Connect($env:COMPUTERNAME)
+                $folder = $service.GetFolder('\')
+                $task = $folder.GetTask("Winget-AutoUpdate")
+                $definition = $task.Definition
+                for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
+                    if(($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")){
+                        $PreStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(0,11)
+                        $PostStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(19,6)
+                        $Boundary = $PreStartBoundary + $($WAUPolicies.WAU_UpdatesAtTime) + $PostStartBoundary
+                        $definition.Triggers.Item($triggerId).StartBoundary = $Boundary
+                        break
+                        $triggerId-=1
+                    }
+                }
+                $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
                 $ChangedSettings++
             }
             elseif ($null -eq $($WAUPolicies.WAU_UpdatesAtTime) -and $($WAUConfig.WAU_UpdatesAtTime) -ne "06:00:00") {
                 New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value "06:00:00" -Force | Out-Null
-                $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+                $service = New-Object -ComObject Schedule.Service
+                $service.Connect($env:COMPUTERNAME)
+                $folder = $service.GetFolder('\')
+                $task = $folder.GetTask("Winget-AutoUpdate")
+                $definition = $task.Definition
+                for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
+                    if(($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")){
+                        $PreStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(0,11)
+                        $PostStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(19,6)
+                        $Boundary = $PreStartBoundary + "06:00:00" + $PostStartBoundary
+                        $definition.Triggers.Item($triggerId).StartBoundary = $Boundary
+                        break
+                        $triggerId-=1
+                    }
+                }
+                $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
                 $ChangedSettings++
             }
 
@@ -203,7 +234,7 @@ Function Get-Policies {
                     }
                 }
                 else {
-                    Remove-ItemProperty $regPath -Name WAU_UpdatesAtLogon -Force -ErrorAction SilentlyContinue | Out-Null
+                    New-ItemProperty $regPath -Name WAU_UpdatesAtLogon -Value $($WAUPolicies.WAU_UpdatesAtLogon) -PropertyType DWord -Force | Out-Null
                     $service = New-Object -ComObject Schedule.Service
                     $service.Connect($env:COMPUTERNAME)
                     $folder = $service.GetFolder('\')
@@ -297,12 +328,7 @@ Function Get-Policies {
                 $ChangedSettings++
             }
 
-            if ($ChangedSettings -gt 0) {
-                Write-Log "Changed settings: $ChangedSettings" "Yellow"
-            }
-            else {
-                Write-Log "Changed settings: None" "Yellow"
-            }
+            Write-Log "Changed settings: $ChangedSettings" "Yellow"
             
             #Get WAU Configurations after Policies change
             $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"

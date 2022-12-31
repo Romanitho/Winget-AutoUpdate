@@ -70,8 +70,6 @@ If this policy is disabled or not configured, the default is No.</string>
       <string id="UpdatesAtTime_Explain">If this policy is enabled, you can configure the Sheduled Task Update time:
 From 01:00 to 24:00 (Military/24 Hour Time)
 
-If set, it will not take effect until 'Updates Interval' also has been changed!
-
 If this policy is not configured or disabled, Updates at Time: (06:00 AM).</string>
       <string id="UpdatesAtTime01">01:00 AM</string>
       <string id="UpdatesAtTime02">02:00</string>

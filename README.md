@@ -162,7 +162,7 @@ This will use the **content** of the text file as a native **winget --override**
 
 ## GPO Management
 In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.  
-**WAU** doesn't have any settings that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).  
+**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).  
 With the use of **ADML/ADMX** files you can manage every setting from within **GPO**.  
 Read more in the `README.md` under the directory **Policies**
 

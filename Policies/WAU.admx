@@ -50,10 +50,10 @@
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
       <enabledValue>
-        <decimal value="1" />
+        <decimal value="0" />
       </enabledValue>
       <disabledValue>
-        <decimal value="0" />
+        <decimal value="1" />
       </disabledValue>
     </policy>
   	<policy name="UpdatePrerelease_Enable" class="Machine" displayName="$(string.UpdatePrerelease_Name)" explainText="$(string.UpdatePrerelease_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UpdatePrerelease">

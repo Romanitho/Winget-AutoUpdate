@@ -18,12 +18,12 @@ By default, WAU AutoUpdate is enabled.
 It will not overwrite the configurations, icons (if personalised), excluded_apps list...
 
 If this policy is disabled or not configured, the default is No.</string>
-      <string id="DoNotRunOnMetered_Name">Do not run WAU on metered connection</string>
+      <string id="DoNotRunOnMetered_Name">Run WAU on metered connection</string>
       <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to Run WAU on metered connection or not.
 
 If this policy is disabled or not configured, the default is Yes.</string>
       <string id="UpdatePrerelease_Name">Update WAU to PreRelease versions</string>
-      <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU to PreRelease versions or not.
+      <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU to PreRelease versions or not (via WAU AutoUpdate).
 
 If this policy is disabled or not configured, the default is No.</string>
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>

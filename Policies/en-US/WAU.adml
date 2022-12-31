@@ -21,7 +21,7 @@ If this policy is disabled or not configured, the default is No.</string>
       <string id="DoNotRunOnMetered_Name">Run WAU on metered connection</string>
       <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to Run WAU on metered connection or not.
 
-If this policy is disabled or not configured, the default is Yes.</string>
+If this policy is disabled or not configured, the default is No.</string>
       <string id="UpdatePrerelease_Name">Update WAU to PreRelease versions</string>
       <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU to PreRelease versions or not (via WAU AutoUpdate).
 

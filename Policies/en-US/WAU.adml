@@ -101,6 +101,18 @@ If this policy is not configured or disabled, Updates at Time: (06:00 AM).</stri
       <string id="UserContext_Explain">This policy setting specifies whether to enable User context execution or not .
 
 If this policy is disabled or not configured, the default is No.</string>
+      <string id="DesktopShortcut_Name">Enable Deskop Shortcut</string>
+      <string id="DesktopShortcut_Explain">This policy setting specifies whether to enable a Desktop Shortcut or not:
+WAU - Check for updated Apps
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="StartMenuShortcut_Name">Enable Start Menu Shortcuts</string>
+      <string id="StartMenuShortcut_Explain">This policy setting specifies whether to enable Start Menu Shortcuts or not:
+WAU - Check for updated Apps
+WAU - Open logs
+WAU - Web Help
+
+If this policy is disabled or not configured, the default is No.</string>
     </stringTable>
     <presentationTable>
       <presentation id="ListPath">

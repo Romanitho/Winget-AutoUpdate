@@ -300,6 +300,10 @@ Function Get-Policies {
             if ($ChangedSettings -gt 0) {
                 Write-Log "Changed settings: $ChangedSettings" "Yellow"
             }
+            else {
+                Write-Log "Changed settings: None" "Yellow"
+            }
+            
             #Get WAU Configurations after Policies change
             $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
         }

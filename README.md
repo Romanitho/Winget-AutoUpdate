@@ -160,10 +160,10 @@ Another finess is the **AppID** followed by the `-override` suffix as a **text f
 ## GPO Management
 In an enterprise environment it's crucial that different groups can have different settings in an application etc. or to implement other mandatory settings.  
 **WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin** for a few settings).  
-Now it's possible to manage nearly every setting with **GPO**.  
+It's now possible to manage every setting with **GPO**.  
 Read more in the `README.md` under the directory **Policies**
 
-![image](https://user-images.githubusercontent.com/102996177/210110986-b19dca08-f653-498b-958e-66e8553c33ab.png)
+![image](https://user-images.githubusercontent.com/102996177/210131296-0e0286e1-bf8e-4f94-81bd-76559ae49b7a.png)
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

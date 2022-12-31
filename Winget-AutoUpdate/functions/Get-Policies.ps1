@@ -21,7 +21,7 @@ Function Get-Policies {
                 New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value $($WAUPolicies.WAU_DisableAutoUpdate) -PropertyType DWord -Force | Out-Null
                 $ChangedSettings++
             }
-            elseif ($null -eq $($WAUPolicies.WAU_DisableAutoUpdate) -and (($($WAUConfig.WAU_DisableAutoUpdate) -or $($WAUConfig.WAU_DisableAutoUpdate) -eq 0))) {
+            elseif ($null -eq $($WAUPolicies.WAU_DisableAutoUpdate) -and ($($WAUConfig.WAU_DisableAutoUpdate) -or $($WAUConfig.WAU_DisableAutoUpdate) -eq 0)) {
                 Remove-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Force -ErrorAction SilentlyContinue | Out-Null
                 $ChangedSettings++
             }
@@ -241,7 +241,7 @@ Function Get-Policies {
                 New-ItemProperty $regPath -Name WAU_UserContext -Value $($WAUPolicies.WAU_UserContext) -PropertyType DWord -Force | Out-Null
                 if ($WAUPolicies.WAU_UserContext -eq 1) {
                     # Settings for the scheduled task in User context
-                    $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+                    $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WAUConfig.InstallLocation)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUConfig.InstallLocation)\winget-upgrade.ps1`"`""
                     $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
                     $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
 
@@ -257,6 +257,43 @@ Function Get-Policies {
             elseif ($null -eq $($WAUPolicies.WAU_UserContext) -and ($($WAUConfig.WAU_UserContext) -or $($WAUConfig.WAU_UserContext) -eq 0)) {
                 Remove-ItemProperty $regPath -Name WAU_UserContext -Force -ErrorAction SilentlyContinue | Out-Null
                 Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+                $ChangedSettings++
+            }
+
+            if ($null -ne $($WAUPolicies.WAU_DesktopShortcut) -and ($($WAUPolicies.WAU_DesktopShortcut) -ne $($WAUConfig.WAU_DesktopShortcut))) {
+                New-ItemProperty $regPath -Name WAU_DesktopShortcut -Value $($WAUPolicies.WAU_DesktopShortcut) -PropertyType DWord -Force | Out-Null
+                if ($WAUPolicies.WAU_DesktopShortcut -eq 1) {
+                    Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WAUConfig.InstallLocation)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUConfig.InstallLocation)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+                }
+                else {
+                    Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
+                }
+                $ChangedSettings++
+            }
+            elseif ($null -eq $($WAUPolicies.WAU_DesktopShortcut) -and ($($WAUConfig.WAU_DesktopShortcut) -or $($WAUConfig.WAU_DesktopShortcut) -eq 0)) {
+                Remove-ItemProperty $regPath -Name WAU_DesktopShortcut -Force -ErrorAction SilentlyContinue | Out-Null
+                Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
+                $ChangedSettings++
+            }
+
+            if ($null -ne $($WAUPolicies.WAU_StartMenuShortcut) -and ($($WAUPolicies.WAU_StartMenuShortcut) -ne $($WAUConfig.WAU_StartMenuShortcut))) {
+                New-ItemProperty $regPath -Name WAU_StartMenuShortcut -Value $($WAUPolicies.WAU_StartMenuShortcut) -PropertyType DWord -Force | Out-Null
+                if ($WAUPolicies.WAU_StartMenuShortcut -eq 1) {
+                    if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
+                        New-Item -ItemType Directory -Force -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" | Out-Null
+                    }
+                    Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Check for updated Apps.lnk" "`"$($WAUConfig.InstallLocation)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUConfig.InstallLocation)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+                    Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Open logs.lnk" "`"$($WAUConfig.InstallLocation)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUConfig.InstallLocation)\user-run.ps1`" -Logs`"" "${env:SystemRoot}\System32\shell32.dll,-16763" "Open existing WAU logs..."
+                    Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Web Help.lnk" "`"$($WAUConfig.InstallLocation)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUConfig.InstallLocation)\user-run.ps1`" -Help`"" "${env:SystemRoot}\System32\shell32.dll,-24" "Help for WAU..."
+                }
+                else {
+                    Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null
+                }
+                $ChangedSettings++
+            }
+            elseif ($null -eq $($WAUPolicies.WAU_StartMenuShortcut) -and ($($WAUConfig.WAU_StartMenuShortcut) -or $($WAUConfig.WAU_StartMenuShortcut) -eq 0)) {
+                Remove-ItemProperty $regPath -Name WAU_StartMenuShortcut -Force -ErrorAction SilentlyContinue | Out-Null
+                Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null
                 $ChangedSettings++
             }
 

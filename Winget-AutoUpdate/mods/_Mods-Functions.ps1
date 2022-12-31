@@ -51,7 +51,12 @@ function Uninstall-ModsApp ($App) {
                             Start-Process $UninstallString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
                         }
                         else {
-                            Write-Host "x64 Uninstaller unknown..."
+                            Write-Host "x64 Uninstaller unknown, trying the UninstallString from registry..."
+                            $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $UninstallString
+                            $Command = $NativeUninstallString.matches.groups[1].value
+                            $Parameter = $NativeUninstallString.matches.groups[2].value
+                            #All EXE x64 Installers (native defined uninstall)
+                            Start-Process $Command -ArgumentList $Parameter -Wait
                         }
                     }
                 }
@@ -97,7 +102,12 @@ function Uninstall-ModsApp ($App) {
                                 Start-Process $UninstallString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
                             }
                             else {
-                                Write-Host "x86 Uninstaller unknown..."
+                                Write-Host "x86 Uninstaller unknown, trying the UninstallString from registry..."
+                                $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $UninstallString
+                                $Command = $NativeUninstallString.matches.groups[1].value
+                                $Parameter = $NativeUninstallString.matches.groups[2].value
+                                #All EXE x86 Installers (native defined uninstall)
+                                Start-Process $Command -ArgumentList $Parameter -Wait
                             }
                         }
                     }

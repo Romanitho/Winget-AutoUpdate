@@ -19,6 +19,7 @@ function Uninstall-ModsApp ($App) {
     foreach ($obj in $InstalledSoftware){
         if ($obj.GetValue('DisplayName') -like $App) {
             $UninstallString = $obj.GetValue('UninstallString')
+            $CleanedUninstallString = $UninstallString.Trim([char]0x0022)
             if ($UninstallString -like "MsiExec.exe*") {
                 $ProductCode = Select-String "{.*}" -inputobject $UninstallString
                 $ProductCode = $ProductCode.matches.groups[0].value
@@ -39,16 +40,16 @@ function Uninstall-ModsApp ($App) {
                     Start-Process $Command -ArgumentList $Parameter -Wait
                 }
                 else {
-                    if ((Test-Path "$UninstallString")) {
-                        $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft"
+                    if ((Test-Path $CleanedUninstallString)) {
+                        $NullSoft = Select-String -Path $CleanedUninstallString -Pattern "Nullsoft"
                     }
                     if ($NullSoft) {
                         #NSIS x64 Installer
                         Start-Process $UninstallString -ArgumentList "/S" -Wait
                     }
                     else {
-                        if ((Test-Path "$UninstallString")) {
-                            $Inno = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Inno Setup"
+                        if ((Test-Path $CleanedUninstallString)) {
+                            $Inno = Select-String -Path $CleanedUninstallString -Pattern "Inno Setup"
                         }
                         if ($Inno) {
                             #Inno x64 Installer
@@ -74,6 +75,7 @@ function Uninstall-ModsApp ($App) {
         foreach ($obj in $InstalledSoftware){
             if ($obj.GetValue('DisplayName') -like $App) {
                 $UninstallString = $obj.GetValue('UninstallString')
+                $CleanedUninstallString = $UninstallString.Trim([char]0x0022)
                 if ($UninstallString -like "MsiExec.exe*") {
                     $ProductCode = Select-String "{.*}" -inputobject $UninstallString
                     $ProductCode = $ProductCode.matches.groups[0].value
@@ -94,16 +96,16 @@ function Uninstall-ModsApp ($App) {
                         Start-Process $Command -ArgumentList $Parameter -Wait
                     }
                     else {
-                        if ((Test-Path "$UninstallString")) {
-                            $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft"
+                        if ((Test-Path $CleanedUninstallString)) {
+                            $NullSoft = Select-String -Path $CleanedUninstallString -Pattern "Nullsoft"
                         }
                         if ($NullSoft) {
                             #NSIS x86 Installer
                             Start-Process $UninstallString -ArgumentList "/S" -Wait
                         }
                         else {
-                            if ((Test-Path "$UninstallString")) {
-                                $Inno = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Inno Setup"
+                            if ((Test-Path $CleanedUninstallString)) {
+                                $Inno = Select-String -Path $CleanedUninstallString -Pattern "Inno Setup"
                             }
                             if ($Inno) {
                                 #Inno x86 Installer

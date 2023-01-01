@@ -164,7 +164,7 @@ This will use the **content** of the text file as a native **winget --override**
 In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.  
 **WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).  
 With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.  
-The will be detected/evaluated during the next run of **WAU** (taking effect before any actions).  
+They will be detected/evaluated during the next run of **WAU** (taking effect before any actions).  
 Read more in the `README.md` under the directory **Policies**
 
 ![image](https://user-images.githubusercontent.com/102996177/210157417-60e84023-088e-4299-9d76-b34bb0c5f088.png)

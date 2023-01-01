@@ -39,13 +39,17 @@ function Uninstall-ModsApp ($App) {
                     Start-Process $Command -ArgumentList $Parameter -Wait
                 }
                 else {
-                    $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft"
+                    if ((Test-Path "$UninstallString")) {
+                        $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft"
+                    }
                     if ($NullSoft) {
                         #NSIS x64 Installer
                         Start-Process $UninstallString -ArgumentList "/S" -Wait
                     }
                     else {
-                        $Inno = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Inno Setup"
+                        if ((Test-Path "$UninstallString")) {
+                            $Inno = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Inno Setup"
+                        }
                         if ($Inno) {
                             #Inno x64 Installer
                             Start-Process $UninstallString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
@@ -90,13 +94,17 @@ function Uninstall-ModsApp ($App) {
                         Start-Process $Command -ArgumentList $Parameter -Wait
                     }
                     else {
-                        $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft"
+                        if ((Test-Path "$UninstallString")) {
+                            $NullSoft = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Nullsoft"
+                        }
                         if ($NullSoft) {
                             #NSIS x86 Installer
                             Start-Process $UninstallString -ArgumentList "/S" -Wait
                         }
                         else {
-                            $Inno = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Inno Setup"
+                            if ((Test-Path "$UninstallString")) {
+                                $Inno = Select-String -Path $UninstallString.Trim([char]0x0022) -Pattern "Inno Setup"
+                            }
                             if ($Inno) {
                                 #Inno x86 Installer
                                 Start-Process $UninstallString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait

@@ -25,6 +25,15 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
 
         # Collect the external list of href links
         $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href
+
+        #If there's a directory path in the HREF:s, delete it (IIS)
+        $ModLinks -replace "/.*/", ""
+        #$ModLinks -add <a href='"' + $ModLinks + "\">"" + $$ModLinks + "</a>"
+
+        #<a href="Microsoft.PowerToys-installed.ps1"> Microsoft.PowerToys-installed.ps1</a>
+        #<A HREF="/wau/mods/Microsoft.PowerToys-installed.ps1">Microsoft.PowerToys-installed.ps1</A>
+        #(\x3Ca\x20href=\x22)(.*|.*)
+
         #Delete Local Mods that don't exist Externally
         foreach ($Mod in $InternalModsNames) {
             If ($Mod -notin $ModLinks) {

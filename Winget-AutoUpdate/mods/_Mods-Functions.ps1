@@ -137,9 +137,10 @@ function Remove-ModsLnk ($Lnk) {
 }
 
 function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {
-    if (Test-Path "$AddKey") {
-        New-ItemProperty $AddKey -Name $AddValue -Value $AddTypeData -PropertyType $AddType -Force | Out-Null
+    if (!Test-Path "$AddKey") {
+        New-Item $AddKey -Force -ErrorAction SilentlyContinue | Out-Null
     }
+    New-ItemProperty $AddKey -Name $AddValue -Value $AddTypeData -PropertyType $AddType -Force | Out-Null
     Return
 }
 

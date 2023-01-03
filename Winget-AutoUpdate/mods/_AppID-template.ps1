@@ -12,7 +12,7 @@ $App = ""
 #Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1","lnk2"
 $Lnk = @("")
 
-#Registry _value_ (DWord/String) to add in existing registry Key. Example:
+#Registry _value_ (DWord/String) to add in existing registry Key (Key created if not existing). Example:
 #$AddKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 #$AddValue = "WAU_BypassListForUsers"
 #$AddTypeData = "1"

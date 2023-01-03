@@ -91,6 +91,7 @@ Get Black/White List from Path (URL/UNC/Local) (download/copy to Winget-AutoUpda
 **-ModsPath**  
 Get Mods from Path (URL/UNC/Local) (download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer).  
 For URL: This requires a site directory with `Options +Indexes` in `.htaccess` and no index page overriding the listing of files.  
+Validated on IIS/Apache.
 Or an index page with href listing of all the Mods to be downloaded:  
 ```
 <ul>
@@ -165,6 +166,8 @@ In an enterprise environment it's crucial that different groups can have differe
 **WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).  
 With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.  
 They will be detected/evaluated during the next run of **WAU** (taking effect before any actions).  
+The **GPO ADMX/ADML** validated with:  
+[Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)  
 Read more in the `README.md` under the directory **Policies**
 
 ![image](https://user-images.githubusercontent.com/102996177/210157417-60e84023-088e-4299-9d76-b34bb0c5f088.png)

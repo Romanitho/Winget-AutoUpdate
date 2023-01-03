@@ -11,8 +11,6 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
 
     # If path is URL
     if ($ExternalMods -like "http*") {
-        $wc = New-Object System.Net.WebClient
-
         # enable TLS 1.2 and TLS 1.1 protocols
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12, [Net.SecurityProtocolType]::Tls11
         #Get Index of $ExternalMods (or index page with href listing of all the Mods)
@@ -24,25 +22,34 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         }
 
         # Collect the external list of href links
-        $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty href
+        $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty HREF
 
         #If there's a directory path in the HREF:s, delete it (IIS)
-        $ModLinks -replace "/.*/", ""
-        #$ModLinks -add <a href='"' + $ModLinks + "\">"" + $$ModLinks + "</a>"
+        $CleanLinks = $ModLinks -replace "/.*/",""
 
-        #<a href="Microsoft.PowerToys-installed.ps1"> Microsoft.PowerToys-installed.ps1</a>
-        #<A HREF="/wau/mods/Microsoft.PowerToys-installed.ps1">Microsoft.PowerToys-installed.ps1</A>
-        #(\x3Ca\x20href=\x22)(.*|.*)
+        #Modify strings to HREF:s
+        $index = 0
+        foreach ($Mod in $CleanLinks) {
+            if ($Mod) {
+                $CleanLinks[$index] = '<a href="' + $Mod + '"> ' + $Mod + '</a>'
+            }
+            $index++
+        }
 
         #Delete Local Mods that don't exist Externally
+        $DeletedMods = 0
+        # 0 is the parent HTTP Directory
+        $index = 1
         foreach ($Mod in $InternalModsNames) {
-            If ($Mod -notin $ModLinks) {
+            If ($ModLinks -notcontains "$Mod") {
                 Remove-Item $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
                 $DeletedMods++
             }
+            $index++
         }
 
         #Loop through all links
+        $wc = New-Object System.Net.WebClient
         $WebResponse.Links | Select-Object -ExpandProperty href | ForEach-Object {
             #Check for .ps1/.txt in listing/HREF:s in an index page pointing to .ps1/.txt
             if (($_ -like "*.ps1") -or ($_ -like "*.txt")) {

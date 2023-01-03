@@ -15,11 +15,11 @@ $Lnk = @("")
 #Registry _value_ (DWord/String) to add in existing registry Key. Example:
 #$AddKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 #$AddValue = "WAU_BypassListForUsers"
-#$AddTypeValue = "1"
+#$AddTypeData = "1"
 #$AddType = "DWord"
 $AddKey = ""
 $AddValue = ""
-$AddTypeValue = ""
+$AddTypeData = ""
 $AddType = ""
 
 #Registry _value_ to delete in existing registry Key. Example:
@@ -44,8 +44,8 @@ if ($App) {
 if ($Lnk) {
     Remove-ModsLnk $Lnk
 }
-if ($AddKey -and $AddValue -and $AddTypeValue -and $AddType) {
-    Add-ModsReg $AddKey $AddValue $AddTypeValue $AddType
+if ($AddKey -and $AddValue -and $AddTypeData -and $AddType) {
+    Add-ModsReg $AddKey $AddValue $AddTypeData $AddType
 }
 if ($DelKey -and $DelValue) {
     Remove-ModsReg $DelKey $DelValue

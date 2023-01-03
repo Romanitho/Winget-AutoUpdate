@@ -12,6 +12,24 @@ $App = ""
 #Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1","lnk2"
 $Lnk = @("")
 
+#Registry _value_ (DWord/String) to add in existing registry Key
+#Example:
+#$AddKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+#$AddValue = "WAU_BypassListForUsers"
+#$AddTypeValue = "1"
+#$AddType = "DWord"
+$AddKey = ""
+$AddValue = ""
+$AddTypeValue = ""
+$AddType = ""
+
+#Registry _value_ to delete in existing registry Key
+#Example:
+#$DelKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+#$DelValue = "WAU_BypassListForUsers"
+$DelKey = ""
+$DelValue = ""
+
 <# FUNCTIONS #>
 . $PSScriptRoot\_Mods-Functions.ps1
 
@@ -27,6 +45,12 @@ if ($App) {
 }
 if ($Lnk) {
     Remove-ModsLnk $Lnk
+}
+if ($AddKey -and $AddValue -and $AddTypeValue -and $AddType) {
+    Add-ModsReg $AddKey $AddValue $AddTypeValue $AddType
+}
+if ($DelKey -and $DelValue) {
+    Remove-ModsReg $DelKey $DelValue
 }
 
 <# EXTRAS #>

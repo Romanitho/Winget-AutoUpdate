@@ -135,3 +135,17 @@ function Remove-ModsLnk ($Lnk) {
     }
     Return
 }
+
+function Add-ModsReg ($AddKey, $AddValue, $AddTypeValue, $AddType) {
+    if (Test-Path "$AddKey") {
+        New-ItemProperty $AddKey -Name $AddValue -Value $AddTypeValue -PropertyType $AddType -Force | Out-Null
+    }
+    Return
+}
+
+function Remove-ModsReg ($DelKey, $DelValue) {
+    if (Test-Path "$DelKey") {
+        Remove-ItemProperty $DelKey -Name $DelValue -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    Return
+}

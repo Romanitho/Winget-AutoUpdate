@@ -136,9 +136,9 @@ function Remove-ModsLnk ($Lnk) {
     Return
 }
 
-function Add-ModsReg ($AddKey, $AddValue, $AddTypeValue, $AddType) {
+function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {
     if (Test-Path "$AddKey") {
-        New-ItemProperty $AddKey -Name $AddValue -Value $AddTypeValue -PropertyType $AddType -Force | Out-Null
+        New-ItemProperty $AddKey -Name $AddValue -Value $AddTypeData -PropertyType $AddType -Force | Out-Null
     }
     Return
 }

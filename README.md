@@ -94,10 +94,10 @@ Get Mods from external Path (**URL/UNC/Local**) - download/copy to `mods` in Win
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):  
 ```
 <ul>
-<li><a  href="Adobe.Acrobat.Reader.32-bit-install.ps1"> Adobe.Acrobat.Reader.32-bit-install.ps1</a></li>
-<li><a  href="Notepad++.Notepad++-install.ps1"> Notepad++.Notepad++-install.ps1</a></li>
-<li><a  href="Notepad++.Notepad++-uninstall.ps1"> Notepad++.Notepad++-uninstall.ps1</a></li>
-<li><a  href="WinMerge.WinMerge-install.ps1"> WinMerge.WinMerge-install.ps1</a></li>
+<li><a  href="Adobe.Acrobat.Reader.32-bit-install.ps1">Adobe.Acrobat.Reader.32-bit-install.ps1</a></li>
+<li><a  href="Notepad++.Notepad++-install.ps1">Notepad++.Notepad++-install.ps1</a></li>
+<li><a  href="Notepad++.Notepad++-uninstall.ps1">Notepad++.Notepad++-uninstall.ps1</a></li>
+<li><a  href="WinMerge.WinMerge-install.ps1">WinMerge.WinMerge-install.ps1</a></li>
 </ul>
 ```
 Validated on **IIS/Apache**.  

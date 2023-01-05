@@ -150,3 +150,13 @@ function Remove-ModsReg ($DelKey, $DelValue) {
     }
     Return
 }
+
+function Remove-ModsFile ($DelFile) {
+    foreach ($file in $DelFile)
+    {
+        if (Test-Path "$file") {
+            Remove-Item -Path $file -Force -Recurse -ErrorAction SilentlyContinue | Out-Null
+        }
+    }
+    Return
+}

@@ -28,6 +28,9 @@ $AddType = ""
 $DelKey = ""
 $DelValue = ""
 
+#Remove file/directory, multiple: "file1","file2"
+$DelFile = @("")
+
 <# FUNCTIONS #>
 . $PSScriptRoot\_Mods-Functions.ps1
 
@@ -49,6 +52,9 @@ if ($AddKey -and $AddValue -and $AddTypeData -and $AddType) {
 }
 if ($DelKey -and $DelValue) {
     Remove-ModsReg $DelKey $DelValue
+}
+if ($DelFile) {
+    Remove-ModsFile $DelFile
 }
 
 <# EXTRAS #>

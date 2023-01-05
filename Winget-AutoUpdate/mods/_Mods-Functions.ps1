@@ -146,7 +146,12 @@ function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {
 
 function Remove-ModsReg ($DelKey, $DelValue) {
     if (Test-Path "$DelKey") {
-        Remove-ItemProperty $DelKey -Name $DelValue -Force -ErrorAction SilentlyContinue | Out-Null
+        if (!$DelValue) {
+            Remove-Item $DelKey -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+        }
+        else {
+            Remove-ItemProperty $DelKey -Name $DelValue -Force -ErrorAction SilentlyContinue | Out-Null
+        }
     }
     Return
 }

@@ -22,7 +22,8 @@ $AddValue = ""
 $AddTypeData = ""
 $AddType = ""
 
-#Registry _value_ to delete in existing registry Key. Example:
+#Registry _value_ to delete in existing registry Key.
+#Value can be omitted for deleting entire Key!. Example:
 #$DelKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 #$DelValue = "WAU_BypassListForUsers"
 $DelKey = ""
@@ -50,7 +51,7 @@ if ($Lnk) {
 if ($AddKey -and $AddValue -and $AddTypeData -and $AddType) {
     Add-ModsReg $AddKey $AddValue $AddTypeData $AddType
 }
-if ($DelKey -and $DelValue) {
+if ($DelKey) {
     Remove-ModsReg $DelKey $DelValue
 }
 if ($DelFile) {

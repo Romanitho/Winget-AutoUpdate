@@ -86,7 +86,7 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt"
 
 **-ListPath**  
-Get Black/White List from Path (**URL/UNC/Local**) (download/copy to Winget-AutoUpdate installation location if external list is newer).
+Get Black/White List from external Path (**URL/UNC/Local**) - download/copy to Winget-AutoUpdate installation location if external list is newer.
 
 **-ModsPath**  
 Get Mods from external Path (**URL/UNC/Local**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  

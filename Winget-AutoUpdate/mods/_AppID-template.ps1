@@ -6,8 +6,8 @@ $Proc = @("")
 $Wait = @("")
 
 #Beginning of App Name string to Silently Uninstall (MSI/NSIS/INNO/EXE with defined silent uninstall in registry)
-#Required wildcard (*) after, search is done with "-like"!
-$App = ""
+#Multiple: "app1*","app2*", required wildcard (*) after; search is done with "-like"!
+$App = @("")
 
 #Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1","lnk2"
 $Lnk = @("")

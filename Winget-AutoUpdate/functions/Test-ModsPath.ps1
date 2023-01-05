@@ -73,13 +73,46 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                             $ModsUpdated++
                         }
                         catch {
-                            return $False
+                            # Error handling
                         }
                     }
                 }
                 catch {
-                    return $False
+                    # Error handling
                 }
+            }
+        }
+        return $ModsUpdated, $DeletedMods
+    }
+    # If path is UNC or local
+    else {
+        if ((Test-Path -Path $ExternalMods"\*.ps1") -or (Test-Path -Path $ExternalMods"\*.txt")) {
+            #Get File Names Externally
+            $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1, *.txt
+            #Delete Local Mods that don't exist Externally
+            foreach ($Mod in $InternalModsNames){
+                If($Mod -notin $ExternalModsNames ){
+                    Remove-Item $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
+                    $DeletedMods++
+                }
+            }
+            try {
+                foreach ($Mod in $ExternalModsNames){
+                    $dateExternalMod = ""
+                    $dateLocalMod =""
+                    if (Test-Path -Path $LocalMods"\"$Mod) {
+                        $dateLocalMod = (Get-Item "$LocalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    }
+                    $dateExternalMod = (Get-Item "$ExternalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    if ($dateExternalMod -gt $dateLocalMod) {
+                        Copy-Item $ExternalMods\$Mod -Destination $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
+                        $ModsUpdated++
+                    }
+                }
+                
+            }
+            catch {
+                # Error handling
             }
         }
         return $ModsUpdated, $DeletedMods

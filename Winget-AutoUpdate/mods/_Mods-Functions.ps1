@@ -15,7 +15,7 @@ function Wait-ModsProc ($Wait) {
     Return
 }
 function Uninstall-ModsApp ($App) {
-    foreach ($process in $Proc)
+    foreach ($app in $App)
     {
         $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
         foreach ($obj in $InstalledSoftware){

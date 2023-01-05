@@ -86,13 +86,12 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt"
 
 **-ListPath**  
-Get Black/White List from Path (URL/UNC/Local) (download/copy to Winget-AutoUpdate installation location if external list is newer).
+Get Black/White List from Path (**URL/UNC/Local**) (download/copy to Winget-AutoUpdate installation location if external list is newer).
 
 **-ModsPath**  
-Get Mods from Path (URL/UNC/Local) (download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer).  
-For URL: This requires a site directory with `Options +Indexes` in `.htaccess` and no index page overriding the listing of files.  
-Validated on IIS/Apache.  
-Or an index page with href listing of all the Mods to be downloaded:  
+Get Mods from external Path (**URL/UNC/Local**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  
+
+For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):  
 ```
 <ul>
 <li><a  href="Adobe.Acrobat.Reader.32-bit-install.ps1"> Adobe.Acrobat.Reader.32-bit-install.ps1</a></li>
@@ -101,6 +100,8 @@ Or an index page with href listing of all the Mods to be downloaded:
 <li><a  href="WinMerge.WinMerge-install.ps1"> WinMerge.WinMerge-install.ps1</a></li>
 </ul>
 ```
+Validated on **IIS/Apache**.  
+**Nota bene IIS** : Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'.
 
 **-InstallUserContext**  
 Install WAU with system and **user** context executions (From version 1.15.3)

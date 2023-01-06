@@ -98,7 +98,6 @@ For **URL**: This requires a site directory with **Directory Listing Enabled** a
 <li><a  href="Adobe.Acrobat.Reader.64-bit-override.txt">Adobe.Acrobat.Reader.64-bit-override.txt</a></li>
 <li><a  href="Notepad++.Notepad++-installed.ps1">Notepad++.Notepad++-installed.ps1</a></li>
 <li><a  href="Notepad++.Notepad++-uninstalled.ps1">Notepad++.Notepad++-uninstalled.ps1</a></li>
-<li><a  href="WinMerge.WinMerge-install.ps1">WinMerge.WinMerge-installed.ps1</a></li>
 </ul>
 ```
 Validated on **IIS/Apache**.  

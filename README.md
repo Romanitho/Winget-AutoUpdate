@@ -104,7 +104,7 @@ For **URL**: This requires a site directory with **Directory Listing Enabled** a
 Validated on **IIS/Apache**.  
 
 **Nota bene IIS** :  
- - The extension **.ps1** must be added as **allowed extension** (otherwise it's displayed in the listing but cant be opened)
+ - The extension **.ps1** must be added as **MIME Types - text/powershell-script** (otherwise it's displayed in the listing but cant be opened)
  - Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
 
 **-InstallUserContext**  

@@ -94,14 +94,18 @@ Get Mods from external Path (**URL/UNC/Local**) - download/copy to `mods` in Win
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):  
 ```
 <ul>
-<li><a  href="Adobe.Acrobat.Reader.32-bit-install.ps1">Adobe.Acrobat.Reader.32-bit-install.ps1</a></li>
-<li><a  href="Notepad++.Notepad++-install.ps1">Notepad++.Notepad++-install.ps1</a></li>
-<li><a  href="Notepad++.Notepad++-uninstall.ps1">Notepad++.Notepad++-uninstall.ps1</a></li>
-<li><a  href="WinMerge.WinMerge-install.ps1">WinMerge.WinMerge-install.ps1</a></li>
+<li><a  href="Adobe.Acrobat.Reader.32-bit-installed.ps1">Adobe.Acrobat.Reader.32-bit-installed.ps1</a></li>
+<li><a  href="Adobe.Acrobat.Reader.64-bit-override.txt">Adobe.Acrobat.Reader.64-bit-override.txt</a></li>
+<li><a  href="Notepad++.Notepad++-installed.ps1">Notepad++.Notepad++-installed.ps1</a></li>
+<li><a  href="Notepad++.Notepad++-uninstalled.ps1">Notepad++.Notepad++-uninstalled.ps1</a></li>
+<li><a  href="WinMerge.WinMerge-install.ps1">WinMerge.WinMerge-installed.ps1</a></li>
 </ul>
 ```
 Validated on **IIS/Apache**.  
-**Nota bene IIS** : Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'.
+
+**Nota bene IIS** :  
+ - The extension **.ps1** must be added as **allowed extension** (otherwise it's displayed in the listing but cant be opened)
+ - Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
 
 **-InstallUserContext**  
 Install WAU with system and **user** context executions (From version 1.15.3)

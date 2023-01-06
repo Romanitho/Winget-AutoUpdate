@@ -17,7 +17,7 @@ From 1.7.0 version, you can update only pre-selected apps. To do so, create an "
 > You can use WiGui to create these lists: https://github.com/Romanitho/Winget-Install-GUI
 
 ### Notification Level
-From version 1.9.0, you can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`
+From version 1.9.0, you can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`.
 
 ### Notification language
 You can easily translate toast notifications by creating your locale xml config file (and share it with us :) ).
@@ -47,7 +47,7 @@ We might want to stop WAU on metered connection (to save cellular data on connec
 To force WAU to run on metered connections anyway, run new installation with `-RunOnMetered` parameter.
 
 ### System & user context
-From version 1.15.0, WAU run with system and user contexts. This way, even apps installed on User's scope are updated. Shorcuts for manually run can also be installed
+From version 1.15.0, WAU run with system and user contexts. This way, even apps installed on User's scope are updated. Shorcuts for manually run can also be installed.
 
 ## Update WAU
 ### Manual Update
@@ -55,7 +55,7 @@ Same process as new installation : download, unzip and run `install.bat`.
 
 ### Automatic Update
 A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...
-To disable WAU AutoUpdate, run the `Winget-AutoUpdate-Install.ps1` with `-DisableWAUAutoUpdate` parameter
+To disable WAU AutoUpdate, run the `Winget-AutoUpdate-Install.ps1` with `-DisableWAUAutoUpdate` parameter.
 
 ## Uninstall WAU
 Simply uninstall it from your programs:  
@@ -71,10 +71,10 @@ Simply uninstall it from your programs:
 You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
 
 **-Silent**  
-Install Winget-AutoUpdate and prerequisites silently
+Install Winget-AutoUpdate and prerequisites silently.
 
 **-WingetUpdatePath**  
-Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default)
+Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
 
 **-DoNotUpdate**  
 Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate is run just after installation.
@@ -83,7 +83,7 @@ Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate i
 Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new version is available on Github.
 
 **-UseWhiteList**  
-Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt"
+Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt".
 
 **-ListPath**  
 Get Black/White List from external Path (**URL/UNC/Local**) - download/copy to Winget-AutoUpdate installation location if external list is newer.
@@ -103,23 +103,23 @@ For **URL**: This requires a site directory with **Directory Listing Enabled** a
 Validated on **IIS/Apache**.  
 
 **Nota bene IIS** :  
- - The extension **.ps1** must be added as **MIME Types - text/powershell-script** (otherwise it's displayed in the listing but cant be opened)
+ - The extension **.ps1** must be added as **MIME Types** (text/powershell-script) otherwise it's displayed in the listing but can't be opened
  - Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
 
 **-InstallUserContext**  
-Install WAU with system and **user** context executions (From version 1.15.3)
+Install WAU with system and **user** context executions (From version 1.15.3).
 
 **-BypassListForUsers**  
-Bypass Black/White list when run in user context (From version 1.15.0)
+Bypass Black/White list when run in user context (From version 1.15.0).
 
 **-NoClean**  
 Keep critical files when installing/uninstalling. This setting will keep "excluded_apps.txt", "included_apps.txt", "mods" and "logs" as they were.
 
 **-DesktopShortcut**  
-Create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate` (From version 1.15.0)
+Create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate` (From version 1.15.0).
 
 **-StartMenuShortcut**  
-Create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate`, open Logs and Web Help (From version 1.15.0)
+Create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate`, open Logs and Web Help (From version 1.15.0).
 
 **-NotificationLevel**  
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
@@ -128,10 +128,10 @@ Specify the Notification level: Full (Default, displays all notification), Succe
 Set WAU to run at user logon.
 
 **-UpdatesInterval**  
-Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance
+Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance.
 
 **-UpdatesAtTime**  
-Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0)
+Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0).
 
 **-RunOnMetered**  
 Run WAU on metered connection. Default No.
@@ -149,15 +149,15 @@ Just put the scripts in question with the **AppID** followed by the `-preinstall
 > Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`  
 > Runs after upgrade/install has been confirmed: `AppID-installed.ps1`  
 
-The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist (**WAU** first tries `& $Winget upgrade --id` and if the app isn't detected after that `& $Winget install --id` is tried)  
+The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist (**WAU** first tries `& $Winget upgrade --id` and if the app isn't detected after that `& $Winget install --id` is tried).  
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.  
 
 > Example:  
 If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this:
 `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
-You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature  
-Read more in the `README.md` under the directory **mods**
+You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature.  
+Read more in the `README.md` under the directory **mods**.
 
 ### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.txt) that you can place under the **mods** folder.
@@ -173,7 +173,7 @@ With the use of **ADML/ADMX** files you can manage every **WAU** setting from wi
 They will be detected/evaluated during the next run of **WAU** (taking effect before any actions).  
 The **GPO ADMX/ADML** validated with:  
 [Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)  
-Read more in the `README.md` under the directory **Policies**
+Read more in the `README.md` under the directory **Policies**.
 
 ![image](https://user-images.githubusercontent.com/102996177/210157417-60e84023-088e-4299-9d76-b34bb0c5f088.png)
 
@@ -184,4 +184,4 @@ In some cases, you need to "unblock" the `install.bat` file (Windows Defender Sm
 * As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See https://github.com/Romanitho/Winget-AutoUpdate/issues/113
 
 ## Optimization
-Feel free to give us any suggestions or optimizations in code and support us by adding a star :)
+Feel free to give us any suggestions or optimizations in code and support us by adding a star :).

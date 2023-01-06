@@ -146,7 +146,8 @@ Just put the scripts in question with the **AppID** followed by the `-preinstall
 > Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`  
 > Runs after upgrade/install has been confirmed: `AppID-installed.ps1`  
 
-The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist  
+The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist (**WAU** first tries `& $Winget upgrade --id` and if the app isn't detected after that `& $Winget install --id` is tried)  
+`AppID-install.ps1` is recommended because it's used in **both** scenarios.  
 
 > Example:  
 If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this:

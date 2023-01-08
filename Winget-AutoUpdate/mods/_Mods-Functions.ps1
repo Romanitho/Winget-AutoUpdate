@@ -168,3 +168,11 @@ function Remove-ModsFile ($DelFile) {
     }
     Return
 }
+
+function Copy-ModsFile ($CopyFile, $CopyTo) {
+    if (Test-Path "$CopyFile") {
+        Copy-Item -Path $CopyFile -Destination $CopyTo -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    Return
+}
+

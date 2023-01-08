@@ -32,6 +32,13 @@ $DelValue = ""
 #Remove file/directory, multiple: "file1","file2"
 $DelFile = @("")
 
+#Copy file/directory
+#Example:
+#$CopyFile = "C:\Logfiles"
+#$CopyTo = "C:\Drawings\Logs"
+$CopyFile = ""
+$CopyTo = ""
+
 <# FUNCTIONS #>
 . $PSScriptRoot\_Mods-Functions.ps1
 
@@ -56,6 +63,9 @@ if ($DelKey) {
 }
 if ($DelFile) {
     Remove-ModsFile $DelFile
+}
+if ($CopyFile -and $CopyTo) {
+    Copy-ModsFile $CopyFile $CopyTo
 }
 
 <# EXTRAS #>

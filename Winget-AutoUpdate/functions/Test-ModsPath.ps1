@@ -18,6 +18,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             $WebResponse = Invoke-WebRequest -Uri $ExternalMods -UseBasicParsing
         }
         catch {
+            $Script:ReachNoPath = $True
             return $False
         }
 
@@ -73,12 +74,12 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                             $ModsUpdated++
                         }
                         catch {
-                            # Error handling
+                            $Script:ReachNoPath = $True
                         }
                     }
                 }
                 catch {
-                    # Error handling
+                    $Script:ReachNoPath = $True
                 }
             }
         }
@@ -89,13 +90,17 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         if ((Test-Path -Path $ExternalMods"\*.ps1") -or (Test-Path -Path $ExternalMods"\*.txt")) {
             #Get File Names Externally
             $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1, *.txt
+            
             #Delete Local Mods that don't exist Externally
+            $DeletedMods = 0
             foreach ($Mod in $InternalModsNames){
-                If($Mod -notin $ExternalModsNames ){
+                If ($Mod -notin $ExternalModsNames ){
                     Remove-Item $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
                     $DeletedMods++
                 }
             }
+
+            #Copy newer external mods
             try {
                 foreach ($Mod in $ExternalModsNames){
                     $dateExternalMod = ""
@@ -112,8 +117,11 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                 
             }
             catch {
-                # Error handling
+                $Script:ReachNoPath = $True
             }
+        }
+        else {
+            $Script:ReachNoPath = $True
         }
         return $ModsUpdated, $DeletedMods
     }

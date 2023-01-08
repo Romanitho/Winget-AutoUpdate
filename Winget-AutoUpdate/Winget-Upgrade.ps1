@@ -84,12 +84,15 @@ if (Test-Network) {
                     Write-Log "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
                 }
                 else {
-                    if ((Test-Path "$WorkingDir\included_apps.txt") -or (Test-Path "$WorkingDir\excluded_apps.txt")) {
-                        Write-Log "List is up to date." "Green"
+                    if ($WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\included_apps.txt")) {
+                        Write-Log "List (white) is up to date." "Green"
+                    }
+                    elseif (!$WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\excluded_apps.txt")) {
+                        Write-Log "List (black) is up to date." "Green"
                     }
                     else {
-                        Write-Log "Critical: List doesn't exist, exiting..." "Red"
-                        New-Item "$WorkingDir\logs\error.txt" -Value "List doesn't exist!" -Force
+                        Write-Log "Critical: White/Black List doesn't exist, exiting..." "Red"
+                        New-Item "$WorkingDir\logs\error.txt" -Value "White/Black List doesn't exist!" -Force
                         Exit 1
                     }
                 }

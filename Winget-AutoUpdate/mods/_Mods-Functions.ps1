@@ -1,5 +1,18 @@
 #Common shared functions for mods handling
 
+function Invoke-ModsApp ($Run, $RunSwitch, $RunWait) {
+    if (Test-Path "$Run") {
+        if (!$RunWait) {
+            Start-Process $Run -ArgumentList $RunSwitch
+        }
+        else {
+            Start-Process $Run -ArgumentList $RunSwitch -Wait
+        }
+    }
+    Return
+}
+
+
 function Stop-ModsProc ($Proc) {
     foreach ($process in $Proc)
     {
@@ -7,6 +20,7 @@ function Stop-ModsProc ($Proc) {
     }
     Return
 }
+
 function Wait-ModsProc ($Wait) {
     foreach ($process in $Wait)
     {
@@ -14,6 +28,7 @@ function Wait-ModsProc ($Wait) {
     }
     Return
 }
+
 function Uninstall-ModsApp ($App) {
     foreach ($app in $App)
     {
@@ -131,6 +146,7 @@ function Uninstall-ModsApp ($App) {
     }
     Return
 }
+
 function Remove-ModsLnk ($Lnk) {
     foreach ($link in $Lnk)
     {

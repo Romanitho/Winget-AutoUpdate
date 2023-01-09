@@ -1,4 +1,9 @@
 <# ARRAYS/VARIABLES #>
+#App to Run ($RunWait = $False if it shouldn't be waited for)
+$Run = ""
+$RunSwitch = ""
+$RunWait = $True
+
 #Beginning of Process Name to Stop - optional wildcard (*) after, without .exe, multiple: "proc1","proc2"
 $Proc = @("")
 
@@ -43,6 +48,9 @@ $CopyTo = ""
 . $PSScriptRoot\_Mods-Functions.ps1
 
 <# MAIN #>
+if ($Run) {
+    Invoke-ModsApp $Run $RunSwitch $RunWait
+}
 if ($Proc) {
     Stop-ModsProc $Proc
 }

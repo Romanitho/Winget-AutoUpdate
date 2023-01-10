@@ -192,3 +192,22 @@ function Copy-ModsFile ($CopyFile, $CopyTo) {
     Return
 }
 
+function Grant-ModsPath ($GrantPath) {
+    foreach ($path in $GrantPath)
+    {
+        if (Test-Path "$path") {
+            $NewAcl = Get-Acl -Path $path
+            $identity = New-Object System.Security.Principal.SecurityIdentifier S-1-5-11
+            if ((Get-Item $path) -is [System.IO.DirectoryInfo]) {
+                $fileSystemAccessRuleArgumentList = $identity, 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'
+            }
+            else {
+                $fileSystemAccessRuleArgumentList = $identity, 'Modify', 'Allow'
+            }
+            $fileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $fileSystemAccessRuleArgumentList
+            $NewAcl.SetAccessRule($fileSystemAccessRule)
+            Set-Acl -Path $path -AclObject $NewAcl
+        }
+    }
+    Return
+}

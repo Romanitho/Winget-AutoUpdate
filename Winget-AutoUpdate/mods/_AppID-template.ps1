@@ -44,6 +44,9 @@ $DelFile = @("")
 $CopyFile = ""
 $CopyTo = ""
 
+#Grant "Modify" for directory/file to "Authenticated Users" - multiple: "dir1","dir2"
+$GrantPath = @("")
+
 <# FUNCTIONS #>
 . $PSScriptRoot\_Mods-Functions.ps1
 
@@ -74,6 +77,9 @@ if ($DelFile) {
 }
 if ($CopyFile -and $CopyTo) {
     Copy-ModsFile $CopyFile $CopyTo
+}
+if ($GrantPath) {
+    Grant-ModsPath $GrantPath
 }
 
 <# EXTRAS #>

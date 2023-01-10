@@ -8,6 +8,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
 
     #Get File Names Locally
     $InternalModsNames = Get-ChildItem -Path $LocalMods -Name -Recurse -Include *.ps1, *.txt
+    $InternalBinsNames = Get-ChildItem -Path $LocalMods"\bins" -Name -Recurse -Include *.exe
 
     # If path is URL
     if ($ExternalMods -like "http*") {
@@ -20,6 +21,53 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         catch {
             $Script:ReachNoPath = $True
             return $False
+        }
+
+        #Check for bins, download if newer. Delete if not external
+        $ExternalBins = "$ModsPath/bins"
+        if ($WebResponse -match "bins/") {
+            $BinResponse = Invoke-WebRequest -Uri $ExternalBins -UseBasicParsing
+            # Collect the external list of href links
+            $BinLinks = $BinResponse.Links | Select-Object -ExpandProperty HREF
+            #If there's a directory path in the HREF:s, delete it (IIS)
+            $CleanBinLinks = $BinLinks -replace "/.*/",""
+            #Modify strings to HREF:s
+            $index = 0
+            foreach ($Bin in $CleanBinLinks) {
+                if ($Bin) {
+                    $CleanBinLinks[$index] = '<a href="' + $Bin + '"> ' + $Bin + '</a>'
+                }
+                $index++
+            }
+            #Delete Local Bins that don't exist Externally
+            $index = 0
+            $CleanLinks = $BinLinks -replace "/.*/",""
+            foreach ($Bin in $InternalBinsNames) {
+                If ($CleanLinks -notcontains "$Bin") {
+                    Remove-Item $LocalMods\bins\$Bin -Force -ErrorAction SilentlyContinue | Out-Null
+                }
+                $index++
+            }
+            $CleanBinLinks = $BinLinks -replace "/.*/",""
+            $Bin = ""
+            #Loop through all links
+            $wc = New-Object System.Net.WebClient
+            $CleanBinLinks | ForEach-Object {
+                #Check for .exe in listing/HREF:s in an index page pointing to .exe
+                if ($_ -like "*.exe") {
+                    $dateExternalBin = ""
+                    $dateLocalBin =""
+                    $wc.OpenRead("$ExternalBins/$_").Close() | Out-Null
+                    $dateExternalBin = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
+                    if (Test-Path -Path $LocalMods"\bins\"$_) {
+                        $dateLocalBin = (Get-Item "$LocalMods\bins\$_").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+                    }
+                    if ($dateExternalBin -gt $dateLocalBin) {
+                        $SaveBin = Join-Path -Path "$LocalMods\bins" -ChildPath $_
+                        Invoke-WebRequest -Uri "$ExternalBins/$_" -OutFile $SaveBin.Replace("%20"," ") -UseBasicParsing
+                    }
+                }
+            }
         }
 
         # Collect the external list of href links
@@ -39,8 +87,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
 
         #Delete Local Mods that don't exist Externally
         $DeletedMods = 0
-        # 0 is the parent HTTP Directory
-        $index = 1
+        $index = 0
         $CleanLinks = $ModLinks -replace "/.*/",""
         foreach ($Mod in $InternalModsNames) {
             If ($CleanLinks -notcontains "$Mod") {
@@ -49,7 +96,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             }
             $index++
         }
-
+        
         $CleanLinks = $ModLinks -replace "/.*/",""
 
         #Loop through all links
@@ -87,6 +134,29 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
     }
     # If path is UNC or local
     else {
+        $ExternalBins = "$ModsPath\bins"
+        if (Test-Path -Path $ExternalBins"\*.exe") {
+            $ExternalBinsNames = Get-ChildItem -Path $ExternalBins -Name -Recurse -Include *.exe
+            #Delete Local Bins that don't exist Externally
+            foreach ($Bin in $InternalBinsNames){
+                If ($Bin -notin $ExternalBinsNames ){
+                    Remove-Item $LocalMods\bins\$Bin -Force -ErrorAction SilentlyContinue | Out-Null
+                }
+            }
+            #Copy newer external bins
+            foreach ($Bin in $ExternalBinsNames){
+                $dateExternalBin = ""
+                $dateLocalBin =""
+                if (Test-Path -Path $LocalMods"\bins\"$Bin) {
+                    $dateLocalBin = (Get-Item "$LocalMods\bins\$Bin").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+                }
+                $dateExternalBin = (Get-Item "$ExternalBins\$Bin").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+                if ($dateExternalBin -gt $dateLocalBin) {
+                    Copy-Item $ExternalBins\$Bin -Destination $LocalMods\bins\$Bin -Force -ErrorAction SilentlyContinue | Out-Null
+                }
+            }
+        }
+
         if ((Test-Path -Path $ExternalMods"\*.ps1") -or (Test-Path -Path $ExternalMods"\*.txt")) {
             #Get File Names Externally
             $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1, *.txt
@@ -101,23 +171,17 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             }
 
             #Copy newer external mods
-            try {
-                foreach ($Mod in $ExternalModsNames){
-                    $dateExternalMod = ""
-                    $dateLocalMod =""
-                    if (Test-Path -Path $LocalMods"\"$Mod) {
-                        $dateLocalMod = (Get-Item "$LocalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
-                    }
-                    $dateExternalMod = (Get-Item "$ExternalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
-                    if ($dateExternalMod -gt $dateLocalMod) {
-                        Copy-Item $ExternalMods\$Mod -Destination $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
-                        $ModsUpdated++
-                    }
+            foreach ($Mod in $ExternalModsNames){
+                $dateExternalMod = ""
+                $dateLocalMod =""
+                if (Test-Path -Path $LocalMods"\"$Mod) {
+                    $dateLocalMod = (Get-Item "$LocalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                 }
-                
-            }
-            catch {
-                $Script:ReachNoPath = $True
+                $dateExternalMod = (Get-Item "$ExternalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+                if ($dateExternalMod -gt $dateLocalMod) {
+                    Copy-Item $ExternalMods\$Mod -Destination $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
+                    $ModsUpdated++
+                }
             }
         }
         else {

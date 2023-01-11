@@ -126,7 +126,9 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                     }
                 }
                 catch {
-                    $Script:ReachNoPath = $True
+                    if (($_ -like "*.ps1") -or ($_ -like "*.txt")) {
+                        $Script:ReachNoPath = $True
+                    }
                 }
             }
         }

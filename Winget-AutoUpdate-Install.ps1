@@ -10,6 +10,12 @@ https://github.com/Romanitho/Winget-AutoUpdate
 .PARAMETER Silent
 Install Winget-AutoUpdate and prerequisites silently
 
+.PARAMETER MaxLogFiles
+Specify number of allowed log files (Default is 3 of 0-99: Setting MaxLogFiles to 0 don't delete any old archived log files, 1 keeps the original one and just let it grow)
+
+.PARAMETER MaxLogSize
+Specify the size of the log file in bytes before rotating. (Default is 1048576 = 1 MB)
+
 .PARAMETER WingetUpdatePath
 Specify Winget-AutoUpdate installation localtion. Default: C:\ProgramData\Winget-AutoUpdate\
 
@@ -62,7 +68,7 @@ Install WAU with system and user context executions
 Configure WAU to bypass the Black/White list when run in user context
 
 .EXAMPLE
-.\Winget-AutoUpdate-Install.ps1 -Silent -DoNotUpdate
+.\Winget-AutoUpdate-Install.ps1 -Silent -DoNotUpdate -MaxLogFiles 4 -MaxLogSize 2097152
 
 .EXAMPLE
 .\Winget-AutoUpdate-Install.ps1 -Silent -UseWhiteList
@@ -100,7 +106,9 @@ param(
     [Parameter(Mandatory = $False)] [ValidateSet("Daily", "BiDaily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
     [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
     [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false,
-    [Parameter(Mandatory = $False)] [Switch] $InstallUserContext = $false
+    [Parameter(Mandatory = $False)] [Switch] $InstallUserContext = $false,
+    [Parameter(Mandatory = $False)] [ValidateRange(0,99)] [int32] $MaxLogFiles = 3,
+    [Parameter(Mandatory = $False)] [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
 )
 
 <# APP INFO #>
@@ -337,6 +345,8 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_PostUpdateActions -Value 0 -PropertyType DWord -Force | Out-Null
+        New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value $MaxLogFiles -PropertyType DWord -Force | Out-Null
+        New-ItemProperty $regPath -Name WAU_MaxLogSize -Value $MaxLogSize -PropertyType DWord -Force | Out-Null
         if ($DisableWAUAutoUpdate) {
             New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force | Out-Null
         }

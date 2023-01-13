@@ -98,7 +98,7 @@ If this policy is not configured or disabled, Updates at Time: (06:00 AM).</stri
       <string id="UpdatesAtTime23">23:00</string>
       <string id="UpdatesAtTime24">24:00</string>
       <string id="UserContext_Name">User context execution</string>
-      <string id="UserContext_Explain">This policy setting specifies whether to enable User context execution or not .
+      <string id="UserContext_Explain">This policy setting specifies whether to enable User context execution or not.
 
 If this policy is disabled or not configured, the default is No.</string>
       <string id="DesktopShortcut_Name">Enable Deskop Shortcut</string>
@@ -113,6 +113,17 @@ WAU - Open logs
 WAU - Web Help
 
 If this policy is disabled or not configured, the default is No.</string>
+      <string id="MaxLogFiles_Name">Log: Number of allowed log files</string>
+      <string id="MaxLogFiles_Explain">If this policy is enabled, you can set a number of allowed log files:
+Setting MaxLogFiles to 0 don't delete any old archived log files, 1 keeps the original one and just let it grow.
+Default number is 3 (0-99)
+
+If this policy is disabled or not configured, the default number is used.</string>
+      <string id="MaxLogSize_Name">Log: Size of the log file in bytes before rotating</string>
+      <string id="MaxLogSize_Explain">If this policy is enabled, you can set the size of the log file in bytes before rotating.
+Default size is 1048576 = 1 MB
+
+If this policy is disabled or not configured, the default size is used.</string>
     </stringTable>
     <presentationTable>
       <presentation id="ListPath">
@@ -133,6 +144,16 @@ If this policy is disabled or not configured, the default is No.</string>
       </presentation>
       <presentation id="UpdatesAtTime">
         <dropdownList refId="UpdatesAtTime"/>
+      </presentation>
+      <presentation id="MaxLogFiles">
+        <textBox refId="MaxLogFiles">
+          <label>Allowed log files:</label>
+        </textBox>
+      </presentation>
+      <presentation id="MaxLogSize">
+        <textBox refId="MaxLogSize">
+          <label>Size of the log file:</label>
+        </textBox>
       </presentation>
     </presentationTable>
   </resources>

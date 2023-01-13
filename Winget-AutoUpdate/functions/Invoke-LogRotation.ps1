@@ -69,6 +69,7 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
                         }
                     }
                 }
+                Return $True
             }
         }
     }

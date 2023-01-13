@@ -329,12 +329,29 @@ Function Get-Policies {
                 $ChangedSettings++
             }
 
+            if ($null -ne $($WAUPolicies.WAU_MaxLogFiles) -and ($($WAUPolicies.WAU_MaxLogFiles) -ne $($WAUConfig.WAU_MaxLogFiles))) {
+                New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value $($WAUPolicies.WAU_MaxLogFiles.TrimEnd(" ", "\", "/")) -Force | Out-Null
+                $ChangedSettings++
+            }
+            elseif ($null -eq $($WAUPolicies.WAU_MaxLogFiles) -and $($WAUConfig.WAU_MaxLogFiles) -ne 3) {
+                New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value 3 -Force | Out-Null
+                $ChangedSettings++
+            }
+
+            if ($null -ne $($WAUPolicies.WAU_MaxLogSize) -and ($($WAUPolicies.WAU_MaxLogSize) -ne $($WAUConfig.WAU_MaxLogSize))) {
+                New-ItemProperty $regPath -Name WAU_MaxLogSize -Value $($WAUPolicies.WAU_MaxLogSize.TrimEnd(" ", "\", "/")) -Force | Out-Null
+                $ChangedSettings++
+            }
+            elseif ($null -eq $($WAUPolicies.WAU_MaxLogSize) -and $($WAUConfig.WAU_MaxLogSize) -ne 1048576) {
+                New-ItemProperty $regPath -Name WAU_MaxLogSize -Value 1048576 -Force | Out-Null
+                $ChangedSettings++
+            }
+
             Write-Log "Changed settings: $ChangedSettings" "Yellow"
             
             #Get WAU Configurations after Policies change
             $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
         }
     }
-
-    Return
+    Return $ChangedSettings
 }

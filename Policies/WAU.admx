@@ -319,5 +319,19 @@
         <decimal value="0" />
       </disabledValue>
     </policy>
+    <policy name="MaxLogFiles_Name" class="Machine" displayName="$(string.MaxLogFiles_Name)" explainText="$(string.MaxLogFiles_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.MaxLogFiles)" >
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <text id="MaxLogFiles" valueName="WAU_MaxLogFiles" />
+      </elements>
+    </policy>
+    <policy name="MaxLogSize_Name" class="Machine" displayName="$(string.MaxLogSize_Name)" explainText="$(string.MaxLogSize_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.MaxLogSize)" >
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <text id="MaxLogSize" valueName="WAU_MaxLogSize" />
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>

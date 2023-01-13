@@ -73,6 +73,16 @@ You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
 **-Silent**  
 Install Winget-AutoUpdate and prerequisites silently.
 
+**-MaxLogFiles**  
+Specify number of allowed log files.  
+Default is 3 of 0-99:  
+Setting MaxLogFiles to 0 don't delete any old archived log files.  
+Setting it to 1 keeps the original one and just let it grow.
+
+**-MaxLogSize**  
+Specify the size of the log file in bytes before rotating.  
+Default is 1048576 = 1 MB
+
 **-WingetUpdatePath**  
 Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
 

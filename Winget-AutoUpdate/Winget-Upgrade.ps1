@@ -22,7 +22,11 @@ if ($IsSystem) {
     Write-Log "Running in System context"
 
     #Get and set Domain/Local Policies (GPO)
-    $ChangedSettings = Get-Policies
+    $ActivateGPOManagement, $ChangedSettings = Get-Policies
+    if ($null -ne $ChangedSettings -and $ActivateGPOManagement) {
+        Write-Log "Activated WAU GPO Management detected, comparing..."
+        Write-Log "Changed settings: $ChangedSettings" "Yellow"
+    }
 
     # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
     $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles
@@ -43,17 +47,20 @@ if ($IsSystem) {
     }
 
     #LogRotation if System
-    $Rotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
-    if ($Rotate) {
+    $Exception, $Rotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
+    if ($Exception -eq $True) {
+        Write-Log "An Exception occured during Log Rotation..."
+    }
+    if ($Rotate -eq $True) {
         #Log Header
         $Log = "`n##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
-        $Log | Write-host
         $Log | out-file -filepath $LogFile -Append
         Write-Log "Running in System context"
-        if ($null -ne $ChangedSettings) {
+        if ($null -ne $ChangedSettings -and $ActivateGPOManagement) {
             Write-Log "Activated WAU GPO Management detected, comparing..."
             Write-Log "Changed settings: $ChangedSettings" "Yellow"
         }
+        Write-Log "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
     }
 
     #Run post update actions if necessary if run as System

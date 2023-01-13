@@ -48,7 +48,7 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
                     Set-Acl -Path $LogFile -AclObject $NewAcl
                 }
                 catch {
-                    Write-Log $_.Exception.Message
+                    Return $True, $False
                 }
 
                 # if MaxLogFiles is 0 don't delete any old archived log files
@@ -69,12 +69,11 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
                         }
                     }
                 }
-                Return $True
+                Return $False, $True
             }
         }
     }
     catch {
-        Write-Log "`n`n##################################################`n#     CHECK FOR LOG ROTATION - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
-        Write-Log $_.Exception.Message
+        Return $True, $False
     }
 }

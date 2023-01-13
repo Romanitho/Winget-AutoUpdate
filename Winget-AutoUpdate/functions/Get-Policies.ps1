@@ -6,7 +6,6 @@ Function Get-Policies {
     if ($WAUPolicies) {
         if ($($WAUPolicies.WAU_ActivateGPOManagement -eq 1)) {
             $ChangedSettings = 0
-            Write-Log "Activated WAU GPO Management detected, comparing..."
             $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
             if ($null -ne $($WAUPolicies.WAU_BypassListForUsers) -and ($($WAUPolicies.WAU_BypassListForUsers) -ne $($WAUConfig.WAU_BypassListForUsers))) {
                 New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value $($WAUPolicies.WAU_BypassListForUsers) -PropertyType DWord -Force | Out-Null
@@ -347,11 +346,9 @@ Function Get-Policies {
                 $ChangedSettings++
             }
 
-            Write-Log "Changed settings: $ChangedSettings" "Yellow"
-            
             #Get WAU Configurations after Policies change
             $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
         }
     }
-    Return $ChangedSettings
+    Return $($WAUPolicies.WAU_ActivateGPOManagement), $ChangedSettings
 }

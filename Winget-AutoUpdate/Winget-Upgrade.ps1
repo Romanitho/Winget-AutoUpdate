@@ -23,9 +23,14 @@ if ($IsSystem) {
 
     #Get and set Domain/Local Policies (GPO)
     $ActivateGPOManagement, $ChangedSettings = Get-Policies
-    if ($null -ne $ChangedSettings -and $ActivateGPOManagement) {
+    if ($ActivateGPOManagement) {
         Write-Log "Activated WAU GPO Management detected, comparing..."
-        Write-Log "Changed settings: $ChangedSettings" "Yellow"
+        if ($null -ne $ChangedSettings -and $ChangedSettings -ne 0) {
+            Write-Log "Changed settings detected and applied" "Yellow"
+        }
+        else {
+            Write-Log "No Changed settings detected" "Yellow"
+        }
     }
 
     # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
@@ -56,9 +61,14 @@ if ($IsSystem) {
         $Log = "`n##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
         $Log | out-file -filepath $LogFile -Append
         Write-Log "Running in System context"
-        if ($null -ne $ChangedSettings -and $ActivateGPOManagement) {
+        if ($ActivateGPOManagement) {
             Write-Log "Activated WAU GPO Management detected, comparing..."
-            Write-Log "Changed settings: $ChangedSettings" "Yellow"
+            if ($null -ne $ChangedSettings -and $ChangedSettings -ne 0) {
+                Write-Log "Changed settings detected and applied" "Yellow"
+            }
+            else {
+                Write-Log "No Changed settings detected" "Yellow"
+            }
         }
         Write-Log "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
     }

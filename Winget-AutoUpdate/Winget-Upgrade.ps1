@@ -58,7 +58,7 @@ if ($IsSystem) {
     }
     if ($Rotate -eq $True) {
         #Log Header
-        $Log = "`n##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
+        $Log = "##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
         $Log | out-file -filepath $LogFile -Append
         Write-Log "Running in System context"
         if ($ActivateGPOManagement) {

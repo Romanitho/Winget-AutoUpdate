@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources revision="4.4" schemaVersion="1.0" >
+  <displayName/>
+  <description/>
+  <resources >
+    <stringTable >
+      <string id="WAU">Winget-AutoUpdate</string>
+      <string id="SUPPORTED_WAU_1_15_3">Winget-AutoUpdate version 1.15.3 or later</string>
+      <string id="ActivateGPOManagement_Name">Activate WAU GPO Management</string>
+      <string id="ActivateGPOManagement_Explain">This policy setting is an overriding toggle for GPO Management of Winget-AutoUpdate.</string>
+      <string id="BypassListForUsers_Name">Bypass Black/White list for User</string>
+      <string id="BypassListForUsers_Explain">This policy setting specifies whether to Bypass Black/White list when run in user context or not.
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="DisableAutoUpdate_Name">Disable WAU AutoUpdate</string>
+      <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to Disable WAU AutoUpdate or not:
+By default, WAU AutoUpdate is enabled.
+It will not overwrite the configurations, icons (if personalised), excluded_apps list...
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="DoNotRunOnMetered_Name">Run WAU on metered connection</string>
+      <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to Run WAU on metered connection or not.
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="UpdatePrerelease_Name">Update WAU to PreRelease versions</string>
+      <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU to PreRelease versions or not (via WAU AutoUpdate).
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
+      <string id="UseWhiteList_Explain">This policy setting specifies whether to use a WhiteList or not.
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/Local)</string>
+      <string id="ListPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external lists other than the default.
+      
+If this policy is disabled or not configured, the default ListPath is used (WAU InstallLocation).</string>
+      <string id="ModsPath_Name">Get Mods from external Path (URL/UNC/Local)</string>
+      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external mods other than the default.
+      
+If this policy is disabled or not configured, the default ModsPath is used (WAU InstallLocation).</string>
+      <string id="NotificationLevel_Name">Notification Level</string>
+      <string id="NotificationLevel_Explain">If this policy is enabled, you can configure the Notification Level:
+1. Full (Default)
+2. SuccessOnly
+3. None
+
+If this policy is not configured or disabled, Notification Level: (1. Full).</string>
+      <string id="NotificationLevel_Full">1. Full (Default)</string>
+      <string id="NotificationLevel_SuccessOnly">2. SuccessOnly</string>
+      <string id="NotificationLevel_None">3. None</string>
+      <string id="UpdatesInterval_Name">Updates Interval</string>
+      <string id="UpdatesInterval_Explain">If this policy is enabled, you can configure the Updates Interval:
+1. Daily (Default)
+2. BiDaily
+3. Weekly
+4. BiWeekly
+5. Monthly
+6. Never (e.g. in combination with 'Updates at Logon')
+
+If this policy is not configured or disabled, Updates Interval: (1. Daily).</string>
+      <string id="UpdatesInterval_Daily">1. Daily (Default)</string>
+      <string id="UpdatesInterval_BiDaily">2. BiDaily</string>
+      <string id="UpdatesInterval_Weekly">3. Weekly</string>
+      <string id="UpdatesInterval_BiWeekly">4. BiWeekly</string>
+      <string id="UpdatesInterval_Monthly">5. Monthly</string>
+      <string id="UpdatesInterval_Never">6. Never (e.g. in combination with 'Updates Interval')</string>
+      <string id="UpdatesAtLogon_Name">Updates at Logon</string>
+      <string id="UpdatesAtLogon_Explain">This policy setting specifies whether to set WAU to run at user logon or not.
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="UpdatesAtTime_Name">Updates at Time</string>
+      <string id="UpdatesAtTime_Explain">If this policy is enabled, you can configure the Sheduled Task Update time:
+From 01:00 to 24:00 (Military/24 Hour Time)
+
+If this policy is not configured or disabled, Updates at Time: (06:00 AM).</string>
+      <string id="UpdatesAtTime01">01:00 AM</string>
+      <string id="UpdatesAtTime02">02:00</string>
+      <string id="UpdatesAtTime03">03:00</string>
+      <string id="UpdatesAtTime04">04:00</string>
+      <string id="UpdatesAtTime05">05:00</string>
+      <string id="UpdatesAtTime06">06:00 (Default)</string>
+      <string id="UpdatesAtTime07">07:00</string>
+      <string id="UpdatesAtTime08">08:00</string>
+      <string id="UpdatesAtTime09">09:00</string>
+      <string id="UpdatesAtTime10">10:00</string>
+      <string id="UpdatesAtTime11">11:00</string>
+      <string id="UpdatesAtTime12">12:00</string>
+      <string id="UpdatesAtTime13">13:00 PM</string>
+      <string id="UpdatesAtTime14">14:00</string>
+      <string id="UpdatesAtTime15">15:00</string>
+      <string id="UpdatesAtTime16">16:00</string>
+      <string id="UpdatesAtTime17">17:00</string>
+      <string id="UpdatesAtTime18">18:00</string>
+      <string id="UpdatesAtTime19">19:00</string>
+      <string id="UpdatesAtTime20">20:00</string>
+      <string id="UpdatesAtTime21">21:00</string>
+      <string id="UpdatesAtTime22">22:00</string>
+      <string id="UpdatesAtTime23">23:00</string>
+      <string id="UpdatesAtTime24">24:00</string>
+      <string id="UserContext_Name">User context execution</string>
+      <string id="UserContext_Explain">This policy setting specifies whether to enable User context execution or not.
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="DesktopShortcut_Name">Enable Deskop Shortcut</string>
+      <string id="DesktopShortcut_Explain">This policy setting specifies whether to enable a Desktop Shortcut or not:
+WAU - Check for updated Apps
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="StartMenuShortcut_Name">Enable Start Menu Shortcuts</string>
+      <string id="StartMenuShortcut_Explain">This policy setting specifies whether to enable the Start Menu Shortcuts or not:
+WAU - Check for updated Apps
+WAU - Open logs
+WAU - Web Help
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="MaxLogFiles_Name">Log: Number of allowed log files</string>
+      <string id="MaxLogFiles_Explain">If this policy is enabled, you can set a number of allowed log files:
+Setting MaxLogFiles to 0 don't delete any old archived log files, 1 keeps the original one and just let it grow.
+Default number is 3 (0-99)
+
+If this policy is disabled or not configured, the default number is used.</string>
+      <string id="MaxLogSize_Name">Log: Size of the log file in bytes before rotating</string>
+      <string id="MaxLogSize_Explain">If this policy is enabled, you can set the size of the log file in bytes before rotating.
+Default size is 1048576 = 1 MB
+
+If this policy is disabled or not configured, the default size is used.</string>
+    </stringTable>
+    <presentationTable>
+      <presentation id="ListPath">
+        <textBox refId="ListPath">
+          <label>(URL/UNC/Local) Path:</label>
+        </textBox>
+      </presentation>
+      <presentation id="ModsPath">
+        <textBox refId="ModsPath">
+          <label>(URL/UNC/Local) Path:</label>
+        </textBox>
+      </presentation>
+      <presentation id="NotificationLevel">
+        <dropdownList refId="NotificationLevel"/>
+      </presentation>
+      <presentation id="UpdatesInterval">
+        <dropdownList refId="UpdatesInterval"/>
+      </presentation>
+      <presentation id="UpdatesAtTime">
+        <dropdownList refId="UpdatesAtTime"/>
+      </presentation>
+      <presentation id="MaxLogFiles">
+        <textBox refId="MaxLogFiles">
+          <label>Allowed log files:</label>
+        </textBox>
+      </presentation>
+      <presentation id="MaxLogSize">
+        <textBox refId="MaxLogSize">
+          <label>Size of the log file:</label>
+        </textBox>
+      </presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>

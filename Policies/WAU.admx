@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitions revision="4.4" schemaVersion="1.0">
+  <policyNamespaces>
+    <target prefix="WAU" namespace="Romanitho.Policies.WAU"/>
+    <using prefix="Romanitho" namespace="Romanitho.Policies"/>
+  </policyNamespaces>
+  <resources minRequiredRevision="4.4"/>
+  <supportedOn>
+    <definitions>
+      <definition name="SUPPORTED_WAU_1_15_3" displayName="$(string.SUPPORTED_WAU_1_15_3)"/>
+    </definitions>
+  </supportedOn>
+  <categories>
+    <category displayName="$(string.WAU)" name="WAU">
+      <parentCategory ref="Romanitho:Cat_Romanitho"/>
+    </category>
+  </categories>
+  <policies>
+  	<policy name="ActivateGPOManagement_Enable" class="Machine" displayName="$(string.ActivateGPOManagement_Name)" explainText="$(string.ActivateGPOManagement_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_ActivateGPOManagement">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="BypassListForUsers_Enable" class="Machine" displayName="$(string.BypassListForUsers_Name)" explainText="$(string.BypassListForUsers_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_BypassListForUsers">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="DisableAutoUpdate_Enable" class="Machine" displayName="$(string.DisableAutoUpdate_Name)" explainText="$(string.DisableAutoUpdate_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_DisableAutoUpdate">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="DoNotRunOnMetered_Enable" class="Machine" displayName="$(string.DoNotRunOnMetered_Name)" explainText="$(string.DoNotRunOnMetered_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_DoNotRunOnMetered">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="0" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="1" />
+      </disabledValue>
+    </policy>
+  	<policy name="UpdatePrerelease_Enable" class="Machine" displayName="$(string.UpdatePrerelease_Name)" explainText="$(string.UpdatePrerelease_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UpdatePrerelease">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="UseWhiteList_Enable" class="Machine" displayName="$(string.UseWhiteList_Name)" explainText="$(string.UseWhiteList_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UseWhiteList">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+    <policy name="ListPath_Enable" class="Machine" displayName="$(string.ListPath_Name)" explainText="$(string.ListPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.ListPath)" >
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <text id="ListPath" valueName="WAU_ListPath" />
+      </elements>
+    </policy>
+    <policy name="ModsPath_Enable" class="Machine" displayName="$(string.ModsPath_Name)" explainText="$(string.ModsPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.ModsPath)" >
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <text id="ModsPath" valueName="WAU_ModsPath" />
+      </elements>
+    </policy>
+    <policy name="NotificationLevel_Enable" class="Machine" displayName="$(string.NotificationLevel_Name)" explainText="$(string.NotificationLevel_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.NotificationLevel)">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <enum id="NotificationLevel" valueName="WAU_NotificationLevel">
+          <item displayName="$(string.NotificationLevel_Full)">
+            <value>
+              <string>Full</string>
+            </value>
+          </item>
+          <item displayName="$(string.NotificationLevel_SuccessOnly)">
+            <value>
+              <string>SuccessOnly</string>
+            </value>
+          </item>
+          <item displayName="$(string.NotificationLevel_None)">
+            <value>
+              <string>None</string>
+            </value>
+          </item>
+        </enum>
+      </elements>
+    </policy>
+    <policy name="UpdatesInterval_Enable" class="Machine" displayName="$(string.UpdatesInterval_Name)" explainText="$(string.UpdatesInterval_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.UpdatesInterval)">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <enum id="UpdatesInterval" valueName="WAU_UpdatesInterval">
+          <item displayName="$(string.UpdatesInterval_Daily)">
+            <value>
+              <string>Daily</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_BiDaily)">
+            <value>
+              <string>BiDaily</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_Weekly)">
+            <value>
+              <string>Weekly</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_BiWeekly)">
+            <value>
+              <string>BiWeekly</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_Monthly)">
+            <value>
+              <string>Monthly</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesInterval_Never)">
+            <value>
+              <string>Never</string>
+            </value>
+          </item>
+        </enum>
+      </elements>
+    </policy>
+  	<policy name="UpdatesAtLogon_Enable" class="Machine" displayName="$(string.UpdatesAtLogon_Name)" explainText="$(string.UpdatesAtLogon_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UpdatesAtLogon">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+    <policy name="UpdatesAtTime_Enable" class="Machine" displayName="$(string.UpdatesAtTime_Name)" explainText="$(string.UpdatesAtTime_Explain)" presentation="$(presentation.UpdatesAtTime)" key="Software\Policies\Romanitho\Winget-AutoUpdate">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <enum id="UpdatesAtTime" valueName="WAU_UpdatesAtTime">
+          <item displayName="$(string.UpdatesAtTime01)">
+            <value>
+              <string>01:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime02)">
+            <value>
+              <string>02:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime03)">
+            <value>
+              <string>03:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime04)">
+            <value>
+              <string>04:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime05)">
+            <value>
+              <string>05:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime06)">
+            <value>
+              <string>06:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime07)">
+            <value>
+              <string>07:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime08)">
+            <value>
+              <string>08:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime09)">
+            <value>
+              <string>09:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime10)">
+            <value>
+              <string>10:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime11)">
+            <value>
+              <string>11:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime12)">
+            <value>
+              <string>12:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime13)">
+            <value>
+              <string>13:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime14)">
+            <value>
+              <string>14:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime15)">
+            <value>
+              <string>15:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime16)">
+            <value>
+              <string>16:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime17)">
+            <value>
+              <string>17:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime18)">
+            <value>
+              <string>18:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime19)">
+            <value>
+              <string>19:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime20)">
+            <value>
+              <string>20:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime21)">
+            <value>
+              <string>21:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime22)">
+            <value>
+              <string>22:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime23)">
+            <value>
+              <string>23:00:00</string>
+            </value>
+          </item>
+          <item displayName="$(string.UpdatesAtTime24)">
+            <value>
+              <string>24:00:00</string>
+            </value>
+          </item>
+        </enum>
+      </elements>
+    </policy>
+  	<policy name="UserContext_Enable" class="Machine" displayName="$(string.UserContext_Name)" explainText="$(string.UserContext_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UserContext">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="DesktopShortcut_Enable" class="Machine" displayName="$(string.DesktopShortcut_Name)" explainText="$(string.DesktopShortcut_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_DesktopShortcut">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+  	<policy name="StartMenuShortcut_Enable" class="Machine" displayName="$(string.StartMenuShortcut_Name)" explainText="$(string.StartMenuShortcut_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_StartMenuShortcut">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+    <policy name="MaxLogFiles_Name" class="Machine" displayName="$(string.MaxLogFiles_Name)" explainText="$(string.MaxLogFiles_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.MaxLogFiles)" >
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <text id="MaxLogFiles" valueName="WAU_MaxLogFiles" />
+      </elements>
+    </policy>
+    <policy name="MaxLogSize_Name" class="Machine" displayName="$(string.MaxLogSize_Name)" explainText="$(string.MaxLogSize_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.MaxLogSize)" >
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_15_3"/>
+      <elements>
+        <text id="MaxLogSize" valueName="WAU_MaxLogSize" />
+      </elements>
+    </policy>
+  </policies>
+</policyDefinitions>

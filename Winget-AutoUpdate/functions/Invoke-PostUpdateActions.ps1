@@ -43,6 +43,16 @@ function Invoke-PostUpdateActions {
         Write-Log "-> Notification level setting was missing. Fixed with 'Full' option."
     }
 
+    #Set WAU_MaxLogFiles/WAU_MaxLogSize if not set
+    $MaxLogFiles = Get-ItemProperty $regPath -Name WAU_MaxLogFiles -ErrorAction SilentlyContinue
+    if (!$MaxLogFiles) {
+        New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value 3 -PropertyType DWord -Force | Out-Null
+        New-ItemProperty $regPath -Name WAU_MaxLogSize -Value 1048576 -PropertyType DWord -Force | Out-Null
+
+        #log
+        Write-Log "-> MaxLogFiles/MaxLogSize setting was missing. Fixed with 3/1048576 (in bytes, default is 1048576 = 1 MB)."
+    }
+
     #Convert about.xml if exists (previous WAU versions) to reg
     $WAUAboutPath = "$WorkingDir\config\about.xml"
     if (test-path $WAUAboutPath) {

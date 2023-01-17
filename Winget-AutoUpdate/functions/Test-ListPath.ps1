@@ -30,29 +30,41 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
                     $wc.DownloadFile($ExternalList, $LocalList)
                 }
                 catch {
+                    $Script:ReachNoPath = $True
                     return $False
                 }
                 return $true
             }
         }
         catch {
+            $Script:ReachNoPath = $True
             return $False
         }
     }
     # If path is UNC or local
     else {
-        if (Test-Path -Path $ExternalList -PathType leaf) {
-            $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+        if (Test-Path -Path $ExternalList) {
+            try {
+                $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+            }
+            catch {
+                $Script:ReachNoPath = $True
+                return $False
+            }
             if ($dateExternal -gt $dateLocal) {
                 try {
                     Copy-Item $ExternalList -Destination $LocalList -Force
                 }
                 catch {
+                    $Script:ReachNoPath = $True
                     return $False
                 }
-                return $true
+                return $True
             }
         }
+        else {
+            $Script:ReachNoPath = $True
+        }
+        return $False
     }
-    return $false
 }

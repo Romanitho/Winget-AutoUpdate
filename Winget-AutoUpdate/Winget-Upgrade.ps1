@@ -14,26 +14,75 @@ $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsS
 #Run log initialisation function
 Start-Init
 
-#Log running context
-if ($IsSystem) {
-    Write-Log "Running in System context"
-}
-else {
-    Write-Log "Running in User context"
-}
-
 #Get WAU Configurations
 $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
-#Run post update actions if necessary
-if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {
-    Invoke-PostUpdateActions
-}
-
-#Run Scope Machine funtion if run as system
+#Log running context and more...
 if ($IsSystem) {
+    Write-Log "Running in System context"
+
+    #Get and set Domain/Local Policies (GPO)
+    $ActivateGPOManagement, $ChangedSettings = Get-Policies
+    if ($ActivateGPOManagement) {
+        Write-Log "Activated WAU GPO Management detected, comparing..."
+        if ($null -ne $ChangedSettings -and $ChangedSettings -ne 0) {
+            Write-Log "Changed settings detected and applied" "Yellow"
+        }
+        else {
+            Write-Log "No Changed settings detected" "Yellow"
+        }
+    }
+
+    # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
+    $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles
+    if ($null -eq $MaxLogFiles) {
+        [int32] $MaxLogFiles = 3
+    }
+    else {
+        [int32] $MaxLogFiles = $MaxLogFiles
+    }
+    
+    # Maximum size of log file.
+    $MaxLogSize = $WAUConfig.WAU_MaxLogSize
+    if (!$MaxLogSize) {
+        [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
+    }
+    else {
+        [int64] $MaxLogSize = $MaxLogSize
+    }
+
+    #LogRotation if System
+    $Exception, $Rotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
+    if ($Exception -eq $True) {
+        Write-Log "An Exception occured during Log Rotation..."
+    }
+    if ($Rotate -eq $True) {
+        #Log Header
+        $Log = "##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
+        $Log | out-file -filepath $LogFile -Append
+        Write-Log "Running in System context"
+        if ($ActivateGPOManagement) {
+            Write-Log "Activated WAU GPO Management detected, comparing..."
+            if ($null -ne $ChangedSettings -and $ChangedSettings -ne 0) {
+                Write-Log "Changed settings detected and applied" "Yellow"
+            }
+            else {
+                Write-Log "No Changed settings detected" "Yellow"
+            }
+        }
+        Write-Log "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
+    }
+
+    #Run post update actions if necessary if run as System
+    if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {
+        Invoke-PostUpdateActions
+    }
+    #Run Scope Machine funtion if run as System
     $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\defaultState\settings.json"
     Add-ScopeMachine $SettingsPath
+}
+else {
+    Write-Log "Running in User context"
 }
 
 #Get Notif Locale function
@@ -50,9 +99,9 @@ if (Test-Network) {
         $WAUCurrentVersion = $WAUConfig.DisplayVersion
         Write-Log "WAU current version: $WAUCurrentVersion"
         if ($IsSystem) {
-            #Check if WAU update feature is enabled or not
+            #Check if WAU update feature is enabled or not if run as System
             $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
-            #If yes then check WAU update if System
+            #If yes then check WAU update if run as System
             if ($WAUDisableAutoUpdate -eq 1) {
                 Write-Log "WAU AutoUpdate is Disabled." "Grey"
             }
@@ -71,36 +120,47 @@ if (Test-Network) {
                 }
             }
 
-            #Delete previous list_/winget_error (if they exist) if System
+            #Delete previous list_/winget_error (if they exist) if run as System
             if (Test-Path "$WorkingDir\logs\error.txt") {
                 Remove-Item "$WorkingDir\logs\error.txt" -Force
             }
 
-            #Get External ListPath if System
+            #Get External ListPath if run as System
             if ($WAUConfig.WAU_ListPath) {
-                Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath)"
-                $NewList = Test-ListPath $WAUConfig.WAU_ListPath $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation
+                Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
+                $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                if ($ReachNoPath) {
+                    Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))..." "Red"
+                    $Script:ReachNoPath = $False
+                }
                 if ($NewList) {
-                    Write-Log "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation)" "Yellow"
+                    Write-Log "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
                 }
                 else {
-                    if ((Test-Path "$WorkingDir\included_apps.txt") -or (Test-Path "$WorkingDir\excluded_apps.txt")) {
-                        Write-Log "List is up to date." "Green"
+                    if ($WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\included_apps.txt")) {
+                        Write-Log "List (white) is up to date." "Green"
+                    }
+                    elseif (!$WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\excluded_apps.txt")) {
+                        Write-Log "List (black) is up to date." "Green"
                     }
                     else {
-                        Write-Log "Critical: List doesn't exist, exiting..." "Red"
-                        New-Item "$WorkingDir\logs\error.txt" -Value "List doesn't exist!" -Force
+                        Write-Log "Critical: White/Black List doesn't exist, exiting..." "Red"
+                        New-Item "$WorkingDir\logs\error.txt" -Value "White/Black List doesn't exist!" -Force
                         Exit 1
                     }
                 }
             }
 
-            #Get External ModsPath if System
+            #Get External ModsPath if run as System
             if ($WAUConfig.WAU_ModsPath) {
-                Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath)"
-                $NewMods, $DeletedMods = Test-ModsPath $WAUConfig.WAU_ModsPath $WAUConfig.InstallLocation
+                Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))"
+                $NewMods, $DeletedMods = Test-ModsPath $WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/") $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                if ($ReachNoPath) {
+                    Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))..." "Red"
+                    $Script:ReachNoPath = $False
+                }
                 if ($NewMods -gt 0) {
-                    Write-Log "$NewMods newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation)\mods" "Yellow"
+                    Write-Log "$NewMods newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))\mods" "Yellow"
                 }
                 else {
                     if (Test-Path "$WorkingDir\mods\*.ps1") {
@@ -111,7 +171,7 @@ if (Test-Network) {
                     }
                 }
                 if ($DeletedMods -gt 0) {
-                    Write-Log "$DeletedMods Mods deleted (not externally managed) from local path: $($WAUConfig.InstallLocation)\mods" "Red"
+                    Write-Log "$DeletedMods Mods deleted (not externally managed) from local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))\mods" "Red"
                 }
             }
         }

@@ -44,6 +44,15 @@ $DelFile = @("")
 $CopyFile = ""
 $CopyTo = ""
 
+#Find/Replace text in file
+#Example:
+#$ModsFile = "C:\dummy.txt"
+#$FindText = "brown fox"
+#$ReplaceText = "white fox"
+$ModsFile = ""
+$FindText = ""
+$ReplaceText = ""
+
 #Grant "Modify" for directory/file to "Authenticated Users" - multiple: "dir1","dir2"
 $GrantPath = @("")
 
@@ -77,6 +86,9 @@ if ($DelFile) {
 }
 if ($CopyFile -and $CopyTo) {
     Copy-ModsFile $CopyFile $CopyTo
+}
+if ($ModsFile -and $FindText -and $ReplaceText) {
+    Edit-ModsFile $ModsFile $FindText $ReplaceText
 }
 if ($GrantPath) {
     Grant-ModsPath $GrantPath

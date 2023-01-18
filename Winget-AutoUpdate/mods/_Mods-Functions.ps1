@@ -1,13 +1,19 @@
 #Common shared functions for mods handling
 
-function Invoke-ModsApp ($Run, $RunSwitch, $RunWait) {
+function Invoke-ModsApp ($Run, $RunSwitch, $RunWait, $User) {
     if (Test-Path "$Run") {
-        if (!$RunWait) {
-            Start-Process $Run -ArgumentList $RunSwitch
-        }
-        else {
-            Start-Process $Run -ArgumentList $RunSwitch -Wait
-        }
+	    if (!$RunSwitch) {$RunSwitch = " "}
+	    if (!$User) {
+	      if (!$RunWait) {
+	      	Start-Process $Run -ArgumentList $RunSwitch
+	      }
+	      else {
+	      	Start-Process $Run -ArgumentList $RunSwitch -Wait
+	      }
+	    }
+	    else {
+	    	Start-Process explorer $Run
+	    }
     }
     Return
 }

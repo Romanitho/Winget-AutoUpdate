@@ -1,6 +1,7 @@
 <# ARRAYS/VARIABLES #>
-#App to Run ($RunWait = $False if it shouldn't be waited for)
-$Run = ""
+#App to Run (as SYSTEM)
+#$RunWait = $False if it shouldn't be waited for completion
+$RunSystem = ""
 $RunSwitch = ""
 $RunWait = $True
 
@@ -56,12 +57,16 @@ $ReplaceText = ''
 #Grant "Modify" for directory/file to "Authenticated Users" - multiple: "dir1","dir2"
 $GrantPath = @("")
 
+#App to Run (as current logged-on user)
+$RunUser = ""
+$User = $True
+
 <# FUNCTIONS #>
 . $PSScriptRoot\_Mods-Functions.ps1
 
 <# MAIN #>
-if ($Run) {
-    Invoke-ModsApp $Run $RunSwitch $RunWait
+if ($RunSystem) {
+    Invoke-ModsApp $RunSystem $RunSwitch $RunWait ""
 }
 if ($Proc) {
     Stop-ModsProc $Proc
@@ -92,6 +97,9 @@ if ($File -and $FindText -and $ReplaceText) {
 }
 if ($GrantPath) {
     Grant-ModsPath $GrantPath
+}
+if ($RunUser) {
+    Invoke-ModsApp $RunUser "" "" $User
 }
 
 <# EXTRAS #>

@@ -46,10 +46,10 @@ $CopyTo = ""
 
 #Find/Replace text in file
 #Example:
-#$ModsFile = "C:\dummy.txt"
+#$File = "C:\dummy.txt"
 #$FindText = "brown fox"
 #$ReplaceText = "white fox"
-$ModsFile = ""
+$File = ""
 $FindText = ""
 $ReplaceText = ""
 
@@ -87,8 +87,8 @@ if ($DelFile) {
 if ($CopyFile -and $CopyTo) {
     Copy-ModsFile $CopyFile $CopyTo
 }
-if ($ModsFile -and $FindText -and $ReplaceText) {
-    Edit-ModsFile $ModsFile $FindText $ReplaceText
+if ($File -and $FindText -and $ReplaceText) {
+    Edit-ModsFile $File $FindText $ReplaceText
 }
 if ($GrantPath) {
     Grant-ModsPath $GrantPath

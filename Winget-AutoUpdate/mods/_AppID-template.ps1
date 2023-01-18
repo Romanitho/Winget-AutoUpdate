@@ -47,11 +47,11 @@ $CopyTo = ""
 #Find/Replace text in file
 #Example:
 #$File = "C:\dummy.txt"
-#$FindText = "brown fox"
-#$ReplaceText = "white fox"
+#$FindText = 'brown fox'
+#$ReplaceText = 'white fox'
 $File = ""
-$FindText = ""
-$ReplaceText = ""
+$FindText = ''
+$ReplaceText = ''
 
 #Grant "Modify" for directory/file to "Authenticated Users" - multiple: "dir1","dir2"
 $GrantPath = @("")

@@ -192,9 +192,9 @@ function Copy-ModsFile ($CopyFile, $CopyTo) {
     Return
 }
 
-function Edit-ModsFile ($ModsFile, $FindText, $ReplaceText) {
-    if (Test-Path "$ModsFile") {
-        ((Get-Content -path $ModsFile -Raw) -replace "$FindText","$ReplaceText") | Set-Content -Path $ModsFile -Force -ErrorAction SilentlyContinue | Out-Null
+function Edit-ModsFile ($File, $FindText, $ReplaceText) {
+    if (Test-Path "$File") {
+        ((Get-Content -path $File -Raw) -replace "$FindText","$ReplaceText") | Set-Content -Path $File -Force -ErrorAction SilentlyContinue | Out-Null
     }
     Return
 }

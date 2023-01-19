@@ -127,26 +127,32 @@ if (Test-Network) {
 
             #Get External ListPath if run as System
             if ($WAUConfig.WAU_ListPath) {
-                Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
-                $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
-                if ($ReachNoPath) {
-                    Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))..." "Red"
-                    $Script:ReachNoPath = $False
-                }
-                if ($NewList) {
-                    Write-Log "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
+                if ($($WAUConfig.WAU_ListPath) -eq "GPO") {
+                    Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
+                    $Script:GPOList = $True
                 }
                 else {
-                    if ($WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\included_apps.txt")) {
-                        Write-Log "List (white) is up to date." "Green"
+                    Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
+                    $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                    if ($ReachNoPath) {
+                        Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))..." "Red"
+                        $Script:ReachNoPath = $False
                     }
-                    elseif (!$WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\excluded_apps.txt")) {
-                        Write-Log "List (black) is up to date." "Green"
+                    if ($NewList) {
+                        Write-Log "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
                     }
                     else {
-                        Write-Log "Critical: White/Black List doesn't exist, exiting..." "Red"
-                        New-Item "$WorkingDir\logs\error.txt" -Value "White/Black List doesn't exist!" -Force
-                        Exit 1
+                        if ($WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\included_apps.txt")) {
+                            Write-Log "List (white) is up to date." "Green"
+                        }
+                        elseif (!$WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\excluded_apps.txt")) {
+                            Write-Log "List (black) is up to date." "Green"
+                        }
+                        else {
+                            Write-Log "Critical: White/Black List doesn't exist, exiting..." "Red"
+                            New-Item "$WorkingDir\logs\error.txt" -Value "White/Black List doesn't exist!" -Force
+                            Exit 1
+                        }
                     }
                 }
             }
@@ -174,6 +180,10 @@ if (Test-Network) {
                     Write-Log "$DeletedMods Mods deleted (not externally managed) from local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))\mods" "Red"
                 }
             }
+        }
+
+        if ($($WAUConfig.WAU_ListPath) -eq "GPO") {
+            $Script:GPOList = $True
         }
 
         #Get White or Black list
@@ -221,7 +231,7 @@ if (Test-Network) {
         if ($UseWhiteList) {
             #For each app, notify and update
             foreach ($app in $outdated) {
-                if (($toUpdate -contains $app.Id) -and $($app.Version) -ne "Unknown") {
+                if (($toUpdate -match $app.Id) -and $($app.Version) -ne "Unknown") {
                     Update-App $app
                 }
                 #if current app version is unknown
@@ -238,7 +248,7 @@ if (Test-Network) {
         else {
             #For each app, notify and update
             foreach ($app in $outdated) {
-                if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown") {
+                if (-not ($toSkip -match $app.Id) -and $($app.Version) -ne "Unknown") {
                     Update-App $app
                 }
                 #if current app version is unknown

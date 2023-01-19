@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<policyDefinitionResources revision="4.4" schemaVersion="1.0" >
-  <displayName/>
-  <description/>
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.4" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <displayName>WinGet-AutoUpdate</displayName>
+  <description>WinGet-AutoUpdate GPO Management</description>
   <resources >
     <stringTable >
       <string id="WAU">Winget-AutoUpdate</string>
@@ -26,8 +26,14 @@ If this policy is disabled or not configured, the default is No.</string>
       <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU to PreRelease versions or not (via WAU AutoUpdate).
 
 If this policy is disabled or not configured, the default is No.</string>
+      <string id="BlackList_Name">Application Blacklist</string>
+      <string id="BlackList_Explain">Provide the WinGet IDs of applications you want to exclude.</string>
+
+      <string id="WhiteList_Name">Application Whitelist</string>
+      <string id="WhiteList_Explain">Provide the WinGet IDs of applications you want to include.</string>
+
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
-      <string id="UseWhiteList_Explain">This policy setting specifies whether to use a WhiteList or not.
+      <string id="UseWhiteList_Explain">This policy setting specifies whether to use a Whitelist or not.
 
 If this policy is disabled or not configured, the default is No.</string>
       <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/Local)</string>
@@ -126,6 +132,12 @@ Default size is 1048576 = 1 MB
 If this policy is disabled or not configured, the default size is used.</string>
     </stringTable>
     <presentationTable>
+      <presentation id="BlackList">
+        <listBox refId="BlackList">BlackList:</listBox>
+      </presentation>
+      <presentation id="WhiteList">
+        <listBox refId="WhiteList">WhiteList:</listBox>
+      </presentation>
       <presentation id="ListPath">
         <textBox refId="ListPath">
           <label>(URL/UNC/Local) Path:</label>

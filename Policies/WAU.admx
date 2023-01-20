@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.4" xsi:schemaLocation="" schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions">
+<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.6" xsi:schemaLocation="" schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions">
   <policyNamespaces>
     <target prefix="WAU" namespace="Romanitho.Policies.WAU"/>
   </policyNamespaces>
-  <resources minRequiredRevision="4.4" fallbackCulture="en-us"/>
+  <resources minRequiredRevision="4.6" fallbackCulture="en-us"/>
   <supportedOn>
     <definitions>
       <definition name="SUPPORTED_WAU_1_15_3" displayName="$(string.SUPPORTED_WAU_1_15_3)"/>

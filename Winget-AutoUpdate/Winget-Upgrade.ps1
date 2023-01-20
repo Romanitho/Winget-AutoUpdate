@@ -199,6 +199,7 @@ if (Test-Network) {
 
         #Fix the array if GPO List!
         if ($GPOList) {
+            $toUpdate = $toUpdate.Data
             $toSkip = $toSkip.Data
         }
 

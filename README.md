@@ -97,7 +97,7 @@ Use White List instead of Black List. This setting will not create the "excluded
 
 **-ListPath**  
 Get Black/White List from external Path (**URL/UNC/GPO/Local**) - download/copy to Winget-AutoUpdate installation location if external list is newer.  
-If set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.  
+If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.  
 Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)
 
 **-ModsPath**  

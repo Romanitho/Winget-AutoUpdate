@@ -197,6 +197,11 @@ if (Test-Network) {
             $toSkip = Get-ExcludedApps
         }
 
+        #Fix the array if GPO List!
+        if ($GPOList) {
+            $toSkip = $toSkip.Data
+        }
+
         #Get outdated Winget packages
         Write-Log "Checking application updates on Winget Repository..." "yellow"
         $outdated = Get-WingetOutdatedApps
@@ -231,7 +236,7 @@ if (Test-Network) {
         if ($UseWhiteList) {
             #For each app, notify and update
             foreach ($app in $outdated) {
-                if (($toUpdate -match $app.Id) -and $($app.Version) -ne "Unknown") {
+                if (($toUpdate -contains $app.Id) -and $($app.Version) -ne "Unknown") {
                     Update-App $app
                 }
                 #if current app version is unknown
@@ -248,7 +253,7 @@ if (Test-Network) {
         else {
             #For each app, notify and update
             foreach ($app in $outdated) {
-                if (-not ($toSkip -match $app.Id) -and $($app.Version) -ne "Unknown") {
+                if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown") {
                     Update-App $app
                 }
                 #if current app version is unknown

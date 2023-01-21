@@ -11,7 +11,7 @@ function Get-IncludedApps {
             $AppIDs = [Microsoft.Win32.Registry]::GetValue($Key, $ValueName, $false)
             [PSCustomObject]@{
                 Value = $ValueName
-                Data = $AppIDs
+                Data = $AppIDs.Trim()
             }
         }
 

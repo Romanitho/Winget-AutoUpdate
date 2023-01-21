@@ -48,11 +48,9 @@ jobs:
           VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SPELL_CSPELL_CONFIG_FILE: .github/cspell.json
-          SPELL_MISSPELL_ARGUMENTS: -i "mosquitto"
-          DISABLE_LINTERS: REPOSITORY_SEMGREP,BASH_EXEC,HTML_HTMLHINT
-          DISABLE_ERRORS_LINTERS: SPELL_CSPELL,SPELL_PROSELINT,COPYPASTE_JSCPD,REPOSITORY_DEVSKIM,MARKDOWN_MARKDOWN_LINK_CHECK
+          POWERSHELL_POWERSHELL_CONFIG_FILE: .github/.powershell-psscriptanalyzer.psd1
+          DISABLE_ERRORS_LINTERS: REPOSITORY_DEVSKIM,SPELL_CSPELL,SPELL_PROSELINT,COPYPASTE_JSCPD,MARKDOWN_MARKDOWN_LINK_CHECK
           FILTER_REGEX_EXCLUDE: (.github/workflows/)
-          DISABLE_ERRORS: true
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts

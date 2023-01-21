@@ -4,10 +4,12 @@ function Get-IncludedApps {
 
     if ($GPOList) {
 
-        $Key = 'HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList\'
-        $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList").Property
+        if (Test-Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList") {
 
-        if ($ValueNames) {
+            $Key = 'HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList\'
+
+            $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList").Property
+        
             foreach ($ValueName in $ValueNames) {
                 $AppIDs = [Microsoft.Win32.Registry]::GetValue($Key, $ValueName, $false)
                 [PSCustomObject]@{
@@ -16,9 +18,9 @@ function Get-IncludedApps {
                 }
             }
     
-            return $AppIDs
         }
-        
+        return $AppIDs
+
     }
     elseif (Test-Path "$WorkingDir\included_apps.txt") {
 

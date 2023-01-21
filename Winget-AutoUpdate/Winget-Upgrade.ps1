@@ -127,12 +127,11 @@ if (Test-Network) {
 
             #Get External ListPath if run as System
             if ($WAUConfig.WAU_ListPath) {
+                Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
                 if ($($WAUConfig.WAU_ListPath) -eq "GPO") {
-                    Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
                     $Script:GPOList = $True
                 }
                 else {
-                    Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
                     $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
                     if ($ReachNoPath) {
                         Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))..." "Red"
@@ -197,10 +196,26 @@ if (Test-Network) {
             $toSkip = Get-ExcludedApps
         }
 
-        #Fix the array if GPO List!
+        #Fix and count the array if GPO List as ERROR handling!
         if ($GPOList) {
-            $toUpdate = $toUpdate.Data
-            $toSkip = $toSkip.Data
+            if ($UseWhiteList) {
+                $WhiteApps = $toUpdate.GetUpperBound(0)
+                $toUpdate = $toUpdate.Data
+                if ($null -eq $WhiteApps) {
+                    Write-Log "Critical: White List doesn't exist in GPO, exiting..." "Red"
+                    New-Item "$WorkingDir\logs\error.txt" -Value "White List doesn't exist in GPO!" -Force
+                    Exit 1
+                }
+            }
+            else {
+                $BlackApps = $toSkip.GetUpperBound(0)
+                $toSkip = $toSkip.Data
+                if ($null -eq $BlackApps) {
+                    Write-Log "Critical: Black List doesn't exist in GPO, exiting..." "Red"
+                    New-Item "$WorkingDir\logs\error.txt" -Value "Black List doesn't exist in GPO!" -Force
+                    Exit 1
+                }
+            }
         }
 
         #Get outdated Winget packages

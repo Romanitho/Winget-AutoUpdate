@@ -200,21 +200,21 @@ if (Test-Network) {
         if ($GPOList) {
             if ($UseWhiteList) {
                 $WhiteApps = $toUpdate.GetUpperBound(0)
-                $toUpdate = $toUpdate.Data
                 if ($null -eq $WhiteApps) {
                     Write-Log "Critical: White List doesn't exist in GPO, exiting..." "Red"
                     New-Item "$WorkingDir\logs\error.txt" -Value "White List doesn't exist in GPO!" -Force
                     Exit 1
                 }
+                $toUpdate = $toUpdate.Data
             }
             else {
                 $BlackApps = $toSkip.GetUpperBound(0)
-                $toSkip = $toSkip.Data
                 if ($null -eq $BlackApps) {
                     Write-Log "Critical: Black List doesn't exist in GPO, exiting..." "Red"
                     New-Item "$WorkingDir\logs\error.txt" -Value "Black List doesn't exist in GPO!" -Force
                     Exit 1
                 }
+                $toSkip = $toSkip.Data
             }
         }
 

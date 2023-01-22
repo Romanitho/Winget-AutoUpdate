@@ -187,7 +187,7 @@ The **GPO ADMX/ADML** validated with:
 [Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)  
 Read more in the `README.md` under the directory **Policies**.
 
-![image](https://user-images.githubusercontent.com/102996177/213610844-9e9f93c9-3de9-4b3f-9450-215140c51bb0.png)
+![image](https://user-images.githubusercontent.com/102996177/213897150-7f3b0b39-cee5-4b56-b45a-ae3b8e9b29dd.png)
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

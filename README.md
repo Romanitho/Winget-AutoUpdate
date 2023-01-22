@@ -81,7 +81,7 @@ Setting it to 1 keeps the original one and just let it grow.
 
 **-MaxLogSize**  
 Specify the size of the log file in bytes before rotating.  
-Default is 1048576 = 1 MB
+Default is 1048576 = 1 MB (ca. 8000 lines)
 
 **-WingetUpdatePath**  
 Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).

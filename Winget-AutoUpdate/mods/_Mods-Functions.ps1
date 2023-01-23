@@ -162,7 +162,10 @@ function Remove-ModsLnk ($Lnk) {
 }
 
 function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {
-    if (!Test-Path "$AddKey") {
+    if ($AddKey -like "HKEY_LOCAL_MACHINE*") {
+        $AddKey = $AddKey.replace("HKEY_LOCAL_MACHINE","HKLM:")
+    }
+    if (!(Test-Path "$AddKey")) {
         New-Item $AddKey -Force -ErrorAction SilentlyContinue | Out-Null
     }
     New-ItemProperty $AddKey -Name $AddValue -Value $AddTypeData -PropertyType $AddType -Force | Out-Null
@@ -170,6 +173,9 @@ function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {
 }
 
 function Remove-ModsReg ($DelKey, $DelValue) {
+    if ("$DelKey" -like "HKEY_LOCAL_MACHINE*") {
+        $DelKey = $DelKey.replace("HKEY_LOCAL_MACHINE","HKLM:")
+    }
     if (Test-Path "$DelKey") {
         if (!$DelValue) {
             Remove-Item $DelKey -Recurse -Force -ErrorAction SilentlyContinue | Out-Null

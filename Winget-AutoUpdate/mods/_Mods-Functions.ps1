@@ -173,7 +173,7 @@ function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {
 }
 
 function Remove-ModsReg ($DelKey, $DelValue) {
-    if ("$DelKey" -like "HKEY_LOCAL_MACHINE*") {
+    if ($DelKey -like "HKEY_LOCAL_MACHINE*") {
         $DelKey = $DelKey.replace("HKEY_LOCAL_MACHINE","HKLM:")
     }
     if (Test-Path "$DelKey") {

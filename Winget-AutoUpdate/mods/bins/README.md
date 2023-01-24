@@ -2,7 +2,7 @@ A Directory for placing useful **bins** (**MsiZap.exe** as a really good example
 
 #$RunWait = $False if it shouldn't be waited for completion. Example:
 #$RunSystem = "$PSScriptRoot\bins\MsiZap.exe"
-#$RunSwitch = "tw! {GUID}"
+#$RunSwitch = "tw! `{GUID}`"
 $Run = ""  
 $RunSwitch = ""  
 $RunWait = $True  

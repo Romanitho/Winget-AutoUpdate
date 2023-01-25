@@ -86,8 +86,8 @@ else {
 		if (Test-Path "$WorkingDir\logs\error.txt") {
 			$MessageType = "error"
 			$Critical = Get-Content "$WorkingDir\logs\error.txt" -Raw
-			$Critical = $Critical.Substring(0, [Math]::Min($Critical.Length, 50))
-			$Message = "Critical:`n$Critical ..."
+			$Critical = $Critical.Substring(0, [Math]::Min($Critical.Length, 50)).Trim()
+			$Message = "Critical:`n$Critical..."
 		}
 		else {
 			$MessageType = "success"

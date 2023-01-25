@@ -149,7 +149,7 @@ if (Test-Network) {
                         }
                         else {
                             Write-Log "Critical: White/Black List doesn't exist, exiting..." "Red"
-                            New-Item "$WorkingDir\logs\error.txt" -Value "White/Black List doesn't exist!" -Force
+                            New-Item "$WorkingDir\logs\error.txt" -Value "White/Black List doesn't exist" -Force
                             Exit 1
                         }
                     }
@@ -202,7 +202,7 @@ if (Test-Network) {
                 $WhiteList = $toUpdate.GetUpperBound(0)
                 if ($null -eq $WhiteList) {
                     Write-Log "Critical: Whitelist doesn't exist in GPO, exiting..." "Red"
-                    New-Item "$WorkingDir\logs\error.txt" -Value "Whitelist doesn't exist in GPO!" -Force
+                    New-Item "$WorkingDir\logs\error.txt" -Value "Whitelist doesn't exist in GPO" -Force
                     Exit 1
                 }
                 $toUpdate = $toUpdate.Data
@@ -211,7 +211,7 @@ if (Test-Network) {
                 $BlackList = $toSkip.GetUpperBound(0)
                 if ($null -eq $BlackList) {
                     Write-Log "Critical: Blacklist doesn't exist in GPO, exiting..." "Red"
-                    New-Item "$WorkingDir\logs\error.txt" -Value "Blacklist doesn't exist in GPO!" -Force
+                    New-Item "$WorkingDir\logs\error.txt" -Value "Blacklist doesn't exist in GPO" -Force
                     Exit 1
                 }
                 $toSkip = $toSkip.Data
@@ -308,8 +308,8 @@ if (Test-Network) {
         }
     }
     else {
-        Write-Log "Critical: An error occured, exiting..." "red"
-        New-Item "$WorkingDir\logs\error.txt" -Value "Winget not installed or detected!" -Force
+        Write-Log "Critical: Winget not installed or detected, exiting..." "red"
+        New-Item "$WorkingDir\logs\error.txt" -Value "Winget not installed or detected" -Force
         Exit 1
     }
 }

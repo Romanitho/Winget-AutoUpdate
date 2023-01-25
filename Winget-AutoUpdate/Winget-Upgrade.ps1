@@ -155,7 +155,7 @@ if (Test-Network) {
                     }
                 }
             }
-
+    
             #Get External ModsPath if run as System
             if ($WAUConfig.WAU_ModsPath) {
                 Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))"
@@ -181,7 +181,7 @@ if (Test-Network) {
             }
         }
 
-        if ($($WAUConfig.WAU_ListPath) -eq "GPO") {
+        if (!$IsSystem -and $($WAUConfig.WAU_ListPath) -eq "GPO") {
             $Script:GPOList = $True
         }
 

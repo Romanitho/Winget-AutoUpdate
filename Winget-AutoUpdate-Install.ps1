@@ -185,7 +185,7 @@ function Install-WinGet {
     #Check Package Install
     $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
 
-    #v1.4.10173 = 1.19.10173.0 = 2023.118.406.0
+    #Current: v1.4.10173 = 1.19.10173.0 = 2023.118.406.0
     If ([Version]$TestWinGet.Version -ge "2023.118.406.0") {
 
         Write-Host "WinGet is Installed" -ForegroundColor Green

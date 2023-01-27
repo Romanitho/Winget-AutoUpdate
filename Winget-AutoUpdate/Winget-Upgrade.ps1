@@ -128,10 +128,7 @@ if (Test-Network) {
             #Get External ListPath if run as System
             if ($WAUConfig.WAU_ListPath) {
                 Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
-                if ($($WAUConfig.WAU_ListPath) -eq "GPO") {
-                    $Script:GPOList = $True
-                }
-                else {
+                if ($($WAUConfig.WAU_ListPath) -ne "GPO") {
                     $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
                     if ($ReachNoPath) {
                         Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))..." "Red"
@@ -181,7 +178,7 @@ if (Test-Network) {
             }
         }
 
-        if (!$IsSystem -and $($WAUConfig.WAU_ListPath) -eq "GPO") {
+        if ($($WAUConfig.WAU_ListPath) -eq "GPO") {
             $Script:GPOList = $True
         }
 

@@ -1,0 +1,18 @@
+{
+  "language": "en",
+  "words": [
+    "WAU",
+    "soredake",
+    "msstore"
+  ],
+  "ignorePaths": [
+    ".github/*",
+    ".git",
+    ".gitignore",
+    ".vscodeignore",
+    "*.lock",
+    "*.log",
+    "*.csv",
+    "*.txt"
+  ]
+}

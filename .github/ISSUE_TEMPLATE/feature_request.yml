@@ -1,0 +1,33 @@
+name: Feature request
+description: Suggest an idea for this project
+title: "[Feature Request]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This feature request form is for feature requests only!
+
+        If you have a bug or issue request, please use the bug report template!
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: The request
+      description: >-
+        A clear and concise description of what you want to happen.
+  - type: markdown
+    attributes:
+      value: |
+        # Details
+  - type: textarea
+    attributes:
+      label: Is your feature request related to a problem?
+      render: txt
+      description: >-
+        A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+  - type: textarea
+    attributes:
+      label: Additional information
+      description: >
+        If you have any additional information for us, use the field below.

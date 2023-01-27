@@ -1,0 +1,67 @@
+name: Report an issue
+description: Report an issue with WAU
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue form is for reporting bugs only!
+
+        If you have a feature or enhancement request, please use the feature request template!
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: The problem
+      description: >-
+        Describe the issue you are experiencing here, to communicate to the
+        maintainers. Tell us what you were trying to do and what happened.
+
+        Provide a clear and concise description of what the problem is.
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment
+  - type: input
+    id: version
+    validations:
+      required: true
+    attributes:
+      label: What version of WAU has the issue?
+      placeholder:
+      description: >
+        Can be found in your installed program list.
+  - type: input
+    id: version_windows
+    validations:
+      required: false
+    attributes:
+      label: What version of Windows are you using (ex. Windows 11 22H2)?
+      placeholder:
+      description: >
+        Can be found for example by running a terminal window and entering "systeminfo"
+  - type: input
+    id: version_winget
+    validations:
+      required: true
+    attributes:
+      label: What version of winget are you using?
+      placeholder:
+      description: >
+        Can be found with the command "winget --info"
+  - type: markdown
+    attributes:
+      value: |
+        # Details
+  - type: textarea
+    attributes:
+      label: Log information
+      render: txt
+      description: >-
+        Please enter the relevant log information from the WAU log folder (default: C:\ProgramData\Winget-AutoUpdate\Logs) and / or the relevant log information from winget (can be found with the command "winget --info").
+  - type: textarea
+    attributes:
+      label: Additional information
+      description: >
+        If you have any additional information for us, use the field below.

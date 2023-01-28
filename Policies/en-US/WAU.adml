@@ -27,18 +27,20 @@ If this policy is disabled or not configured, the default is No.</string>
 
 If this policy is disabled or not configured, the default is No.</string>
       <string id="BlackList_Name">Application GPO Blacklist</string>
-      <string id="BlackList_Explain">Provide the WinGet IDs of applications you want to exclude.</string>
+      <string id="BlackList_Explain">Provide the WinGet IDs of applications you want to exclude.
 
+If this policy is disabled or not configured, GPO Blacklist is not used.</string>
       <string id="WhiteList_Name">Application GPO Whitelist</string>
-      <string id="WhiteList_Explain">Provide the WinGet IDs of applications you want to include.</string>
+      <string id="WhiteList_Explain">Provide the WinGet IDs of applications you want to include.
 
+If this policy is disabled or not configured, GPO Whitelist is not used.</string>
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
       <string id="UseWhiteList_Explain">This policy setting specifies whether to use a Whitelist or not.
 
 If this policy is disabled or not configured, the default is No.</string>
       <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/GPO/Local)</string>
       <string id="ListPath_Explain">If this policy is enabled, you can set a (URL/UNC/GPO/Local) Path to external lists other than the default.
-If "Application GPO Blacklist/Whitelist" is set in this GPO the Path should be: GPO
+If "Application GPO Blacklist/Whitelist" is set in this GPO the Path can be: GPO
 
 If this policy is disabled or not configured, the default ListPath is used (WAU InstallLocation).</string>
       <string id="ModsPath_Name">Get Mods from external Path (URL/UNC/Local)</string>

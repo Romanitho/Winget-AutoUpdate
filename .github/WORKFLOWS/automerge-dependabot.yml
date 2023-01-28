@@ -1,0 +1,21 @@
+---
+name: "Dependabot Automerge - Action"
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: DependabotMerge
+    runs-on: ubuntu-latest
+    if: ${{ github.actor == 'dependabot[bot]' && github.event_name == 'pull_request'}} # Detect that the PR author is dependabot
+    steps:
+      - name: Enable auto-merge for Dependabot PRs
+        run: gh pr merge --auto --merge "$PR_URL" # Use Github CLI to merge automatically the PR
+        env:
+          PR_URL: ${{github.event.pull_request.html_url}}
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

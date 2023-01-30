@@ -1,13 +1,19 @@
 #Common shared functions for mods handling
 
-function Invoke-ModsApp ($Run, $RunSwitch, $RunWait) {
+function Invoke-ModsApp ($Run, $RunSwitch, $RunWait, $User) {
     if (Test-Path "$Run") {
-        if (!$RunWait) {
-            Start-Process $Run -ArgumentList $RunSwitch
-        }
-        else {
-            Start-Process $Run -ArgumentList $RunSwitch -Wait
-        }
+	    if (!$RunSwitch) {$RunSwitch = " "}
+	    if (!$User) {
+	      if (!$RunWait) {
+	      	Start-Process $Run -ArgumentList $RunSwitch
+	      }
+	      else {
+	      	Start-Process $Run -ArgumentList $RunSwitch -Wait
+	      }
+	    }
+	    else {
+	    	Start-Process explorer $Run
+	    }
     }
     Return
 }
@@ -156,7 +162,10 @@ function Remove-ModsLnk ($Lnk) {
 }
 
 function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {
-    if (!Test-Path "$AddKey") {
+    if ($AddKey -like "HKEY_LOCAL_MACHINE*") {
+        $AddKey = $AddKey.replace("HKEY_LOCAL_MACHINE","HKLM:")
+    }
+    if (!(Test-Path "$AddKey")) {
         New-Item $AddKey -Force -ErrorAction SilentlyContinue | Out-Null
     }
     New-ItemProperty $AddKey -Name $AddValue -Value $AddTypeData -PropertyType $AddType -Force | Out-Null
@@ -164,6 +173,9 @@ function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {
 }
 
 function Remove-ModsReg ($DelKey, $DelValue) {
+    if ($DelKey -like "HKEY_LOCAL_MACHINE*") {
+        $DelKey = $DelKey.replace("HKEY_LOCAL_MACHINE","HKLM:")
+    }
     if (Test-Path "$DelKey") {
         if (!$DelValue) {
             Remove-Item $DelKey -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
@@ -188,6 +200,13 @@ function Remove-ModsFile ($DelFile) {
 function Copy-ModsFile ($CopyFile, $CopyTo) {
     if (Test-Path "$CopyFile") {
         Copy-Item -Path $CopyFile -Destination $CopyTo -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    Return
+}
+
+function Edit-ModsFile ($File, $FindText, $ReplaceText) {
+    if (Test-Path "$File") {
+        ((Get-Content -path $File -Raw) -replace "$FindText","$ReplaceText") | Set-Content -Path $File -Force -ErrorAction SilentlyContinue | Out-Null
     }
     Return
 }

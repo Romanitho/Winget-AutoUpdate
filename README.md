@@ -81,7 +81,7 @@ Setting it to 1 keeps the original one and just let it grow.
 
 **-MaxLogSize**  
 Specify the size of the log file in bytes before rotating.  
-Default is 1048576 = 1 MB
+Default is 1048576 = 1 MB (ca. 8000 lines)
 
 **-WingetUpdatePath**  
 Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
@@ -96,7 +96,9 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt".
 
 **-ListPath**  
-Get Black/White List from external Path (**URL/UNC/Local**) - download/copy to Winget-AutoUpdate installation location if external list is newer.
+Get Black/White List from external Path (**URL/UNC/GPO/Local**) - download/copy to Winget-AutoUpdate installation location if external list is newer.  
+If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.  
+Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
 **-ModsPath**  
 Get Mods from external Path (**URL/UNC/Local**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  
@@ -185,7 +187,7 @@ The **GPO ADMX/ADML** validated with:
 [Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)  
 Read more in the `README.md` under the directory **Policies**.
 
-![image](https://user-images.githubusercontent.com/102996177/212422844-9366c6aa-ee7a-490f-97f0-bffb5ab146ab.png)
+![image](https://user-images.githubusercontent.com/102996177/213920242-7ff8e2b4-d926-4407-b860-1e5922e29c3e.png)
 
 ## Help
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.

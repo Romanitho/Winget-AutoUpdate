@@ -85,11 +85,15 @@ else {
 		#Test if there was a list_/winget_error
 		if (Test-Path "$WorkingDir\logs\error.txt") {
 			$MessageType = "error"
+			$Critical = Get-Content "$WorkingDir\logs\error.txt" -Raw
+			$Critical = $Critical.Trim()
+			$Critical = $Critical.Substring(0, [Math]::Min($Critical.Length, 50))
+			$Message = "Critical:`n$Critical..."
 		}
 		else {
 			$MessageType = "success"
+			$Message = $NotifLocale.local.outputs.output[9].message
 		}
-		$Message = $NotifLocale.local.outputs.output[9].message
 		Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss
 	}
 	catch {

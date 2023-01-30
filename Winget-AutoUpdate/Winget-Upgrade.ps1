@@ -128,29 +128,31 @@ if (Test-Network) {
             #Get External ListPath if run as System
             if ($WAUConfig.WAU_ListPath) {
                 Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
-                $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
-                if ($ReachNoPath) {
-                    Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))..." "Red"
-                    $Script:ReachNoPath = $False
-                }
-                if ($NewList) {
-                    Write-Log "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
-                }
-                else {
-                    if ($WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\included_apps.txt")) {
-                        Write-Log "List (white) is up to date." "Green"
+                if ($($WAUConfig.WAU_ListPath) -ne "GPO") {
+                    $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                    if ($ReachNoPath) {
+                        Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))..." "Red"
+                        $Script:ReachNoPath = $False
                     }
-                    elseif (!$WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\excluded_apps.txt")) {
-                        Write-Log "List (black) is up to date." "Green"
+                    if ($NewList) {
+                        Write-Log "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
                     }
                     else {
-                        Write-Log "Critical: White/Black List doesn't exist, exiting..." "Red"
-                        New-Item "$WorkingDir\logs\error.txt" -Value "White/Black List doesn't exist!" -Force
-                        Exit 1
+                        if ($WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\included_apps.txt")) {
+                            Write-Log "List (white) is up to date." "Green"
+                        }
+                        elseif (!$WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\excluded_apps.txt")) {
+                            Write-Log "List (black) is up to date." "Green"
+                        }
+                        else {
+                            Write-Log "Critical: White/Black List doesn't exist, exiting..." "Red"
+                            New-Item "$WorkingDir\logs\error.txt" -Value "White/Black List doesn't exist" -Force
+                            Exit 1
+                        }
                     }
                 }
             }
-
+    
             #Get External ModsPath if run as System
             if ($WAUConfig.WAU_ModsPath) {
                 Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))"
@@ -176,6 +178,10 @@ if (Test-Network) {
             }
         }
 
+        if ($($WAUConfig.WAU_ListPath) -eq "GPO") {
+            $Script:GPOList = $True
+        }
+
         #Get White or Black list
         if ($WAUConfig.WAU_UseWhiteList -eq 1) {
             Write-Log "WAU uses White List config"
@@ -185,6 +191,28 @@ if (Test-Network) {
         else {
             Write-Log "WAU uses Black List config"
             $toSkip = Get-ExcludedApps
+        }
+
+        #Fix and count the array if GPO List as ERROR handling!
+        if ($GPOList) {
+            if ($UseWhiteList) {
+                $WhiteList = $toUpdate.GetUpperBound(0)
+                if ($null -eq $WhiteList) {
+                    Write-Log "Critical: Whitelist doesn't exist in GPO, exiting..." "Red"
+                    New-Item "$WorkingDir\logs\error.txt" -Value "Whitelist doesn't exist in GPO" -Force
+                    Exit 1
+                }
+                $toUpdate = $toUpdate.Data
+            }
+            else {
+                $BlackList = $toSkip.GetUpperBound(0)
+                if ($null -eq $BlackList) {
+                    Write-Log "Critical: Blacklist doesn't exist in GPO, exiting..." "Red"
+                    New-Item "$WorkingDir\logs\error.txt" -Value "Blacklist doesn't exist in GPO" -Force
+                    Exit 1
+                }
+                $toSkip = $toSkip.Data
+            }
         }
 
         #Get outdated Winget packages
@@ -277,8 +305,8 @@ if (Test-Network) {
         }
     }
     else {
-        Write-Log "Critical: An error occured, exiting..." "red"
-        New-Item "$WorkingDir\logs\error.txt" -Value "Winget not installed or detected!" -Force
+        Write-Log "Critical: Winget not installed or detected, exiting..." "red"
+        New-Item "$WorkingDir\logs\error.txt" -Value "Winget not installed or detected" -Force
         Exit 1
     }
 }

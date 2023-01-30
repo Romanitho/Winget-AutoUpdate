@@ -1,6 +1,9 @@
 <# ARRAYS/VARIABLES #>
-#App to Run ($RunWait = $False if it shouldn't be waited for)
-$Run = ""
+#App to Run (as SYSTEM)
+#$RunWait = $False if it shouldn't be waited for completion. Example:
+#$RunSystem = "$PSScriptRoot\bins\MsiZap.exe"
+#$RunSwitch = "tw! {GUID}"
+$RunSystem = ""
 $RunSwitch = ""
 $RunWait = $True
 
@@ -44,15 +47,28 @@ $DelFile = @("")
 $CopyFile = ""
 $CopyTo = ""
 
+#Find/Replace text in file
+#Example:
+#$File = "C:\dummy.txt"
+#$FindText = 'brown fox'
+#$ReplaceText = 'white fox'
+$File = ""
+$FindText = ''
+$ReplaceText = ''
+
 #Grant "Modify" for directory/file to "Authenticated Users" - multiple: "dir1","dir2"
 $GrantPath = @("")
+
+#App to Run (as current logged-on user)
+$RunUser = ""
+$User = $True
 
 <# FUNCTIONS #>
 . $PSScriptRoot\_Mods-Functions.ps1
 
 <# MAIN #>
-if ($Run) {
-    Invoke-ModsApp $Run $RunSwitch $RunWait
+if ($RunSystem) {
+    Invoke-ModsApp $RunSystem $RunSwitch $RunWait ""
 }
 if ($Proc) {
     Stop-ModsProc $Proc
@@ -78,8 +94,14 @@ if ($DelFile) {
 if ($CopyFile -and $CopyTo) {
     Copy-ModsFile $CopyFile $CopyTo
 }
+if ($File -and $FindText -and $ReplaceText) {
+    Edit-ModsFile $File $FindText $ReplaceText
+}
 if ($GrantPath) {
     Grant-ModsPath $GrantPath
+}
+if ($RunUser) {
+    Invoke-ModsApp $RunUser "" "" $User
 }
 
 <# EXTRAS #>

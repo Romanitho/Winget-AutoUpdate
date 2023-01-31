@@ -171,6 +171,9 @@ If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** 
 You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature.  
 Read more in the `README.md` under the directory **mods**.
 
+Share your mods with the community:  
+https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods
+
 ### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.txt) that you can place under the **mods** folder.
 > Example:  

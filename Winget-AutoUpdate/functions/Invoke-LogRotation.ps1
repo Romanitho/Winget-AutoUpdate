@@ -48,7 +48,7 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
                     Set-Acl -Path $LogFile -AclObject $NewAcl
                 }
                 catch {
-                    Return $True, $False
+                    Return $True
                 }
 
                 # if MaxLogFiles is 0 don't delete any old archived log files
@@ -69,11 +69,27 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
                         }
                     }
                 }
-                Return $False, $True
+
+                #Log Header
+                $Log = "##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
+                $Log | out-file -filepath $LogFile -Append
+                Write-Log "Running in System context"
+                if ($ActivateGPOManagement) {
+                    Write-Log "Activated WAU GPO Management detected, comparing..."
+                    if ($null -ne $ChangedSettings -and $ChangedSettings -ne 0) {
+                        Write-Log "Changed settings detected and applied" "Yellow"
+                    }
+                    else {
+                        Write-Log "No Changed settings detected" "Yellow"
+                    }
+                }
+                Write-Log "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
+
+                Return $False
             }
         }
     }
     catch {
-        Return $True, $False
+        Return $True
     }
 }

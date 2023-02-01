@@ -175,7 +175,7 @@ Share your mods with the community:
 https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods
 
 ### Winget native parameters
-Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.txt) that you can place under the **mods** folder.
+Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
 > Example:  
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 

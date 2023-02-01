@@ -277,8 +277,7 @@ if (Test-Network) {
             $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
             If ($explorerprocesses.Count -eq 0)
             {
-                Write-Log "No explorer process found / Nobody interactively logged on.. ..exiting"
-                Exit 0
+                Write-Log "No explorer process found / Nobody interactively logged on..."
             }
             Else
             {
@@ -296,7 +295,7 @@ if (Test-Network) {
                     Exit 0
                 }
                 elseif (!$UserScheduledTask){
-                    Write-Log "User context execution not installed"
+                    Write-Log "User context execution not installed..."
                 }
             }        
         }
@@ -304,6 +303,7 @@ if (Test-Network) {
     else {
         Write-Log "Critical: Winget not installed or detected, exiting..." "red"
         New-Item "$WorkingDir\logs\error.txt" -Value "Winget not installed or detected" -Force
+        Write-Log "End of process!" "Cyan"
         Exit 1
     }
 }

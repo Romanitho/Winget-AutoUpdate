@@ -52,8 +52,8 @@ if ($IsSystem) {
     }
 
     #LogRotation if System
-    $Exception = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
-    if ($Exception -eq $True) {
+    $LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
+    if ($LogRotate -eq $False) {
         Write-Log "An Exception occured during Log Rotation..."
     }
 

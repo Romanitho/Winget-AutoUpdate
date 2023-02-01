@@ -48,7 +48,7 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
                     Set-Acl -Path $LogFile -AclObject $NewAcl
                 }
                 catch {
-                    Return $True
+                    Return $False
                 }
 
                 # if MaxLogFiles is 0 don't delete any old archived log files
@@ -85,11 +85,11 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
                 }
                 Write-Log "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
 
-                Return $False
+                Return $True
             }
         }
     }
     catch {
-        Return $True
+        Return $False
     }
 }

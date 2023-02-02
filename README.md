@@ -75,13 +75,13 @@ Install Winget-AutoUpdate and prerequisites silently.
 
 **-MaxLogFiles**  
 Specify number of allowed log files.  
-Default is 3 of 0-99:  
+Default is 3 out of 0-99:  
 Setting MaxLogFiles to 0 don't delete any old archived log files.  
 Setting it to 1 keeps the original one and just let it grow.
 
 **-MaxLogSize**  
 Specify the size of the log file in bytes before rotating.  
-Default is 1048576 = 1 MB (ca. 8000 lines)
+Default is 1048576 = 1 MB (ca. 7500 lines)
 
 **-WingetUpdatePath**  
 Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
@@ -175,7 +175,7 @@ Share your mods with the community:
 https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods
 
 ### Winget native parameters
-Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.txt) that you can place under the **mods** folder.
+Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
 > Example:  
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 

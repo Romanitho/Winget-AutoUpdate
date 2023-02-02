@@ -52,25 +52,9 @@ if ($IsSystem) {
     }
 
     #LogRotation if System
-    $Exception, $Rotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
-    if ($Exception -eq $True) {
+    $LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
+    if ($LogRotate -eq $False) {
         Write-Log "An Exception occured during Log Rotation..."
-    }
-    if ($Rotate -eq $True) {
-        #Log Header
-        $Log = "##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
-        $Log | out-file -filepath $LogFile -Append
-        Write-Log "Running in System context"
-        if ($ActivateGPOManagement) {
-            Write-Log "Activated WAU GPO Management detected, comparing..."
-            if ($null -ne $ChangedSettings -and $ChangedSettings -ne 0) {
-                Write-Log "Changed settings detected and applied" "Yellow"
-            }
-            else {
-                Write-Log "No Changed settings detected" "Yellow"
-            }
-        }
-        Write-Log "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
     }
 
     #Run post update actions if necessary if run as System
@@ -287,26 +271,39 @@ if (Test-Network) {
             Write-Log "No new update." "Green"
         }
 
-        #Run WAU in user context if currently as system and the user task exist
-        $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
-        if ($IsSystem -and $UserScheduledTask) {
+        #Check if any user is logged on if System and run User task (if installed)
+        if ($IsSystem) {
+            #User check routine from: https://stackoverflow.com/questions/23219718/powershell-script-to-see-currently-logged-in-users-domain-and-machine-status
+            $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+            If ($explorerprocesses.Count -eq 0)
+            {
+                Write-Log "No explorer process found / Nobody interactively logged on..."
+            }
+            Else
+            {
+                #Run WAU in user context if the user task exist
+                $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
+                if ($UserScheduledTask) {
 
-            #Get Winget system apps to excape them befor running user context
-            Write-Log "Get list of installed Winget apps in System context..."
-            Get-WingetSystemApps
+                    #Get Winget system apps to excape them befor running user context
+                    Write-Log "User logged on, get a list of installed Winget apps in System context..."
+                    Get-WingetSystemApps
 
-            #Run user context scheduled task
-            Write-Log "Starting WAU in User context"
-            Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
-            Exit 0
-        }
-        elseif (!$UserScheduledTask){
-            Write-Log "User context execution not installed"
+                    #Run user context scheduled task
+                    Write-Log "Starting WAU in User context"
+                    Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
+                    Exit 0
+                }
+                elseif (!$UserScheduledTask){
+                    Write-Log "User context execution not installed..."
+                }
+            }        
         }
     }
     else {
         Write-Log "Critical: Winget not installed or detected, exiting..." "red"
         New-Item "$WorkingDir\logs\error.txt" -Value "Winget not installed or detected" -Force
+        Write-Log "End of process!" "Cyan"
         Exit 1
     }
 }

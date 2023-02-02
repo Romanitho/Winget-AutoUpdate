@@ -35,8 +35,24 @@ function Wait-ModsProc ($Wait) {
     Return
 }
 
-function Uninstall-ModsApp ($App) {
-    foreach ($app in $App)
+function Install-WingetID ($WingetIDInst) {
+    foreach ($app in $WingetIDInst)
+    {
+        & $Winget install --id $app --accept-package-agreements --accept-source-agreements -h
+    }
+    Return
+}
+
+function Uninstall-WingetID ($WingetIDUninst) {
+    foreach ($app in $WingetIDUninst)
+    {
+        & $Winget uninstall --id $app -e --accept-source-agreements -h
+    }
+    Return
+}
+
+function Uninstall-ModsApp ($AppUninst) {
+    foreach ($app in $AppUninst)
     {
         $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
         foreach ($obj in $InstalledSoftware){
@@ -196,6 +212,13 @@ function Remove-ModsFile ($DelFile) {
     Return
 }
 
+function Rename-ModsFile ($RenFile, $NewName) {
+    if (Test-Path "$RenFile") {
+        Rename-Item -Path $RenFile -NewName $NewName -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    Return
+}
+
 function Copy-ModsFile ($CopyFile, $CopyTo) {
     if (Test-Path "$CopyFile") {
         Copy-Item -Path $CopyFile -Destination $CopyTo -Recurse -Force -ErrorAction SilentlyContinue | Out-Null
@@ -226,14 +249,6 @@ function Grant-ModsPath ($GrantPath) {
             $NewAcl.SetAccessRule($fileSystemAccessRule)
             Set-Acl -Path $path -AclObject $NewAcl
         }
-    }
-    Return
-}
-
-function Install-ModsApp ($AppID) {
-    foreach ($app in $AppID)
-    {
-        & $Winget install --id $app --accept-package-agreements --accept-source-agreements -h
     }
     Return
 }

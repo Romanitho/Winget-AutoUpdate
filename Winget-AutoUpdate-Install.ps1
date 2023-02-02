@@ -268,9 +268,16 @@ function Install-WingetAutoUpdate {
             }
         }
 
-        # Set dummy regkeys for notification name and icon
+        # Set regkeys for notification name, icon and actions
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f | Out-Null
+        $WAUClass = "HKLM:\Software\Classes\WAU"
+        $WAUClassRun = "Wscript.exe ""$WingetUpdatePath\Invisible.vbs"" ""C:\Windows\System32\schtasks.exe /run /tn Winget-AutoUpdate"""
+        New-Item "$WAUClass\shell\open\command" -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name 'URL Protocol' -Value '' -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name '(default)' -Value "URL:$($ActionType)" -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name 'EditFlags' -Value '2162688' -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath "$WAUClass\shell\open\command" -Name '(default)' -Value $WAUClassRun -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
 
         # Settings for the scheduled task for Updates
         $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
@@ -297,7 +304,12 @@ function Install-WingetAutoUpdate {
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
 
         # Set up the task, and register it
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
+        if ($taskTriggers) {
+            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
+        }
+        else {
+            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+        }
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force | Out-Null
 
         if ($InstallUserContext) {
@@ -430,6 +442,7 @@ function Uninstall-WingetAutoUpdate {
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
             & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
+            & reg delete "HKLM\Software\Classes\WAU" /f | Out-Null
 
             if ((Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
                 Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null

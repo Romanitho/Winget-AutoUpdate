@@ -152,7 +152,6 @@ function Uninstall-ModsApp ($App) {
     }
     Return
 }
-
 function Remove-ModsLnk ($Lnk) {
     foreach ($link in $Lnk)
     {
@@ -227,6 +226,14 @@ function Grant-ModsPath ($GrantPath) {
             $NewAcl.SetAccessRule($fileSystemAccessRule)
             Set-Acl -Path $path -AclObject $NewAcl
         }
+    }
+    Return
+}
+
+function Install-ModsApp ($AppID) {
+    foreach ($app in $AppID)
+    {
+        & $Winget install --id $app --accept-package-agreements --accept-source-agreements -h
     }
     Return
 }

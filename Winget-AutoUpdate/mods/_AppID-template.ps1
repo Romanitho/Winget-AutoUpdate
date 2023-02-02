@@ -59,6 +59,10 @@ $ReplaceText = ''
 #Grant "Modify" for directory/file to "Authenticated Users" - multiple: "dir1","dir2"
 $GrantPath = @("")
 
+#Install App from Winget Repo, multiple: "appID1","appID2". Example:
+#$AppID = @("Microsoft.PowerToys")
+$AppID = @("")
+
 #App to Run (as current logged-on user)
 $RunUser = ""
 $User = $True
@@ -99,6 +103,9 @@ if ($File -and $FindText -and $ReplaceText) {
 }
 if ($GrantPath) {
     Grant-ModsPath $GrantPath
+}
+if ($AppID) {
+    Install-ModsApp $AppID
 }
 if ($RunUser) {
     Invoke-ModsApp $RunUser "" "" $User

@@ -367,7 +367,7 @@ function Install-WingetAutoUpdate {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
-        #Set ACL for users on logfile
+        #Set ACL for Authenticated Users on logfile
         $LogFile = "$WingetUpdatePath\logs\updates.log"
         if (test-path $LogFile) {
             $NewAcl = Get-Acl -Path $LogFile
@@ -378,6 +378,17 @@ function Install-WingetAutoUpdate {
             $fileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $fileSystemAccessRuleArgumentList
             $NewAcl.SetAccessRule($fileSystemAccessRule)
             Set-Acl -Path $LogFile -AclObject $NewAcl
+        }
+
+        #Most likely an enterprise with central mods, not a home user
+        if ($ModsPath) {
+            # Set ReadOnly on Mods Directory for Local Users - Security risk if not done (they could create a script of their own - System Context)!
+            $directory = Get-Item -Path "$WingetUpdatePath\mods"
+            $acl = Get-Acl -Path $directory.FullName
+            $userSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-545")
+            $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userSID, "Write", "Deny")
+            $acl.SetAccessRule($rule)
+            Set-Acl -Path $directory.FullName -AclObject $acl
         }
 
         #Create Shortcuts

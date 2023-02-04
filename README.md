@@ -103,6 +103,9 @@ Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in t
 **-ModsPath**  
 Get Mods from external Path (**URL/UNC/Local**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  
 
+Security:  
+If -ModsPath is used during installation WAU assumes it's an enterprise environment and adds a **Deny rule** to the file rights for the directory `mods` for **Local Users** (SID: S-1-5-32-545) making it impossible to implement own scripts that can be executed in **SYSTEM** context.
+
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):  
 ```
 <ul>

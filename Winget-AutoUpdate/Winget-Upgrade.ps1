@@ -269,7 +269,7 @@ if (Test-Network) {
             }
         }
 
-        if ($InstallOK -eq 0) {
+        if ($InstallOK -eq 0 -or !$InstallOK) {
             Write-Log "No new update." "Green"
         }
 

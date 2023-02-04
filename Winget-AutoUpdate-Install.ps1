@@ -380,16 +380,40 @@ function Install-WingetAutoUpdate {
             Set-Acl -Path $LogFile -AclObject $NewAcl
         }
 
-        #Most likely an enterprise with central mods, not a home user
-        if ($ModsPath) {
-            # Set ReadOnly on Mods Directory for Local Users - Security risk if not done (they could create a script of their own - System Context)!
-            $directory = Get-Item -Path "$WingetUpdatePath\mods"
-            $acl = Get-Acl -Path $directory.FullName
-            $userSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-545")
-            $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userSID, "Write", "Deny")
-            $acl.SetAccessRule($rule)
-            Set-Acl -Path $directory.FullName -AclObject $acl
-        }
+        #Security: Mods directory must be protected (Users could create scripts of their own - then they're run in System Context)!
+        $directory = Get-Item -Path "$WingetUpdatePath\mods"
+        $acl = Get-Acl -Path $directory.FullName
+        #Disable inheritance
+        $acl.SetAccessRuleProtection($True, $True)
+        # Remove any existing rules
+        $acl.Access | ForEach-Object { $acl.RemoveAccessRule($_) }
+        #SYSTEM Full - S-1-5-18
+        $userSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-18")
+        $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userSID,"FullControl","ContainerInherit,ObjectInherit","None","Allow")
+        $acl.SetAccessRule($rule)
+        # Save the updated ACL
+        Set-Acl -Path $directory.FullName -AclObject $acl | Out-Null
+
+        #Administrators Full - S-1-5-32-544
+        $acl = Get-Acl -Path $directory.FullName
+        $userSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-544")
+        $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userSID,"FullControl","ContainerInherit,ObjectInherit","None","Allow")
+        $acl.SetAccessRule($rule)
+        Set-Acl -Path $directory.FullName -AclObject $acl
+        
+        #Local Users ReadAndExecute - S-1-5-32-545 S-1-5-11
+        $acl = Get-Acl -Path $directory.FullName
+        $userSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-545")
+        $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userSID, "ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")
+        $acl.SetAccessRule($rule)
+        Set-Acl -Path $directory.FullName -AclObject $acl
+
+        #Authenticated Users ReadAndExecute - S-1-5-11
+        $acl = Get-Acl -Path $directory.FullName
+        $userSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-11")
+        $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userSID, "ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")
+        $acl.SetAccessRule($rule)
+        Set-Acl -Path $directory.FullName -AclObject $acl
 
         #Create Shortcuts
         if ($StartMenuShortcut) {

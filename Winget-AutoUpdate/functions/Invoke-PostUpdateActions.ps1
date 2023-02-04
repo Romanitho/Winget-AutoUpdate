@@ -53,6 +53,18 @@ function Invoke-PostUpdateActions {
         Write-Log "-> MaxLogFiles/MaxLogSize setting was missing. Fixed with 3/1048576 (in bytes, default is 1048576 = 1 MB)."
     }
 
+    #Most likely an enterprise with central mods, not a home user
+    $ModsPath = Get-ItemProperty $regPath -Name WAU_ModsPath -ErrorAction SilentlyContinue
+    if ($ModsPath) {
+        # Set ReadOnly on Mods Directory for Local Users - Security risk if not done (they could create a script of their own - System Context)!
+        $directory = Get-Item -Path "$WingetUpdatePath\mods"
+        $acl = Get-Acl -Path $directory.FullName
+        $userSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-545")
+        $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userSID, "Write", "Deny")
+        $acl.SetAccessRule($rule)
+        Set-Acl -Path $directory.FullName -AclObject $acl
+    }
+
     #Convert about.xml if exists (previous WAU versions) to reg
     $WAUAboutPath = "$WorkingDir\config\about.xml"
     if (test-path $WAUAboutPath) {

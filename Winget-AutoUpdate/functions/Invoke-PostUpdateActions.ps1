@@ -106,6 +106,10 @@ function Invoke-PostUpdateActions {
         $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userSID, "ReadAndExecute","ContainerInherit,ObjectInherit","None","Allow")
         $acl.SetAccessRule($rule)
         Set-Acl -Path $directory.FullName -AclObject $acl
+
+        #log
+        Write-Log "-> The mods directory is now secured!."
+
     }
 
     #Convert about.xml if exists (previous WAU versions) to reg

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Handle user interaction from shortcuts and show a Toast
+Handle user interaction from shortcuts and Toast
 
 .DESCRIPTION
 Act on shortcut run (DEFAULT: Check for updated Apps)
@@ -20,7 +20,9 @@ https://github.com/Romanitho/Winget-AutoUpdate
 [CmdletBinding()]
 param(
 	[Parameter(Mandatory = $False)] [Switch] $Logs = $false,
-	[Parameter(Mandatory = $False)] [Switch] $Help = $false
+	[Parameter(Mandatory = $False)] [Switch] $Help = $false,
+	[Parameter(Mandatory = $False)] [Switch] $NotifApprovedAsSystem = $false,
+	[Parameter(Mandatory = $False)] [Switch] $NotifApprovedAsUser = $false
 )
 
 function Test-WAUisRunning {
@@ -44,9 +46,6 @@ Get-NotifLocale
 #Set common variables
 $OnClickAction = "$WorkingDir\logs\updates.log"
 $Button1Text = $NotifLocale.local.outputs.output[11].message
-$Title = "Winget-AutoUpdate (WAU)"
-$Balise = "Winget-AutoUpdate (WAU)"
-$UserRun = $True
 
 if ($Logs) {
 	if (Test-Path "$WorkingDir\logs\updates.log") {
@@ -61,6 +60,18 @@ if ($Logs) {
 }
 elseif ($Help) {
 	Start-Process "https://github.com/Romanitho/Winget-AutoUpdate"
+}
+elseif ($NotifApprovedAsUser){
+	#Create tag if user approve notif for requested updates
+	$WAUNotifApprovedPath = "$WingetUpdatePath\config\NotifApproved.txt"
+	New-Item $WAUNotifApprovedPath -Force
+	Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+}
+elseif ($NotifApprovedAsSystem){
+	#Create tag if user approve notif for requested updates
+	$WAUNotifApprovedPath = "$WingetUpdatePath\config\NotifApproved.txt"
+	New-Item $WAUNotifApprovedPath -Force
+	Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
 }
 else {
 	try {

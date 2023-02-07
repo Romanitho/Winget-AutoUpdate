@@ -74,11 +74,14 @@ function Invoke-PostUpdateActions {
     #Security check
     Write-Log "-> Checking Mods Directory:" "yellow"
     $Protected = Invoke-ModsProtect "$($WAUConfig.InstallLocation)\mods"
-    if ($Protected) {
+    if ($Protected -eq $True) {
         Write-Log "-> The mods directory is now secured!" "green"
     }
-    elseif (!$Protected) {
+    elseif ($Protected -eq $False) {
         Write-Log "-> The mods directory was already secured!" "green"
+    }
+    else {
+        Write-Log "-> Error: The mods directory couldn't be verified as secured!" "red"
     }
 
     #Convert about.xml if exists (previous WAU versions) to reg

@@ -384,11 +384,14 @@ function Install-WingetAutoUpdate {
         Write-host "`nChecking Mods Directory:" -ForegroundColor Yellow
         . "$WingetUpdatePath\functions\Invoke-ModsProtect.ps1"
         $Protected = Invoke-ModsProtect "$WingetUpdatePath\mods"
-        if ($Protected) {
+        if ($Protected -eq $True) {
             Write-Host "The mods directory is now secured!`n" -ForegroundColor Green
         }
-        elseif (!$Protected) {
+        elseif ($Protected -eq $False) {
             Write-Host "The mods directory was already secured!`n" -ForegroundColor Green
+        }
+        else {
+            Write-Host "Error: The mods directory couldn't be verified as secured!`n" -ForegroundColor Red
         }
                         
         #Create Shortcuts

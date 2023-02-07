@@ -53,6 +53,15 @@ function Invoke-PostUpdateActions {
         Write-Log "-> MaxLogFiles/MaxLogSize setting was missing. Fixed with 3/1048576 (in bytes, default is 1048576 = 1 MB)."
     }
 
+    #Set WAU_ListPath if not set
+    $ListPath = Get-ItemProperty $regPath -Name WAU_ListPath -ErrorAction SilentlyContinue
+    if (!$ListPath) {
+        New-ItemProperty $regPath -Name WAU_ListPath -Force | Out-Null
+
+        #log
+        Write-Log "-> ListPath setting was missing. Fixed with empty string."
+    }
+
     #Set WAU_ModsPath if not set
     $ModsPath = Get-ItemProperty $regPath -Name WAU_ModsPath -ErrorAction SilentlyContinue
     if (!$ModsPath) {

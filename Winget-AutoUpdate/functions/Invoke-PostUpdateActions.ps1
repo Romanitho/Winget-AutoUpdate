@@ -53,6 +53,15 @@ function Invoke-PostUpdateActions {
         Write-Log "-> MaxLogFiles/MaxLogSize setting was missing. Fixed with 3/1048576 (in bytes, default is 1048576 = 1 MB)."
     }
 
+    #Set WAU_ModsPath if not set
+    $ModsPath = Get-ItemProperty $regPath -Name WAU_ModsPath -ErrorAction SilentlyContinue
+    if (!$ModsPath) {
+        New-ItemProperty $regPath -Name WAU_ModsPath -Force | Out-Null
+
+        #log
+        Write-Log "-> ModsPath setting was missing. Fixed with empty string."
+    }
+
     #Security check
     Write-Log "-> Checking Mods Directory:" "yellow"
     $Protected = Invoke-ModsProtect "$($WAUConfig.InstallLocation)\mods"

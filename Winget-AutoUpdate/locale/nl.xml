@@ -4,7 +4,7 @@
 			<!--Check network connection-->
 			<title>Controleer de netwerkverbinding.</title>
 			<!--Unable to check for software updates at this time!-->
-			<message>Er kan op dit moment niet gecontroleerd worden op software-updates!</message>
+			<message>Er kan op dit moment niet gecontroleerd worden op software updates!</message>
 		</output>
 		<output id="1">
 			<!--No internet connction-->
@@ -36,19 +36,19 @@
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Start een manuele controle op software-updates...</message>
+			<message>Start een manuele controle op software updates...</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Kon geen manuele controle voor software-updates starten!</message>
+			<message>Kon geen manuele controle voor software updates starten!</message>
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->
-			<message>Controleer of er al bijgewerkte apps actief zijn...</message>
+			<message>Er wordt al naar software updates gezocht...</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Manuele controle op software-updates uitgevoerd...</message>
+			<message>Manuele controle op software updates voltooid...</message>
 		</output>
 		<output id="10">
 			<!--See changelog-->

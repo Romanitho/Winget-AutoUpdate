@@ -40,7 +40,7 @@
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Kon geen manuele controle voor software updates starten!</message>
+			<message>Kon geen manuele controle op software updates starten!</message>
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->

@@ -53,6 +53,37 @@ function Invoke-PostUpdateActions {
         Write-Log "-> MaxLogFiles/MaxLogSize setting was missing. Fixed with 3/1048576 (in bytes, default is 1048576 = 1 MB)."
     }
 
+    #Set WAU_ListPath if not set
+    $ListPath = Get-ItemProperty $regPath -Name WAU_ListPath -ErrorAction SilentlyContinue
+    if (!$ListPath) {
+        New-ItemProperty $regPath -Name WAU_ListPath -Force | Out-Null
+
+        #log
+        Write-Log "-> ListPath setting was missing. Fixed with empty string."
+    }
+
+    #Set WAU_ModsPath if not set
+    $ModsPath = Get-ItemProperty $regPath -Name WAU_ModsPath -ErrorAction SilentlyContinue
+    if (!$ModsPath) {
+        New-ItemProperty $regPath -Name WAU_ModsPath -Force | Out-Null
+
+        #log
+        Write-Log "-> ModsPath setting was missing. Fixed with empty string."
+    }
+
+    #Security check
+    Write-Log "-> Checking Mods Directory:" "yellow"
+    $Protected = Invoke-ModsProtect "$($WAUConfig.InstallLocation)\mods"
+    if ($Protected -eq $True) {
+        Write-Log "-> The mods directory is now secured!" "green"
+    }
+    elseif ($Protected -eq $False) {
+        Write-Log "-> The mods directory was already secured!" "green"
+    }
+    else {
+        Write-Log "-> Error: The mods directory couldn't be verified as secured!" "red"
+    }
+
     #Convert about.xml if exists (previous WAU versions) to reg
     $WAUAboutPath = "$WorkingDir\config\about.xml"
     if (test-path $WAUAboutPath) {

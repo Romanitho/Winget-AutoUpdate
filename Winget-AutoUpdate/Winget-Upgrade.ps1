@@ -203,71 +203,73 @@ if (Test-Network) {
         Write-Log "Checking application updates on Winget Repository..." "yellow"
         $outdated = Get-WingetOutdatedApps
 
-        #If something is wrong with the winget source, exit
-        if ($outdated -like "Problem:*") {
-            Write-Log "Critical: An error occured, exiting..." "red"
-            Write-Log "$outdated" "red"
-            New-Item "$WorkingDir\logs\error.txt" -Value "$outdated" -Force
-            Exit 1
+        #If something unusual happened
+        if ($outdated -like "An unusual*") {
+            Write-Log "$outdated" "cyan"
+            $outdated = $False
         }
 
-        #Log list of app to update
-        foreach ($app in $outdated) {
-            #List available updates
-            $Log = "-> Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
-            $Log | Write-host
-            $Log | out-file -filepath $LogFile -Append
-        }
-
-        #Count good update installations
-        $Script:InstallOK = 0
-
-        #Trick under user context when -BypassListForUsers is used
-        if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq $true) {
-            Write-Log "Bypass system list in user context is Enabled."
-            $UseWhiteList = $false
-            $toSkip = $null
-        }
-
-        #If White List
-        if ($UseWhiteList) {
-            #For each app, notify and update
+        #Run only if $outdated is populated!
+        if ($outdated) {
+            #Log list of app to update
             foreach ($app in $outdated) {
-                if (($toUpdate -contains $app.Id) -and $($app.Version) -ne "Unknown") {
-                    Update-App $app
-                }
-                #if current app version is unknown
-                elseif ($($app.Version) -eq "Unknown") {
-                    Write-Log "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
-                }
-                #if app is in "excluded list"
-                else {
-                    Write-Log "$($app.Name) : Skipped upgrade because it is not in the included app list" "Gray"
+                #List available updates
+                $Log = "-> Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
+                $Log | Write-host
+                $Log | out-file -filepath $LogFile -Append
+            }
+
+            #Count good update installations
+            $Script:InstallOK = 0
+
+            #Trick under user context when -BypassListForUsers is used
+            if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq $true) {
+                Write-Log "Bypass system list in user context is Enabled."
+                $UseWhiteList = $false
+                $toSkip = $null
+            }
+
+            #If White List
+            if ($UseWhiteList) {
+                #For each app, notify and update
+                foreach ($app in $outdated) {
+                    if (($toUpdate -contains $app.Id) -and $($app.Version) -ne "Unknown") {
+                        Update-App $app
+                    }
+                    #if current app version is unknown
+                    elseif ($($app.Version) -eq "Unknown") {
+                        Write-Log "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
+                    }
+                    #if app is in "excluded list"
+                    else {
+                        Write-Log "$($app.Name) : Skipped upgrade because it is not in the included app list" "Gray"
+                    }
                 }
             }
-        }
-        #If Black List or default
-        else {
-            #For each app, notify and update
-            foreach ($app in $outdated) {
-                if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown") {
-                    Update-App $app
+            #If Black List or default
+            else {
+                #For each app, notify and update
+                foreach ($app in $outdated) {
+                    if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown") {
+                        Update-App $app
+                    }
+                    #if current app version is unknown
+                    elseif ($($app.Version) -eq "Unknown") {
+                        Write-Log "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
+                    }
+                    #if app is in "excluded list"
+                    else {
+                        Write-Log "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+                    }
                 }
-                #if current app version is unknown
-                elseif ($($app.Version) -eq "Unknown") {
-                    Write-Log "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
-                }
-                #if app is in "excluded list"
-                else {
-                    Write-Log "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
-                }
+            }
+
+            if ($InstallOK -gt 0) {
+                Write-Log "$InstallOK apps updated ! No more update." "Green"
             }
         }
 
-        if ($InstallOK -gt 0) {
-            Write-Log "$InstallOK apps updated ! No more update." "Green"
-        }
-        if ($InstallOK -eq 0) {
+        if ($InstallOK -eq 0 -or !$InstallOK) {
             Write-Log "No new update." "Green"
         }
 

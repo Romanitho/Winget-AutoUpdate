@@ -367,7 +367,7 @@ function Install-WingetAutoUpdate {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
-        #Set ACL for users on logfile
+        #Set ACL for Authenticated Users on logfile
         $LogFile = "$WingetUpdatePath\logs\updates.log"
         if (test-path $LogFile) {
             $NewAcl = Get-Acl -Path $LogFile
@@ -380,6 +380,20 @@ function Install-WingetAutoUpdate {
             Set-Acl -Path $LogFile -AclObject $NewAcl
         }
 
+        #Security check
+        Write-host "`nChecking Mods Directory:" -ForegroundColor Yellow
+        . "$WingetUpdatePath\functions\Invoke-ModsProtect.ps1"
+        $Protected = Invoke-ModsProtect "$WingetUpdatePath\mods"
+        if ($Protected -eq $True) {
+            Write-Host "The mods directory is now secured!`n" -ForegroundColor Green
+        }
+        elseif ($Protected -eq $False) {
+            Write-Host "The mods directory was already secured!`n" -ForegroundColor Green
+        }
+        else {
+            Write-Host "Error: The mods directory couldn't be verified as secured!`n" -ForegroundColor Red
+        }
+                        
         #Create Shortcuts
         if ($StartMenuShortcut) {
             if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {

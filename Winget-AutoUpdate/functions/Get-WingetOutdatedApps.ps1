@@ -16,8 +16,8 @@ function Get-WingetOutdatedApps {
         return "An unusual thing happened (maybe all apps are upgraded):`n$upgradeResult"
     }
 
-    #Split winget output to lines
-    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object { $_ -and $_ -notmatch "--include-unknown" }
+    #Split winget output to lines (excluding lines/taking care of different scenarios in winget >= v1.4.10173)
+    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object { ($_ -and $_ -notmatch "�-�") -and ($_ -and $_ -notmatch "\bName\s+Id\s+Version\s+Available\b") -and ($_ -and $_ -notmatch "-----") -and ($_ -and $_ -notmatch "update the source:") -and ($_ -and $_ -notmatch "--include-unknown") -and ($_ -and $_ -notmatch "require explicit targeting") }
 
     # Find the line that starts with "------"
     $fl = 0

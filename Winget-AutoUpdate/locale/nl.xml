@@ -4,59 +4,59 @@
 			<!--Check network connection-->
 			<title>Controleer de netwerkverbinding.</title>
 			<!--Unable to check for software updates at this time!-->
-			<message>Er kan op dit moment niet gecontroleerd worden op software-updates!</message>
+			<message>Er kan op dit moment niet gecontroleerd worden op software updates!</message>
 		</output>
 		<output id="1">
 			<!--No internet connction-->
 			<title>Geen internetverbinding.</title>
 			<!--Updates could not be verified-->
-			<message>Updates kon niet worden gecontroleerd.</message>
+			<message>Updates konden niet worden gecontroleerd.</message>
 		</output>
 		<output id="2">
 			<!--{App} will be updated-->
-			<title>{0} wordt geupdate!</title>
+			<title>{0} zal geüpdatet worden !</title>
 			<!--{v1.0} to {v2.0}-->
 			<message>{0} to {1}</message>
 		</output>
 		<output id="3">
 			<!--{App} updated-->
-			<title>{0} geupdate.</title>
+			<title>{0} is geüpdatet.</title>
 			<!--Installed version: {v1.0}-->
-			<message>Geinstalleerde versie: {0}</message>
+			<message>Geïnstalleerde versie: {0}</message>
 		</output>
 		<output id="4">
 			<!--{App} could not be updated-->
-			<title>{0} kan niet worden geupdate!</title>
+			<title>{0} kan niet worden geüpdatet!</title>
 			<!--Please contact support-->
 			<message>Neem contact op met support.</message>
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Logs are not available yet!</message>
+			<message>Logs zijn nog niet beschikbaar !</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Starting a manual check for updated apps...</message>
+			<message>Start een manuele controle op software updates...</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Couldn't start a manual check for updated apps!</message>
+			<message>Kon geen manuele controle op software updates starten!</message>
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->
-			<message>Check for updated apps already running...</message>
+			<message>Er wordt al naar software updates gezocht...</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Manual check for updated apps completed...</message>
+			<message>Manuele controle op software updates voltooid...</message>
 		</output>
 		<output id="10">
 			<!--See changelog-->
-			<message>See changelog</message>
+			<message>Zie changelog</message>
 		</output>
 		<output id="11">
 			<!--Open log file-->
-			<message>Open log file</message>
+			<message>Open logbestand</message>
 		</output>
 	</outputs>
 </local>

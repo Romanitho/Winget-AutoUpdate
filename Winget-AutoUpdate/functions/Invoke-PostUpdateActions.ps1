@@ -23,7 +23,7 @@ function Invoke-PostUpdateActions {
             }
             Write-Log "-> Downloading VC_redist.$OSArch.exe..."
             $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
-            $Installer = $($WAUConfig.InstallLocation) + "\VC_redist.$OSArch.exe"
+            $Installer = "$($WAUConfig.InstallLocation)\VC_redist.$OSArch.exe"
             $ProgressPreference = 'SilentlyContinue'
             Invoke-WebRequest $SourceURL -OutFile (New-Item -Path $Installer -Force)
             Write-Log "-> Installing VC_redist.$OSArch.exe..."
@@ -56,12 +56,12 @@ function Invoke-PostUpdateActions {
         Write-Log "-> Not installed. Downloading WinGet..."
         $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.4.10173/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
-        $WebClient.DownloadFile($WinGetURL, $($WAUConfig.InstallLocation) + "\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+        $WebClient.DownloadFile($WinGetURL, "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
         #Install WinGet MSIXBundle
         try {
             Write-Log "-> Installing Winget MSIXBundle for App Installer..."
-            Add-AppxProvisionedPackage -Online -PackagePath $($WAUConfig.InstallLocation) + "\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
+            Add-AppxProvisionedPackage -Online -PackagePath "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
             Write-Log "-> Installed Winget MSIXBundle for App Installer" "green"
         }
         catch {
@@ -69,7 +69,7 @@ function Invoke-PostUpdateActions {
         }
 
         #Remove WinGet MSIXBundle
-        Remove-Item -Path $($WAUConfig.InstallLocation) + "\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
+        Remove-Item -Path "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
 
     }
 

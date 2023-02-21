@@ -44,7 +44,7 @@
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->
-			<message>Se etter oppdaterte apper som allerede kjører...</message>
+			<message>Se etter oppdaterte apper kjører allerede...</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->

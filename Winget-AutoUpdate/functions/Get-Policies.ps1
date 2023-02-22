@@ -225,8 +225,15 @@ Function Get-Policies {
                     $definition = $task.Definition
                     $definition.Triggers.Count | Out-Null
                     if ($definition.Triggers.Count -gt 0) {
-                        $triggers += New-ScheduledTaskTrigger -AtLogon
-                        Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $triggers
+                        for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
+                            if ($definition.Triggers.Item($triggerId).Type -eq "9") {
+                                $triggerLogon = $True
+                            }
+                        }
+                        if (!$triggerLogon) {
+                            $triggers += New-ScheduledTaskTrigger -AtLogon
+                            Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $triggers
+                        }
                     }
                     else {
                         $tasktrigger = New-ScheduledTaskTrigger -AtLogon

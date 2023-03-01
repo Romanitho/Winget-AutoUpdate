@@ -43,7 +43,7 @@
 			<message>Kunde inte starta en manuell koll efter uppdaterade appar!</message>
 		</output>
 		<output id="8">
-			<!--Check for updated apps already running-->
+			<!--A check for updated apps already running-->
 			<message>En koll efter uppdaterade appar körs redan...</message>
 		</output>
 		<output id="9">

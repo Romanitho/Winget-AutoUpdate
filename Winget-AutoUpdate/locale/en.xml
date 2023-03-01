@@ -43,8 +43,8 @@
 			<message>Couldn't start a manual check for updated apps!</message>
 		</output>
 		<output id="8">
-			<!--Check for updated apps already running-->
-			<message>Check for updated apps already running...</message>
+			<!--A check for updated apps already running-->
+			<message>A check for updated apps already running...</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->

@@ -3,7 +3,75 @@
 function Invoke-PostUpdateActions {
 
     #log
-    Write-Log "Running Post Update actions..." "yellow"
+    Write-Log "Running Post Update actions:" "yellow"
+
+    Write-Log "-> Checking prerequisites..." "yellow"
+    
+    #Check if Visual C++ 2019 or 2022 installed
+    $Visual2019 = "Microsoft Visual C++ 2015-2019 Redistributable*"
+    $Visual2022 = "Microsoft Visual C++ 2015-2022 Redistributable*"
+    $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.GetValue("DisplayName") -like $Visual2019 -or $_.GetValue("DisplayName") -like $Visual2022 }
+
+    #If not installed, install
+    if (!($path)) {
+        try {
+            if ((Get-CimInStance Win32_OperatingSystem).OSArchitecture -like "*64*") {
+                $OSArch = "x64"
+            }
+            else {
+                $OSArch = "x86"
+            }
+            Write-Log "-> Downloading VC_redist.$OSArch.exe..."
+            $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
+            $Installer = "$($WAUConfig.InstallLocation)\VC_redist.$OSArch.exe"
+            $ProgressPreference = 'SilentlyContinue'
+            Invoke-WebRequest $SourceURL -OutFile (New-Item -Path $Installer -Force)
+            Write-Log "-> Installing VC_redist.$OSArch.exe..."
+            Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
+            Remove-Item $Installer -ErrorAction Ignore
+            Write-Log "-> MS Visual C++ 2015-2022 installed successfully" "green"
+        }
+        catch {
+            Write-Log "-> MS Visual C++ 2015-2022 installation failed." "red"
+        }
+    }
+    else {
+        Write-Log "-> Prerequisites checked. OK" "green"
+    }
+
+    Write-Log "-> Checking if Winget is installed/up to date" "yellow"
+
+    #Check Package Install
+    $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
+
+    #Current: v1.4.10173 = 1.19.10173.0 = 2023.118.406.0
+    If ([Version]$TestWinGet.Version -ge "2023.118.406.0") {
+
+        Write-Log "-> WinGet is Installed/up to date" "green"
+
+    }
+    Else {
+
+        #Download WinGet MSIXBundle
+        Write-Log "-> Not installed/up to date. Downloading WinGet..."
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.4.10173/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $WebClient = New-Object System.Net.WebClient
+        $WebClient.DownloadFile($WinGetURL, "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+
+        #Install WinGet MSIXBundle
+        try {
+            Write-Log "-> Installing Winget MSIXBundle for App Installer..."
+            Add-AppxProvisionedPackage -Online -PackagePath "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
+            Write-Log "-> Installed Winget MSIXBundle for App Installer" "green"
+        }
+        catch {
+            Write-Log "-> Failed to intall Winget MSIXBundle for App Installer..." "red"
+        }
+
+        #Remove WinGet MSIXBundle
+        Remove-Item -Path "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
+
+    }
 
     #Reset Winget Sources
     $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }

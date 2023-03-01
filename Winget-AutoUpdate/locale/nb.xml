@@ -1,0 +1,62 @@
+<local>
+	<outputs>
+		<output id="0">
+			<!--Check network connection-->
+			<title>Sjekk nettverkstilkoblingen.</title>
+			<!--Unable to check for software updates at this time!-->
+			<message>Kan ikke se etter programvareoppdateringer for øyeblikket!</message>
+		</output>
+		<output id="1">
+			<!--No internet connection-->
+			<title>Ingen internettforbindelse.</title>
+			<!--Updates could not be verified-->
+			<message>Oppdateringer kunne ikke bekreftes.</message>
+		</output>
+		<output id="2">
+			<!--{App} will be updated-->
+			<title>{0} vil bli oppdatert!</title>
+			<!--{v1.0} to {v2.0}-->
+			<message>{0} til {1}</message>
+		</output>
+		<output id="3">
+			<!--{App} updated-->
+			<title>{0} oppdatert.</title>
+			<!--Installed version: {v1.0}-->
+			<message>Installert versjon: {0}</message>
+		</output>
+		<output id="4">
+			<!--{App} could not be updated-->
+			<title>{0} kunne ikke oppdateres!</title>
+			<!--Please contact support-->
+			<message>Vennligst kontakt support.</message>
+		</output>
+		<output id="5">
+			<!--Logs are not available yet-->
+			<message>Logger er ikke tilgjengelig ennå!</message>
+		</output>
+		<output id="6">
+			<!--Starting a manual check for updated apps-->
+			<message>Starter en manuell sjekk for oppdaterte apper...</message>
+		</output>
+		<output id="7">
+			<!--Couldn't start a manual check for updated apps-->
+			<message>Kunne ikke starte en manuell sjekk for oppdaterte apper!</message>
+		</output>
+		<output id="8">
+			<!--Check for updated apps already running-->
+			<message>Se etter oppdaterte apper kjører allerede...</message>
+		</output>
+		<output id="9">
+			<!--Manual check for updated apps completed-->
+			<message>Manuell sjekk for oppdaterte apper fullført...</message>
+		</output>
+		<output id="10">
+			<!--See changelog-->
+			<message>Se endringslogg</message>
+		</output>
+		<output id="11">
+			<!--Open log file-->
+			<message>Åpne loggfilen</message>
+		</output>
+	</outputs>
+</local>

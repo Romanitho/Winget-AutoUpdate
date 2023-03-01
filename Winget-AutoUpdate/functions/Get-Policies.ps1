@@ -223,14 +223,16 @@ Function Get-Policies {
                     $folder = $service.GetFolder('\')
                     $task = $folder.GetTask("Winget-AutoUpdate")
                     $definition = $task.Definition
-                    $definition.Triggers.Count | Out-Null
-                    if ($definition.Triggers.Count -gt 0) {
+                    $triggerLogon = $false
+                    foreach ($trigger in $definition.Triggers) {
+                        if ($trigger.Type -eq "9") {
+                            $triggerLogon = $true
+                            break
+                        }
+                    }
+                    if (!$triggerLogon) {
                         $triggers += New-ScheduledTaskTrigger -AtLogon
                         Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $triggers
-                    }
-                    else {
-                        $tasktrigger = New-ScheduledTaskTrigger -AtLogon
-                        Set-ScheduledTask -TaskName "Winget-AutoUpdate" -Trigger $tasktrigger
                     }
                 }
                 else {

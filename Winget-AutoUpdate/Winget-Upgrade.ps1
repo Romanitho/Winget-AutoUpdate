@@ -116,6 +116,9 @@ if (Test-Network) {
                     $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
                     if ($ReachNoPath) {
                         Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))..." "Red"
+                        if ($($WAUConfig.WAU_ListPath) -match "_apps.txt") {
+                            Write-Log "PATH must end with a Directory, not a File..." "Red"
+                        }
                         $Script:ReachNoPath = $False
                     }
                     if ($NewList) {
@@ -143,6 +146,9 @@ if (Test-Network) {
                 $NewMods, $DeletedMods = Test-ModsPath $WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/") $WAUConfig.InstallLocation.TrimEnd(" ", "\")
                 if ($ReachNoPath) {
                     Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))..." "Red"
+                    if ($($WAUConfig.WAU_ModsPath) -match "_apps.txt") {
+                        Write-Log "PATH must end with a Directory, not a File..." "Red"
+                    }
                     $Script:ReachNoPath = $False
                 }
                 if ($NewMods -gt 0) {

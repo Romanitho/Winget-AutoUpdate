@@ -5,6 +5,12 @@ function Invoke-PostUpdateActions {
     #log
     Write-Log "Running Post Update actions:" "yellow"
 
+    #Check if Intune Management Extension Logs folder and WAU-updates.log exists, make symlink
+    if ((Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs") -and !(Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log")) {
+        Write-log "-> Creating SymLink for log file in Intune Management Extension log folder" "yellow"
+        New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+
     Write-Log "-> Checking prerequisites..." "yellow"
     
     #Check if Visual C++ 2019 or 2022 installed

@@ -29,7 +29,8 @@ By default, scripts and components will be placed in ProgramData location (insid
 From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
 
 ### Log location
-You can find logs in install location, in logs folder.
+You can find logs in install location, in logs folder.  
+If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
 
 ### "Unknown" App version
 As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255), Winget cannot detect the current version of some installed apps. We decided to skip managing these apps with WAU to avoid retries each time WAU runs:
@@ -96,7 +97,9 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt".
 
 **-ListPath**  
-Get Black/White List from external Path (**URL/UNC/GPO/Local**) - download/copy to Winget-AutoUpdate installation location if external list is newer.  
+Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.  
+**PATH** must end with a Directory, not a File...  
+
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.  
 Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 

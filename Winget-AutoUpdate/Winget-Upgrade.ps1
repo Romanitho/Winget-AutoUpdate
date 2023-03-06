@@ -111,11 +111,22 @@ if (Test-Network) {
 
             #Get External ListPath if run as System
             if ($WAUConfig.WAU_ListPath) {
-                Write-Log "WAU uses External Lists from: $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))"
-                if ($($WAUConfig.WAU_ListPath) -ne "GPO") {
-                    $NewList = Test-ListPath $WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/") $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                $ListPathClean = $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))
+                Write-Log "WAU uses External Lists from: $ListPathClean"
+                if ($ListPathClean -ne "GPO") {
+                    $NewList = Test-ListPath $ListPathClean $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
                     if ($ReachNoPath) {
-                        Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))..." "Red"
+                        Write-Log "Couldn't reach/find/compare/copy from $ListPathClean..." "Red"
+                        if ($ListPathClean -notlike "http*") {
+                            if (Test-Path -Path "$ListPathClean" -PathType Leaf) {
+                                Write-Log "PATH must end with a Directory, not a File..." "Red"
+                            }
+                        }
+                        else {
+                            if ($ListPathClean -match "_apps.txt") {
+                                Write-Log "PATH must end with a Directory, not a File..." "Red"
+                            }
+                        }
                         $Script:ReachNoPath = $False
                     }
                     if ($NewList) {
@@ -139,10 +150,11 @@ if (Test-Network) {
     
             #Get External ModsPath if run as System
             if ($WAUConfig.WAU_ModsPath) {
-                Write-Log "WAU uses External Mods from: $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))"
-                $NewMods, $DeletedMods = Test-ModsPath $WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/") $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                $ModsPathClean = $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))
+                Write-Log "WAU uses External Mods from: $ModsPathClean"
+                $NewMods, $DeletedMods = Test-ModsPath $ModsPathClean $WAUConfig.InstallLocation.TrimEnd(" ", "\")
                 if ($ReachNoPath) {
-                    Write-Log "Couldn't reach/find/compare/copy from $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))..." "Red"
+                    Write-Log "Couldn't reach/find/compare/copy from $ModsPathClean..." "Red"
                     $Script:ReachNoPath = $False
                 }
                 if ($NewMods -gt 0) {

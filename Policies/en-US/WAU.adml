@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.7" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
   <displayName>WinGet-AutoUpdate</displayName>
   <description>WinGet-AutoUpdate GPO Management</description>
   <resources >
     <stringTable >
       <string id="WAU">Winget-AutoUpdate</string>
       <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 or later</string>
+      <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 or later</string>
       <string id="ActivateGPOManagement_Name">Activate WAU GPO Management</string>
       <string id="ActivateGPOManagement_Explain">This policy setting is an overriding toggle for GPO Management of Winget-AutoUpdate.</string>
       <string id="BypassListForUsers_Name">Bypass Black/White list for User</string>
@@ -43,10 +44,16 @@ If this policy is disabled or not configured, the default is No.</string>
 If "Application GPO Blacklist/Whitelist" is set in this GPO the Path can be: GPO
 
 If this policy is disabled or not configured, the default ListPath is used (WAU InstallLocation).</string>
-      <string id="ModsPath_Name">Get Mods from external Path (URL/UNC/Local)</string>
-      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external mods other than the default.
+      <string id="ModsPath_Name">Get Mods from external Path (URL/UNC/Local/AzureBlob)</string>
+      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local/AzureBlob) Path to external mods other than the default. 
       
-If this policy is disabled or not configured, the default ModsPath is used (WAU InstallLocation).</string>
+If this policy is disabled or not configured, the default ModsPath is used (WAU InstallLocation).
+
+Note: When set to 'AzureBlob', ensure you also configure 'Set Azure Blob URL with SAS token'.</string>
+      <string id="BlobURL_Name">Set Azure Blob URL with SAS Token</string>
+      <string id="BlobURL_Explain">If this policy is enabled, you can set an Azure Storage Blob URL with SAS token for use with the 'Mods' feature. The URL must include the SAS token and have 'read' and 'list' permissions.
+
+If this policy is disabled or not configured, the value is blank and Azure Blob storage will NOT work.</string>
       <string id="NotificationLevel_Name">Notification Level</string>
       <string id="NotificationLevel_Explain">If this policy is enabled, you can configure the Notification Level:
 1. Full (Default)
@@ -148,8 +155,13 @@ If this policy is disabled or not configured, the default size is used.</string>
       </presentation>
       <presentation id="ModsPath">
         <textBox refId="ModsPath">
-          <label>(URL/UNC/Local) Path:</label>
+          <label>(URL/UNC/Local/AzureBlob) Path:</label>
         </textBox>
+      </presentation>  
+      <presentation id="BlobURL">
+            <textBox refId="BlobURL">
+                  <label>Azure Storage URL with SAS token:</label>
+            </textBox>
       </presentation>
       <presentation id="NotificationLevel">
         <dropdownList refId="NotificationLevel"/>

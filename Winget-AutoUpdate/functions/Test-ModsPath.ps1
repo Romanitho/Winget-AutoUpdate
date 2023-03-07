@@ -1,6 +1,6 @@
 #Function to check Mods External Path
 
-function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
+function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
     # URL, UNC or Local Path
     # Get local and external Mods paths
     $LocalMods = -join ($WingetUpdatePath, "\", "mods")
@@ -132,6 +132,45 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                 }
             }
         }
+        return $ModsUpdated, $DeletedMods
+    }
+    # If Path is Azure Blob
+    elseif ($ExternalMods -like "AzureBlob") {
+        Write-Log "Azure Blob Storage set as mod source"
+        Write-Log "Checking AZCopy"
+        Get-AZCopy $WingetUpdatePath
+        #Safety check to make sure we really do have azcopy.exe and a Blob URL
+        if ((Test-Path -Path "$WingetUpdatePath\azcopy.exe" -PathType Leaf) -and ($null -ne $AzureBlobSASURL)) {
+            Write-Log "Syncing Blob storage with local storage"
+
+            $AZCopySyncOutput = & $WingetUpdatePath\azcopy.exe sync "$AzureBlobSASURL" "$LocalMods" --from-to BlobLocal --delete-destination=true
+            $AZCopyOutputLines = $AZCopySyncOutput.Split([Environment]::NewLine)
+        
+            foreach( $_ in $AZCopyOutputLines){
+                $AZCopySyncAdditionsRegex = [regex]::new("(?<=Number of Copy Transfers Completed:\s+)\d+")
+                $AZCopySyncDeletionsRegex = [regex]::new("(?<=Number of Deletions at Destination:\s+)\d+")
+                $AZCopySyncErrorRegex = [regex]::new("^Cannot perform sync due to error:")
+
+                $AZCopyAdditions = [int] $AZCopySyncAdditionsRegex.Match($_).Value
+                $AZCopyDeletions = [int] $AZCopySyncDeletionsRegex.Match($_).Value
+
+                if ($AZCopyAdditions -ne 0){
+                    $ModsUpdated = $AZCopyAdditions
+                }
+
+                if ($AZCopyDeletions -ne 0){
+                    $DeletedMods = $AZCopyDeletions
+                }
+
+                if ($AZCopySyncErrorRegex.Match($_).Value){
+                    Write-Log  "AZCopy Sync Error! $_"
+                }
+            }
+        }
+        else {
+            Write-Log "Error 'azcopy.exe' or SAS Token not found!"
+        }
+
         return $ModsUpdated, $DeletedMods
     }
     # If path is UNC or local

@@ -104,7 +104,7 @@ If `-ListPath` is set to **GPO** the Black/White List can be managed from within
 Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
 **-ModsPath**  
-Get Mods from external Path (**URL/UNC/Local**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  
+Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  
 
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):  
 ```
@@ -120,6 +120,11 @@ Validated on **IIS/Apache**.
 **Nota bene IIS** :  
  - The extension **.ps1** must be added as **MIME Types** (text/powershell-script) otherwise it's displayed in the listing but can't be opened
  - Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
+
+For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with an appropriate Azure Blob Storage URL including the SAS token. See **-AzureBlobURL** for more information.
+
+**-AzureBlobURL**
+Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder. (From version 1.16.4).
 
 **-InstallUserContext**  
 Install WAU with system and **user** context executions (From version 1.15.3).

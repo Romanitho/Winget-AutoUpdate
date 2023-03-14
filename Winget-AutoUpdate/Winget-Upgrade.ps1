@@ -87,7 +87,7 @@ if (Test-Network) {
             $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
             #If yes then check WAU update if run as System
             if ($WAUDisableAutoUpdate -eq 1) {
-                Write-Log "WAU AutoUpdate is Disabled." "Grey"
+                Write-Log "WAU AutoUpdate is Disabled." "Gray"
             }
             else {
                 Write-Log "WAU AutoUpdate is Enabled." "Green"
@@ -152,7 +152,7 @@ if (Test-Network) {
             if ($WAUConfig.WAU_ModsPath) {
                 $ModsPathClean = $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))
                 Write-Log "WAU uses External Mods from: $ModsPathClean"
-                $NewMods, $DeletedMods = Test-ModsPath $ModsPathClean $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                $NewMods, $DeletedMods = Test-ModsPath $ModsPathClean $WAUConfig.InstallLocation.TrimEnd(" ", "\") $WAUConfig.WAU_AzureBlobSASURL.TrimEnd(" ")
                 if ($ReachNoPath) {
                     Write-Log "Couldn't reach/find/compare/copy from $ModsPathClean..." "Red"
                     $Script:ReachNoPath = $False

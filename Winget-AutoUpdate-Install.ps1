@@ -29,10 +29,13 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto update if new ve
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
 .PARAMETER ListPath
-Get Black/White List from Path (URL/UNC/Local)
+Get Black/White List from Path (URL/UNC/GPO/Local)
 
 .PARAMETER ModsPath
-Get mods from Path (URL/UNC/Local)
+Get mods from Path (URL/UNC/Local/AzureBlob)
+
+.PARAMETER AzureBlobURL
+Set the Azure Storage Blob URL including the SAS token. The token requires at a minimum 'Read' and 'List' permissions. It is recommended to set this at the container level
 
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.
@@ -93,6 +96,7 @@ param(
     [Parameter(Mandatory = $False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
     [Parameter(Mandatory = $False)] [Alias('List')] [String] $ListPath,
     [Parameter(Mandatory = $False)] [Alias('Mods')] [String] $ModsPath,
+    [Parameter(Mandatory = $False)] [Alias('AzureBlobURL')] [String] $AzureBlobSASURL,
     [Parameter(Mandatory = $False)] [Switch] $DoNotUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
@@ -113,7 +117,7 @@ param(
 
 <# APP INFO #>
 
-$WAUVersion = "1.16.4"
+$WAUVersion = "1.16.5"
 
 <# FUNCTIONS #>
 
@@ -362,6 +366,9 @@ function Install-WingetAutoUpdate {
         }
         if ($ModsPath) {
             New-ItemProperty $regPath -Name WAU_ModsPath -Value $ModsPath -Force | Out-Null
+        }
+        if ($AzureBlobSASURL) {
+            New-ItemProperty $regPath -Name WAU_AzureBlobSASURL -Value $AzureBlobSASURL -Force | Out-Null
         }
         if ($BypassListForUsers) {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null

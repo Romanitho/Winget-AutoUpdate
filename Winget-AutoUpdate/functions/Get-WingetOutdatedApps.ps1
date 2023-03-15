@@ -17,7 +17,7 @@ function Get-WingetOutdatedApps {
     }
 
     #Split winget output to lines
-    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object { $_ -and $_ -notmatch "--include-unknown" }
+    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object { $_ -and ($_ -notmatch "--include-unknown") -and ($_ -notmatch "update the source:") -and ($_ -notmatch "require explicit targeting") -and ($_ -notmatch "^(\d*)\s+(upgrade\w*)\s+(available\.)$") }
 
     # Find the line that starts with "------"
     $fl = 0
@@ -38,9 +38,16 @@ function Get-WingetOutdatedApps {
 
     # Now cycle in real package and split accordingly
     $upgradeList = @()
-    For ($i = $fl + 2; $i -lt $lines.Length - 1; $i++) {
+    For ($i = $fl + 2; $i -lt $lines.Length; $i++) {
         $line = $lines[$i]
-        if ($line) {
+        if ($line -and $line -match "^(Name)\s+(Id)\s+(Version)\s+(Available)$") {
+            #Get header titles
+            $index = $lines[$fl] -split '\s+'
+            $idStart = $lines[$i].IndexOf($index[1])
+            $versionStart = $lines[$i].IndexOf($index[2])
+            $availableStart = $lines[$i].IndexOf($index[3])
+        }
+        if ($line -and ($line -notmatch "^(Name)\s+(Id)\s+(Version)\s+(Available)$") -and (-not $line.StartsWith("-----"))) {
             $software = [Software]::new()
             $software.Name = $line.Substring(0, $idStart).TrimEnd()
             $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()

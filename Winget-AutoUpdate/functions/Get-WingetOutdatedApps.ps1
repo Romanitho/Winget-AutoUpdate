@@ -42,7 +42,7 @@ function Get-WingetOutdatedApps {
         $line = $lines[$i]
         if ($line -and $line -match "^(Name)\s+(Id)\s+(Version)\s+(Available)$") {
             #Get header titles
-            $index = $lines[$fl] -split '\s+'
+            $index = $lines[$i] -split '\s+'
             $idStart = $lines[$i].IndexOf($index[1])
             $versionStart = $lines[$i].IndexOf($index[2])
             $availableStart = $lines[$i].IndexOf($index[3])

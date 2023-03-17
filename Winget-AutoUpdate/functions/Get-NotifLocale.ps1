@@ -3,7 +3,7 @@
 Function Get-NotifLocale {
 
     #Get OS locale
-    $OSLocale = (Get-Culture).Parent
+    $OSLocale = (Get-UICulture).Parent
 
     #Test if OS locale notif file exists
     $TestOSLocalPath = "$WorkingDir\locale\$($OSLocale.Name).xml"

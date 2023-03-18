@@ -4,7 +4,7 @@ A script **Template** and **Mods Functions** are included as an **example** to g
 
 Scripts that are considered:  
 **AppID**`-preinstall.ps1`, `-upgrade.ps1`, `-install.ps1` or `-installed.ps1`.  
-(`-preuninstall.ps1`, `-uninstall.ps1` or `-uninstalled.ps1` - if used together with [Winget-Install](https://github.com/Romanitho/Winget-Install)).  
+(`-preuninstall.ps1`, `-uninstall.ps1` or `-uninstalled.ps1` - if used together with [Winget-Install](https://github.com/JordanJWhite/Winget-Install)).  
 
 > Runs before upgrade/install: `AppID-preinstall.ps1`  
 > Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`  

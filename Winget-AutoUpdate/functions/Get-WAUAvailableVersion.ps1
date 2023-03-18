@@ -9,13 +9,13 @@ function Get-WAUAvailableVersion {
         Write-log "WAU AutoUpdate Pre-release versions is Enabled" "Cyan"
 
         #Get latest pre-release info
-        $WAUurl = 'https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases'
+        $WAUurl = 'https://api.github.com/repos/JordanJWhite/Winget-AutoUpdate/releases'
 
     }
     else {
 
         #Get latest stable info
-        $WAUurl = 'https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases/latest'
+        $WAUurl = 'https://api.github.com/repos/JordanJWhite/Winget-AutoUpdate/releases/latest'
 
     }
 

@@ -14,7 +14,7 @@ Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.tx
 - #### Or AllowList
 From 1.7.0 version, you can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: https://github.com/JordanJWhite/Winget-AutoUpdate/issues/36
 
-> You can use WiGui to create these lists: https://github.com/Romanitho/Winget-Install-GUI
+> You can use WiGui to create these lists: https://github.com/JordanJWhite/Winget-Install-GUI
 
 ### Notification Level
 From version 1.9.0, you can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`.
@@ -176,7 +176,7 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this:
 `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
-You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature.  
+You can find more information on [Winget-Install Repo](https://github.com/JordanJWhite/Winget-Install#custom-mods), as it's a related feature.  
 Read more in the `README.md` under the directory **mods**.
 
 Share your mods with the community:  

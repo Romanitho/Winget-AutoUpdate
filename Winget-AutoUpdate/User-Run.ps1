@@ -10,7 +10,7 @@ Open the Log file from Winget-AutoUpdate installation location
 
 .PARAMETER Help
 Open the Web Help page
-https://github.com/Romanitho/Winget-AutoUpdate
+https://github.com/JordanJWhite/Winget-AutoUpdate
 
 .EXAMPLE
 .\user-run.ps1 -Logs
@@ -60,7 +60,7 @@ if ($Logs) {
 	}
 }
 elseif ($Help) {
-	Start-Process "https://github.com/Romanitho/Winget-AutoUpdate"
+	Start-Process "https://github.com/JordanJWhite/Winget-AutoUpdate"
 }
 else {
 	try {

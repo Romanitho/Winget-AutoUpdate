@@ -4,7 +4,7 @@ This project uses the Winget tool to daily update apps (with system context) and
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 
 ## Intallation
-Just [download latest release (source code)](https://github.com/Romanitho/Winget-AutoUpdate/releases), unzip, run "install.bat" as admin to install by default.
+Just [download latest release (source code)](https://github.com/JordanJWhite/Winget-AutoUpdate/releases), unzip, run "install.bat" as admin to install by default.
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
@@ -12,7 +12,7 @@ Just [download latest release (source code)](https://github.com/Romanitho/Winget
 You can exclude apps from update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update):
 Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
 - #### Or AllowList
-From 1.7.0 version, you can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: https://github.com/Romanitho/Winget-AutoUpdate/issues/36
+From 1.7.0 version, you can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: https://github.com/JordanJWhite/Winget-AutoUpdate/issues/36
 
 > You can use WiGui to create these lists: https://github.com/Romanitho/Winget-Install-GUI
 
@@ -101,7 +101,7 @@ Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy 
 **PATH** must end with a Directory, not a File...  
 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.  
-Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
+Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/JordanJWhite/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
 **-ModsPath**  
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  
@@ -160,7 +160,7 @@ Run WAU on metered connection. Default No.
 Remove scheduled tasks and scripts.
 
 ## Intune/SCCM use
-See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
+See https://github.com/JordanJWhite/Winget-AutoUpdate/discussions/88
 
 ## Custom scripts (Mods feature)
 From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
@@ -180,14 +180,14 @@ You can find more information on [Winget-Install Repo](https://github.com/Romani
 Read more in the `README.md` under the directory **mods**.
 
 Share your mods with the community:  
-https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods
+https://github.com/JordanJWhite/Winget-AutoUpdate/discussions/categories/mods
 
 ### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
 > Example:  
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
-This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).  
+This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/JordanJWhite/Winget-AutoUpdate/discussions/244#discussion-4637666)).  
 
 ## GPO Management
 In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.  
@@ -204,7 +204,7 @@ Read more in the `README.md` under the directory **Policies**.
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.
 
 ## Known issues
-* As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See https://github.com/Romanitho/Winget-AutoUpdate/issues/113
+* As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See https://github.com/JordanJWhite/Winget-AutoUpdate/issues/113
 
 ## Optimization
 Feel free to give us any suggestions or optimizations in code and support us by adding a star :).

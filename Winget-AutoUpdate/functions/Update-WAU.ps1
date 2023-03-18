@@ -2,7 +2,7 @@
 
 function Update-WAU {
 
-    $OnClickAction = "https://github.com/Romanitho/Winget-AutoUpdate/releases"
+    $OnClickAction = "https://github.com/JordanJWhite/Winget-AutoUpdate/releases"
     $Button1Text = $NotifLocale.local.outputs.output[10].message
 
     #Send available update notification
@@ -20,7 +20,7 @@ function Update-WAU {
 
         #Download the zip
         Write-Log "Downloading the GitHub Repository version $WAUAvailableVersion" "Cyan"
-        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/v$($WAUAvailableVersion).zip/" -OutFile $ZipFile
+        Invoke-RestMethod -Uri "https://github.com/JordanJWhite/Winget-AutoUpdate/archive/refs/tags/v$($WAUAvailableVersion).zip/" -OutFile $ZipFile
 
         #Extract Zip File
         Write-Log "Unzipping the WAU GitHub Repository" "Cyan"

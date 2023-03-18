@@ -99,7 +99,7 @@ function Invoke-PostUpdateActions {
         New-ItemProperty $regPath -Name NoModify -Value 1 -Force
         New-ItemProperty $regPath -Name NoRepair -Value 1 -Force
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force
-        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force
+        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/JordanJWhite/Winget-AutoUpdate" -Force
         New-ItemProperty $regPath -Name InstallLocation -Value $WorkingDir -Force
         New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WorkingDir\WAU-Uninstall.ps1`"" -Force
         New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WorkingDir\WAU-Uninstall.ps1`"" -Force

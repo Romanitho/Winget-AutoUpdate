@@ -5,7 +5,7 @@ Configure Winget to daily update installed apps.
 .DESCRIPTION
 Install powershell scripts and scheduled task to daily run Winget upgrade and notify connected users.
 Possible to exclude apps from auto-update
-https://github.com/Romanitho/Winget-AutoUpdate
+https://github.com/JordanJWhite/Winget-AutoUpdate
 
 .PARAMETER Silent
 Install Winget-AutoUpdate and prerequisites silently
@@ -346,7 +346,7 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name VersionMajor -Value ([version]$WAUVersion).Major -Force | Out-Null
         New-ItemProperty $regPath -Name VersionMinor -Value ([version]$WAUVersion).Minor -Force | Out-Null
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force | Out-Null
-        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force | Out-Null
+        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/JordanJWhite/Winget-AutoUpdate" -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_PostUpdateActions -Value 0 -PropertyType DWord -Force | Out-Null
@@ -535,7 +535,7 @@ Write-Host "`t        88888P Y88888   d88P   888  888     888" -ForegroundColor 
 Write-Host "`t        8888P   Y8888  d88P    888  888     888" -ForegroundColor Magenta
 Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n" -ForegroundColor Magenta
 Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n" -ForegroundColor Cyan
-Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
+Write-Host "`t     https://github.com/JordanJWhite/Winget-AutoUpdate`n" -ForegroundColor Magenta
 Write-Host "`t________________________________________________________`n`n"
 
 if (!$Uninstall) {

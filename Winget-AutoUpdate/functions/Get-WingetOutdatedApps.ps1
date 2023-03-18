@@ -52,7 +52,7 @@ function Get-WingetOutdatedApps {
             $versionStart = $lines[$fl].IndexOf($index[2])
             $availableStart = $lines[$fl].IndexOf($index[3])
        }
-       #(Alphanumeric Literal . Alphanumeric) - the only thing in common for lines with applications
+       #(Alphanumeric | Literal . | Alphanumeric) - the only unique thing in common for lines with applications
         if ($line -and ($line -match "\w\.\w")) {
             $software = [Software]::new()
             $software.Name = $line.Substring(0, $idStart).TrimEnd()

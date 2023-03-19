@@ -40,7 +40,7 @@ function Get-WingetOutdatedApps {
     $upgradeList = @()
     For ($i = $fl + 2; $i -lt $lines.Length; $i++) {
         $line = $lines[$i]
-        if ($line -and $line.StartsWith("-----")) {
+        if ($line.StartsWith("-----")) {
             #Get header line
             $fl = $i - 1
 
@@ -53,7 +53,7 @@ function Get-WingetOutdatedApps {
             $availableStart = $lines[$fl].IndexOf($index[3])
        }
        #(Alphanumeric | Literal . | Alphanumeric) - the only unique thing in common for lines with applications
-        if ($line -and ($line -match "\w\.\w")) {
+        if ($line -match "\w\.\w") {
             $software = [Software]::new()
             $software.Name = $line.Substring(0, $idStart).TrimEnd()
             $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()

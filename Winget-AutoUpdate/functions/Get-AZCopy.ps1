@@ -2,7 +2,7 @@
 
 Function Get-AZCopy ($WingetUpdatePath){
 
-    $AZCopyLink = (Invoke-WebRequest -Uri https://aka.ms/downloadazcopy-v10-windows -MaximumRedirection 0 -ErrorAction SilentlyContinue).headers.location
+    $AZCopyLink = (Invoke-WebRequest -Uri https://aka.ms/downloadazcopy-v10-windows -UseBasicParsing -MaximumRedirection 0 -ErrorAction SilentlyContinue).headers.location
     $AZCopyVersionRegex = [regex]::new("(\d+\.\d+\.\d+)")
     $AZCopyLatestVersion = $AZCopyVersionRegex.Match($AZCopyLink).Value
 
@@ -22,7 +22,7 @@ Function Get-AZCopy ($WingetUpdatePath){
 
     if (([version] $AZCopyCurrentVersion) -lt ([version] $AZCopyLatestVersion)) {
         Write-Log  "Installing version $AZCopyLatestVersion of AZCopy"   
-        Invoke-WebRequest -Uri $AZCopyLink -OutFile "$WingetUpdatePath\azcopyv10.zip"
+        Invoke-WebRequest -Uri $AZCopyLink -UseBasicParsing -OutFile "$WingetUpdatePath\azcopyv10.zip"
         Write-Log  "Extracting AZCopy zip file"
 
         Expand-archive -Path "$WingetUpdatePath\azcopyv10.zip" -Destinationpath "$WingetUpdatePath" -Force

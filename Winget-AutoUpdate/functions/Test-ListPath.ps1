@@ -39,7 +39,7 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
         catch {
             try {
                 $content = $wc.DownloadString("$ExternalList")
-                if ($null -ne $content -and $content) {
+                if ($null -ne $content -and $content -match "\w\.\w") {
                     $wc.DownloadFile($ExternalList, $LocalList)
                     return $true
                 }

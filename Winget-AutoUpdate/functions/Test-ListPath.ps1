@@ -37,8 +37,21 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
             }
         }
         catch {
-            $Script:ReachNoPath = $True
-            return $False
+            try {
+                $content = $wc.DownloadString("$ExternalList")
+                if ($null -ne $content -and $content -match "\w\.\w") {
+                    $wc.DownloadFile($ExternalList, $LocalList)
+                    return $true
+                }
+                else {
+                    $Script:ReachNoPath = $True
+                    return $False
+                }
+            }
+            catch {
+                $Script:ReachNoPath = $True
+                return $False
+            }
         }
     }
     # If path is UNC or local

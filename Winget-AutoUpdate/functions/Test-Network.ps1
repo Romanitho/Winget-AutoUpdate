@@ -1,4 +1,4 @@
-#Function to check connectivity
+#Function to check the connectivity
 
 function Test-Network {
 

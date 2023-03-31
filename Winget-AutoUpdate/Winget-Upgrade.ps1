@@ -1,6 +1,6 @@
 <# LOAD FUNCTIONS #>
 
-#Get Working Dir
+#Get the Working Dir
 $Script:WorkingDir = $PSScriptRoot
 #Get Functions
 Get-ChildItem "$WorkingDir\functions" | ForEach-Object { . $_.FullName }
@@ -41,7 +41,7 @@ if ($IsSystem) {
     else {
         [int32] $MaxLogFiles = $MaxLogFiles
     }
-    
+
     # Maximum size of log file.
     $MaxLogSize = $WAUConfig.WAU_MaxLogSize
     if (!$MaxLogSize) {
@@ -147,7 +147,7 @@ if (Test-Network) {
                     }
                 }
             }
-    
+
             #Get External ModsPath if run as System
             if ($WAUConfig.WAU_ModsPath) {
                 $ModsPathClean = $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))
@@ -289,12 +289,10 @@ if (Test-Network) {
         if ($IsSystem) {
             #User check routine from: https://stackoverflow.com/questions/23219718/powershell-script-to-see-currently-logged-in-users-domain-and-machine-status
             $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
-            If ($explorerprocesses.Count -eq 0)
-            {
+            If ($explorerprocesses.Count -eq 0) {
                 Write-Log "No explorer process found / Nobody interactively logged on..."
             }
-            Else
-            {
+            Else {
                 #Run WAU in user context if the user task exist
                 $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
                 if ($UserScheduledTask) {
@@ -308,10 +306,10 @@ if (Test-Network) {
                     Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
                     Exit 0
                 }
-                elseif (!$UserScheduledTask){
+                elseif (!$UserScheduledTask) {
                     Write-Log "User context execution not installed..."
                 }
-            }        
+            }
         }
     }
     else {

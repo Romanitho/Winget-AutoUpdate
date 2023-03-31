@@ -1,4 +1,4 @@
-#Function to get outdated app list, in formatted array
+#Function to get the outdated app list, in formatted array
 
 function Get-WingetOutdatedApps {
     class Software {
@@ -51,8 +51,8 @@ function Get-WingetOutdatedApps {
             $idStart = $lines[$fl].IndexOf($index[1])
             $versionStart = $lines[$fl].IndexOf($index[2])
             $availableStart = $lines[$fl].IndexOf($index[3])
-       }
-       #(Alphanumeric | Literal . | Alphanumeric) - the only unique thing in common for lines with applications
+        }
+        #(Alphanumeric | Literal . | Alphanumeric) - the only unique thing in common for lines with applications
         if ($line -match "\w\.\w") {
             $software = [Software]::new()
             $software.Name = $line.Substring(0, $idStart).TrimEnd()

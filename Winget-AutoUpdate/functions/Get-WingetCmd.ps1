@@ -1,4 +1,4 @@
-#Function to get Winget Command regarding execution context (User, System...)
+#Function to get the winget command regarding execution context (User, System...)
 
 Function Get-WingetCmd {
 

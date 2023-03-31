@@ -1,4 +1,4 @@
-#Function to Update WAU
+#Function to update WAU
 
 function Update-WAU {
 

@@ -1,4 +1,4 @@
-#Function to make actions post WAU update
+#Function to make actions after WAU update
 
 function Invoke-PostUpdateActions {
 
@@ -12,7 +12,7 @@ function Invoke-PostUpdateActions {
     }
 
     Write-Log "-> Checking prerequisites..." "yellow"
-    
+
     #Check if Visual C++ 2019 or 2022 installed
     $Visual2019 = "Microsoft Visual C++ 2015-2019 Redistributable*"
     $Visual2022 = "Microsoft Visual C++ 2015-2022 Redistributable*"

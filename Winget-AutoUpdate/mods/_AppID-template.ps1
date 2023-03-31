@@ -1,6 +1,6 @@
 <# ARRAYS/VARIABLES #>
 #App to Run (as SYSTEM)
-#$RunWait = $False if it shouldn't be waited for completion. Example:
+#$RunWait = $False if it shouldn't be waited for completion. For example:
 #$RunSystem = "$PSScriptRoot\bins\MsiZap.exe"
 #$RunSwitch = "tw! {GUID}"
 $RunSystem = ""

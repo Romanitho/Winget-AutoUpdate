@@ -1,4 +1,4 @@
-#Function to get latest WAU available version on Github
+#Function to get the latest WAU available version on Github
 
 function Get-WAUAvailableVersion {
 

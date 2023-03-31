@@ -1,10 +1,10 @@
-#Function to Update an App
+#Function to update an App
 
 Function Update-App ($app) {
 
     #Get App Info
     $ReleaseNoteURL = Get-AppInfo $app.Id
-    if ($ReleaseNoteURL){
+    if ($ReleaseNoteURL) {
         $Button1Text = $NotifLocale.local.outputs.output[10].message
     }
 
@@ -30,11 +30,11 @@ Function Update-App ($app) {
 
     #Run Winget Upgrade command
     if ($ModsOverride) {
-    	Write-Log "-> Running (overriding default): Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride"
+        Write-Log "-> Running (overriding default): Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride"
         & $Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride | Tee-Object -file $LogFile -Append
     }
     else {
-		Write-Log "-> Running: Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
+        Write-Log "-> Running: Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
         & $Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
     }
 
@@ -60,13 +60,13 @@ Function Update-App ($app) {
 
             #If app failed to upgrade, run Install command
             Write-Log "-> An upgrade for $($app.Name) failed, now trying an install instead..." "Yellow"
-            
+
             if ($ModsOverride) {
-            	Write-Log "-> Running (overriding default): Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride"
+                Write-Log "-> Running (overriding default): Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride"
                 & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride | Tee-Object -file $LogFile -Append
             }
             else {
-            	Write-Log "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
+                Write-Log "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
                 & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
             }
 

@@ -1,4 +1,4 @@
-#Function rotate the logs
+#Function to rotate the logs
 
 function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
     <#

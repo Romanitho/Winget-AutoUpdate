@@ -1,4 +1,4 @@
-#Write Log Function
+#Write to Log Function
 
 function Write-Log ($LogMsg, $LogColor = "White") {
 

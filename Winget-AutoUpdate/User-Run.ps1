@@ -44,9 +44,9 @@ Get-NotifLocale
 #Set common variables
 $OnClickAction = "$WorkingDir\logs\updates.log"
 $Button1Text = $NotifLocale.local.outputs.output[11].message
-$Title = "Winget-AutoUpdate (WAU)"
-$Balise = "Winget-AutoUpdate (WAU)"
-$UserRun = $True
+#$Title = "Winget-AutoUpdate (WAU)"
+#$Balise = "Winget-AutoUpdate (WAU)"
+#$UserRun = $True
 
 if ($Logs) {
 	if (Test-Path "$WorkingDir\logs\updates.log") {

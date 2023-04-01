@@ -11,6 +11,9 @@
         'PSPossibleIncorrectComparisonWithNull',
         'PSAvoidTrailingWhitespace',
         'PSUseApprovedVerbs',
-        'PSAvoidUsingWMICmdlet'
+        'PSAvoidUsingWMICmdlet',
+        'PSReviewUnusedParameter',
+        'PSUseDeclaredVarsMoreThanAssignment',
+        'PSUseShouldProcessForStateChangingFunctions'
     )
 }

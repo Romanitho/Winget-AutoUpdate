@@ -136,12 +136,12 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
     }
     # If Path is Azure Blob
     elseif ($ExternalMods -like "AzureBlob") {
-        Write-Log "Azure Blob Storage set as mod source"
-        Write-Log "Checking AZCopy"
+        Write-ToLog "Azure Blob Storage set as mod source"
+        Write-ToLog "Checking AZCopy"
         Get-AZCopy $WingetUpdatePath
         #Safety check to make sure we really do have azcopy.exe and a Blob URL
         if ((Test-Path -Path "$WingetUpdatePath\azcopy.exe" -PathType Leaf) -and ($null -ne $AzureBlobSASURL)) {
-            Write-Log "Syncing Blob storage with local storage"
+            Write-ToLog "Syncing Blob storage with local storage"
 
             $AZCopySyncOutput = & $WingetUpdatePath\azcopy.exe sync "$AzureBlobSASURL" "$LocalMods" --from-to BlobLocal --delete-destination=true
             $AZCopyOutputLines = $AZCopySyncOutput.Split([Environment]::NewLine)
@@ -163,12 +163,12 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
                 }
 
                 if ($AZCopySyncErrorRegex.Match($_).Value) {
-                    Write-Log  "AZCopy Sync Error! $_"
+                    Write-ToLog  "AZCopy Sync Error! $_"
                 }
             }
         }
         else {
-            Write-Log "Error 'azcopy.exe' or SAS Token not found!"
+            Write-ToLog "Error 'azcopy.exe' or SAS Token not found!"
         }
 
         return $ModsUpdated, $DeletedMods

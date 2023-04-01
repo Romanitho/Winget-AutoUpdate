@@ -13,17 +13,17 @@ Function Get-AZCopy ($WingetUpdatePath) {
     if (Test-Path -Path "$WingetUpdatePath\azcopy.exe" -PathType Leaf) {
         $AZCopyCurrentVersion = & "$WingetUpdatePath\azcopy.exe" -v
         $AZCopyCurrentVersion = $AZCopyVersionRegex.Match($AZCopyCurrentVersion).Value
-        Write-Log  "AZCopy version $AZCopyCurrentVersion found"
+        Write-ToLog  "AZCopy version $AZCopyCurrentVersion found"
     }
     else {
-        Write-Log  "AZCopy not already installed"
+        Write-ToLog  "AZCopy not already installed"
         $AZCopyCurrentVersion = "0.0.0"
     }
 
     if (([version] $AZCopyCurrentVersion) -lt ([version] $AZCopyLatestVersion)) {
-        Write-Log  "Installing version $AZCopyLatestVersion of AZCopy"
+        Write-ToLog  "Installing version $AZCopyLatestVersion of AZCopy"
         Invoke-WebRequest -Uri $AZCopyLink -UseBasicParsing -OutFile "$WingetUpdatePath\azcopyv10.zip"
-        Write-Log  "Extracting AZCopy zip file"
+        Write-ToLog  "Extracting AZCopy zip file"
 
         Expand-archive -Path "$WingetUpdatePath\azcopyv10.zip" -Destinationpath "$WingetUpdatePath" -Force
 
@@ -36,15 +36,15 @@ Function Get-AZCopy ($WingetUpdatePath) {
             $AZCopyEXEPath = $AZCopyPathSearch
         }
 
-        Write-Log  "Copying 'azcopy.exe' to main folder"
+        Write-ToLog  "Copying 'azcopy.exe' to main folder"
         Copy-Item "$AZCopyEXEPath\azcopy.exe" -Destination "$WingetUpdatePath\"
 
-        Write-Log  "Removing temporary AZCopy files"
+        Write-ToLog  "Removing temporary AZCopy files"
         Remove-Item -Path $AZCopyEXEPath -Recurse
         Remove-Item -Path "$WingetUpdatePath\azcopyv10.zip"
 
         $AZCopyCurrentVersion = & "$WingetUpdatePath\azcopy.exe" -v
         $AZCopyCurrentVersion = $AZCopyVersionRegex.Match($AZCopyCurrentVersion).Value
-        Write-Log  "AZCopy version $AZCopyCurrentVersion installed"
+        Write-ToLog  "AZCopy version $AZCopyCurrentVersion installed"
     }
 }

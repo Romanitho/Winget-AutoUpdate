@@ -21,7 +21,7 @@ Function Get-WingetCmd {
         $Script:Winget = "$WingetPath\winget.exe"
     }
     else {
-        Write-Log "Winget not installed or detected !" "Red"
+        Write-ToLog "Winget not installed or detected !" "Red"
         return $false
     }
 
@@ -30,7 +30,7 @@ Function Get-WingetCmd {
 
     #Log Winget installed version
     $WingetVer = & $Winget --version
-    Write-Log "Winget Version: $WingetVer"
+    Write-ToLog "Winget Version: $WingetVer"
 
     return $true
 

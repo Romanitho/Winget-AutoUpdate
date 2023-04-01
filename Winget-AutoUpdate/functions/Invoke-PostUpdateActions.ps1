@@ -3,15 +3,15 @@
 function Invoke-PostUpdateActions {
 
     #log
-    Write-Log "Running Post Update actions:" "yellow"
+    Write-ToLog "Running Post Update actions:" "yellow"
 
     #Check if Intune Management Extension Logs folder and WAU-updates.log exists, make symlink
     if ((Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs") -and !(Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log")) {
-        Write-log "-> Creating SymLink for log file in Intune Management Extension log folder" "yellow"
+        Write-ToLog "-> Creating SymLink for log file in Intune Management Extension log folder" "yellow"
         New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null
     }
 
-    Write-Log "-> Checking prerequisites..." "yellow"
+    Write-ToLog "-> Checking prerequisites..." "yellow"
 
     #Check if Visual C++ 2019 or 2022 installed
     $Visual2019 = "Microsoft Visual C++ 2015-2019 Redistributable*"
@@ -27,25 +27,25 @@ function Invoke-PostUpdateActions {
             else {
                 $OSArch = "x86"
             }
-            Write-Log "-> Downloading VC_redist.$OSArch.exe..."
+            Write-ToLog "-> Downloading VC_redist.$OSArch.exe..."
             $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
             $Installer = "$($WAUConfig.InstallLocation)\VC_redist.$OSArch.exe"
             $ProgressPreference = 'SilentlyContinue'
             Invoke-WebRequest $SourceURL -UseBasicParsing -OutFile (New-Item -Path $Installer -Force)
-            Write-Log "-> Installing VC_redist.$OSArch.exe..."
+            Write-ToLog "-> Installing VC_redist.$OSArch.exe..."
             Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
             Remove-Item $Installer -ErrorAction Ignore
-            Write-Log "-> MS Visual C++ 2015-2022 installed successfully" "green"
+            Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully" "green"
         }
         catch {
-            Write-Log "-> MS Visual C++ 2015-2022 installation failed." "red"
+            Write-ToLog "-> MS Visual C++ 2015-2022 installation failed." "red"
         }
     }
     else {
-        Write-Log "-> Prerequisites checked. OK" "green"
+        Write-ToLog "-> Prerequisites checked. OK" "green"
     }
 
-    Write-Log "-> Checking if Winget is installed/up to date" "yellow"
+    Write-ToLog "-> Checking if Winget is installed/up to date" "yellow"
 
     #Check Package Install
     $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
@@ -53,25 +53,25 @@ function Invoke-PostUpdateActions {
     #Current: v1.4.10173 = 1.19.10173.0 = 2023.118.406.0
     If ([Version]$TestWinGet.Version -ge "2023.118.406.0") {
 
-        Write-Log "-> WinGet is Installed/up to date" "green"
+        Write-ToLog "-> WinGet is Installed/up to date" "green"
 
     }
     Else {
 
         #Download WinGet MSIXBundle
-        Write-Log "-> Not installed/up to date. Downloading WinGet..."
+        Write-ToLog "-> Not installed/up to date. Downloading WinGet..."
         $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.4.10173/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
         #Install WinGet MSIXBundle
         try {
-            Write-Log "-> Installing Winget MSIXBundle for App Installer..."
+            Write-ToLog "-> Installing Winget MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-Log "-> Installed Winget MSIXBundle for App Installer" "green"
+            Write-ToLog "-> Installed Winget MSIXBundle for App Installer" "green"
         }
         catch {
-            Write-Log "-> Failed to intall Winget MSIXBundle for App Installer..." "red"
+            Write-ToLog "-> Failed to intall Winget MSIXBundle for App Installer..." "red"
         }
 
         #Remove WinGet MSIXBundle
@@ -87,7 +87,7 @@ function Invoke-PostUpdateActions {
         & $WingetPath source reset --force
 
         #log
-        Write-Log "-> Winget sources reseted." "green"
+        Write-ToLog "-> Winget sources reseted." "green"
     }
 
     #Create WAU Regkey if not present
@@ -106,7 +106,7 @@ function Invoke-PostUpdateActions {
         New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force
 
         #log
-        Write-Log "-> $regPath created." "green"
+        Write-ToLog "-> $regPath created." "green"
     }
     #Fix Notif where WAU_NotificationLevel is not set
     $regNotif = Get-ItemProperty $regPath -Name WAU_NotificationLevel -ErrorAction SilentlyContinue
@@ -114,7 +114,7 @@ function Invoke-PostUpdateActions {
         New-ItemProperty $regPath -Name WAU_NotificationLevel -Value Full -Force
 
         #log
-        Write-Log "-> Notification level setting was missing. Fixed with 'Full' option."
+        Write-ToLog "-> Notification level setting was missing. Fixed with 'Full' option."
     }
 
     #Set WAU_MaxLogFiles/WAU_MaxLogSize if not set
@@ -124,7 +124,7 @@ function Invoke-PostUpdateActions {
         New-ItemProperty $regPath -Name WAU_MaxLogSize -Value 1048576 -PropertyType DWord -Force | Out-Null
 
         #log
-        Write-Log "-> MaxLogFiles/MaxLogSize setting was missing. Fixed with 3/1048576 (in bytes, default is 1048576 = 1 MB)."
+        Write-ToLog "-> MaxLogFiles/MaxLogSize setting was missing. Fixed with 3/1048576 (in bytes, default is 1048576 = 1 MB)."
     }
 
     #Set WAU_ListPath if not set
@@ -133,7 +133,7 @@ function Invoke-PostUpdateActions {
         New-ItemProperty $regPath -Name WAU_ListPath -Force | Out-Null
 
         #log
-        Write-Log "-> ListPath setting was missing. Fixed with empty string."
+        Write-ToLog "-> ListPath setting was missing. Fixed with empty string."
     }
 
     #Set WAU_ModsPath if not set
@@ -142,20 +142,20 @@ function Invoke-PostUpdateActions {
         New-ItemProperty $regPath -Name WAU_ModsPath -Force | Out-Null
 
         #log
-        Write-Log "-> ModsPath setting was missing. Fixed with empty string."
+        Write-ToLog "-> ModsPath setting was missing. Fixed with empty string."
     }
 
     #Security check
-    Write-Log "-> Checking Mods Directory:" "yellow"
+    Write-ToLog "-> Checking Mods Directory:" "yellow"
     $Protected = Invoke-ModsProtect "$($WAUConfig.InstallLocation)\mods"
     if ($Protected -eq $True) {
-        Write-Log "-> The mods directory is now secured!" "green"
+        Write-ToLog "-> The mods directory is now secured!" "green"
     }
     elseif ($Protected -eq $False) {
-        Write-Log "-> The mods directory was already secured!" "green"
+        Write-ToLog "-> The mods directory was already secured!" "green"
     }
     else {
-        Write-Log "-> Error: The mods directory couldn't be verified as secured!" "red"
+        Write-ToLog "-> Error: The mods directory couldn't be verified as secured!" "red"
     }
 
     #Convert about.xml if exists (previous WAU versions) to reg
@@ -170,7 +170,7 @@ function Invoke-PostUpdateActions {
         Remove-Item $WAUAboutPath -Force -Confirm:$false
 
         #log
-        Write-Log "-> $WAUAboutPath converted." "green"
+        Write-ToLog "-> $WAUAboutPath converted." "green"
     }
 
     #Convert config.xml if exists (previous WAU versions) to reg
@@ -186,7 +186,7 @@ function Invoke-PostUpdateActions {
         Remove-Item $WAUConfigPath -Force -Confirm:$false
 
         #log
-        Write-Log "-> $WAUConfigPath converted." "green"
+        Write-ToLog "-> $WAUConfigPath converted." "green"
     }
 
     #Remove old functions
@@ -200,7 +200,7 @@ function Invoke-PostUpdateActions {
             Remove-Item $FileName -Force -Confirm:$false
 
             #log
-            Write-Log "-> $FileName removed." "green"
+            Write-ToLog "-> $FileName removed." "green"
         }
     }
 
@@ -211,6 +211,6 @@ function Invoke-PostUpdateActions {
     $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
     #log
-    Write-Log "Post Update actions finished" "green"
+    Write-ToLog "Post Update actions finished" "green"
 
 }

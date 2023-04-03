@@ -1,4 +1,4 @@
-#Function to check if modification exists in 'mods' directory
+#Function to check if modification exists within 'mods' directory
 
 function Test-Mods ($app) {
 

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Handle user interaction from shortcuts and show a Toast
+Handle user interaction from shortcuts and show a Toast notification
 
 .DESCRIPTION
 Act on shortcut run (DEFAULT: Check for updated Apps)
@@ -44,6 +44,7 @@ Get-NotifLocale
 #Set common variables
 $OnClickAction = "$WorkingDir\logs\updates.log"
 $Button1Text = $NotifLocale.local.outputs.output[11].message
+#The variables afterwards are used within Start-NotifTask.ps1
 $Title = "Winget-AutoUpdate (WAU)"
 $Balise = "Winget-AutoUpdate (WAU)"
 $UserRun = $True

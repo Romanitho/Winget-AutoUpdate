@@ -1,4 +1,4 @@
-#Get App Info
+#Get the winget App Information
 
 Function Get-AppInfo ($AppID) {
     #Get AppID Info

@@ -45,7 +45,7 @@ jobs:
         env:
           # All available variables are described in documentation
           # https://megalinter.github.io/configuration/
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SPELL_CSPELL_CONFIG_FILE: .github/cspell.json
           POWERSHELL_POWERSHELL_CONFIG_FILE: .github/.powershell-psscriptanalyzer.psd1

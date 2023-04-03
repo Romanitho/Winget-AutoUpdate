@@ -14,6 +14,7 @@
         'PSAvoidUsingWMICmdlet',
         'PSReviewUnusedParameter',
         'PSUseDeclaredVarsMoreThanAssignment',
-        'PSUseShouldProcessForStateChangingFunctions'
+        'PSUseShouldProcessForStateChangingFunctions',
+        'PSUseDeclaredVarsMoreThanAssignments'
     )
 }

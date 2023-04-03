@@ -1,4 +1,4 @@
-#Function for creating shortcuts
+#Function to create shortcuts
 function Add-Shortcut ($Target, $Shortcut, $Arguments, $Icon, $Description) {
     $WScriptShell = New-Object -ComObject WScript.Shell
     $Shortcut = $WScriptShell.CreateShortcut($Shortcut)

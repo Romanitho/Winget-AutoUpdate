@@ -1,4 +1,4 @@
-#Function to get Domain/Local Policies (GPO)
+#Function to get the Domain/Local Policies (GPO)
 
 Function Get-Policies {
     #Get WAU Policies and set the Configurations Registry Accordingly
@@ -15,7 +15,7 @@ Function Get-Policies {
                 Remove-ItemProperty $regPath -Name WAU_BypassListForUsers -Force -ErrorAction SilentlyContinue | Out-Null
                 $ChangedSettings++
             }
-    
+
             if ($null -ne $($WAUPolicies.WAU_DisableAutoUpdate) -and ($($WAUPolicies.WAU_DisableAutoUpdate) -ne $($WAUConfig.WAU_DisableAutoUpdate))) {
                 New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value $($WAUPolicies.WAU_DisableAutoUpdate) -PropertyType DWord -Force | Out-Null
                 $ChangedSettings++
@@ -24,7 +24,7 @@ Function Get-Policies {
                 Remove-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Force -ErrorAction SilentlyContinue | Out-Null
                 $ChangedSettings++
             }
-    
+
             if ($null -ne $($WAUPolicies.WAU_DoNotRunOnMetered) -and ($($WAUPolicies.WAU_DoNotRunOnMetered) -ne $($WAUConfig.WAU_DoNotRunOnMetered))) {
                 New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value $($WAUPolicies.WAU_DoNotRunOnMetered) -PropertyType DWord -Force | Out-Null
                 $ChangedSettings++
@@ -33,7 +33,7 @@ Function Get-Policies {
                 New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value 1 -PropertyType DWord -Force | Out-Null
                 $ChangedSettings++
             }
-    
+
             if ($null -ne $($WAUPolicies.WAU_UpdatePrerelease) -and ($($WAUPolicies.WAU_UpdatePrerelease) -ne $($WAUConfig.WAU_UpdatePrerelease))) {
                 New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value $($WAUPolicies.WAU_UpdatePrerelease) -PropertyType DWord -Force | Out-Null
                 $ChangedSettings++
@@ -42,7 +42,7 @@ Function Get-Policies {
                 New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force | Out-Null
                 $ChangedSettings++
             }
-    
+
             if ($null -ne $($WAUPolicies.WAU_UseWhiteList) -and ($($WAUPolicies.WAU_UseWhiteList) -ne $($WAUConfig.WAU_UseWhiteList))) {
                 New-ItemProperty $regPath -Name WAU_UseWhiteList -Value $($WAUPolicies.WAU_UseWhiteList) -PropertyType DWord -Force | Out-Null
                 $ChangedSettings++
@@ -51,7 +51,7 @@ Function Get-Policies {
                 Remove-ItemProperty $regPath -Name WAU_UseWhiteList -Force -ErrorAction SilentlyContinue | Out-Null
                 $ChangedSettings++
             }
-    
+
             if ($null -ne $($WAUPolicies.WAU_ListPath) -and ($($WAUPolicies.WAU_ListPath) -ne $($WAUConfig.WAU_ListPath))) {
                 New-ItemProperty $regPath -Name WAU_ListPath -Value $($WAUPolicies.WAU_ListPath.TrimEnd(" ", "\", "/")) -Force | Out-Null
                 $ChangedSettings++
@@ -60,7 +60,7 @@ Function Get-Policies {
                 Remove-ItemProperty $regPath -Name WAU_ListPath -Force -ErrorAction SilentlyContinue | Out-Null
                 $ChangedSettings++
             }
-    
+
             if ($null -ne $($WAUPolicies.WAU_ModsPath) -and ($($WAUPolicies.WAU_ModsPath) -ne $($WAUConfig.WAU_ModsPath))) {
                 New-ItemProperty $regPath -Name WAU_ModsPath -Value $($WAUPolicies.WAU_ModsPath.TrimEnd(" ", "\", "/")) -Force | Out-Null
                 $ChangedSettings++
@@ -95,14 +95,14 @@ Function Get-Policies {
                 $folder = $service.GetFolder('\')
                 $task = $folder.GetTask("Winget-AutoUpdate")
                 $definition = $task.Definition
-                for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
-                    if(($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")){
-                        $PreStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(0,11)
-                        $PostStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(19,6)
+                for ($triggerId = 1; $triggerId -le $definition.Triggers.Count; $triggerId++) {
+                    if (($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")) {
+                        $PreStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(0, 11)
+                        $PostStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(19, 6)
                         $Boundary = $PreStartBoundary + $($WAUPolicies.WAU_UpdatesAtTime) + $PostStartBoundary
                         $definition.Triggers.Item($triggerId).StartBoundary = $Boundary
                         break
-                        $triggerId-=1
+                        $triggerId -= 1
                     }
                 }
                 $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
@@ -116,14 +116,14 @@ Function Get-Policies {
                 $folder = $service.GetFolder('\')
                 $task = $folder.GetTask("Winget-AutoUpdate")
                 $definition = $task.Definition
-                for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
-                    if(($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")){
-                        $PreStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(0,11)
-                        $PostStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(19,6)
+                for ($triggerId = 1; $triggerId -le $definition.Triggers.Count; $triggerId++) {
+                    if (($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")) {
+                        $PreStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(0, 11)
+                        $PostStartBoundary = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(19, 6)
                         $Boundary = $PreStartBoundary + "06:00:00" + $PostStartBoundary
                         $definition.Triggers.Item($triggerId).StartBoundary = $Boundary
                         break
-                        $triggerId-=1
+                        $triggerId -= 1
                     }
                 }
                 $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
@@ -137,11 +137,11 @@ Function Get-Policies {
                 $folder = $service.GetFolder('\')
                 $task = $folder.GetTask("Winget-AutoUpdate")
                 $definition = $task.Definition
-                for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
-                    if(($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")){
-                        $UpdatesAtTime = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(11,8)
+                for ($triggerId = 1; $triggerId -le $definition.Triggers.Count; $triggerId++) {
+                    if (($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")) {
+                        $UpdatesAtTime = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(11, 8)
                         $definition.Triggers.Remove($triggerId)
-                        $triggerId-=1
+                        $triggerId -= 1
                     }
                 }
                 $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
@@ -160,11 +160,11 @@ Function Get-Policies {
                     $definition = $task.Definition
                     $definition.Triggers.Count | Out-Null
                     switch ($($WAUPolicies.WAU_UpdatesInterval)) {
-                        "Daily" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At $($WAUConfig.WAU_UpdatesAtTime); break}
-                        "BiDaily" {$tasktrigger = New-ScheduledTaskTrigger -Daily -At $($WAUConfig.WAU_UpdatesAtTime) -DaysInterval 2; break}
-                        "Weekly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At $($WAUConfig.WAU_UpdatesAtTime) -DaysOfWeek 2; break}
-                        "BiWeekly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At $($WAUConfig.WAU_UpdatesAtTime) -DaysOfWeek 2 -WeeksInterval 2; break}
-                        "Monthly" {$tasktrigger = New-ScheduledTaskTrigger -Weekly -At $($WAUConfig.WAU_UpdatesAtTime) -DaysOfWeek 2 -WeeksInterval 4; break}
+                        "Daily" { $tasktrigger = New-ScheduledTaskTrigger -Daily -At $($WAUConfig.WAU_UpdatesAtTime); break }
+                        "BiDaily" { $tasktrigger = New-ScheduledTaskTrigger -Daily -At $($WAUConfig.WAU_UpdatesAtTime) -DaysInterval 2; break }
+                        "Weekly" { $tasktrigger = New-ScheduledTaskTrigger -Weekly -At $($WAUConfig.WAU_UpdatesAtTime) -DaysOfWeek 2; break }
+                        "BiWeekly" { $tasktrigger = New-ScheduledTaskTrigger -Weekly -At $($WAUConfig.WAU_UpdatesAtTime) -DaysOfWeek 2 -WeeksInterval 2; break }
+                        "Monthly" { $tasktrigger = New-ScheduledTaskTrigger -Weekly -At $($WAUConfig.WAU_UpdatesAtTime) -DaysOfWeek 2 -WeeksInterval 4; break }
                     }
                     if ($definition.Triggers.Count -gt 0) {
                         $triggers = @()
@@ -185,11 +185,11 @@ Function Get-Policies {
                 $folder = $service.GetFolder('\')
                 $task = $folder.GetTask("Winget-AutoUpdate")
                 $definition = $task.Definition
-                for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
-                    if(($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")){
-                        $UpdatesAtTime = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(11,8)
+                for ($triggerId = 1; $triggerId -le $definition.Triggers.Count; $triggerId++) {
+                    if (($definition.Triggers.Item($triggerId).Type -eq "2") -or ($definition.Triggers.Item($triggerId).Type -eq "3")) {
+                        $UpdatesAtTime = ($definition.Triggers.Item($triggerId).StartBoundary).Substring(11, 8)
                         $definition.Triggers.Remove($triggerId)
-                        $triggerId-=1
+                        $triggerId -= 1
                     }
                 }
                 $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
@@ -251,10 +251,10 @@ Function Get-Policies {
                     $task = $folder.GetTask("Winget-AutoUpdate")
                     $definition = $task.Definition
                     $definition.Triggers.Count | Out-Null
-                    for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
-                        if($definition.Triggers.Item($triggerId).Type -eq "9"){
+                    for ($triggerId = 1; $triggerId -le $definition.Triggers.Count; $triggerId++) {
+                        if ($definition.Triggers.Item($triggerId).Type -eq "9") {
                             $definition.Triggers.Remove($triggerId)
-                            $triggerId-=1
+                            $triggerId -= 1
                         }
                     }
                     $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null
@@ -268,10 +268,10 @@ Function Get-Policies {
                 $folder = $service.GetFolder('\')
                 $task = $folder.GetTask("Winget-AutoUpdate")
                 $definition = $task.Definition
-                for($triggerId=1; $triggerId -le $definition.Triggers.Count; $triggerId++){
-                    if($definition.Triggers.Item($triggerId).Type -eq "9"){
+                for ($triggerId = 1; $triggerId -le $definition.Triggers.Count; $triggerId++) {
+                    if ($definition.Triggers.Item($triggerId).Type -eq "9") {
                         $definition.Triggers.Remove($triggerId)
-                        $triggerId-=1
+                        $triggerId -= 1
                     }
                 }
                 $folder.RegisterTaskDefinition($task.Name, $definition, 4, $null, $null, $null) | Out-Null

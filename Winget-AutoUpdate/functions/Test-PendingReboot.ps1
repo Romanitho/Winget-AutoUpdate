@@ -1,4 +1,4 @@
-#Function to check if there's a Pending Reboot
+#Function to check if there is a Pending Reboot
 
 function Test-PendingReboot {
 

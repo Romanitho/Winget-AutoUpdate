@@ -4,7 +4,7 @@ Configure Winget to daily update installed apps.
 
 .DESCRIPTION
 Install powershell scripts and scheduled task to daily run Winget upgrade and notify connected users.
-Possible to exclude apps from auto-update
+Posibility to exclude apps from auto-update
 https://github.com/Romanitho/Winget-AutoUpdate
 
 .PARAMETER Silent
@@ -111,7 +111,7 @@ param(
     [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
     [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false,
     [Parameter(Mandatory = $False)] [Switch] $InstallUserContext = $false,
-    [Parameter(Mandatory = $False)] [ValidateRange(0,99)] [int32] $MaxLogFiles = 3,
+    [Parameter(Mandatory = $False)] [ValidateRange(0, 99)] [int32] $MaxLogFiles = 3,
     [Parameter(Mandatory = $False)] [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
 )
 
@@ -391,7 +391,7 @@ function Install-WingetAutoUpdate {
         else {
             Write-Host "Error: The mods directory couldn't be verified as secured!`n" -ForegroundColor Red
         }
-                        
+
         #Create Shortcuts
         if ($StartMenuShortcut) {
             if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {

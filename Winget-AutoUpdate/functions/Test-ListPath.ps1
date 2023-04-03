@@ -1,4 +1,4 @@
-#Function to check Black/White List External Path
+#Function to check Block/Allow List External Path
 
 function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
     # URL, UNC or Local Path

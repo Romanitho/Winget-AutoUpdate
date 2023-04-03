@@ -1,4 +1,4 @@
-#Send Notif Script
+#Send Notify Script
 
 #get xml notif config
 $WAUinstalledPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation

@@ -1,4 +1,4 @@
-#Function to get locale file for Notification.
+#Function to get the locale file for notifications
 
 Function Get-NotifLocale {
 

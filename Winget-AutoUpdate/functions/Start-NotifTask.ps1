@@ -11,15 +11,9 @@ function Start-NotifTask {
         [String]$Body,
         [String]$Button1Text,
         [String]$Button1Action,
-        [Switch]$ButtonDismiss = $false
+        [Switch]$ButtonDismiss = $false,
+        [Switch]$UserRun = $false
     )
-
-    $caller = Get-ChildItem $MyInvocation.PSCommandPath | Select-Object -Expand Name
-    if ($caller -eq "User-Run.ps1") {
-        $Title = "Winget-AutoUpdate (WAU)"
-        $Balise = "Winget-AutoUpdate (WAU)"
-        $UserRun = $True
-    }
 
     if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success") -or ($UserRun)) {
 

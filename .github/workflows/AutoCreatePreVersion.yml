@@ -1,7 +1,6 @@
 name: Auto Create Pre-Release Version
 
 on:
-  workflow_dispatch:
   pull_request:
     types:
     - closed

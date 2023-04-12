@@ -1,0 +1,40 @@
+name: Auto Create Pre-Release Version
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+    - closed
+
+jobs:
+  build:
+    name: Create Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          lfs: 'true'          
+      - name: Build project # This would actually build your project, using zip for an example artifact
+        run: |
+          zip -r WAU Winget-AutoUpdate/*
+          zip -r WAU Winget-AutoUpdate-Install.ps1
+          zip -r WAU excluded_apps.txt
+          zip -r WAU install.bat
+          zip -r WAU uninstall.bat
+          
+      - name: Auto Increment Semver Action
+        uses: MCKanpolat/auto-semver-action@v1
+        id: versioning
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+        
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "v${{ steps.versioning.outputs.version }}"
+          prerelease: true
+          title: "v${{ steps.versioning.outputs.version }}"
+          files: |
+            WAU.zip
+          

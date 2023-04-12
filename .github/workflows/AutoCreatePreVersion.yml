@@ -31,6 +31,11 @@ jobs:
         id: versioning
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - uses: "finnp/create-file-action@master"
+        env:
+          FILE_NAME: "Winget-AutoUpdate/Winget-AutoUpdate/Version.txt"
+          FILE_DATA: "${{ steps.versioning.outputs.version }}"
         
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:

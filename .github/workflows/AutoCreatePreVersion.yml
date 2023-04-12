@@ -28,7 +28,7 @@ jobs:
       - name: Overwrite Version.txt file
         uses: "DamianReeves/write-file-action@master"
         with:
-          path: Winget-AutoUpdate/Winget-AutoUpdate/Version.txt
+          path: Winget-AutoUpdate/Version.txt
           write-mode: overwrite
           contents: ${{ steps.versioning.outputs.version }}
 

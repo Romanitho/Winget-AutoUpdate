@@ -115,9 +115,6 @@ param(
     [Parameter(Mandatory = $False)] [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
 )
 
-<# APP INFO #>
-
-$WAUVersion = "1.17.2"
 
 <# FUNCTIONS #>
 
@@ -515,6 +512,12 @@ function Add-Shortcut ($Target, $Shortcut, $Arguments, $Icon, $Description) {
     $Shortcut.Save()
 }
 
+
+<# APP INFO #>
+
+$WAUVersion = Get-Content "$PSScriptRoot\Winget-AutoUpdate\Version.txt" -ErrorAction SilentlyContinue
+
+
 <# MAIN #>
 
 #If running as a 32-bit process on an x64 system, re-launch as a 64-bit process
@@ -549,5 +552,6 @@ else {
     Uninstall-WingetAutoUpdate
 }
 
+Remove-Item "$WingetUpdatePath\Version.txt" -Force
 Write-host "`nEnd of process." -ForegroundColor Cyan
 Start-Sleep 3

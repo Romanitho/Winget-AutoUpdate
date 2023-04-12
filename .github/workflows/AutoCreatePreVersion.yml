@@ -5,7 +5,7 @@ on:
   pull_request:
     types:
     - closed
-    
+
 permissions:
   contents: write
 
@@ -17,26 +17,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          lfs: 'true'          
-      - name: Build project # This would actually build your project, using zip for an example artifact
+          lfs: 'true'
+
+      - name: Auto Increment Semver Action
+        uses: MCKanpolat/auto-semver-action@v1
+        id: versioning
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Overwrite Version.txt file
+        uses: "DamianReeves/write-file-action@master"
+        with:
+          path: Winget-AutoUpdate/Winget-AutoUpdate/Version.txt
+          write-mode: overwrite
+          contents: ${{ steps.versioning.outputs.version }}
+
+      - name: Commit & Push
+        uses: Andro999b/push@v1.3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          force: true
+          message: 'Changed version to ${{ steps.versioning.outputs.version }}'
+
+      - name: Build project
         run: |
           zip -r WAU Winget-AutoUpdate/*
           zip -r WAU Winget-AutoUpdate-Install.ps1
           zip -r WAU excluded_apps.txt
           zip -r WAU install.bat
           zip -r WAU uninstall.bat
-          
-      - name: Auto Increment Semver Action
-        uses: MCKanpolat/auto-semver-action@v1
-        id: versioning
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          
-      - uses: "finnp/create-file-action@master"
-        env:
-          FILE_NAME: "Winget-AutoUpdate/Winget-AutoUpdate/Version.txt"
-          FILE_DATA: "${{ steps.versioning.outputs.version }}"
-        
+
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -45,4 +56,3 @@ jobs:
           title: "v${{ steps.versioning.outputs.version }}"
           files: |
             WAU.zip
-          

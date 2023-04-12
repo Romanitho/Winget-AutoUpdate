@@ -115,9 +115,6 @@ param(
     [Parameter(Mandatory = $False)] [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
 )
 
-<# APP INFO #>
-
-$WAUVersion = "1.17.2"
 
 <# FUNCTIONS #>
 
@@ -514,6 +511,12 @@ function Add-Shortcut ($Target, $Shortcut, $Arguments, $Icon, $Description) {
     $Shortcut.Description = $Description
     $Shortcut.Save()
 }
+
+
+<# APP INFO #>
+
+$WAUVersion = Get-Content "$PSScriptRoot\Winget-AutoUpdate\Version.txt" -ErrorAction SilentlyContinue
+
 
 <# MAIN #>
 

@@ -552,5 +552,6 @@ else {
     Uninstall-WingetAutoUpdate
 }
 
+Remove-Item "$WingetUpdatePath\Version.txt" -Force
 Write-host "`nEnd of process." -ForegroundColor Cyan
 Start-Sleep 3

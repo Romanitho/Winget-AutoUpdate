@@ -1,3 +1,4 @@
+---
 name: Create New Version
 
 on:
@@ -7,9 +8,9 @@ on:
         type: choice
         description: Select next release type
         options:
-        - Patch
-        - Minor
-        - Major
+          - Patch
+          - Minor
+          - Major
       pre-release:
         type: boolean
         description: Set as Pre-release version

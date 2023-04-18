@@ -1,13 +1,10 @@
-name: WAU PS Test
+---
+name: WAU Powershell Test Runs
 
 # yamllint disable-line rule:truthy
 on:
-  push:
   pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
+    branches: [master, main]
   workflow_dispatch:
 
 permissions:

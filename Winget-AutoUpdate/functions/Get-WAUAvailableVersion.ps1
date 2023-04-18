@@ -19,6 +19,7 @@ function Get-WAUAvailableVersion {
 
     }
 
-    return ((Invoke-WebRequest $WAUurl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
+    #Return version to windows format (1.0.0 or 1.0.0.0 for nightlies)
+    return (((Invoke-WebRequest $WAUurl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")).Replace("-", ".")
 
 }

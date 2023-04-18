@@ -20,7 +20,7 @@ function Update-WAU {
 
         #Download the zip
         Write-ToLog "Downloading the GitHub Repository version $WAUAvailableVersion" "Cyan"
-        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/archive/refs/tags/v$($WAUAvailableVersion).zip/" -OutFile $ZipFile
+        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUAvailableVersion)/WAU.zip" -OutFile $ZipFile
 
         #Extract Zip File
         Write-ToLog "Unzipping the WAU GitHub Repository" "Cyan"
@@ -30,7 +30,7 @@ function Update-WAU {
 
         #Update scritps
         Write-ToLog "Updating WAU" "Yellow"
-        $TempPath = (Resolve-Path "$location\*\Winget-AutoUpdate\")[0].Path
+        $TempPath = (Resolve-Path "$location\Winget-AutoUpdate\")[0].Path
         if ($TempPath) {
             Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
         }

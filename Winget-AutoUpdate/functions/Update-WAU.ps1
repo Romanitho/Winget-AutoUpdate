@@ -41,9 +41,9 @@ function Update-WAU {
         Remove-Item -Path $location -Recurse -Force -ErrorAction SilentlyContinue
 
         #Set new version to registry
-        $WAUConfig | New-ItemProperty -Name DisplayVersion -Value $WAUAvailableVersion -Force
-        $WAUConfig | New-ItemProperty -Name VersionMajor -Value ([version]$WAUAvailableVersion).Major -Force
-        $WAUConfig | New-ItemProperty -Name VersionMinor -Value ([version]$WAUAvailableVersion).Minor -Force
+        $WAUConfig | New-ItemProperty -Name DisplayVersion -Value $($WAUAvailableVersion.Replace("-", ".")) -Force
+        $WAUConfig | New-ItemProperty -Name VersionMajor -Value ([version]$WAUAvailableVersion.Replace("-", ".")).Major -Force
+        $WAUConfig | New-ItemProperty -Name VersionMinor -Value ([version]$WAUAvailableVersion.Replace("-", ".")).Minor -Force
 
         #Set Post Update actions to 1
         $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 1 -Force

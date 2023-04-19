@@ -92,9 +92,9 @@ if (Test-Network) {
             else {
                 Write-ToLog "WAU AutoUpdate is Enabled." "Green"
                 #Get Available Version
-                $WAUAvailableVersion = Get-WAUAvailableVersion
+                $Script:WAUAvailableVersion = Get-WAUAvailableVersion
                 #Compare
-                if ([version]$WAUAvailableVersion -gt [version]$WAUCurrentVersion) {
+                if ([version]$WAUAvailableVersion.Replace("-", ".") -ne [version]$WAUCurrentVersion) {
                     #If new version is available, update it
                     Write-ToLog "WAU Available version: $WAUAvailableVersion" "Yellow"
                     Update-WAU

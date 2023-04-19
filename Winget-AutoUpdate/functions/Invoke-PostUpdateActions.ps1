@@ -193,7 +193,8 @@ function Invoke-PostUpdateActions {
     $FileNames = @(
         "$WorkingDir\functions\Get-WAUConfig.ps1",
         "$WorkingDir\functions\Get-WAUCurrentVersion.ps1",
-        "$WorkingDir\functions\Get-WAUUpdateStatus.ps1"
+        "$WorkingDir\functions\Get-WAUUpdateStatus.ps1",
+        "$WorkingDir\functions\Write-Log.ps1"
     )
     foreach ($FileName in $FileNames) {
         if (Test-Path $FileName) {

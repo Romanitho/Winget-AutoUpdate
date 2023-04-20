@@ -152,7 +152,12 @@ if (Test-Network) {
             if ($WAUConfig.WAU_ModsPath) {
                 $ModsPathClean = $($WAUConfig.WAU_ModsPath.TrimEnd(" ", "\", "/"))
                 Write-ToLog "WAU uses External Mods from: $ModsPathClean"
-                $NewMods, $DeletedMods = Test-ModsPath $ModsPathClean $WAUConfig.InstallLocation.TrimEnd(" ", "\") $WAUConfig.WAU_AzureBlobSASURL.TrimEnd(" ")
+                if ($WAUConfig.WAU_AzureBlobSASURL) {
+                    $NewMods, $DeletedMods = Test-ModsPath $ModsPathClean $WAUConfig.InstallLocation.TrimEnd(" ", "\") $WAUConfig.WAU_AzureBlobSASURL.TrimEnd(" ")
+                }
+                else {
+                    $NewMods, $DeletedMods = Test-ModsPath $ModsPathClean $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                }
                 if ($ReachNoPath) {
                     Write-ToLog "Couldn't reach/find/compare/copy from $ModsPathClean..." "Red"
                     $Script:ReachNoPath = $False

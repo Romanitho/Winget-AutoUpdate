@@ -3,7 +3,7 @@ name: WAU - Auto Create Pre-Release Version
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 permissions:
   contents: write
@@ -49,7 +49,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          lfs: 'true'
+          lfs: "true"
           fetch-depth: 0
 
       - name: Auto Increment Semver Action
@@ -80,7 +80,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
           force: true
-          message: 'Changed version to ${{ steps.versioning.outputs.version }}'
+          message: "Changed version to ${{ steps.versioning.outputs.version }}"
 
       - name: Build project
         run: |

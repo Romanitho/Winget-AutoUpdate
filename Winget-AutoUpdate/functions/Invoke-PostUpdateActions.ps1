@@ -45,9 +45,8 @@ function Invoke-PostUpdateActions {
         Write-ToLog "-> Prerequisites checked. OK" "green"
     }
 
-    Write-ToLog "-> Checking if Winget is installed/up to date" "yellow"
-
     #Check Package Install
+    Write-ToLog "-> Checking if Winget is installed/up to date" "yellow"
     $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
 
     #Current: v1.4.10173 = 1.19.10173.0 = 2023.118.406.0
@@ -189,12 +188,13 @@ function Invoke-PostUpdateActions {
         Write-ToLog "-> $WAUConfigPath converted." "green"
     }
 
-    #Remove old functions
+    #Remove old functions / files
     $FileNames = @(
         "$WorkingDir\functions\Get-WAUConfig.ps1",
         "$WorkingDir\functions\Get-WAUCurrentVersion.ps1",
         "$WorkingDir\functions\Get-WAUUpdateStatus.ps1",
-        "$WorkingDir\functions\Write-Log.ps1"
+        "$WorkingDir\functions\Write-Log.ps1",
+        "$WorkingDir\Version.txt"
     )
     foreach ($FileName in $FileNames) {
         if (Test-Path $FileName) {

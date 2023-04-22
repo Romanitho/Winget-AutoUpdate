@@ -6,7 +6,7 @@ on:
     inputs:
       version:
         type: choice
-        default: 'Patch'
+        default: "Patch"
         description: Select next release type
         options:
           - Patch
@@ -28,7 +28,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          lfs: 'true'
+          lfs: "true"
 
       - name: Auto Increment Semver Action
         uses: MCKanpolat/auto-semver-action@1.0.9
@@ -51,7 +51,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
           force: true
-          message: 'Changed version to ${{ steps.versioning.outputs.version }}'
+          message: "Changed version to ${{ steps.versioning.outputs.version }}"
 
       - name: Build project
         run: |

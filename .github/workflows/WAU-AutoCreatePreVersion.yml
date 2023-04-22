@@ -1,5 +1,5 @@
 ---
-name: Auto Create Pre-Release Version
+name: WAU - Auto Create Pre-Release Version
 
 on:
   schedule:

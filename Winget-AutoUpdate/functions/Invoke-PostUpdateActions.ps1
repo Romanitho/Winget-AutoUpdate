@@ -157,13 +157,11 @@ function Invoke-PostUpdateActions {
         Write-ToLog "-> Error: The mods directory couldn't be verified as secured!" "red"
     }
 
-    #Convert about.xml if exists (previous WAU versions) to reg
+    #Convert about.xml if exists (old WAU versions) to reg
     $WAUAboutPath = "$WorkingDir\config\about.xml"
     if (test-path $WAUAboutPath) {
         [xml]$About = Get-Content $WAUAboutPath -Encoding UTF8 -ErrorAction SilentlyContinue
         New-ItemProperty $regPath -Name DisplayVersion -Value $About.app.version -Force
-        New-ItemProperty $regPath -Name VersionMajor -Value ([version]$About.app.version).Major -Force
-        New-ItemProperty $regPath -Name VersionMinor -Value ([version]$About.app.version).Minor -Force
 
         #Remove file once converted
         Remove-Item $WAUAboutPath -Force -Confirm:$false
@@ -202,6 +200,17 @@ function Invoke-PostUpdateActions {
 
             #log
             Write-ToLog "-> $FileName removed." "green"
+        }
+    }
+
+    #Remove old registry key
+    $RegistryKeys = @(
+        "VersionMajor",
+        "VersionMinor"
+    )
+    foreach ($RegistryKey in $RegistryKeys) {
+        if (Get-ItemProperty -Path $regPath -Name $RegistryKey -ErrorAction SilentlyContinue) {
+            Remove-ItemProperty -Path $regPath -Name $RegistryKey
         }
     }
 

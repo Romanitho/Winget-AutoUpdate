@@ -64,15 +64,13 @@ jobs:
         id: WAU_version
         run: |
           echo "Next Release version: ${{ steps.versioning.outputs.version }}"
-          echo "PowerShell format version: ${{ steps.versioning.outputs.version }}" | tr '-' '.'
-          echo PSVersion=$(echo '${{ steps.versioning.outputs.version }}' | tr '-' '.') >> $GITHUB_OUTPUT
 
       - name: Overwrite Version.txt file
         uses: DamianReeves/write-file-action@v1.2
         with:
           path: Winget-AutoUpdate/Version.txt
           write-mode: overwrite
-          contents: ${{ steps.WAU_version.outputs.PSVersion }}
+          contents: ${{ steps.versioning.outputs.version }}
 
       - name: Commit & Push
         uses: actions-js/push@v1.4

@@ -15,7 +15,7 @@ function Start-NotifTask {
         [Switch]$UserRun = $false
     )
 
-    if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success") -or ($UserRun)) {
+    if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success") -or (!$IsSystem)) {
 
         # XML Toast template creation
         [xml]$ToastTemplate = New-Object system.Xml.XmlDocument

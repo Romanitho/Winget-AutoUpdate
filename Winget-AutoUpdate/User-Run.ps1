@@ -20,7 +20,9 @@ https://github.com/Romanitho/Winget-AutoUpdate
 [CmdletBinding()]
 param(
 	[Parameter(Mandatory = $False)] [Switch] $Logs = $false,
-	[Parameter(Mandatory = $False)] [Switch] $Help = $false
+	[Parameter(Mandatory = $False)] [Switch] $Help = $false,
+	[Parameter(Mandatory = $False)] [Switch] $NotifApprovedAsSystem = $false,
+	[Parameter(Mandatory = $False)] [Switch] $NotifApprovedAsUser = $false
 )
 
 function Test-WAUisRunning {
@@ -58,6 +60,18 @@ if ($Logs) {
 }
 elseif ($Help) {
 	Start-Process "https://github.com/Romanitho/Winget-AutoUpdate"
+}
+elseif ($NotifApprovedAsUser){
+	#Create tag if user approve notif for requested updates
+	$WAUNotifApprovedPath = "$WingetUpdatePath\config\NotifApproved.txt"
+	New-Item $WAUNotifApprovedPath -Force
+	Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+}
+elseif ($NotifApprovedAsSystem){
+	#Create tag if user approve notif for requested updates
+	$WAUNotifApprovedPath = "$WingetUpdatePath\config\NotifApproved.txt"
+	New-Item $WAUNotifApprovedPath -Force
+	Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
 }
 else {
 	try {

@@ -29,7 +29,7 @@ By default, scripts and components will be placed in ProgramData location (insid
 From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
 
 ### Log location
-You can find logs in install location, in logs folder.  
+You can find logs in install location, in logs folder.
 If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
 
 ### "Unknown" App version
@@ -59,55 +59,55 @@ A new Auto-Update process has been released from version 1.5.0. By default, WAU 
 To disable WAU AutoUpdate, run the `Winget-AutoUpdate-Install.ps1` with `-DisableWAUAutoUpdate` parameter.
 
 ## Uninstall WAU
-Simply uninstall it from your programs:  
+Simply uninstall it from your programs:
 
 ![image](https://user-images.githubusercontent.com/96626929/170879336-ef034956-4778-41f0-b8fd-d307b77b70a9.png)
 
 ## GUI installation
-[WiGui](https://github.com/Romanitho/Winget-Install-GUI/) can be used to install WAU even easier:  
+[WiGui](https://github.com/Romanitho/Winget-Install-GUI/) can be used to install WAU even easier:
 
 <img src="https://user-images.githubusercontent.com/96626929/167912772-de5a55fe-68a8-44ed-91fb-fcf5b34d891f.png" width="400">
 
 ## Advanced installation
 You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
 
-**-Silent**  
+**-Silent**
 Install Winget-AutoUpdate and prerequisites silently.
 
-**-MaxLogFiles**  
-Specify number of allowed log files.  
-Default is 3 out of 0-99:  
-Setting MaxLogFiles to 0 don't delete any old archived log files.  
+**-MaxLogFiles**
+Specify number of allowed log files.
+Default is 3 out of 0-99:
+Setting MaxLogFiles to 0 don't delete any old archived log files.
 Setting it to 1 keeps the original one and just let it grow.
 
-**-MaxLogSize**  
-Specify the size of the log file in bytes before rotating.  
+**-MaxLogSize**
+Specify the size of the log file in bytes before rotating.
 Default is 1048576 = 1 MB (ca. 7500 lines)
 
-**-WingetUpdatePath**  
+**-WingetUpdatePath**
 Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
 
-**-DoNotUpdate**  
+**-DoNotUpdate**
 Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate is run just after installation.
 
-**-DisableWAUAutoUpdate**  
+**-DisableWAUAutoUpdate**
 Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new version is available on Github.
 
-**-UseWhiteList**  
+**-UseWhiteList**
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt".
 
-**-ListPath**  
-Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.  
-**PATH** must end with a Directory, not a File...  
+**-ListPath**
+Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.
+**PATH** must end with a Directory, not a File...
 ...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!
 
-If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.  
+If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.
 Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
-**-ModsPath**  
-Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  
+**-ModsPath**
+Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.
 
-For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):  
+For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):
 ```
 <ul>
 <li><a  href="Adobe.Acrobat.Reader.32-bit-installed.ps1">Adobe.Acrobat.Reader.32-bit-installed.ps1</a></li>
@@ -116,9 +116,9 @@ For **URL**: This requires a site directory with **Directory Listing Enabled** a
 <li><a  href="Notepad++.Notepad++-uninstalled.ps1">Notepad++.Notepad++-uninstalled.ps1</a></li>
 </ul>
 ```
-Validated on **IIS/Apache**.  
+Validated on **IIS/Apache**.
 
-**Nota bene IIS** :  
+**Nota bene IIS** :
  - The extension **.ps1** must be added as **MIME Types** (text/powershell-script) otherwise it's displayed in the listing but can't be opened
  - Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
 
@@ -127,37 +127,40 @@ For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with 
 **-AzureBlobURL**
 Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder. (From version 1.16.4).
 
-**-InstallUserContext**  
+**-InstallUserContext**
 Install WAU with system and **user** context executions (From version 1.15.3).
 
-**-BypassListForUsers**  
+**-BypassListForUsers**
 Bypass Black/White list when run in user context (From version 1.15.0).
 
-**-NoClean**  
+**-NoClean**
 Keep critical files when installing/uninstalling. This setting will keep "excluded_apps.txt", "included_apps.txt", "mods" and "logs" as they were.
 
-**-DesktopShortcut**  
+**-DesktopShortcut**
 Create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate` (From version 1.15.0).
 
-**-StartMenuShortcut**  
+**-StartMenuShortcut**
 Create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate`, open Logs and Web Help (From version 1.15.0).
 
-**-NotificationLevel**  
+**-NotificationLevel**
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
 
-**-UpdatesAtLogon**  
+**-UpdatesAtLogon**
 Set WAU to run at user logon.
 
-**-UpdatesInterval**  
+**-UpdatesInterval**
 Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance.
 
-**-UpdatesAtTime**  
+**-UpdatesAtTime**
 Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0).
 
-**-RunOnMetered**  
+**WAU_UserApproval**
+Specify if user approval is needed before updating apps
+
+**-RunOnMetered**
 Run WAU on metered connection. Default No.
 
-**-Uninstall**  
+**-Uninstall**
 Remove scheduled tasks and scripts.
 
 ## Intune/SCCM use
@@ -165,38 +168,38 @@ See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 
 ## Custom scripts (Mods feature)
 From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
-Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.  
-> Runs before upgrade/install: `AppID-preinstall.ps1`  
-> Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`  
-> Runs after upgrade/install has been confirmed: `AppID-installed.ps1`  
+Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.
+> Runs before upgrade/install: `AppID-preinstall.ps1`
+> Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`
+> Runs after upgrade/install has been confirmed: `AppID-installed.ps1`
 
-The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist (**WAU** first tries `& $Winget upgrade --id` and if the app isn't detected after that `& $Winget install --id` is tried).  
-`AppID-install.ps1` is recommended because it's used in **both** scenarios.  
+The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist (**WAU** first tries `& $Winget upgrade --id` and if the app isn't detected after that `& $Winget install --id` is tried).
+`AppID-install.ps1` is recommended because it's used in **both** scenarios.
 
-> Example:  
+> Example:
 If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this:
 `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
-You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature.  
+You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature.
 Read more in the `README.md` under the directory **mods**.
 
-Share your mods with the community:  
+Share your mods with the community:
 https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods
 
 ### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
-> Example:  
+> Example:
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
-This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).  
+This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).
 
 ## GPO Management
-In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.  
-**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).  
-With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.  
-They will be detected/evaluated during the next run of **WAU** (taking effect before any actions).  
-The **GPO ADMX/ADML** validated with:  
-[Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)  
+In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.
+**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).
+With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.
+They will be detected/evaluated during the next run of **WAU** (taking effect before any actions).
+The **GPO ADMX/ADML** validated with:
+[Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)
 Read more in the `README.md` under the directory **Policies**.
 
 ![image](https://user-images.githubusercontent.com/102996177/213920242-7ff8e2b4-d926-4407-b860-1e5922e29c3e.png)

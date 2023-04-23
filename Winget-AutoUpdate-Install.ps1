@@ -67,6 +67,9 @@ Run WAU on metered connection. Default No.
 .PARAMETER InstallUserContext
 Install WAU with system and user context executions
 
+.PARAMETER UserApproval
+Specify if user approval is needed before updating apps
+
 .PARAMETER BypassListForUsers
 Configure WAU to bypass the Black/White list when run in user context
 
@@ -374,7 +377,7 @@ function Install-WingetAutoUpdate {
         if ($BypassListForUsers) {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
         }
-        if ($WAU_UserApproval) {
+        if ($UserApproval) {
             New-ItemProperty $regPath -Name WAU_UserApproval -Value 1 -PropertyType DWord -Force | Out-Null
         }
 

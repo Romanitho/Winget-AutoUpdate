@@ -154,7 +154,7 @@ Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthl
 **-UpdatesAtTime**
 Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0).
 
-**WAU_UserApproval**
+**-UserApproval**
 Specify if user approval is needed before updating apps
 
 **-RunOnMetered**

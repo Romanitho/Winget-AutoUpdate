@@ -6,7 +6,7 @@ function Invoke-UserApproval ($outdated){
     if ($IsSystem) {
         $WAUClass = "HKLM:\Software\Classes\WAU"
         $WAUClassCmd = "$WAUClass\shell\open\command"
-        $WAUClassRun = "Wscript.exe ""$WingetUpdatePath\Invisible.vbs"" ""powershell.exe -NoProfile -ExecutionPolicy Bypass  -Command & '$WingetUpdatePath\User-Run.ps1' -NotifApproved %1"""
+        $WAUClassRun = "Wscript.exe ""$WorkingDir\Invisible.vbs"" ""powershell.exe -NoProfile -ExecutionPolicy Bypass  -Command & '$WorkingDir\User-Run.ps1' -NotifApproved %1"""
         New-Item $WAUClassCmd -Force -ErrorAction SilentlyContinue | Out-Null
         New-ItemProperty -LiteralPath $WAUClass -Name 'URL Protocol' -Value '' -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
         New-ItemProperty -LiteralPath $WAUClass -Name '(default)' -Value "URL:$($ActionType)" -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null

@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Handle user interaction from shortcuts and Toast
+Handle user interaction from shortcuts and show a Toast notification
 
 .DESCRIPTION
 Act on shortcut run (DEFAULT: Check for updated Apps)

@@ -5,7 +5,7 @@ name: MegaLinter
 
 on:
   # Trigger mega-linter at every push. Action will also be visible from Pull Requests to main
-  push: # Comment this line to trigger action only on pull-requests (not recommended if you don't pay for GH Actions)
+  #push: # Comment this line to trigger action only on pull-requests (not recommended if you don't pay for GH Actions)
   pull_request:
     branches: [master, main]
 
@@ -41,16 +41,16 @@ jobs:
         id: ml
         # You can override MegaLinter flavor used to have faster performances
         # More info at https://megalinter.github.io/flavors/
-        uses: megalinter/megalinter@v6
+        uses: oxsecurity/megalinter@v6
         env:
           # All available variables are described in documentation
           # https://megalinter.github.io/configuration/
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
+          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SPELL_CSPELL_CONFIG_FILE: .github/cspell.json
           POWERSHELL_POWERSHELL_CONFIG_FILE: .github/.powershell-psscriptanalyzer.psd1
-          DISABLE_ERRORS_LINTERS: REPOSITORY_DEVSKIM,SPELL_CSPELL,SPELL_PROSELINT,COPYPASTE_JSCPD,MARKDOWN_MARKDOWN_LINK_CHECK
-          FILTER_REGEX_EXCLUDE: (.github/workflows/)
+          DISABLE_ERRORS_LINTERS: REPOSITORY_DEVSKIM,REPOSITORY_CHECKOV,REPOSITORY_GIT_DIFF,SPELL_CSPELL,SPELL_PROSELINT,COPYPASTE_JSCPD,MARKDOWN_MARKDOWN_LINK_CHECK
+          FILTER_REGEX_EXCLUDE: (workflows/)
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
@@ -67,7 +67,7 @@ jobs:
       - name: Create Pull Request with applied fixes
         id: cpr
         if: steps.ml.outputs.has_updated_sources == 1 && (env.APPLY_FIXES_EVENT == 'all' || env.APPLY_FIXES_EVENT == github.event_name) && env.APPLY_FIXES_MODE == 'pull_request' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && !contains(github.event.head_commit.message, 'skip fix')
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "[MegaLinter] Apply linters automatic fixes"

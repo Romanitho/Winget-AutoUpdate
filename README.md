@@ -4,7 +4,7 @@ This project uses the Winget tool to daily update apps (with system context) and
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 
 ## Intallation
-Just [download latest release (source code)](https://github.com/Romanitho/Winget-AutoUpdate/releases), unzip, run "install.bat" as admin to install by default.
+Just [download latest release (WAU.zip)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest/download/WAU.zip), unzip, run "install.bat" as admin to install by default.
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
@@ -29,7 +29,8 @@ By default, scripts and components will be placed in ProgramData location (insid
 From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
 
 ### Log location
-You can find logs in install location, in logs folder.
+You can find logs in install location, in logs folder.  
+If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
 
 ### "Unknown" App version
 As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255), Winget cannot detect the current version of some installed apps. We decided to skip managing these apps with WAU to avoid retries each time WAU runs:
@@ -96,12 +97,15 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt".
 
 **-ListPath**  
-Get Black/White List from external Path (**URL/UNC/GPO/Local**) - download/copy to Winget-AutoUpdate installation location if external list is newer.  
+Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.  
+**PATH** must end with a Directory, not a File...  
+...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!
+
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.  
 Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
 **-ModsPath**  
-Get Mods from external Path (**URL/UNC/Local**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  
+Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.  
 
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):  
 ```
@@ -117,6 +121,11 @@ Validated on **IIS/Apache**.
 **Nota bene IIS** :  
  - The extension **.ps1** must be added as **MIME Types** (text/powershell-script) otherwise it's displayed in the listing but can't be opened
  - Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
+
+For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with an appropriate Azure Blob Storage URL including the SAS token. See **-AzureBlobURL** for more information.
+
+**-AzureBlobURL**
+Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder. (From version 1.16.4).
 
 **-InstallUserContext**  
 Install WAU with system and **user** context executions (From version 1.15.3).

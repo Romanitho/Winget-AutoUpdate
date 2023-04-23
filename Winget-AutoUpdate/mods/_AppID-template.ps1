@@ -1,6 +1,6 @@
 <# ARRAYS/VARIABLES #>
 #App to Run (as SYSTEM)
-#$RunWait = $False if it shouldn't be waited for completion. Example:
+#$RunWait = $False if it shouldn't be waited for completion. For example:
 #$RunSystem = "$PSScriptRoot\bins\MsiZap.exe"
 #$RunSwitch = "tw! {GUID}"
 $RunSystem = ""
@@ -13,9 +13,18 @@ $Proc = @("")
 #Beginning of Process Name to Wait for to End - optional wildcard (*) after, without .exe, multiple: "proc1","proc2"
 $Wait = @("")
 
+#Install App from Winget Repo, multiple: "appID1","appID2". Example:
+#$WingetIDInst = @("Microsoft.PowerToys")
+$WingetIDInst = @("")
+
+#WingetID to uninstall in default manifest mode (silent if supported)
+#Multiple: "ID1","ID2". Example:
+#$WingetIDUninst = @("Microsoft.PowerToys")
+$WingetIDUninst = @("")
+
 #Beginning of App Name string to Silently Uninstall (MSI/NSIS/INNO/EXE with defined silent uninstall in registry)
 #Multiple: "app1*","app2*", required wildcard (*) after; search is done with "-like"!
-$App = @("")
+$AppUninst = @("")
 
 #Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1","lnk2"
 $Lnk = @("")
@@ -37,18 +46,23 @@ $AddType = ""
 $DelKey = ""
 $DelValue = ""
 
-#Remove file/directory, multiple: "file1","file2"
+#Remove file/directory, multiple: "file1","file2" Example:
+#$DelFile = @("${env:ProgramFiles}\PowerToys\PowerToys.Update.exe")
 $DelFile = @("")
 
-#Copy file/directory
-#Example:
+#Rename file/directory. Example:
+#$RenFile = "${env:ProgramFiles}\PowerToys\PowerToys.Update.exe"
+#$NewName = "PowerToys.Update.org"
+$RenFile = ""
+$NewName = ""
+
+#Copy file/directory. Example:
 #$CopyFile = "C:\Logfiles"
 #$CopyTo = "C:\Drawings\Logs"
 $CopyFile = ""
 $CopyTo = ""
 
-#Find/Replace text in file
-#Example:
+#Find/Replace text in file. Example:
 #$File = "C:\dummy.txt"
 #$FindText = 'brown fox'
 #$ReplaceText = 'white fox'
@@ -58,10 +72,6 @@ $ReplaceText = ''
 
 #Grant "Modify" for directory/file to "Authenticated Users" - multiple: "dir1","dir2"
 $GrantPath = @("")
-
-#Install App from Winget Repo, multiple: "appID1","appID2". Example:
-#$AppID = @("Microsoft.PowerToys")
-$AppID = @("")
 
 #App to Run (as current logged-on user)
 $RunUser = ""
@@ -80,8 +90,14 @@ if ($Proc) {
 if ($Wait) {
     Wait-ModsProc $Wait
 }
-if ($App) {
-    Uninstall-ModsApp $App
+if ($WingetIDInst) {
+    Install-WingetID $WingetIDInst
+}
+if ($WingetIDUninst) {
+    Uninstall-WingetID $WingetIDUninst
+}
+if ($AppUninst) {
+    Uninstall-ModsApp $AppUninst
 }
 if ($Lnk) {
     Remove-ModsLnk $Lnk
@@ -95,6 +111,9 @@ if ($DelKey) {
 if ($DelFile) {
     Remove-ModsFile $DelFile
 }
+if ($RenFile -and $NewName) {
+    Rename-ModsFile $RenFile $NewName
+}
 if ($CopyFile -and $CopyTo) {
     Copy-ModsFile $CopyFile $CopyTo
 }
@@ -103,9 +122,6 @@ if ($File -and $FindText -and $ReplaceText) {
 }
 if ($GrantPath) {
     Grant-ModsPath $GrantPath
-}
-if ($AppID) {
-    Install-ModsApp $AppID
 }
 if ($RunUser) {
     Invoke-ModsApp $RunUser "" "" $User

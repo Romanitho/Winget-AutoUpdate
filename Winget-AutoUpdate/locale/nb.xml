@@ -2,61 +2,61 @@
 	<outputs>
 		<output id="0">
 			<!--Check network connection-->
-			<title>Prüfen Sie Ihre Internet Verbindung.</title>
+			<title>Sjekk nettverkstilkoblingen.</title>
 			<!--Unable to check for software updates at this time!-->
-			<message>Es konnte nicht nach Updates gesucht werden!</message>
+			<message>Kan ikke se etter programvareoppdateringer for øyeblikket!</message>
 		</output>
 		<output id="1">
-			<!--No internet connction-->
-			<title>Keine Internet Verbindung!</title>
+			<!--No internet connection-->
+			<title>Ingen internettforbindelse.</title>
 			<!--Updates could not be verified-->
-			<message>Updates konnten nicht verifiziert werden.</message>
+			<message>Oppdateringer kunne ikke bekreftes.</message>
 		</output>
 		<output id="2">
 			<!--{App} will be updated-->
-			<title>{0} wird aktualisiert!</title>
+			<title>{0} vil bli oppdatert!</title>
 			<!--{v1.0} to {v2.0}-->
-			<message>Von {0} auf {1}</message>
+			<message>{0} til {1}</message>
 		</output>
 		<output id="3">
 			<!--{App} updated-->
-			<title>{0} wurde aktualisiert.</title>
+			<title>{0} oppdatert.</title>
 			<!--Installed version: {v1.0}-->
-			<message>Installierte Version: {0}</message>
+			<message>Installert versjon: {0}</message>
 		</output>
 		<output id="4">
 			<!--{App} could not be updated-->
-			<title>{0} konnte nicht aktualisiert werden!</title>
+			<title>{0} kunne ikke oppdateres!</title>
 			<!--Please contact support-->
-			<message>Bitte wenden sie sich an den Support.</message>
+			<message>Vennligst kontakt support.</message>
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Die Logs sind aktuell nicht verfügbar!</message>
+			<message>Logger er ikke tilgjengelig ennå!</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Starte die manuelle Suche nach Updates.</message>
+			<message>Starter en manuell sjekk for oppdaterte apper...</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Die manuelle Suche nach Updates konnte nicht gestartet werden!</message>
+			<message>Kunne ikke starte en manuell sjekk for oppdaterte apper!</message>
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->
-			<message>Die Such nach Updates läuft bereits.</message>
+			<message>Se etter oppdaterte apper kjører allerede...</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Die manuelle suche nach Updates wurde abgeschlossen.</message>
+			<message>Manuell sjekk for oppdaterte apper fullført...</message>
 		</output>
 		<output id="10">
 			<!--See changelog-->
-			<message>See changelog</message>
+			<message>Se endringslogg</message>
 		</output>
 		<output id="11">
 			<!--Open log file-->
-			<message>Open log file</message>
+			<message>Åpne loggfilen</message>
 		</output>
 	</outputs>
 </local>

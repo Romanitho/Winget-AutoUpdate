@@ -1,4 +1,4 @@
-#Function to check connectivity
+#Function to check the connectivity
 
 function Test-Network {
 
@@ -9,7 +9,7 @@ function Test-Network {
     $ProgressPreference = 'SilentlyContinue'
 
     #Test connectivity during 30 min then timeout
-    Write-Log "Checking internet connection..." "Yellow"
+    Write-ToLog "Checking internet connection..." "Yellow"
     While ($timeout -lt 1800) {
 
         $URLtoTest = "https://raw.githubusercontent.com/Romanitho/Winget-AutoUpdate/main/LICENSE"
@@ -17,7 +17,7 @@ function Test-Network {
 
         if ($URLcontent -like "*MIT License*") {
 
-            Write-Log "Connected !" "Green"
+            Write-ToLog "Connected !" "Green"
 
             #Check for metered connection
             [void][Windows.Networking.Connectivity.NetworkInformation, Windows, ContentType = WindowsRuntime]
@@ -25,17 +25,17 @@ function Test-Network {
 
             if ($cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or ($cost.NetworkCostType -ne "Unrestricted")) {
 
-                Write-Log "Metered connection detected." "Yellow"
+                Write-ToLog "Metered connection detected." "Yellow"
 
                 if ($WAUConfig.WAU_DoNotRunOnMetered -eq 1) {
 
-                    Write-Log "WAU is configured to bypass update checking on metered connection"
+                    Write-ToLog "WAU is configured to bypass update checking on metered connection"
                     return $false
 
                 }
                 else {
 
-                    Write-Log "WAU is configured to force update checking on metered connection"
+                    Write-ToLog "WAU is configured to force update checking on metered connection"
                     return $true
 
                 }
@@ -56,7 +56,7 @@ function Test-Network {
             #Send Warning Notif if no connection for 5 min
             if ($timeout -eq 300) {
                 #Log
-                Write-Log "Notify 'No connection' sent." "Yellow"
+                Write-ToLog "Notify 'No connection' sent." "Yellow"
 
                 #Notif
                 $Title = $NotifLocale.local.outputs.output[0].title
@@ -71,7 +71,7 @@ function Test-Network {
     }
 
     #Send Timeout Notif if no connection for 30 min
-    Write-Log "Timeout. No internet connection !" "Red"
+    Write-ToLog "Timeout. No internet connection !" "Red"
 
     #Notif
     $Title = $NotifLocale.local.outputs.output[1].title

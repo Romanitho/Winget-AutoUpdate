@@ -4,7 +4,7 @@ Configure Winget to daily update installed apps.
 
 .DESCRIPTION
 Install powershell scripts and scheduled task to daily run Winget upgrade and notify connected users.
-Possible to exclude apps from auto-update
+Posibility to exclude apps from auto-update
 https://github.com/Romanitho/Winget-AutoUpdate
 
 .PARAMETER Silent
@@ -29,10 +29,13 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto update if new ve
 Use White List instead of Black List. This setting will not create the "exclude_apps.txt" but "include_apps.txt"
 
 .PARAMETER ListPath
-Get Black/White List from Path (URL/UNC/Local)
+Get Black/White List from Path (URL/UNC/GPO/Local)
 
 .PARAMETER ModsPath
-Get mods from Path (URL/UNC/Local)
+Get mods from Path (URL/UNC/Local/AzureBlob)
+
+.PARAMETER AzureBlobURL
+Set the Azure Storage Blob URL including the SAS token. The token requires at a minimum 'Read' and 'List' permissions. It is recommended to set this at the container level
 
 .PARAMETER Uninstall
 Remove scheduled tasks and scripts.
@@ -93,6 +96,7 @@ param(
     [Parameter(Mandatory = $False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
     [Parameter(Mandatory = $False)] [Alias('List')] [String] $ListPath,
     [Parameter(Mandatory = $False)] [Alias('Mods')] [String] $ModsPath,
+    [Parameter(Mandatory = $False)] [Alias('AzureBlobURL')] [String] $AzureBlobSASURL,
     [Parameter(Mandatory = $False)] [Switch] $DoNotUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $DisableWAUAutoUpdate = $false,
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
@@ -107,13 +111,10 @@ param(
     [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
     [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false,
     [Parameter(Mandatory = $False)] [Switch] $InstallUserContext = $false,
-    [Parameter(Mandatory = $False)] [ValidateRange(0,99)] [int32] $MaxLogFiles = 3,
+    [Parameter(Mandatory = $False)] [ValidateRange(0, 99)] [int32] $MaxLogFiles = 3,
     [Parameter(Mandatory = $False)] [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
 )
 
-<# APP INFO #>
-
-$WAUVersion = "1.15.3"
 
 <# FUNCTIONS #>
 
@@ -158,7 +159,7 @@ function Install-Prerequisites {
                 $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
                 $Installer = $WingetUpdatePath + "\VC_redist.$OSArch.exe"
                 $ProgressPreference = 'SilentlyContinue'
-                Invoke-WebRequest $SourceURL -OutFile (New-Item -Path $Installer -Force)
+                Invoke-WebRequest $SourceURL -UseBasicParsing -OutFile (New-Item -Path $Installer -Force)
                 Write-host "-> Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
@@ -344,8 +345,6 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null
         New-ItemProperty $regPath -Name NoModify -Value 1 -Force | Out-Null
         New-ItemProperty $regPath -Name NoRepair -Value 1 -Force | Out-Null
-        New-ItemProperty $regPath -Name VersionMajor -Value ([version]$WAUVersion).Major -Force | Out-Null
-        New-ItemProperty $regPath -Name VersionMinor -Value ([version]$WAUVersion).Minor -Force | Out-Null
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force | Out-Null
         New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force | Out-Null
@@ -368,21 +367,29 @@ function Install-WingetAutoUpdate {
         if ($ModsPath) {
             New-ItemProperty $regPath -Name WAU_ModsPath -Value $ModsPath -Force | Out-Null
         }
+        if ($AzureBlobSASURL) {
+            New-ItemProperty $regPath -Name WAU_AzureBlobSASURL -Value $AzureBlobSASURL -Force | Out-Null
+        }
         if ($BypassListForUsers) {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
-        #Set ACL for users on logfile
-        $LogFile = "$WingetUpdatePath\logs\updates.log"
-        if (test-path $LogFile) {
-            $NewAcl = Get-Acl -Path $LogFile
-            $identity = New-Object System.Security.Principal.SecurityIdentifier S-1-5-11
-            $fileSystemRights = "Modify"
-            $type = "Allow"
-            $fileSystemAccessRuleArgumentList = $identity, $fileSystemRights, $type
-            $fileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $fileSystemAccessRuleArgumentList
-            $NewAcl.SetAccessRule($fileSystemAccessRule)
-            Set-Acl -Path $LogFile -AclObject $NewAcl
+        #Log file and symlink initialization
+        . "$WingetUpdatePath\functions\Start-Init.ps1"
+        Start-Init
+
+        #Security check
+        Write-host "`nChecking Mods Directory:" -ForegroundColor Yellow
+        . "$WingetUpdatePath\functions\Invoke-ModsProtect.ps1"
+        $Protected = Invoke-ModsProtect "$WingetUpdatePath\mods"
+        if ($Protected -eq $True) {
+            Write-Host "The mods directory is now secured!`n" -ForegroundColor Green
+        }
+        elseif ($Protected -eq $False) {
+            Write-Host "The mods directory was already secured!`n" -ForegroundColor Green
+        }
+        else {
+            Write-Host "Error: The mods directory couldn't be verified as secured!`n" -ForegroundColor Red
         }
 
         #Create Shortcuts
@@ -425,6 +432,9 @@ function Uninstall-WingetAutoUpdate {
 
             if (!$NoClean) {
                 Remove-Item $InstallLocation -Force -Recurse
+                if (Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log") {
+                    Remove-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -Force -ErrorAction SilentlyContinue | Out-Null
+                }
             }
             else {
                 #Keep critical files
@@ -506,6 +516,12 @@ function Add-Shortcut ($Target, $Shortcut, $Arguments, $Icon, $Description) {
     $Shortcut.Save()
 }
 
+
+<# APP INFO #>
+
+$WAUVersion = Get-Content "$PSScriptRoot\Winget-AutoUpdate\Version.txt" -ErrorAction SilentlyContinue
+
+
 <# MAIN #>
 
 #If running as a 32-bit process on an x64 system, re-launch as a 64-bit process
@@ -540,5 +556,6 @@ else {
     Uninstall-WingetAutoUpdate
 }
 
+Remove-Item "$WingetUpdatePath\Version.txt" -Force
 Write-host "`nEnd of process." -ForegroundColor Cyan
 Start-Sleep 3

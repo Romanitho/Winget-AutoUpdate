@@ -1,4 +1,4 @@
-#Function to send notifications to user
+#Function to send the notifications to user
 
 function Start-NotifTask {
 
@@ -11,7 +11,8 @@ function Start-NotifTask {
         [String]$Body,
         [String]$Button1Text,
         [String]$Button1Action,
-        [Switch]$ButtonDismiss = $false
+        [Switch]$ButtonDismiss = $false,
+        [Switch]$UserRun = $false
     )
 
     if (($WAUConfig.WAU_NotificationLevel -eq "Full") -or ($WAUConfig.WAU_NotificationLevel -eq "SuccessOnly" -and $MessageType -eq "Success") -or (!$IsSystem)) {
@@ -31,7 +32,7 @@ function Start-NotifTask {
         $XMLbinding.Attributes.Append($XMLbindingAtt1) | Out-Null
 
         $XMLimagepath = "$WorkingDir\icons\$MessageType.png"
-        if (Test-Path $XMLimagepath){
+        if (Test-Path $XMLimagepath) {
             # Creation of a image node
             $XMLimage = $ToastTemplate.CreateElement("image")
             $XMLbinding.AppendChild($XMLimage) | Out-Null
@@ -43,7 +44,7 @@ function Start-NotifTask {
             $XMLimage.Attributes.Append($XMLimageAtt2) | Out-Null
         }
 
-        if ($Title){
+        if ($Title) {
             # Creation of a text node
             $XMLtitle = $ToastTemplate.CreateElement("text")
             $XMLtitleText = $ToastTemplate.CreateTextNode($Title)
@@ -51,7 +52,7 @@ function Start-NotifTask {
             $XMLbinding.AppendChild($XMLtitle) | Out-Null
         }
 
-        if ($Message){
+        if ($Message) {
             # Creation of a text node
             $XMLtext = $ToastTemplate.CreateElement("text")
             $XMLtextText = $ToastTemplate.CreateTextNode($Message)
@@ -59,7 +60,7 @@ function Start-NotifTask {
             $XMLbinding.AppendChild($XMLtext) | Out-Null
         }
 
-        if ($Body){
+        if ($Body) {
             # Creation of a group node
             $XMLgroup = $ToastTemplate.CreateElement("group")
             $XMLbinding.AppendChild($XMLgroup) | Out-Null
@@ -91,7 +92,7 @@ function Start-NotifTask {
             $XMLactionAtt1 = $ToastTemplate.CreateAttribute("content")
             $XMLactionAtt1.Value = $Button1Text
             $XMLaction.Attributes.Append($XMLactionAtt1) | Out-Null
-            if ($Button1Action){
+            if ($Button1Action) {
                 $XMLactionAtt2 = $ToastTemplate.CreateAttribute("arguments")
                 $XMLactionAtt2.Value = $Button1Action
                 $XMLaction.Attributes.Append($XMLactionAtt2) | Out-Null
@@ -126,7 +127,7 @@ function Start-NotifTask {
         $ToastTemplate.LastChild.AppendChild($XMLactions) | Out-Null
         $ToastTemplate.LastChild.AppendChild($XMLtag) | Out-Null
 
-        if ($OnClickAction){
+        if ($OnClickAction) {
             $ToastTemplate.toast.SetAttribute("activationType", "Protocol") | Out-Null
             $ToastTemplate.toast.SetAttribute("launch", $OnClickAction) | Out-Null
         }

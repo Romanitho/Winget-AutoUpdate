@@ -3,7 +3,7 @@
 Uninstall Winget-AutoUpdate
 
 .DESCRIPTION
-Uninstall Winget-AutoUpdate (DEFAULT: clean old install)
+Uninstalls Winget-AutoUpdate (DEFAULT: clean old install)
 https://github.com/Romanitho/Winget-AutoUpdate
 
 .PARAMETER NoClean

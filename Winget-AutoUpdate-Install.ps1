@@ -111,6 +111,7 @@ param(
     [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
     [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false,
     [Parameter(Mandatory = $False)] [Switch] $InstallUserContext = $false,
+    [Parameter(Mandatory = $False)] [Switch] $WAU_UserApproval= $false,
     [Parameter(Mandatory = $False)] [ValidateRange(0, 99)] [int32] $MaxLogFiles = 3,
     [Parameter(Mandatory = $False)] [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
 )
@@ -372,6 +373,9 @@ function Install-WingetAutoUpdate {
         }
         if ($BypassListForUsers) {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
+        }
+        if ($WAU_UserApproval) {
+            New-ItemProperty $regPath -Name WAU_UserApproval -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
         #Log file and symlink initialization

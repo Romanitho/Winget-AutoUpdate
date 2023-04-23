@@ -13,9 +13,11 @@ function Invoke-UserApproval ($outdated){
         New-ItemProperty -LiteralPath $WAUClass -Name 'EditFlags' -Value '2162688' -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
         New-ItemProperty -LiteralPath $WAUClassCmd -Name '(default)' -Value $WAUClassRun -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
         $Button1Action = "wau:system"
+        $OnClickAction = "wau:systemDialogBox"
     }
     else{
         $Button1Action = "wau:user"
+        $OnClickAction = "wau:userDialogBox"
     }
 
     $OutdatedApps = @()
@@ -24,7 +26,7 @@ function Invoke-UserApproval ($outdated){
         $toUpdate = Get-IncludedApps
         foreach ($app in $Outdated) {
             if (($toUpdate -contains $app.Id) -and $($app.Version) -ne "Unknown") {
-                $OutdatedApps += $app.Name
+                $OutdatedApps += "- $($app.Name)"
             }
         }
     }
@@ -33,7 +35,7 @@ function Invoke-UserApproval ($outdated){
         $toSkip = Get-ExcludedApps
         foreach ($app in $Outdated) {
             if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown") {
-                $OutdatedApps += $app.Name
+                $OutdatedApps += "- $($app.Name)"
             }
         }
     }
@@ -41,7 +43,12 @@ function Invoke-UserApproval ($outdated){
     $body = $OutdatedApps | Out-String
     if ($body) {
         #Ask user to update apps
-        Start-NotifTask -Title "New available updates" -Message "Do you want to update these apps ?" -Body $body -ButtonDismiss -Button1Text "Yes" -Button1Action $Button1Action -MessageType "info"
+        $Message = "Do you want to update these apps ?"
+        $body += "`nPlease save your work and close theses apps"
+        $WAUNotifContent = "$WorkingDir\config\NotifContent.txt"
+	    New-Item -Path $WAUNotifContent -ItemType File -Force | Out-Null
+        Set-Content -Path $WAUNotifContent -Value $body
+        Start-NotifTask -Title "New available updates" -Message $Message -Body $body -ButtonDismiss -Button1Text "Yes" -Button1Action $Button1Action -OnClickAction $OnClickAction -MessageType "info"
         Return 0
     }
     else {

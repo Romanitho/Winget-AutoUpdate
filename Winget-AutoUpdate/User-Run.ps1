@@ -21,7 +21,7 @@ https://github.com/Romanitho/Winget-AutoUpdate
 param(
 	[Parameter(Mandatory = $False)] [Switch] $Logs = $false,
 	[Parameter(Mandatory = $False)] [Switch] $Help = $false,
-	[Parameter(Mandatory = $False)] [String] $NotifApproved,
+	[Parameter(Mandatory = $False)] [String] $NotifApproved
 )
 
 function Test-WAUisRunning {
@@ -103,7 +103,10 @@ else {
 			$MessageType = "success"
 			$Message = $NotifLocale.local.outputs.output[9].message
 		}
-		Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss -UserRun
+		$IsUserApprovalEnable = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name WAU_UserApproval -ErrorAction SilentlyContinue).WAU_UserApproval
+        if ($IsUserApprovalEnable -ne "1"){
+    		Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss -UserRun
+        }
 	}
 	catch {
 		#Check failed - Just send notification

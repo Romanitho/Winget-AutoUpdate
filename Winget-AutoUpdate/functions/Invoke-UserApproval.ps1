@@ -3,19 +3,20 @@
 function Invoke-UserApproval ($outdated){
 
     #Create / Update WAU Class for notification action
-    $WAUClass = "HKLM:\Software\Classes\WAU"
-    $WAUClassCmd = "$WAUClass\shell\open\command"
-    if ($IsSystem){
-        $WAUClassRun = "Wscript.exe ""$WingetUpdatePath\Invisible.vbs"" ""powershell.exe -NoProfile -ExecutionPolicy Bypass -File '$WingetUpdatePath\User-Run.ps1' -NotifApprovedAsSystem"
+    if ($IsSystem) {
+        $WAUClass = "HKLM:\Software\Classes\WAU"
+        $WAUClassCmd = "$WAUClass\shell\open\command"
+        $WAUClassRun = "Wscript.exe ""$WingetUpdatePath\Invisible.vbs"" ""powershell.exe -NoProfile -ExecutionPolicy Bypass  -Command & '$WingetUpdatePath\User-Run.ps1' -NotifApproved %1"""
+        New-Item $WAUClassCmd -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name 'URL Protocol' -Value '' -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name '(default)' -Value "URL:$($ActionType)" -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name 'EditFlags' -Value '2162688' -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClassCmd -Name '(default)' -Value $WAUClassRun -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+        $Button1Action = "wau:system"
     }
     else{
-        $WAUClassRun = "Wscript.exe ""$WingetUpdatePath\Invisible.vbs"" ""powershell.exe -NoProfile -ExecutionPolicy Bypass -File '$WingetUpdatePath\User-Run.ps1' -NotifApprovedAsUser"
+        $Button1Action = "wau:user"
     }
-    New-Item $WAUClassCmd -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -LiteralPath $WAUClass -Name 'URL Protocol' -Value '' -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -LiteralPath $WAUClass -Name '(default)' -Value "URL:$($ActionType)" -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -LiteralPath $WAUClass -Name 'EditFlags' -Value '2162688' -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
-    New-ItemProperty -LiteralPath $WAUClassCmd -Name '(default)' -Value $WAUClassRun -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
 
     $OutdatedApps = @()
     #If White List
@@ -40,7 +41,7 @@ function Invoke-UserApproval ($outdated){
     $body = $OutdatedApps | Out-String
     if ($body) {
         #Ask user to update apps
-        Start-NotifTask -Title "New available updates" -Message "Do you want to update these apps ?" -Body $body -ButtonDismiss -Button1Text "Yes" -Button1Action "wau:1" -MessageType "info"
+        Start-NotifTask -Title "New available updates" -Message "Do you want to update these apps ?" -Body $body -ButtonDismiss -Button1Text "Yes" -Button1Action $Button1Action -MessageType "info"
         Return 0
     }
     else {

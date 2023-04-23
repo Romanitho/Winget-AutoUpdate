@@ -236,6 +236,29 @@ if (Test-Network) {
                 $Log | out-file -filepath $LogFile -Append
             }
 
+            #Ask user to approve, if configured
+            if ($WAUConfig.WAU_UserApproval -eq 1){
+                Write-Log "User Approval feature enabled."
+
+                #Check for approved tag
+                $WAUNotifApproved = "$WorkingDir/Config/NotifApproved.txt"
+                if (Test-Path $WAUNotifApproved) {
+                    Write-Log "-> User approved notification."
+                    Remove-Item $WAUNotifApproved -Force -Confirm:$false
+                }
+                else {
+                    $UserApprovalReturn = Invoke-UserApproval $outdated
+                    if ($UserApprovalReturn -eq 0){
+                        Write-Log "-> User approval requested. Waiting for user to approve available updates... Closing for now."
+                        #Closing job, waiting for user approval
+                        Exit 0
+                    }
+                    else{
+                        Write-log "-> No update to request to user."
+                    }
+                }
+            }
+
             #Count good update installations
             $Script:InstallOK = 0
 

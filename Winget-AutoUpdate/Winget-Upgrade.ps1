@@ -219,8 +219,50 @@ if (Test-Network) {
             $Log | out-file -filepath $LogFile -Append
         }
 
-            #Count good update installations
-            $Script:InstallOK = 0
+        #Ask for user if configured
+        if ($WAUConfig.WAU_UserApproval -eq 1){
+            Write-Log "User Approval feature enabled."
+            #Check for approved tag
+            $WAUNotifApproved = "$WorkingDir/Config/NotifApproved.txt"
+
+            if (!(Test-Path $WAUNotifApproved)) {
+                $UserApprovalReturn = Invoke-UserApproval $outdated
+                if ($UserApprovalReturn -eq 0){
+                    Write-Log "-> User approval requested. Waiting for user to approve available updates..."
+                    #Closing job, waiting for user approval
+                    Exit 0
+                }
+                else{
+                    Write-log "-> No update to request to user."
+                }
+            }
+            else {
+                Write-Log "-> User approved notification."
+            }
+        }        #Ask for user if configured
+        if ($WAUConfig.WAU_UserApproval -eq 1){
+            Write-Log "User Approval feature enabled."
+            #Check for approved tag
+            $WAUNotifApproved = "$WorkingDir/Config/NotifApproved.txt"
+
+            if (!(Test-Path $WAUNotifApproved)) {
+                $UserApprovalReturn = Invoke-UserApproval $outdated
+                if ($UserApprovalReturn -eq 0){
+                    Write-Log "-> User approval requested. Waiting for user to approve available updates..."
+                    #Closing job, waiting for user approval
+                    Exit 0
+                }
+                else{
+                    Write-log "-> No update to request to user."
+                }
+            }
+            else {
+                Write-Log "-> User approved notification."
+            }
+        }
+
+        #Count good update installations
+        $Script:InstallOK = 0
 
         #Trick under user context when -BypassListForUsers is used
         if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq $true) {
@@ -275,12 +317,10 @@ if (Test-Network) {
         if ($IsSystem) {
             #User check routine from: https://stackoverflow.com/questions/23219718/powershell-script-to-see-currently-logged-in-users-domain-and-machine-status
             $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
-            If ($explorerprocesses.Count -eq 0)
-            {
+            If ($explorerprocesses.Count -eq 0) {
                 Write-Log "No explorer process found / Nobody interactively logged on..."
             }
-            Else
-            {
+            Else {
                 #Run WAU in user context if the user task exist
                 $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
                 if ($UserScheduledTask) {
@@ -294,7 +334,7 @@ if (Test-Network) {
                     Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
                     Exit 0
                 }
-                elseif (!$UserScheduledTask){
+                elseif (!$UserScheduledTask) {
                     Write-Log "User context execution not installed..."
                 }
             }

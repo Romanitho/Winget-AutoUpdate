@@ -71,14 +71,14 @@ elseif ($NotifApproved){
             $NotifApproved = "wau:system"
         }
     }
-    if ($NotifApproved -eq "wau:userDialogBox"){
+	if ($NotifApproved -eq "wau:userDialogBox"){
         Add-Type -AssemblyName PresentationCore,PresentationFramework
         $Result = [System.Windows.MessageBox]::Show($MessageBody,$Title,4,32)
         if ($Result -eq "Yes") {
             $NotifApproved = "wau:user"
         }
     }
-    if ($NotifApproved -eq "wau:system"){
+	if ($NotifApproved -eq "wau:system"){
     	#Create tag if user approve notif for requested updates
 	    $WAUNotifApprovedPath = "$WorkingDir\config\NotifApproved.txt"
 	    New-Item $WAUNotifApprovedPath -Force

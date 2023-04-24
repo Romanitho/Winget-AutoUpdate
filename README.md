@@ -75,13 +75,13 @@ You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
 Install Winget-AutoUpdate and prerequisites silently.
 
 **-MaxLogFiles**  
-Specify number of allowed log files.
-Default is 3 out of 0-99:
-Setting MaxLogFiles to 0 don't delete any old archived log files.
+Specify number of allowed log files.  
+Default is 3 out of 0-99:  
+Setting MaxLogFiles to 0 don't delete any old archived log files.  
 Setting it to 1 keeps the original one and just let it grow.
 
 **-MaxLogSize**  
-Specify the size of the log file in bytes before rotating.
+Specify the size of the log file in bytes before rotating.  
 Default is 1048576 = 1 MB (ca. 7500 lines)
 
 **-WingetUpdatePath**  
@@ -97,8 +97,8 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt".
 
 **-ListPath**  
-Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.
-**PATH** must end with a Directory, not a File...
+Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.  
+**PATH** must end with a Directory, not a File...  
 ...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!
 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.
@@ -194,12 +194,12 @@ Another finess is the **AppID** followed by the `-override` suffix as a **text f
 This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).
 
 ## GPO Management
-In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.
-**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).
-With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.
-They will be detected/evaluated during the next run of **WAU** (taking effect before any actions).
-The **GPO ADMX/ADML** validated with:
-[Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)
+In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.  
+**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).  
+With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.  
+They will be detected/evaluated during the next run of **WAU** (taking effect before any actions).  
+The **GPO ADMX/ADML** validated with:  
+[Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)  
 Read more in the `README.md` under the directory **Policies**.
 
 ![image](https://user-images.githubusercontent.com/102996177/213920242-7ff8e2b4-d926-4407-b860-1e5922e29c3e.png)

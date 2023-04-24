@@ -71,32 +71,32 @@ Simply uninstall it from your programs:
 ## Advanced installation
 You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
 
-**-Silent**
+**-Silent**  
 Install Winget-AutoUpdate and prerequisites silently.
 
-**-MaxLogFiles**
+**-MaxLogFiles**  
 Specify number of allowed log files.
 Default is 3 out of 0-99:
 Setting MaxLogFiles to 0 don't delete any old archived log files.
 Setting it to 1 keeps the original one and just let it grow.
 
-**-MaxLogSize**
+**-MaxLogSize**  
 Specify the size of the log file in bytes before rotating.
 Default is 1048576 = 1 MB (ca. 7500 lines)
 
-**-WingetUpdatePath**
+**-WingetUpdatePath**  
 Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
 
-**-DoNotUpdate**
+**-DoNotUpdate**  
 Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate is run just after installation.
 
-**-DisableWAUAutoUpdate**
+**-DisableWAUAutoUpdate**  
 Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new version is available on Github.
 
-**-UseWhiteList**
+**-UseWhiteList**  
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt".
 
-**-ListPath**
+**-ListPath**  
 Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.
 **PATH** must end with a Directory, not a File...
 ...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!
@@ -104,7 +104,7 @@ Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.
 Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
-**-ModsPath**
+**-ModsPath**  
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.
 
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):
@@ -118,49 +118,49 @@ For **URL**: This requires a site directory with **Directory Listing Enabled** a
 ```
 Validated on **IIS/Apache**.
 
-**Nota bene IIS** :
+**Nota bene IIS** :  
  - The extension **.ps1** must be added as **MIME Types** (text/powershell-script) otherwise it's displayed in the listing but can't be opened
  - Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
 
 For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with an appropriate Azure Blob Storage URL including the SAS token. See **-AzureBlobURL** for more information.
 
-**-AzureBlobURL**
+**-AzureBlobURL**  
 Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder. (From version 1.16.4).
 
-**-InstallUserContext**
+**-InstallUserContext**  
 Install WAU with system and **user** context executions (From version 1.15.3).
 
-**-BypassListForUsers**
+**-BypassListForUsers**  
 Bypass Black/White list when run in user context (From version 1.15.0).
 
-**-NoClean**
+**-NoClean**  
 Keep critical files when installing/uninstalling. This setting will keep "excluded_apps.txt", "included_apps.txt", "mods" and "logs" as they were.
 
-**-DesktopShortcut**
+**-DesktopShortcut**  
 Create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate` (From version 1.15.0).
 
-**-StartMenuShortcut**
+**-StartMenuShortcut**  
 Create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate`, open Logs and Web Help (From version 1.15.0).
 
-**-NotificationLevel**
+**-NotificationLevel**  
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
 
-**-UpdatesAtLogon**
+**-UpdatesAtLogon**  
 Set WAU to run at user logon.
 
-**-UpdatesInterval**
+**-UpdatesInterval**  
 Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance.
 
-**-UpdatesAtTime**
+**-UpdatesAtTime**  
 Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0).
 
-**-UserApproval**
+**-UserApproval**  
 Specify if user approval is needed before updating apps
 
-**-RunOnMetered**
+**-RunOnMetered**  
 Run WAU on metered connection. Default No.
 
-**-Uninstall**
+**-Uninstall**  
 Remove scheduled tasks and scripts.
 
 ## Intune/SCCM use

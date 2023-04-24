@@ -29,7 +29,7 @@ By default, scripts and components will be placed in ProgramData location (insid
 From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
 
 ### Log location
-You can find logs in install location, in logs folder.
+You can find logs in install location, in logs folder.  
 If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
 
 ### "Unknown" App version
@@ -55,7 +55,7 @@ From version 1.15.0, WAU run with system and user contexts. This way, even apps 
 Same process as new installation : download, unzip and run `install.bat`.
 
 ### Automatic Update
-A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...
+A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...  
 To disable WAU AutoUpdate, run the `Winget-AutoUpdate-Install.ps1` with `-DisableWAUAutoUpdate` parameter.
 
 ## Uninstall WAU
@@ -101,7 +101,7 @@ Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy 
 **PATH** must end with a Directory, not a File...  
 ...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!
 
-If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.
+If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.  
 Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
 **-ModsPath**  

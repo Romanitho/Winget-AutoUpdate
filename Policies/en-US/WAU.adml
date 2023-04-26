@@ -45,8 +45,8 @@ If "Application GPO Blacklist/Whitelist" is set in this GPO the Path can be: GPO
 
 If this policy is disabled or not configured, the default ListPath is used (WAU InstallLocation).</string>
       <string id="ModsPath_Name">Get Mods from external Path (URL/UNC/Local/AzureBlob)</string>
-      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local/AzureBlob) Path to external mods other than the default. 
-      
+      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local/AzureBlob) Path to external mods other than the default.
+
 If this policy is disabled or not configured, the default ModsPath is used (WAU InstallLocation).
 
 Note: When set to 'AzureBlob', ensure you also configure 'Set Azure Blob URL with SAS token'.</string>
@@ -140,6 +140,10 @@ If this policy is disabled or not configured, the default number is used.</strin
 Default size is 1048576 = 1 MB
 
 If this policy is disabled or not configured, the default size is used.</string>
+      <string id="UserApproval_Name">Specify if user approval is needed before updating apps</string>
+      <string id="UserApproval_Explain">This policy setting specifies whether to require user approval before updatings available application updates .
+
+If this policy is disabled or not configured, the default is No.</string>
     </stringTable>
     <presentationTable>
       <presentation id="BlackList">
@@ -157,7 +161,7 @@ If this policy is disabled or not configured, the default size is used.</string>
         <textBox refId="ModsPath">
           <label>(URL/UNC/Local/AzureBlob) Path:</label>
         </textBox>
-      </presentation>  
+      </presentation>
       <presentation id="BlobURL">
             <textBox refId="BlobURL">
                   <label>Azure Storage URL with SAS token:</label>

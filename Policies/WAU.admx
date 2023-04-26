@@ -350,5 +350,15 @@
         <text id="MaxLogSize" valueName="WAU_MaxLogSize" />
       </elements>
     </policy>
+      	<policy name="UserApproval_Enable" class="Machine" displayName="$(string.UserApproval_Name)" explainText="$(string.UserApproval_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UserApproval">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
   </policies>
 </policyDefinitions>

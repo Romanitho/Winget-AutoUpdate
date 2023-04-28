@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" xsi:schemaLocation="" schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions">
+<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.9" xsi:schemaLocation="" schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions">
   <policyNamespaces>
     <target prefix="WAU" namespace="Romanitho.Policies.WAU"/>
   </policyNamespaces>
@@ -8,6 +8,7 @@
     <definitions>
       <definition name="SUPPORTED_WAU_1_16_0" displayName="$(string.SUPPORTED_WAU_1_16_0)"/>
       <definition name="SUPPORTED_WAU_1_16_5" displayName="$(string.SUPPORTED_WAU_1_16_5)"/>
+      <definition name="SUPPORTED_WAU_1_17_0" displayName="$(string.SUPPORTED_WAU_1_17_0)"/>
     </definitions>
   </supportedOn>
   <categories><category displayName="$(string.WAU)" name="WAU"/></categories>
@@ -352,7 +353,7 @@
     </policy>
       	<policy name="UserApproval_Enable" class="Machine" displayName="$(string.UserApproval_Name)" explainText="$(string.UserApproval_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UserApproval">
       <parentCategory ref="WAU"/>
-      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_17_0"/>
       <enabledValue>
         <decimal value="1" />
       </enabledValue>

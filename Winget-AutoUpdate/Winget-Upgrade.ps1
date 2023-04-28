@@ -243,7 +243,7 @@ if (Test-Network) {
                 #Check for approved tag
                 $WAUNotifApproved = "$WorkingDir/Config/NotifApproved.txt"
                 if (Test-Path $WAUNotifApproved) {
-                    Write-ToLog  "-> User approved notification."
+                    Write-ToLog  "-> User approved update notification."
                     Remove-Item $WAUNotifApproved -Force -Confirm:$false
                 }
                 else {

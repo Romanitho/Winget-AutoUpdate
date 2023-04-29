@@ -9,7 +9,7 @@ function Invoke-UserApproval ($outdated){
         $WAUClassRun = "Wscript.exe ""$WorkingDir\Invisible.vbs"" ""powershell.exe -NoProfile -ExecutionPolicy Bypass  -Command & '$WorkingDir\User-Run.ps1' -NotifApproved %1"""
         New-Item $WAUClassCmd -Force -ErrorAction SilentlyContinue | Out-Null
         New-ItemProperty -LiteralPath $WAUClass -Name 'URL Protocol' -Value '' -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
-        New-ItemProperty -LiteralPath $WAUClass -Name '(default)' -Value "URL:$($ActionType)" -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name '(default)' -Value "URL:WAU" -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
         New-ItemProperty -LiteralPath $WAUClass -Name 'EditFlags' -Value '2162688' -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
         New-ItemProperty -LiteralPath $WAUClassCmd -Name '(default)' -Value $WAUClassRun -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
         $Button1Action = "wau:system"

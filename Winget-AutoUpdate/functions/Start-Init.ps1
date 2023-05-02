@@ -44,9 +44,9 @@ function Start-Init {
     }
 
     #Check if Intune Management Extension Logs folder and WAU-updates.log exists, make symlink
-    if ((Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs") -and !(Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log")) {
+    if ((Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs") -and !(Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-Logs")) {
         Write-host "`nCreating SymLink for log file in Intune Management Extension log folder" -ForegroundColor Yellow
-        New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null
+        New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-Logs" -ItemType SymbolicLink -Value "$WingetUpdatePath\logs" -Force -ErrorAction SilentlyContinue | Out-Null
     }
 
 

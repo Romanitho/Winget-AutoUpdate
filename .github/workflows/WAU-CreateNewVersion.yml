@@ -31,7 +31,7 @@ jobs:
           lfs: "true"
 
       - name: Auto Increment Semver Action
-        uses: MCKanpolat/auto-semver-action@1.0.9
+        uses: MCKanpolat/auto-semver-action@1.0.10
         id: versioning
         with:
           releaseType: ${{ github.event.inputs.version }}

@@ -68,7 +68,7 @@ Run WAU on metered connection. Default No.
 Install WAU with system and user context executions
 
 .PARAMETER BypassListForUsers
-Configure WAU to bypass the Black/White list when run in user context
+Configure WAU to bypass the Black/White list when run in user context. Applications installed in system context will be ignored under user context.
 
 .EXAMPLE
 .\Winget-AutoUpdate-Install.ps1 -Silent -DoNotUpdate -MaxLogFiles 4 -MaxLogSize 2097152

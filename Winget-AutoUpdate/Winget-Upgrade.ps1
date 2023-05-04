@@ -240,7 +240,7 @@ if (Test-Network) {
             $Script:InstallOK = 0
 
             #Trick under user context when -BypassListForUsers is used
-            if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq $true) {
+            if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq 1) {
                 Write-ToLog "Bypass system list in user context is Enabled."
                 $UseWhiteList = $false
                 $toSkip = $null

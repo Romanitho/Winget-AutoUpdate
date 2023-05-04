@@ -29,8 +29,8 @@ By default, scripts and components will be placed in ProgramData location (insid
 From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
 
 ### Log location
-You can find logs in install location, in logs folder.
-If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
+You can find logs in install location, in logs folder.<br>
+If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**<br>
 If you are deploying winget Apps with [Winget-Install](https://github.com/Romanitho/Winget-Install) a **SymLink** (WAU-install.log) is also created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
 
 ### "Unknown" App version

@@ -76,13 +76,13 @@ You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
 Install Winget-AutoUpdate and prerequisites silently.
 
 **-MaxLogFiles**<br>
-Specify number of allowed log files.
-Default is 3 out of 0-99:
-Setting MaxLogFiles to 0 don't delete any old archived log files.
+Specify number of allowed log files.<br>
+Default is 3 out of 0-99:<br>
+Setting MaxLogFiles to 0 don't delete any old archived log files.<br>
 Setting it to 1 keeps the original one and just let it grow.
 
 **-MaxLogSize**<br>
-Specify the size of the log file in bytes before rotating.
+Specify the size of the log file in bytes before rotating.<br>
 Default is 1048576 = 1 MB (ca. 7500 lines)
 
 **-WingetUpdatePath**<br>
@@ -98,16 +98,14 @@ Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new v
 Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt".
 
 **-ListPath**<br>
-Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.
-**PATH** must end with a Directory, not a File...
+Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.<br>
+**PATH** must end with a Directory, not a File...<br>
 ...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!
-
-If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.
+If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.<br>
 Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
 **-ModsPath**<br>
-Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.
-
+Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):
 ```
 <ul>
@@ -117,11 +115,10 @@ For **URL**: This requires a site directory with **Directory Listing Enabled** a
 <li><a  href="Notepad++.Notepad++-uninstalled.ps1">Notepad++.Notepad++-uninstalled.ps1</a></li>
 </ul>
 ```
-Validated on **IIS/Apache**.
-
-**Nota bene IIS** :
- - The extension **.ps1** must be added as **MIME Types** (text/powershell-script) otherwise it's displayed in the listing but can't be opened
- - Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
+Validated on **IIS/Apache**.<br>
+**Nota bene IIS** :<br>
+- The extension **.ps1** must be added as **MIME Types** (text/powershell-script) otherwise it's displayed in the listing but can't be opened
+- Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
 
 For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with an appropriate Azure Blob Storage URL including the SAS token. See **-AzureBlobURL** for more information.
 
@@ -167,15 +164,16 @@ See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 ## Custom scripts (Mods feature)
 From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
 Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.
-> Runs before upgrade/install: `AppID-preinstall.ps1`
-> Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`
-> Runs after upgrade/install has been confirmed: `AppID-installed.ps1`
+
+> Runs before upgrade/install: `AppID-preinstall.ps1`<br>
+Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`<br>
+Runs after upgrade/install has been confirmed: `AppID-installed.ps1`
 
 The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist (**WAU** first tries `& $Winget upgrade --id` and if the app isn't detected after that `& $Winget install --id` is tried).<br>
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.
 
 > Example:<br>
-> If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
+If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
 You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature.<br>
 Read more in the `README.md` under the directory **mods**.
@@ -186,7 +184,7 @@ https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods
 ### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
 > Example:<br>
-> **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
+**Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
 This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).
 

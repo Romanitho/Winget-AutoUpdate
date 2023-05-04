@@ -101,6 +101,7 @@ Use White List instead of Black List. This setting will not create the "excluded
 Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.<br>
 **PATH** must end with a Directory, not a File...<br>
 ...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!
+
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
 **-ModsPath**<br>
@@ -126,7 +127,8 @@ For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with 
 Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder. (From version 1.16.4).
 
 **-InstallUserContext**<br>
-Install WAU with system and **user** context executions (From version 1.15.3). Applications installed in system context will be ignored under user context.
+Install WAU with system and **user** context executions (From version 1.15.3).<br>
+Applications installed in system context will be ignored under user context.
 
 **-BypassListForUsers**<br>
 Bypass Black/White list when run in user context (From version 1.15.0).
@@ -165,9 +167,9 @@ See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
 Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.
 
-> Runs before upgrade/install: `AppID-preinstall.ps1`<br>
-Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`<br>
-Runs after upgrade/install has been confirmed: `AppID-installed.ps1`
+>- Runs before upgrade/install: `AppID-preinstall.ps1`<br>
+>- Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`<br>
+>- Runs after upgrade/install has been confirmed: `AppID-installed.ps1`
 
 The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist (**WAU** first tries `& $Winget upgrade --id` and if the app isn't detected after that `& $Winget install --id` is tried).<br>
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.

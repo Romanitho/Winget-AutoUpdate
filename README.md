@@ -100,9 +100,8 @@ Use White List instead of Black List. This setting will not create the "excluded
 **-ListPath**<br>
 Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.<br>
 **PATH** must end with a Directory, not a File...<br>
-...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!<br>
-If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**.<br>
-Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
+...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!
+If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
 **-ModsPath**<br>
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
@@ -115,10 +114,11 @@ For **URL**: This requires a site directory with **Directory Listing Enabled** a
 <li><a  href="Notepad++.Notepad++-uninstalled.ps1">Notepad++.Notepad++-uninstalled.ps1</a></li>
 </ul>
 ```
-Validated on **IIS/Apache**.<br>
-**Nota bene IIS** :<br>
-- The extension **.ps1** must be added as **MIME Types** (text/powershell-script) otherwise it's displayed in the listing but can't be opened
-- Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
+Validated on **IIS/Apache**.
+
+>**Nota bene IIS** :
+>- The extension **.ps1** must be added as **MIME Types** (text/powershell-script) otherwise it's displayed in the listing but can't be opened
+>- Files with special characters in the filename can't be opened by default from an IIS server - config must be administrated: **Enable Allow double escaping** in '**Request Filtering**'
 
 For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with an appropriate Azure Blob Storage URL including the SAS token. See **-AzureBlobURL** for more information.
 

@@ -129,10 +129,10 @@ For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with 
 Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder. (From version 1.16.4).
 
 **-InstallUserContext**  
-Install WAU with system and **user** context executions (From version 1.15.3).
+Install WAU with system and **user** context executions (From version 1.15.3). Applications installed in system context will be ignored under user context.
 
 **-BypassListForUsers**  
-Bypass Black/White list when run in user context (From version 1.15.0).
+Bypass Black/White list when run in user context (From version 1.15.0). Also bypass system list (Allowing failing apps to retry under user context. Admin right might be required).
 
 **-NoClean**  
 Keep critical files when installing/uninstalling. This setting will keep "excluded_apps.txt", "included_apps.txt", "mods" and "logs" as they were.

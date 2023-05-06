@@ -71,7 +71,7 @@ Install WAU with system and user context executions
 Specify if user approval is needed before updating apps
 
 .PARAMETER BypassListForUsers
-Configure WAU to bypass the Black/White list when run in user context
+Configure WAU to bypass the Black/White list when run in user context. Applications installed in system context will be ignored under user context.
 
 .EXAMPLE
 .\Winget-AutoUpdate-Install.ps1 -Silent -DoNotUpdate -MaxLogFiles 4 -MaxLogSize 2097152
@@ -441,6 +441,9 @@ function Uninstall-WingetAutoUpdate {
                 Remove-Item $InstallLocation -Force -Recurse
                 if (Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log") {
                     Remove-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -Force -ErrorAction SilentlyContinue | Out-Null
+                }
+                if (Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log") {
+                    Remove-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -Force -ErrorAction SilentlyContinue | Out-Null
                 }
             }
             else {

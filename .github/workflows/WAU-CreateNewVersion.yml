@@ -31,7 +31,7 @@ jobs:
           lfs: "true"
 
       - name: Auto Increment Semver Action
-        uses: MCKanpolat/auto-semver-action@1.0.9
+        uses: MCKanpolat/auto-semver-action@1.0.10
         id: versioning
         with:
           releaseType: ${{ github.event.inputs.version }}
@@ -62,7 +62,7 @@ jobs:
           zip -r WAU uninstall.bat
 
       - name: Create release
-        uses: "ncipollo/release-action@v1"
+        uses: "ncipollo/release-action@v1.12.0"
         with:
           tag: "v${{ steps.versioning.outputs.version }}"
           prerelease: ${{ github.event.inputs.pre-release }}

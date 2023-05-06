@@ -56,7 +56,7 @@ From version 1.15.0, WAU run with system and user contexts. This way, even apps 
 Same process as new installation : download, unzip and run `install.bat`.
 
 ### Automatic Update
-A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...
+A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...  
 To disable WAU AutoUpdate, run the `Winget-AutoUpdate-Install.ps1` with `-DisableWAUAutoUpdate` parameter.
 
 ## Uninstall WAU
@@ -104,8 +104,10 @@ Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy 
 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
+
 **-ModsPath**<br>
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
+
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):
 ```
 <ul>
@@ -154,6 +156,9 @@ Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthl
 **-UpdatesAtTime**<br>
 Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0).
 
+**-UserApproval**<br>
+Specify if user approval is needed before updating apps
+
 **-RunOnMetered**<br>
 Run WAU on metered connection. Default No.
 
@@ -181,12 +186,15 @@ You can find more information on [Winget-Install Repo](https://github.com/Romani
 Read more in the `README.md` under the directory **mods**.
 
 Share your mods with the community:<br>
+
 https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods
 
 ### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
+
 > Example:<br>
 **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
+
 
 This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).
 

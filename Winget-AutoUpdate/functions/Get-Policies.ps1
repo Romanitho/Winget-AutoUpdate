@@ -356,6 +356,15 @@ Function Get-Policies {
                 $ChangedSettings++
             }
 
+            if ($null -ne $($WAUPolicies.WAU_UserApproval) -and ($($WAUPolicies.WAU_UserApproval) -ne $($WAUConfig.WAU_UserApproval))) {
+                New-ItemProperty $regPath -Name WAU_UserApproval -Value $($WAUPolicies.WAU_UserApproval) -PropertyType DWord -Force | Out-Null
+                $ChangedSettings++
+            }
+            elseif ($null -eq $($WAUPolicies.WAU_UserApproval) -and ($($WAUConfig.WAU_UserApproval) -or $($WAUConfig.WAU_UserApproval) -eq 0)) {
+                Remove-ItemProperty $regPath -Name WAU_UserApproval -Force -ErrorAction SilentlyContinue | Out-Null
+                $ChangedSettings++
+            }
+
             #Get WAU Configurations after Policies change
             $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
         }

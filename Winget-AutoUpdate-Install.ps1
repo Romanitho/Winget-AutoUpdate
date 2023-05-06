@@ -67,6 +67,9 @@ Run WAU on metered connection. Default No.
 .PARAMETER InstallUserContext
 Install WAU with system and user context executions
 
+.PARAMETER UserApproval
+Specify if user approval is needed before updating apps
+
 .PARAMETER BypassListForUsers
 Configure WAU to bypass the Black/White list when run in user context. Applications installed in system context will be ignored under user context.
 
@@ -111,6 +114,7 @@ param(
     [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
     [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false,
     [Parameter(Mandatory = $False)] [Switch] $InstallUserContext = $false,
+    [Parameter(Mandatory = $False)] [Switch] $UserApproval= $false,
     [Parameter(Mandatory = $False)] [ValidateRange(0, 99)] [int32] $MaxLogFiles = 3,
     [Parameter(Mandatory = $False)] [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
 )
@@ -269,7 +273,7 @@ function Install-WingetAutoUpdate {
             }
         }
 
-        # Set dummy regkeys for notification name and icon
+        # Set regkeys for notification name, icon and actions
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f | Out-Null
 
@@ -298,7 +302,12 @@ function Install-WingetAutoUpdate {
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
 
         # Set up the task, and register it
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
+        if ($taskTriggers) {
+            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
+        }
+        else {
+            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+        }
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force | Out-Null
 
         if ($InstallUserContext) {
@@ -367,6 +376,9 @@ function Install-WingetAutoUpdate {
         }
         if ($BypassListForUsers) {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
+        }
+        if ($UserApproval) {
+            New-ItemProperty $regPath -Name WAU_UserApproval -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
         #Log file and symlink initialization
@@ -443,6 +455,7 @@ function Uninstall-WingetAutoUpdate {
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
             & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
+            & reg delete "HKLM\Software\Classes\WAU" /f | Out-Null
 
             if ((Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
                 Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null

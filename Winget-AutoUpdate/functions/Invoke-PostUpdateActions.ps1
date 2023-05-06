@@ -219,6 +219,20 @@ function Invoke-PostUpdateActions {
         }
     }
 
+    #Add WAU Class to run if not exesting
+    $WAUClass = "HKLM:\Software\Classes\WAU"
+    if (!(Test-Path $WAUClass)) {
+        $WAUClassRun = "Wscript.exe ""$WorkingDir\Invisible.vbs"" ""C:\Windows\System32\schtasks.exe /run /tn Winget-AutoUpdate"""
+        New-Item "HKLM:\Software\Classes\$($ActionType)\shell\open\command" -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name 'URL Protocol' -Value '' -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name '(default)' -Value "URL:$($ActionType)" -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath $WAUClass -Name 'EditFlags' -Value '2162688' -PropertyType DWord -Force -ErrorAction SilentlyContinue | Out-Null
+        New-ItemProperty -LiteralPath "$WAUClass\shell\open\command" -Name '(default)' -Value $WAUClassRun -PropertyType String -Force -ErrorAction SilentlyContinue | Out-Null
+        #log
+        Write-Log "-> WAU Notification Action declared." "green"
+    }
+
+
     #Reset WAU_UpdatePostActions Value
     $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 0 -Force
 

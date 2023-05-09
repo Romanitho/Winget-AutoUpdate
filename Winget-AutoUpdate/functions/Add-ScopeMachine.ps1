@@ -1,4 +1,4 @@
-#Function to configure prefered scope option as Machine
+#Function to configure the prefered scope option as Machine
 function Add-ScopeMachine ($SettingsPath) {
 
     if (Test-Path $SettingsPath) {

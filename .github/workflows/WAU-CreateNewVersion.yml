@@ -1,0 +1,71 @@
+---
+name: WAU - Create New Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        default: "Patch"
+        description: Select next release type
+        options:
+          - Patch
+          - Minor
+          - Major
+        required: true
+      pre-release:
+        type: boolean
+        description: Set as Pre-release version
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Create Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          lfs: "true"
+
+      - name: Auto Increment Semver Action
+        uses: MCKanpolat/auto-semver-action@1.0.10
+        id: versioning
+        with:
+          releaseType: ${{ github.event.inputs.version }}
+          incrementPerCommit: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Overwrite Version.txt file
+        uses: DamianReeves/write-file-action@v1.2
+        with:
+          path: Winget-AutoUpdate/Version.txt
+          write-mode: overwrite
+          contents: "${{ steps.versioning.outputs.version }}"
+
+      - name: Commit & Push
+        uses: actions-js/push@v1.4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          force: true
+          message: "Changed version to ${{ steps.versioning.outputs.version }}"
+
+      - name: Build project
+        run: |
+          zip -r WAU Winget-AutoUpdate/*
+          zip -r WAU Winget-AutoUpdate-Install.ps1
+          zip -r WAU excluded_apps.txt
+          zip -r WAU install.bat
+          zip -r WAU uninstall.bat
+
+      - name: Create release
+        uses: "ncipollo/release-action@v1.12.0"
+        with:
+          tag: "v${{ steps.versioning.outputs.version }}"
+          prerelease: ${{ github.event.inputs.pre-release }}
+          generateReleaseNotes: true
+          name: "v${{ steps.versioning.outputs.version }}"
+          artifacts: "WAU.zip"

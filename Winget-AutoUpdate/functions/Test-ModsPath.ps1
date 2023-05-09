@@ -1,6 +1,6 @@
-#Function to check Mods External Path
+#Function to check mods External Path
 
-function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
+function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
     # URL, UNC or Local Path
     # Get local and external Mods paths
     $LocalMods = -join ($WingetUpdatePath, "\", "mods")
@@ -30,7 +30,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             # Collect the external list of href links
             $BinLinks = $BinResponse.Links | Select-Object -ExpandProperty HREF
             #If there's a directory path in the HREF:s, delete it (IIS)
-            $CleanBinLinks = $BinLinks -replace "/.*/",""
+            $CleanBinLinks = $BinLinks -replace "/.*/", ""
             #Modify strings to HREF:s
             $index = 0
             foreach ($Bin in $CleanBinLinks) {
@@ -41,14 +41,14 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             }
             #Delete Local Bins that don't exist Externally
             $index = 0
-            $CleanLinks = $BinLinks -replace "/.*/",""
+            $CleanLinks = $BinLinks -replace "/.*/", ""
             foreach ($Bin in $InternalBinsNames) {
                 If ($CleanLinks -notcontains "$Bin") {
                     Remove-Item $LocalMods\bins\$Bin -Force -ErrorAction SilentlyContinue | Out-Null
                 }
                 $index++
             }
-            $CleanBinLinks = $BinLinks -replace "/.*/",""
+            $CleanBinLinks = $BinLinks -replace "/.*/", ""
             $Bin = ""
             #Loop through all links
             $wc = New-Object System.Net.WebClient
@@ -56,7 +56,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                 #Check for .exe in listing/HREF:s in an index page pointing to .exe
                 if ($_ -like "*.exe") {
                     $dateExternalBin = ""
-                    $dateLocalBin =""
+                    $dateLocalBin = ""
                     $wc.OpenRead("$ExternalBins/$_").Close() | Out-Null
                     $dateExternalBin = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
                     if (Test-Path -Path $LocalMods"\bins\"$_) {
@@ -64,7 +64,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
                     }
                     if ($dateExternalBin -gt $dateLocalBin) {
                         $SaveBin = Join-Path -Path "$LocalMods\bins" -ChildPath $_
-                        Invoke-WebRequest -Uri "$ExternalBins/$_" -OutFile $SaveBin.Replace("%20"," ") -UseBasicParsing
+                        Invoke-WebRequest -Uri "$ExternalBins/$_" -OutFile $SaveBin.Replace("%20", " ") -UseBasicParsing
                     }
                 }
             }
@@ -74,8 +74,8 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         $ModLinks = $WebResponse.Links | Select-Object -ExpandProperty HREF
 
         #If there's a directory path in the HREF:s, delete it (IIS)
-        $CleanLinks = $ModLinks -replace "/.*/",""
-    
+        $CleanLinks = $ModLinks -replace "/.*/", ""
+
         #Modify strings to HREF:s
         $index = 0
         foreach ($Mod in $CleanLinks) {
@@ -88,7 +88,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         #Delete Local Mods that don't exist Externally
         $DeletedMods = 0
         $index = 0
-        $CleanLinks = $ModLinks -replace "/.*/",""
+        $CleanLinks = $ModLinks -replace "/.*/", ""
         foreach ($Mod in $InternalModsNames) {
             If ($CleanLinks -notcontains "$Mod") {
                 Remove-Item $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
@@ -96,8 +96,8 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             }
             $index++
         }
-        
-        $CleanLinks = $ModLinks -replace "/.*/",""
+
+        $CleanLinks = $ModLinks -replace "/.*/", ""
 
         #Loop through all links
         $wc = New-Object System.Net.WebClient
@@ -106,13 +106,13 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
             if (($_ -like "*.ps1") -or ($_ -like "*.txt")) {
                 try {
                     $dateExternalMod = ""
-                    $dateLocalMod =""
+                    $dateLocalMod = ""
                     $wc.OpenRead("$ExternalMods/$_").Close() | Out-Null
                     $dateExternalMod = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
                     if (Test-Path -Path $LocalMods"\"$_) {
                         $dateLocalMod = (Get-Item "$LocalMods\$_").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                     }
-        
+
                     if ($dateExternalMod -gt $dateLocalMod) {
                         try {
                             $SaveMod = Join-Path -Path "$LocalMods\" -ChildPath $_
@@ -134,21 +134,60 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         }
         return $ModsUpdated, $DeletedMods
     }
+    # If Path is Azure Blob
+    elseif ($ExternalMods -like "AzureBlob") {
+        Write-ToLog "Azure Blob Storage set as mod source"
+        Write-ToLog "Checking AZCopy"
+        Get-AZCopy $WingetUpdatePath
+        #Safety check to make sure we really do have azcopy.exe and a Blob URL
+        if ((Test-Path -Path "$WingetUpdatePath\azcopy.exe" -PathType Leaf) -and ($null -ne $AzureBlobSASURL)) {
+            Write-ToLog "Syncing Blob storage with local storage"
+
+            $AZCopySyncOutput = & $WingetUpdatePath\azcopy.exe sync "$AzureBlobSASURL" "$LocalMods" --from-to BlobLocal --delete-destination=true
+            $AZCopyOutputLines = $AZCopySyncOutput.Split([Environment]::NewLine)
+
+            foreach ( $_ in $AZCopyOutputLines) {
+                $AZCopySyncAdditionsRegex = [regex]::new("(?<=Number of Copy Transfers Completed:\s+)\d+")
+                $AZCopySyncDeletionsRegex = [regex]::new("(?<=Number of Deletions at Destination:\s+)\d+")
+                $AZCopySyncErrorRegex = [regex]::new("^Cannot perform sync due to error:")
+
+                $AZCopyAdditions = [int] $AZCopySyncAdditionsRegex.Match($_).Value
+                $AZCopyDeletions = [int] $AZCopySyncDeletionsRegex.Match($_).Value
+
+                if ($AZCopyAdditions -ne 0) {
+                    $ModsUpdated = $AZCopyAdditions
+                }
+
+                if ($AZCopyDeletions -ne 0) {
+                    $DeletedMods = $AZCopyDeletions
+                }
+
+                if ($AZCopySyncErrorRegex.Match($_).Value) {
+                    Write-ToLog  "AZCopy Sync Error! $_"
+                }
+            }
+        }
+        else {
+            Write-ToLog "Error 'azcopy.exe' or SAS Token not found!"
+        }
+
+        return $ModsUpdated, $DeletedMods
+    }
     # If path is UNC or local
     else {
         $ExternalBins = "$ModsPath\bins"
         if (Test-Path -Path $ExternalBins"\*.exe") {
             $ExternalBinsNames = Get-ChildItem -Path $ExternalBins -Name -Recurse -Include *.exe
             #Delete Local Bins that don't exist Externally
-            foreach ($Bin in $InternalBinsNames){
-                If ($Bin -notin $ExternalBinsNames ){
+            foreach ($Bin in $InternalBinsNames) {
+                If ($Bin -notin $ExternalBinsNames ) {
                     Remove-Item $LocalMods\bins\$Bin -Force -ErrorAction SilentlyContinue | Out-Null
                 }
             }
             #Copy newer external bins
-            foreach ($Bin in $ExternalBinsNames){
+            foreach ($Bin in $ExternalBinsNames) {
                 $dateExternalBin = ""
-                $dateLocalBin =""
+                $dateLocalBin = ""
                 if (Test-Path -Path $LocalMods"\bins\"$Bin) {
                     $dateLocalBin = (Get-Item "$LocalMods\bins\$Bin").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                 }
@@ -162,20 +201,20 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath) {
         if ((Test-Path -Path $ExternalMods"\*.ps1") -or (Test-Path -Path $ExternalMods"\*.txt")) {
             #Get File Names Externally
             $ExternalModsNames = Get-ChildItem -Path $ExternalMods -Name -Recurse -Include *.ps1, *.txt
-            
+
             #Delete Local Mods that don't exist Externally
             $DeletedMods = 0
-            foreach ($Mod in $InternalModsNames){
-                If ($Mod -notin $ExternalModsNames ){
+            foreach ($Mod in $InternalModsNames) {
+                If ($Mod -notin $ExternalModsNames ) {
                     Remove-Item $LocalMods\$Mod -Force -ErrorAction SilentlyContinue | Out-Null
                     $DeletedMods++
                 }
             }
 
             #Copy newer external mods
-            foreach ($Mod in $ExternalModsNames){
+            foreach ($Mod in $ExternalModsNames) {
                 $dateExternalMod = ""
-                $dateLocalMod =""
+                $dateLocalMod = ""
                 if (Test-Path -Path $LocalMods"\"$Mod) {
                     $dateLocalMod = (Get-Item "$LocalMods\$Mod").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                 }

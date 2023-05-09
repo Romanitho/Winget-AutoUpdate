@@ -1,0 +1,58 @@
+---
+name: WAU Powershell Test Runs
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  powershell-tests:
+    name: Pester test and PSScriptAnalyzer
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Perform a Pester test for the WAU installation
+        shell: powershell
+        run: |
+          $command = New-PesterContainer -Path Winget-AutoUpdate-Install.ps1 -Data @{ Silent = $true }
+          Invoke-Pester -PassThru -Container $command -ErrorAction Continue
+      - name: Perform a Pester test for WAU run
+        shell: powershell
+        run: |
+          $command = New-PesterContainer -Path C:\ProgramData\Winget-AutoUpdate\user-run.ps1
+          Invoke-Pester -PassThru -Container $command -ErrorAction Continue
+      #- name: Read WAU Log
+      #  id: package
+      #  uses: juliangruber/read-file-action@v1
+      #  with:
+      #    path: 'C:\ProgramData\Winget-AutoUpdate\Logs\updates.log'
+      #- name: Display WAU Log
+      #  run: type "${{ steps.package.outputs.content }}"
+      - name: Install PSScriptAnalyzer module from PSGallery
+        shell: powershell
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module PSScriptAnalyzer -ErrorAction Stop
+      - name: Lint with PSScriptAnalyzer
+        shell: powershell
+        run: |
+          Invoke-ScriptAnalyzer -Path *.ps1 -Recurse -Outvariable issues
+          $errors   = $issues.Where({$_.Severity -eq 'Error'})
+          $warnings = $issues.Where({$_.Severity -eq 'Warning'})
+          if ($($errors.Count) -gt 0) {
+            $ErrorAction = "Stop"
+          } else {
+            $ErrorAction = "Continue"
+          }
+          if ($errors) {
+              Write-Error "There were $($errors.Count) errors and $($warnings.Count) warnings total." -ErrorAction $ErrorAction
+          } else {
+              Write-Output "There were $($errors.Count) errors and $($warnings.Count) warnings total."
+          }

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.7" xsi:schemaLocation="" schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions">
+<policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.9" xsi:schemaLocation="" schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions">
   <policyNamespaces>
     <target prefix="WAU" namespace="Romanitho.Policies.WAU"/>
   </policyNamespaces>
-  <resources minRequiredRevision="4.7" fallbackCulture="en-us"/>
+  <resources minRequiredRevision="4.8" fallbackCulture="en-us"/>
   <supportedOn>
     <definitions>
       <definition name="SUPPORTED_WAU_1_16_0" displayName="$(string.SUPPORTED_WAU_1_16_0)"/>
+      <definition name="SUPPORTED_WAU_1_16_5" displayName="$(string.SUPPORTED_WAU_1_16_5)"/>
+      <definition name="SUPPORTED_WAU_1_18_0" displayName="$(string.SUPPORTED_WAU_1_18_0)"/>
     </definitions>
   </supportedOn>
   <categories><category displayName="$(string.WAU)" name="WAU"/></categories>
@@ -97,6 +99,13 @@
       <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0"/>
       <elements>
         <text id="ModsPath" valueName="WAU_ModsPath" />
+      </elements>
+    </policy>
+    <policy name="BlobURL_Enable" class="Machine" displayName="$(string.BlobURL_Name)" explainText="$(string.BlobURL_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.BlobURL)" >
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_5"/>
+      <elements>
+        <text id="BlobURL" valueName="WAU_AzureBlobSASURL" />
       </elements>
     </policy>
     <policy name="NotificationLevel_Enable" class="Machine" displayName="$(string.NotificationLevel_Name)" explainText="$(string.NotificationLevel_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.NotificationLevel)">
@@ -341,6 +350,16 @@
       <elements>
         <text id="MaxLogSize" valueName="WAU_MaxLogSize" />
       </elements>
+    </policy>
+      	<policy name="UserApproval_Enable" class="Machine" displayName="$(string.UserApproval_Name)" explainText="$(string.UserApproval_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UserApproval">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_18_0"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
     </policy>
   </policies>
 </policyDefinitions>

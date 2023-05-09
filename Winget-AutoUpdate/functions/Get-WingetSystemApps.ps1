@@ -1,6 +1,6 @@
 function Get-WingetSystemApps {
 
-    #Json File where to export system installed apps
+    #Json File, where to export system installed apps
     $jsonFile = "$WorkingDir\winget_system_apps.txt"
 
     #Get list of installed Winget apps to json file

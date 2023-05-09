@@ -3,7 +3,7 @@
 Uninstall Winget-AutoUpdate
 
 .DESCRIPTION
-Uninstall Winget-AutoUpdate (DEFAULT: clean old install)
+Uninstalls Winget-AutoUpdate (DEFAULT: clean old install)
 https://github.com/Romanitho/Winget-AutoUpdate
 
 .PARAMETER NoClean
@@ -63,6 +63,14 @@ try {
 
         if ((Test-Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk")) {
             Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
+        }
+
+        #Remove Intune Logs if they are existing
+        if (Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log") {
+            Remove-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -Force -ErrorAction SilentlyContinue | Out-Null
+        }
+        if (Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log") {
+            Remove-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -Force -ErrorAction SilentlyContinue | Out-Null
         }
 
         Write-host "Uninstallation succeeded!" -ForegroundColor Green

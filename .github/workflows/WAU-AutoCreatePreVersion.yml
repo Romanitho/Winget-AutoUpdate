@@ -1,0 +1,102 @@
+---
+name: WAU - Auto Create Pre-Release Version
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  check_merged:
+    name: Compare latest merge and tag
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.should_run.outputs.SHOULD_RUN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check if latest merged is older than latest tag
+        id: should_run
+        run: |
+          echo "Latest tag:"
+          git log --tags --pretty="%ci - %h - %s %d" -n 1
+          LATEST_TAG_DATE=$(git log --tags -n 1 --pretty="%ct")
+          echo $LATEST_TAG_DATE
+
+          echo "Latest merge:"
+          git log --merges --pretty="%ci - %h - %s %d" -n 1
+          LATEST_MERGE_DATE=$(git log --merges -n 1 --pretty="%ct")
+          echo $LATEST_MERGE_DATE
+
+          if [[ $LATEST_MERGE_DATE -gt $LATEST_TAG_DATE ]]; then
+            echo "Latest tag is older than latest merge. Nightly will be created."
+            echo "SHOULD_RUN=true" >> $GITHUB_OUTPUT
+          else
+            echo "Latest merge is not older than latest tag. No new release needed."
+            echo "SHOULD_RUN=false" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    name: Create Release Asset
+    needs: [check_merged]
+    if: ${{ needs.check_merged.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          lfs: "true"
+          fetch-depth: 0
+
+      - name: Auto Increment Semver Action
+        uses: MCKanpolat/auto-semver-action@1.0.10
+        id: versioning
+        with:
+          releaseType: prerelease
+          incrementPerCommit: false
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Next Release Number
+        id: WAU_version
+        run: |
+          echo "Next Release version: ${{ steps.versioning.outputs.version }}"
+
+      - name: Overwrite Version.txt file
+        uses: DamianReeves/write-file-action@v1.2
+        with:
+          path: Winget-AutoUpdate/Version.txt
+          write-mode: overwrite
+          contents: ${{ steps.versioning.outputs.version }}
+
+      - name: Commit & Push
+        uses: actions-js/push@v1.4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          force: true
+          message: "Changed version to ${{ steps.versioning.outputs.version }}"
+
+      - name: Build project
+        run: |
+          zip -r WAU Winget-AutoUpdate/*
+          zip -r WAU Winget-AutoUpdate-Install.ps1
+          zip -r WAU excluded_apps.txt
+          zip -r WAU install.bat
+          zip -r WAU uninstall.bat
+
+      - name: Create release
+        uses: "ncipollo/release-action@v1"
+        id: release
+        with:
+          tag: "v${{ steps.versioning.outputs.version }}"
+          prerelease: true
+          generateReleaseNotes: true
+          name: "v${{ steps.versioning.outputs.version }} [Nightly Build]"
+          artifacts: "WAU.zip"
+
+      - name: URL to release
+        run: echo "Release -> ${{ steps.release.outputs.html_url }}"

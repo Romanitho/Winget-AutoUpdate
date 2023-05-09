@@ -1,4 +1,12 @@
+<div align="center">
+
 # Winget-AutoUpdate (WAU)
+
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/Romanitho/Winget-AutoUpdate?label=Latest%20Stable%20Release&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest)
+[![GitHub release (by tag)](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/latest/total?label=Downloads&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest)
+
+</div>
+
 This project uses the Winget tool to daily update apps (with system context) and notify users when updates are available and installed.
 
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
@@ -22,11 +30,8 @@ From version 1.9.0, you can choose which notification will be displayed: Full, S
 ### Notification language
 You can easily translate toast notifications by creating your locale xml config file (and share it with us :) ).
 
-### Default install location
-By default, scripts and components will be placed in ProgramData location (inside a Winget-AutoUpdate folder). You can change this with script argument (Not Recommended).
-
 ### When does the script run?
-From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly or Monthly). You can also add `-UpdatesAtLogon` parameter to run at user logon and keep this option activated like previous versions (recommanded).
+From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never). You can also add `-UpdatesAtLogon` parameter to run at user logon (recommanded).
 
 ### Log location
 You can find logs in install location, in logs folder.<br>
@@ -51,6 +56,14 @@ To force WAU to run on metered connections anyway, run new installation with `-R
 ### System & user context
 From version 1.15.0, WAU run with system and user contexts. This way, even apps installed on User's scope are updated. Shorcuts for manually run can also be installed.
 
+### Default install location
+By default, scripts and components will be placed in ProgramData location (inside a Winget-AutoUpdate folder). You can change this with script argument (Not Recommended).
+
+## GUI installation
+[WiGui](https://github.com/Romanitho/Winget-Install-GUI/) can be used to install WAU even easier:
+
+<img src="https://user-images.githubusercontent.com/96626929/167912772-de5a55fe-68a8-44ed-91fb-fcf5b34d891f.png" width="400">
+
 ## Update WAU
 ### Manual Update
 Same process as new installation : download, unzip and run `install.bat`.
@@ -64,29 +77,11 @@ Simply uninstall it from your programs:
 
 ![image](https://user-images.githubusercontent.com/96626929/170879336-ef034956-4778-41f0-b8fd-d307b77b70a9.png)
 
-## GUI installation
-[WiGui](https://github.com/Romanitho/Winget-Install-GUI/) can be used to install WAU even easier:
-
-<img src="https://user-images.githubusercontent.com/96626929/167912772-de5a55fe-68a8-44ed-91fb-fcf5b34d891f.png" width="400">
-
 ## Advanced installation
 You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
 
 **-Silent**<br>
 Install Winget-AutoUpdate and prerequisites silently.
-
-**-MaxLogFiles**<br>
-Specify number of allowed log files.<br>
-Default is 3 out of 0-99:<br>
-Setting MaxLogFiles to 0 don't delete any old archived log files.<br>
-Setting it to 1 keeps the original one and just let it grow.
-
-**-MaxLogSize**<br>
-Specify the size of the log file in bytes before rotating.<br>
-Default is 1048576 = 1 MB (ca. 7500 lines)
-
-**-WingetUpdatePath**<br>
-Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
 
 **-DoNotUpdate**<br>
 Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate is run just after installation.
@@ -155,7 +150,20 @@ Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthl
 Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0).
 
 **-RunOnMetered**<br>
-Run WAU on metered connection. Default No.
+Force WAU to run on metered connections. May add cellular data costs on shared connexion from smartphone for example.
+
+**-MaxLogFiles**<br>
+Specify number of allowed log files.<br>
+Default is 3 out of 0-99:<br>
+Setting MaxLogFiles to 0 don't delete any old archived log files.<br>
+Setting it to 1 keeps the original one and just let it grow.
+
+**-MaxLogSize**<br>
+Specify the size of the log file in bytes before rotating.<br>
+Default is 1048576 = 1 MB (ca. 7500 lines)
+
+**-WingetUpdatePath**<br>
+Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
 
 **-Uninstall**<br>
 Remove scheduled tasks and scripts.
@@ -208,3 +216,14 @@ In some cases, you need to "unblock" the `install.bat` file (Windows Defender Sm
 
 ## Optimization
 Feel free to give us any suggestions or optimizations in code and support us by adding a star :)
+
+---
+<div align="center">
+
+#### WAU - GitHub
+
+[![GitHub release (release name instead of tag name)](https://img.shields.io/github/v/release/Romanitho/Winget-AutoUpdate?display_name=release&include_prereleases&label=Latest%20Release&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/)
+[![GitHub release (latest by SemVer including pre-releases)](https://img.shields.io/github/downloads-pre/Romanitho/Winget-AutoUpdate/latest/total?label=Downloads&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/)<br>
+[![GitHub all releases](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/total?label=Total%20downloads&style=flat-square)](https://somsubhra.github.io/github-release-stats/?username=Romanitho&repository=Winget-AutoUpdate&page=1&per_page=1000)
+
+</div>

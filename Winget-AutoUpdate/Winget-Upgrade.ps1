@@ -236,29 +236,6 @@ if (Test-Network) {
                 $Log | out-file -filepath $LogFile -Append
             }
 
-            #Ask user to approve, if configured
-            if ($WAUConfig.WAU_UserApproval -eq 1){
-                Write-ToLog "User Approval feature enabled."
-
-                #Check for approved tag
-                $WAUNotifApproved = "$WorkingDir/Config/NotifApproved.txt"
-                if (Test-Path $WAUNotifApproved) {
-                    Write-ToLog  "-> User approved update notification."
-                    Remove-Item $WAUNotifApproved -Force -Confirm:$false
-                }
-                else {
-                    $UserApprovalReturn = Invoke-UserApproval $outdated
-                    if ($UserApprovalReturn -eq 0){
-                        Write-ToLog "-> User approval requested. Waiting for user to approve available updates... Closing for now."
-                        #Closing job, waiting for user approval
-                        Exit 0
-                    }
-                    else{
-                        Write-ToLog "-> No update to request to user."
-                    }
-                }
-            }
-
             #Count good update installations
             $Script:InstallOK = 0
 
@@ -269,12 +246,14 @@ if (Test-Network) {
                 $toSkip = $null
             }
 
+            #Generate App List to update
+            $Script:AppListToUpdate = @()
             #If White List
             if ($UseWhiteList) {
                 #For each app, notify and update
                 foreach ($app in $outdated) {
                     if (($toUpdate -contains $app.Id) -and $($app.Version) -ne "Unknown") {
-                        Update-App $app
+                        $AppListToUpdate += $app
                     }
                     #if current app version is unknown
                     elseif ($($app.Version) -eq "Unknown") {
@@ -291,7 +270,7 @@ if (Test-Network) {
                 #For each app, notify and update
                 foreach ($app in $outdated) {
                     if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown") {
-                        Update-App $app
+                        $AppListToUpdate += $app
                     }
                     #if current app version is unknown
                     elseif ($($app.Version) -eq "Unknown") {
@@ -302,6 +281,19 @@ if (Test-Network) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
                     }
                 }
+            }
+
+            #Ask user to approve, if configured
+            if ($WAUConfig.WAU_UserApproval -eq 1){
+                Write-ToLog "User Approval feature enabled."
+                if ($AppListToUpdate){
+                    Invoke-UserApproval $AppListToUpdate
+                }
+            }
+
+            #Update apps
+            foreach ($App in $AppListToUpdate){
+                Update-App $App
             }
 
             if ($InstallOK -gt 0) {

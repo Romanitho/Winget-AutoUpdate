@@ -62,7 +62,7 @@ elseif ($Help) {
 }
 elseif ($NotifApproved){
     $MessageBody = "Do you want to update these apps ?`n`n"
-    $MessageBody += Get-Content "$WorkingDir/config/NotifContent.txt" -Raw
+    $MessageBody += (Import-Csv "$WorkingDir/Config/NotifAppList.csv").name
     $Title = "Winget-AutoUpdate"
 	if ($NotifApproved -eq "wau:systemDialogBox"){
         Add-Type -AssemblyName PresentationCore,PresentationFramework

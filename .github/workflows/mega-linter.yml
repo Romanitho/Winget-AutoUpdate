@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
   pull-requests: write
 
 env: # Comment env block if you do not want to apply fixes

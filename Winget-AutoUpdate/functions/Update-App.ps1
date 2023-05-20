@@ -62,12 +62,12 @@ Function Update-App ($app) {
             Write-ToLog "-> An upgrade for $($app.Name) failed, now trying an install instead..." "Yellow"
 
             if ($ModsOverride) {
-                Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride"
-                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride | Tee-Object -file $LogFile -Append
+                Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force --override $ModsOverride"
+                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force --override $ModsOverride | Tee-Object -file $LogFile -Append
             }
             else {
-                Write-ToLog "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
-                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Tee-Object -file $LogFile -Append
+                Write-ToLog "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force -h"
+                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force -h | Tee-Object -file $LogFile -Append
             }
 
             if ($ModsInstall) {

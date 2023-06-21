@@ -5,9 +5,6 @@ function Test-Network {
     #Init
     $timeout = 0
 
-    # Workaround for ARM64 (Access Denied / Win32 internal Server error)
-    $ProgressPreference = 'SilentlyContinue'
-
     #Test connectivity during 30 min then timeout
     Write-ToLog "Checking internet connection..." "Yellow"
     While ($timeout -lt 1800) {

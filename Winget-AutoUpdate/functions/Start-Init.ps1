@@ -5,6 +5,9 @@ function Start-Init {
     #Config console output encoding
     [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+    # Workaround for ARM64 (Access Denied / Win32 internal Server error)
+    $Script:ProgressPreference = 'SilentlyContinue'
+
     $caller = Get-ChildItem $MyInvocation.PSCommandPath | Select-Object -Expand Name
     if ($caller -eq "Winget-Upgrade.ps1") {
         #Log Header

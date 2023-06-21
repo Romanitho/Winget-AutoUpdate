@@ -16,7 +16,7 @@ Function Confirm-Installation ($AppName, $AppVer){
     Remove-Item $JsonFile -Force
 
     # Search for specific app and version
-    $Apps = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -eq $AppVer}
+    $Apps = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -like "$AppVer*"}
 
     if ($Apps){
         return $true

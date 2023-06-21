@@ -44,44 +44,40 @@ Function Update-App ($app) {
     }
 
     #Check if application updated properly
-    $CheckOutdated = Get-WingetOutdatedApps
     $FailedToUpgrade = $false
-    foreach ($CheckApp in $CheckOutdated) {
-        if ($($CheckApp.Id) -eq $($app.Id)) {
+    $ConfirmInstall = Confirm-Installation $($app.Id) $($app.AvailableVersion)
 
-            #Upgrade failed!
-            #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
-            $PendingReboot = Test-PendingReboot
-            if ($PendingReboot -eq $true) {
-                Write-ToLog "-> A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n-> ...an install for $($app.Name) is NOT executed!" "Red"
-                $FailedToUpgrade = $true
-                break
-            }
+    if ($ConfirmInstall -ne $true) {
+        #Upgrade failed!
+        #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
+        $PendingReboot = Test-PendingReboot
+        if ($PendingReboot -eq $true) {
+            Write-ToLog "-> A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n-> ...an install for $($app.Name) is NOT executed!" "Red"
+            $FailedToUpgrade = $true
+            break
+        }
 
-            #If app failed to upgrade, run Install command
-            Write-ToLog "-> An upgrade for $($app.Name) failed, now trying an install instead..." "Yellow"
+        #If app failed to upgrade, run Install command
+        Write-ToLog "-> An upgrade for $($app.Name) failed, now trying an install instead..." "Yellow"
 
-            if ($ModsOverride) {
-                Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force --override $ModsOverride"
-                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force --override $ModsOverride | Tee-Object -file $LogFile -Append
-            }
-            else {
-                Write-ToLog "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force -h"
-                & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force -h | Tee-Object -file $LogFile -Append
-            }
+        if ($ModsOverride) {
+            Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force --override $ModsOverride"
+            & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force --override $ModsOverride | Tee-Object -file $LogFile -Append
+        }
+        else {
+            Write-ToLog "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force -h"
+            & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force -h | Tee-Object -file $LogFile -Append
+        }
 
-            if ($ModsInstall) {
-                Write-ToLog "Modifications for $($app.Id) during install are being applied..." "Yellow"
-                & "$ModsInstall"
-            }
+        if ($ModsInstall) {
+            Write-ToLog "Modifications for $($app.Id) during install are being applied..." "Yellow"
+            & "$ModsInstall"
+        }
 
-            #Check if application installed properly
-            $CheckOutdated2 = Get-WingetOutdatedApps
-            foreach ($CheckApp2 in $CheckOutdated2) {
-                if ($($CheckApp2.Id) -eq $($app.Id)) {
-                    $FailedToUpgrade = $true
-                }
-            }
+        #Check if application installed properly
+        $ConfirmInstall = Confirm-Installation $($app.Id) $($app.AvailableVersion)
+        if ($ConfirmInstall -eq $false) {
+            $FailedToUpgrade = $true
         }
     }
 

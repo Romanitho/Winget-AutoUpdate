@@ -54,8 +54,8 @@ function Invoke-PostUpdateActions {
     Write-ToLog "-> Checking if Winget is installed/up to date" "yellow"
     $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
 
-    #Current: v1.5.1572 = 1.20.1572.0 = 2023.606.2047.0
-    If ([Version]$TestWinGet.Version -ge "2023.606.2047.0") {
+    #Current: v1.5.1881 = 1.20.1881.0 = 2023.707.2257.0
+    If ([Version]$TestWinGet.Version -ge "2023.707.2257.0") {
 
         Write-ToLog "-> WinGet is Installed/up to date" "green"
 
@@ -64,7 +64,7 @@ function Invoke-PostUpdateActions {
 
         #Download WinGet MSIXBundle
         Write-ToLog "-> Not installed/up to date. Downloading WinGet..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.4.10173/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.1881/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 

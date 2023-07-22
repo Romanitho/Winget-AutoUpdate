@@ -28,13 +28,13 @@ function Get-WingetOutdatedApps {
     #Get header line
     $fl = $fl - 1
 
-    #Get header titles
-    $index = $lines[$fl] -split '\s+'
+    #Get header titles [without remove seperator]
+    $index = $lines[$fl] -split '(?<=\s)(?!\s)'
 
-    # Line $fl has the header, we can find char where we find ID and Version
-    $idStart = $lines[$fl].IndexOf($index[1])
-    $versionStart = $lines[$fl].IndexOf($index[2])
-    $availableStart = $lines[$fl].IndexOf($index[3])
+    # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
+    $idStart = [System.Text.Encoding]::UTF8.GetByteCount($($index[0] -replace '[\u4e00-\u9fa5]', '**'))
+    $versionStart = $idStart + [System.Text.Encoding]::UTF8.GetByteCount($($index[1] -replace '[\u4e00-\u9fa5]', '**'))
+    $availableStart = $versionStart + [System.Text.Encoding]::UTF8.GetByteCount($($index[2] -replace '[\u4e00-\u9fa5]', '**'))
 
     # Now cycle in real package and split accordingly
     $upgradeList = @()
@@ -44,13 +44,13 @@ function Get-WingetOutdatedApps {
             #Get header line
             $fl = $i - 1
 
-            #Get header titles
-            $index = $lines[$fl] -split '\s+'
+            #Get header titles [without remove seperator]
+            $index = $lines[$fl] -split '(?<=\s)(?!\s)'
 
-            # Line $fl has the header, we can find char where we find ID and Version
-            $idStart = $lines[$fl].IndexOf($index[1])
-            $versionStart = $lines[$fl].IndexOf($index[2])
-            $availableStart = $lines[$fl].IndexOf($index[3])
+            # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
+            $idStart = [System.Text.Encoding]::UTF8.GetByteCount($($index[0] -replace '[\u4e00-\u9fa5]', '**'))
+            $versionStart = $idStart + [System.Text.Encoding]::UTF8.GetByteCount($($index[1] -replace '[\u4e00-\u9fa5]', '**'))
+            $availableStart = $versionStart + [System.Text.Encoding]::UTF8.GetByteCount($($index[2] -replace '[\u4e00-\u9fa5]', '**'))
         }
         #(Alphanumeric | Literal . | Alphanumeric) - the only unique thing in common for lines with applications
         if ($line -match "\w\.\w") {

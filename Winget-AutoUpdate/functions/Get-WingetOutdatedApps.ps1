@@ -39,7 +39,7 @@ function Get-WingetOutdatedApps {
     # Now cycle in real package and split accordingly
     $upgradeList = @()
     For ($i = $fl + 2; $i -lt $lines.Length; $i++) {
-        $line = $lines[$i]
+        $line = $lines[$i] -replace "…", " " #Fix "..." in long names
         if ($line.StartsWith("-----")) {
             #Get header line
             $fl = $i - 1

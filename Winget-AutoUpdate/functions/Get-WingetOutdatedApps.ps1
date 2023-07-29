@@ -32,9 +32,9 @@ function Get-WingetOutdatedApps {
     $index = $lines[$fl] -split '(?<=\s)(?!\s)'
 
     # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
-    $idStart = [System.Text.Encoding]::UTF8.GetByteCount($($index[0] -replace '[\u4e00-\u9fa5]', '**'))
-    $versionStart = $idStart + [System.Text.Encoding]::UTF8.GetByteCount($($index[1] -replace '[\u4e00-\u9fa5]', '**'))
-    $availableStart = $versionStart + [System.Text.Encoding]::UTF8.GetByteCount($($index[2] -replace '[\u4e00-\u9fa5]', '**'))
+    $idStart = $($index[0] -replace '[\u4e00-\u9fa5]', '**').Length
+    $versionStart = $idStart + $($index[1] -replace '[\u4e00-\u9fa5]', '**').Length
+    $availableStart = $versionStart + $($index[2] -replace '[\u4e00-\u9fa5]', '**').Length
 
     # Now cycle in real package and split accordingly
     $upgradeList = @()
@@ -48,15 +48,15 @@ function Get-WingetOutdatedApps {
             $index = $lines[$fl] -split '(?<=\s)(?!\s)'
 
             # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
-            $idStart = [System.Text.Encoding]::UTF8.GetByteCount($($index[0] -replace '[\u4e00-\u9fa5]', '**'))
-            $versionStart = $idStart + [System.Text.Encoding]::UTF8.GetByteCount($($index[1] -replace '[\u4e00-\u9fa5]', '**'))
-            $availableStart = $versionStart + [System.Text.Encoding]::UTF8.GetByteCount($($index[2] -replace '[\u4e00-\u9fa5]', '**'))
+            $idStart = $($index[0] -replace '[\u4e00-\u9fa5]', '**').Length
+            $versionStart = $idStart + $($index[1] -replace '[\u4e00-\u9fa5]', '**').Length
+            $availableStart = $versionStart + $($index[2] -replace '[\u4e00-\u9fa5]', '**').Length
         }
         #(Alphanumeric | Literal . | Alphanumeric) - the only unique thing in common for lines with applications
         if ($line -match "\w\.\w") {
             $software = [Software]::new()
             #Manage non latin characters
-            $nameDeclination = $([System.Text.Encoding]::UTF8.GetByteCount($($line.Substring(0, $idStart) -replace '[\u4e00-\u9fa5]', '**')) - $line.Substring(0, $idStart).Length)
+            $nameDeclination = $($line.Substring(0, $idStart) -replace '[\u4e00-\u9fa5]', '**').Length - $line.Substring(0, $idStart).Length
             $software.Name = $line.Substring(0, $idStart - $nameDeclination).TrimEnd()
             $software.Id = $line.Substring($idStart - $nameDeclination, $versionStart - $idStart).TrimEnd()
             $software.Version = $line.Substring($versionStart - $nameDeclination, $availableStart - $versionStart).TrimEnd()

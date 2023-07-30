@@ -1,5 +1,5 @@
 ---
-name: WAU Powershell Test Runs
+name: Powershell Test Runs
 
 # yamllint disable-line rule:truthy
 on:

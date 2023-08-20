@@ -28,11 +28,11 @@
 			<!--{App} could not be updated-->
 			<title>{0} не може бути оновлено!</title>
 			<!--Please contact support-->
-			<message>Будь ласка зв'яжіться з підтримкою.</message>
+			<message>Будь ласка, зв'яжіться з підтримкою.</message>
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Журнал ще не доступний!</message>
+			<message>Журнали ще не доступні!</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->

@@ -157,7 +157,7 @@ function Install-Prerequisites {
                 }
                 Write-host "Downloading VC_redist.$OSArch.exe..."
                 $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
-                $Installer = "$PSScriptRoot\VC_redist.$OSArch.exe"
+                $Installer = "$WingetUpdatePath\VC_redist.$OSArch.exe"
                 $ProgressPreference = 'SilentlyContinue'
                 Invoke-WebRequest $SourceURL -UseBasicParsing -OutFile (New-Item -Path $Installer -Force)
                 Write-host "Installing VC_redist.$OSArch.exe..."
@@ -200,12 +200,12 @@ function Install-WinGet {
                 #Install Microsoft UI Xaml 2.7.0
                 Write-host "Downloading Microsoft UI Xaml 2.7.0..."
                 $UiXamlUrl = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.7.0"
-                $UiXamlZip = "$PSScriptRoot\Microsoft.UI.XAML.2.7.zip"
+                $UiXamlZip = "$WingetUpdatePath\Microsoft.UI.XAML.2.7.zip"
                 Invoke-RestMethod -Uri $UiXamlUrl -OutFile $UiXamlZip
-                Expand-Archive -Path $UiXamlZip -DestinationPath "$PSScriptRoot\extracted" -Force
-                Add-AppxPackage -Path "$PSScriptRoot\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx"
+                Expand-Archive -Path $UiXamlZip -DestinationPath "$WingetUpdatePath\extracted" -Force
+                Add-AppxPackage -Path "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx"
                 Remove-Item -Path $UiXamlZip -Force -ErrorAction Ignore
-                Remove-Item -Path "$PSScriptRoot\extracted" -Force -Recurse -ErrorAction Ignore
+                Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse -ErrorAction Ignore
                 Write-host "Microsoft UI Xaml 2.7.0 installed successfully" -ForegroundColor Green
             }
             catch {
@@ -219,7 +219,7 @@ function Install-WinGet {
                 #Install
                 Write-host "Downloading Microsoft VCLibs x64 14.00..."
                 $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-                $VCLibsFile = "$PSScriptRoot\Microsoft.VCLibs.x64.14.00.Desktop.appx"
+                $VCLibsFile = "$WingetUpdatePath\Microsoft.VCLibs.x64.14.00.Desktop.appx"
                 Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
                 Add-AppxPackage -Path $VCLibsFile
                 Remove-Item -Path $VCLibsFile -Force -ErrorAction Ignore
@@ -234,12 +234,12 @@ function Install-WinGet {
         Write-Host "Downloading Winget MSIXBundle for App Installer..."
         $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
-        $WebClient.DownloadFile($WinGetURL, "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+        $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
         #Install WinGet MSIXBundle
         try {
             Write-Host "Installing Winget MSIXBundle for App Installer..."
-            Add-AppxPackage -Path "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" | Out-Null
+            Add-AppxPackage -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" | Out-Null
             Write-Host "Installed Winget MSIXBundle for App Installer" -ForegroundColor Green
         }
         catch {
@@ -247,7 +247,7 @@ function Install-WinGet {
         }
 
         #Remove WinGet MSIXBundle
-        Remove-Item -Path "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
+        Remove-Item -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
 
     }
 

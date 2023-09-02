@@ -171,7 +171,7 @@ Remove scheduled tasks and scripts.
 ## Intune/SCCM use
 See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 
-## Custom scripts (Mods for WAU)
+## Custom script (Mods for WAU)
 **Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.
 
 This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM**.

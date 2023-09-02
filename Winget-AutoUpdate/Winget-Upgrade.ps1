@@ -179,6 +179,19 @@ if (Test-Network) {
             }
         }
 
+        #Test if _WAU-mods.ps1 exist
+        $Mods = "$WorkingDir\mods"
+        if (Test-Path "$Mods\_WAU-mods.ps1") {
+            Write-ToLog "Running Mods for WAU..." "Yellow"
+            & "$Mods\_WAU-mods.ps1"
+            $ModsExitCode = $LASTEXITCODE
+            if ($ModsExitCode -eq 1) {
+                Write-ToLog "Re-run WAU"
+                Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
+                Exit
+            }
+        }
+
         if ($($WAUConfig.WAU_ListPath) -eq "GPO") {
             $Script:GPOList = $True
         }

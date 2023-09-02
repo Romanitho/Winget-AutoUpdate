@@ -179,12 +179,13 @@ if (Test-Network) {
             }
         }
 
-        #Test if _WAU-mods.ps1 exist
+        #Test if _WAU-mods.ps1 exist (Mods for WAU if Network is active/any Winget is installed/running as SYSTEM)
         $Mods = "$WorkingDir\mods"
         if (Test-Path "$Mods\_WAU-mods.ps1") {
             Write-ToLog "Running Mods for WAU..." "Yellow"
             & "$Mods\_WAU-mods.ps1"
             $ModsExitCode = $LASTEXITCODE
+            #If _WAU-mods.ps1 has ExitCode 1 - Re-run WAU
             if ($ModsExitCode -eq 1) {
                 Write-ToLog "Re-run WAU"
                 Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""

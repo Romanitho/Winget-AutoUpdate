@@ -172,12 +172,9 @@ Remove scheduled tasks and scripts.
 See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 
 ## Custom script (Mods for WAU)
-**Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.
-
-This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM**.
-
+**Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.  
+This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM**.  
 If **ExitCode** is **1** from `_WAU-mods.ps1` then **Re-run WAU**.
-
 ## Custom scripts (Mods feature for Apps)
 From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
 Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.

@@ -178,7 +178,7 @@ if (Test-Network) {
                 }
             }
 
-            #Test if _WAU-mods.ps1 exist (Mods for WAU if Network is active/any Winget is installed/running as SYSTEM)
+            #Test if _WAU-mods.ps1 exist: Mods for WAU (if Network is active/any Winget is installed/running as SYSTEM)
             $Mods = "$WorkingDir\mods"
             if (Test-Path "$Mods\_WAU-mods.ps1") {
                 Write-ToLog "Running Mods for WAU..." "Yellow"

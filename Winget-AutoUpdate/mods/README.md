@@ -1,3 +1,7 @@
+### Mods for WAU (if Network is active/any Winget is installed/running as SYSTEM):
+Custom script should be placed here.  
+A script **Template** `_WAU-mods-template.ps1` is included to get you started.  
+Rename it to `_WAU-mods.ps1` if you want to activate/run it via `Winget-Upgrade.ps1`.
 ### Pre/During/Post install/uninstall:
 Custom scripts should be placed here.  
 A script **Template** and **Mods Functions** are included as an **example** to get you started...  

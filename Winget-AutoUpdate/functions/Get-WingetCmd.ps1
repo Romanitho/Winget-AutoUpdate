@@ -2,7 +2,7 @@
 
 Function Get-WingetCmd {
 
-    #Get WinGet Path (if admin context)
+    #Get WinGet Path (if Admin context)
     # Includes Workaround for ARM64 (removed X64 and replaces it with a wildcard)
     $ResolveWingetPath = Resolve-Path "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
 
@@ -11,16 +11,20 @@ Function Get-WingetCmd {
         $WingetPath = $ResolveWingetPath[-1].Path
     }
 
-    #Get Winget Location in User context
-    $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
-    if ($WingetCmd) {
-        $Script:Winget = $WingetCmd.Source
+    #If running under System or Admin context obtain Winget from Program Files
+    if((([System.Security.Principal.WindowsIdentity]::GetCurrent().User) -eq "S-1-5-18") -or ($WingetPath)){
+        if (Test-Path "$WingetPath\winget.exe") {
+            $Script:Winget = "$WingetPath\winget.exe"
+        }
+    }else{
+        #Get Winget Location in User context
+        $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
+        if ($WingetCmd) {
+            $Script:Winget = $WingetCmd.Source
+        }
     }
-    #Get Winget Location in System context
-    elseif (Test-Path "$WingetPath\winget.exe") {
-        $Script:Winget = "$WingetPath\winget.exe"
-    }
-    else {
+
+    If(!($Script:Winget)){
         Write-ToLog "Winget not installed or detected !" "Red"
         return $false
     }

@@ -202,18 +202,29 @@ function Install-WinGet {
             $UiXamlZip = "$WingetUpdatePath\Microsoft.UI.XAML.2.7.zip"
             Invoke-RestMethod -Uri $UiXamlUrl -OutFile $UiXamlZip
             Expand-Archive -Path $UiXamlZip -DestinationPath "$WingetUpdatePath\extracted" -Force
-            Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx" -SkipLicense | Out-Null
+            try {
+                Write-Host "-> Installing Microsoft.UI.Xaml.2.7..."
+                Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx" -SkipLicense | Out-Null
+            }
+            catch {
+                Write-Host "Failed to intall Wicrosoft.UI.Xaml.2.7..." -ForegroundColor Red
+            }
             Remove-Item -Path $UiXamlZip -Force
             Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
         }
 
         #Download Microsoft.VCLibs.140.00.UWPDesktop
         if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop')) {
-            #Install
             $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
             $VCLibsFile = "$WingetUpdatePath\Microsoft.VCLibs.x64.14.00.Desktop.appx"
             Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
-            Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
+            try {
+                Write-Host "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
+                Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
+            }
+            catch {
+                Write-Host "Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." -ForegroundColor Red
+            }
             Remove-Item -Path $VCLibsFile -Force
         }
 

@@ -194,16 +194,39 @@ function Install-WinGet {
     }
     Else {
 
+        #Installing Dependencies in SYSTEM context
+        #Download Microsoft.UI.Xaml.2.7
+        if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.7')) {
+            #Install
+            $UiXamlUrl = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.7.0"
+            $UiXamlZip = "$WingetUpdatePath\Microsoft.UI.XAML.2.7.zip"
+            Invoke-RestMethod -Uri $UiXamlUrl -OutFile $UiXamlZip
+            Expand-Archive -Path $UiXamlZip -DestinationPath "$WingetUpdatePath\extracted" -Force
+            Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx" -SkipLicense | Out-Null
+            Remove-Item -Path $UiXamlZip -Force
+            Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
+        }
+
+        #Download Microsoft.VCLibs.140.00.UWPDesktop
+        if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop')) {
+            #Install
+            $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
+            $VCLibsFile = "$WingetUpdatePath\Microsoft.VCLibs.x64.14.00.Desktop.appx"
+            Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
+            Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
+            Remove-Item -Path $VCLibsFile -Force
+        }
+
         #Download WinGet MSIXBundle
         Write-Host "-> Not installed. Downloading WinGet..."
         $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.1881/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
-        $WebClient.DownloadFile($WinGetURL, "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+        $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
-        #Install WinGet MSIXBundle
+        #Install WinGet MSIXBundle in SYSTEM context
         try {
             Write-Host "-> Installing Winget MSIXBundle for App Installer..."
-            Add-AppxProvisionedPackage -Online -PackagePath "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
+            Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
             Write-Host "Installed Winget MSIXBundle for App Installer" -ForegroundColor Green
         }
         catch {
@@ -211,7 +234,7 @@ function Install-WinGet {
         }
 
         #Remove WinGet MSIXBundle
-        Remove-Item -Path "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
+        Remove-Item -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
 
     }
 

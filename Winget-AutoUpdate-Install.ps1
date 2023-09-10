@@ -90,6 +90,17 @@ Configure WAU to bypass the Black/White list when run in user context. Applicati
 
 #>
 
+#setting namespaces, makes life easier later
+using namespace System.Net;
+using namespace Microsoft.PowerShell.Commands;
+
+#making sure that we wont fail in network behind proxy
+[WebRequest]::DefaultWebProxy = [WebRequest]::GetSystemWebProxy();
+[WebRequest]::DefaultWebProxy.Credentials = [CredentialCache]::DefaultNetworkCredentials;
+
+#better safe than sorry
+[ServicePointManager]::SecurityProtocol = [SecurityProtocolType]::Tls11 -bor [SecurityProtocolType]::Tls12;
+
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $False)] [Alias('S')] [Switch] $Silent = $false,
@@ -194,11 +205,43 @@ function Install-WinGet {
     }
     Else {
 
-        #Download WinGet MSIXBundle
-        Write-Host "-> Not installed. Downloading WinGet..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.1881/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        $WebClient = New-Object System.Net.WebClient
-        $WebClient.DownloadFile($WinGetURL, "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+        #region Download WinGet MSIXBundle
+
+            #region decision (latest VS static/minVer)
+                [string]$winGet_base_uri = "https://github.com/microsoft/winget-cli";
+                [string]$winGet_msixBundleName = "Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle";
+                [string]$winGetURL = [string]::Empty;
+                [string]$winGetpattern = "{0}/$winGet_msixBundleName";
+    
+                # static/min version
+                [string]$minVer = "v1.5.1881";
+                Write-Host "-> looking for version with `"latest`" TAG. If not found, then we will pull $minver";
+    
+                #uri to static/minVer
+                [string]$winGet_minVer_uri = "$winGet_base_uri/releases/download/$minVer";
+    
+                # static uri to version with "latest" tag
+                [string]$winGet_Latest_uri = "$winGet_base_uri/releases/latest/";
+    
+                [BasicHtmlWebResponseObject]$webresponse = Invoke-WebRequest -UseBasicParsing -Uri $winGet_Latest_uri -UseDefaultCredentials;
+    
+                if (@([HttpStatusCode]::OK,[HttpStatusCode]::Accepted ) -icontains $webresponse.BaseResponse.StatusCode) {
+                    #this is where we get redirected by github
+                    $winGetURL = [string]::Format($winGetpattern, $webresponse.BaseResponse.ResponseUri);
+                } else {
+                    # a failsafe, we use uri leading to the static/minVer
+                    $winGetURL = [string]::Format($winGetpattern, $winGet_minVer_uri);
+                }
+            #endregion
+
+            #region actual download
+                $client = New-Object System.Net.WebClient;
+                $client.Credentials = [CredentialCache]::DefaultNetworkCredentials;
+                $client.Proxy = [WebRequest]::GetSystemWebProxy();
+                $WebClient.DownloadFile($WinGetURL, "$PSScriptRoot\$winGet_msixBundleName")
+                $client.Dispose();
+            #endregion
+        #endregion
 
         #Install WinGet MSIXBundle
         try {

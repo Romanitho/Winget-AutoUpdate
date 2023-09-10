@@ -186,8 +186,8 @@ function Install-WinGet {
     #Check Package Install
     $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
 
-    #Current: v1.5.1881 = 1.20.1881.0 = 2023.707.2257.0
-    If ([Version]$TestWinGet.Version -ge "2023.707.2257.0") {
+    #Current: v1.5.2201 = 1.20.2201.0 = 2023.808.2243.0
+    If ([Version]$TestWinGet.Version -ge "2023.808.2243.0") {
 
         Write-Host "Winget is Installed" -ForegroundColor Green
 
@@ -238,7 +238,7 @@ function Install-WinGet {
 
         #Download WinGet MSIXBundle
         Write-Host "-> Downloading Winget MSIXBundle for App Installer..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.1881/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 

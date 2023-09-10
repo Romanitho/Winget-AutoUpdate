@@ -196,7 +196,30 @@ function Install-WinGet {
 
         Write-Host "-> Winget is not installed:"
 
-        #Downloading and Installing Microsoft.VCLibs.140.00.UWPDesktop in SYSTEM context
+        #Check if $WingetUpdatePath exist
+        if (!(Test-Path $WingetUpdatePath)) {
+            New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
+        }
+
+        #Downloading and Installing Dependencies in SYSTEM context
+        if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.7')) {
+            Write-Host "-> Downloading Microsoft.UI.Xaml.2.7..."
+            $UiXamlUrl = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.7.0"
+            $UiXamlZip = "$WingetUpdatePath\Microsoft.UI.XAML.2.7.zip"
+            Invoke-RestMethod -Uri $UiXamlUrl -OutFile $UiXamlZip
+            Expand-Archive -Path $UiXamlZip -DestinationPath "$WingetUpdatePath\extracted" -Force
+            try {
+                Write-Host "-> Installing Microsoft.UI.Xaml.2.7..."
+                Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx" -SkipLicense | Out-Null
+                Write-host "Microsoft.UI.Xaml.2.7 installed successfully" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "Failed to intall Wicrosoft.UI.Xaml.2.7..." -ForegroundColor Red
+            }
+            Remove-Item -Path $UiXamlZip -Force
+            Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
+        }
+
         if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop')) {
             Write-Host "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
             $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"

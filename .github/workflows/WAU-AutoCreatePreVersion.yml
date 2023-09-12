@@ -16,7 +16,7 @@ jobs:
       should_run: ${{ steps.should_run.outputs.SHOULD_RUN }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Check if latest merged is older than latest tag
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           lfs: "true"
           fetch-depth: 0

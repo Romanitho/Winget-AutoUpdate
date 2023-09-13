@@ -163,10 +163,10 @@ function Install-Prerequisites {
                 Write-host "-> Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
-                Write-host "-> MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
+                Write-host "MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
             }
             catch {
-                Write-host "-> MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
+                Write-host "MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
                 Start-Sleep 3
             }
         }
@@ -186,32 +186,74 @@ function Install-WinGet {
     #Check Package Install
     $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
 
-    #Current: v1.5.1881 = 1.20.1881.0 = 2023.707.2257.0
-    If ([Version]$TestWinGet.Version -ge "2023.707.2257.0") {
+    #Current: v1.5.2201 = 1.20.2201.0 = 2023.808.2243.0
+    If ([Version]$TestWinGet.Version -ge "2023.808.2243.0") {
 
-        Write-Host "WinGet is Installed" -ForegroundColor Green
+        Write-Host "Winget is Installed" -ForegroundColor Green
 
     }
     Else {
 
-        #Download WinGet MSIXBundle
-        Write-Host "-> Not installed. Downloading WinGet..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.1881/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        $WebClient = New-Object System.Net.WebClient
-        $WebClient.DownloadFile($WinGetURL, "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+        Write-Host "-> Winget is not installed:"
 
-        #Install WinGet MSIXBundle
+        #Check if $WingetUpdatePath exist
+        if (!(Test-Path $WingetUpdatePath)) {
+            New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
+        }
+
+        #Downloading and Installing Dependencies in SYSTEM context
+        if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.7')) {
+            Write-Host "-> Downloading Microsoft.UI.Xaml.2.7..."
+            $UiXamlUrl = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.7.0"
+            $UiXamlZip = "$WingetUpdatePath\Microsoft.UI.XAML.2.7.zip"
+            Invoke-RestMethod -Uri $UiXamlUrl -OutFile $UiXamlZip
+            Expand-Archive -Path $UiXamlZip -DestinationPath "$WingetUpdatePath\extracted" -Force
+            try {
+                Write-Host "-> Installing Microsoft.UI.Xaml.2.7..."
+                Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx" -SkipLicense | Out-Null
+                Write-host "Microsoft.UI.Xaml.2.7 installed successfully" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "Failed to intall Wicrosoft.UI.Xaml.2.7..." -ForegroundColor Red
+            }
+            Remove-Item -Path $UiXamlZip -Force
+            Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
+        }
+
+        if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop')) {
+            Write-Host "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
+            $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
+            $VCLibsFile = "$WingetUpdatePath\Microsoft.VCLibs.x64.14.00.Desktop.appx"
+            Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
+            try {
+                Write-Host "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
+                Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
+                Write-host "Microsoft.VCLibs.140.00.UWPDesktop installed successfully" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." -ForegroundColor Red
+            }
+            Remove-Item -Path $VCLibsFile -Force
+        }
+
+        #Download WinGet MSIXBundle
+        Write-Host "-> Downloading Winget MSIXBundle for App Installer..."
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $WebClient = New-Object System.Net.WebClient
+        $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+
+        #Install WinGet MSIXBundle in SYSTEM context
         try {
             Write-Host "-> Installing Winget MSIXBundle for App Installer..."
-            Add-AppxProvisionedPackage -Online -PackagePath "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-Host "Installed Winget MSIXBundle for App Installer" -ForegroundColor Green
+            Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
+            Write-host "Winget MSIXBundle for App Installer installed successfully" -ForegroundColor Green
         }
         catch {
             Write-Host "Failed to intall Winget MSIXBundle for App Installer..." -ForegroundColor Red
         }
 
         #Remove WinGet MSIXBundle
-        Remove-Item -Path "$PSScriptRoot\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
+        Remove-Item -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
 
     }
 

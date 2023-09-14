@@ -1,7 +1,7 @@
 Function Confirm-Installation ($AppName, $AppVer){
 
     #Set json export file
-    $JsonFile = "$WorkingDir\Config\InstalledApps.json"
+    $JsonFile = "$WorkingDir\InstalledApps.json"
 
     #Get installed apps and version in json file
     & $Winget export -s winget -o $JsonFile --include-versions | Out-Null

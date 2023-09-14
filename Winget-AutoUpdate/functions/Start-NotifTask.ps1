@@ -148,8 +148,6 @@ function Start-NotifTask {
         $ToastMessage.Tag = $ToastTemplate.toast.tag
         [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier($LauncherID).Show($ToastMessage)
 
-        }
-
     }
 
 }

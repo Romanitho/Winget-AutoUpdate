@@ -8,60 +8,60 @@ function Get-WingetOutdatedApps
       [string]$Version
       [string]$AvailableVersion
    }
-   
+
    # Get list of available upgrades on winget format
    $upgradeResult = (& $Winget upgrade --source winget | Out-String)
-   
+
    # Start Convertion of winget format to an array. Check if "-----" exists (Winget Error Handling)
    if (!($upgradeResult -match '-----'))
    {
       return "An unusual thing happened (maybe all apps are upgraded):`n$upgradeResult"
    }
-   
+
    # Split winget output to lines
    $lines = $upgradeResult.Split([Environment]::NewLine) | Where-Object -FilterScript {
       $_
    }
-   
+
    # Find the line that starts with "------"
    $fl = 0
    while (-not $lines[$fl].StartsWith('-----'))
    {
       $fl++
    }
-   
+
    # Get header line
    $fl = $fl - 1
-   
+
    # Get header titles [without remove seperator]
    $index = $lines[$fl] -split '(?<=\s)(?!\s)'
-   
+
    # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
    $idStart = $($index[0] -replace '[\u4e00-\u9fa5]', '**').Length
    $versionStart = $idStart + $($index[1] -replace '[\u4e00-\u9fa5]', '**').Length
    $availableStart = $versionStart + $($index[2] -replace '[\u4e00-\u9fa5]', '**').Length
-   
+
    # Now cycle in real package and split accordingly
    $upgradeList = @()
-   
+
    for ($i = $fl + 2; $i -lt $lines.Length; $i++)
    {
       $line = $lines[$i] -replace '[\u2026]', ' ' #Fix "..." in long names
-      
+
       if ($line.StartsWith('-----'))
       {
          # Get header line
          $fl = $i - 1
-         
+
          # Get header titles [without remove seperator]
          $index = $lines[$fl] -split '(?<=\s)(?!\s)'
-         
+
          # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
          $idStart = $($index[0] -replace '[\u4e00-\u9fa5]', '**').Length
          $versionStart = $idStart + $($index[1] -replace '[\u4e00-\u9fa5]', '**').Length
          $availableStart = $versionStart + $($index[2] -replace '[\u4e00-\u9fa5]', '**').Length
       }
-      
+
       # (Alphanumeric | Literal . | Alphanumeric) - the only unique thing in common for lines with applications
       if ($line -match '\w\.\w')
       {
@@ -76,7 +76,7 @@ function Get-WingetOutdatedApps
          $upgradeList += $software
       }
    }
-   
+
    # If current user is not system, remove system apps from list
    if ($IsSystem -eq $false)
    {
@@ -85,7 +85,7 @@ function Get-WingetOutdatedApps
          $SystemApps -notcontains $_.Id
       }
    }
-   
+
    return $upgradeList | Sort-Object -Property {
       Get-Random
    }

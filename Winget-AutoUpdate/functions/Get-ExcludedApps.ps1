@@ -7,9 +7,9 @@ function Get-ExcludedApps
       if (Test-Path -Path 'HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList' -ErrorAction SilentlyContinue)
       {
          $Key = 'HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList\'
-         
+
          $ValueNames = (Get-Item -Path 'HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList').Property
-         
+
          foreach ($ValueName in $ValueNames)
          {
             $AppIDs = [Microsoft.Win32.Registry]::GetValue($Key, $ValueName, $false)
@@ -19,7 +19,7 @@ function Get-ExcludedApps
             }
          }
       }
-      
+
       return $AppIDs
    }
    elseif (Test-Path -Path ('{0}\excluded_apps.txt' -f $WorkingDir) -ErrorAction SilentlyContinue)

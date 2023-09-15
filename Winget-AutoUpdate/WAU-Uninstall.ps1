@@ -35,10 +35,10 @@ Write-Host -Object "`t________________________________________________________`n
 try
 {
    Write-Host -Object 'Uninstalling WAU...' -ForegroundColor Yellow
-   
+
    # Get registry install location
    $InstallLocation = (Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\' -Name InstallLocation)
-   
+
    # Check if installed location exists and delete
    if (Test-Path -Path ($InstallLocation))
    {
@@ -56,22 +56,22 @@ try
       $null = (Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false)
       $null = & "$env:windir\system32\reg.exe" delete 'HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification' /f
       $null = & "$env:windir\system32\reg.exe" delete 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate' /f
-      
+
       if (Test-Path -Path 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate' -ErrorAction SilentlyContinue)
       {
          $null = & "$env:windir\system32\reg.exe" delete 'HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate' /f
       }
-      
+
       if ((Test-Path -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)"))
       {
          $null = (Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force -Confirm:$false)
       }
-      
+
       if ((Test-Path -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk"))
       {
          $null = (Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force -Confirm:$false)
       }
-      
+
       # Remove Intune Logs if they are existing
       if (Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log")
       {
@@ -81,7 +81,7 @@ try
       {
          $null = (Remove-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -Force -Confirm:$false -ErrorAction SilentlyContinue)
       }
-      
+
       Write-Host -Object 'Uninstallation succeeded!' -ForegroundColor Green
    }
    else

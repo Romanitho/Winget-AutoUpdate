@@ -4,10 +4,10 @@ function Test-PendingReboot
 {
    $Computer = $env:COMPUTERNAME
    $PendingReboot = $false
-   
+
    $HKLM = [UInt32] '0x80000002'
    $WMI_Reg = [WMIClass] ('\\{0}\root\default:StdRegProv' -f $Computer)
-   
+
    if ($WMI_Reg)
    {
       if (($WMI_Reg.EnumKey($HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\')).sNames -contains 'RebootPending')
@@ -18,7 +18,7 @@ function Test-PendingReboot
       {
          $PendingReboot = $true
       }
-      
+
       # Checking for SCCM namespace
       $SCCM_Namespace = Get-WmiObject -Namespace ROOT\CCM\ClientSDK -List -ComputerName $Computer -ErrorAction Ignore
       if ($SCCM_Namespace)
@@ -29,6 +29,6 @@ function Test-PendingReboot
          }
       }
    }
-   
+
    return $PendingReboot
 }

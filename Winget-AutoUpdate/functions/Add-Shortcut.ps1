@@ -15,7 +15,7 @@ function Add-Shortcut
       [string]
       $Description
    )
-   
+
    $WScriptShell = (New-Object -ComObject WScript.Shell)
    $Shortcut = $WScriptShell.CreateShortcut($Shortcut)
    $Shortcut.TargetPath = $Target

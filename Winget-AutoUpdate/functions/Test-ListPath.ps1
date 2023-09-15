@@ -1,53 +1,56 @@
 # Function to check Block/Allow List External Path
 
-function Test-ListPath 
+function Test-ListPath
 {
    # URL, UNC or Local Path 
    [CmdletBinding()]
    param
    (
-      [string]$ListPath,
-      [string]$UseWhiteList,
-      [string]$WingetUpdatePath
+      [string]
+      $ListPath,
+      [string]
+      $UseWhiteList,
+      [string]
+      $WingetUpdatePath
    )
    
-   if ($UseWhiteList) 
+   if ($UseWhiteList)
    {
       $ListType = 'included_apps.txt'
    }
-   else 
+   else
    {
       $ListType = 'excluded_apps.txt'
    }
-
+   
    # Get local and external list paths
    $LocalList = -join ($WingetUpdatePath, '\', $ListType)
    $ExternalList = -join ($ListPath, '\', $ListType)
-
+   
    # Check if a list exists
-   if (Test-Path -Path $LocalList -ErrorAction SilentlyContinue) 
+   if (Test-Path -Path $LocalList -ErrorAction SilentlyContinue)
    {
       $dateLocal = (Get-Item -Path $LocalList).LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss')
    }
-
+   
    # If path is URL
-   if ($ListPath -like 'http*') 
+   if ($ListPath -like 'http*')
    {
       $ExternalList = -join ($ListPath, '/', $ListType)
       $wc = (New-Object -TypeName System.Net.WebClient)
-
-      try 
+      
+      try
       {
          $null = $wc.OpenRead($ExternalList).Close()
          $dateExternal = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString('yyyy-MM-dd HH:mm:ss')
-            
-         if ($dateExternal -gt $dateLocal) 
+         
+         if ($dateExternal -gt $dateLocal)
          {
-            try 
+            try
             {
                $wc.DownloadFile($ExternalList, $LocalList)
             }
-            catch 
+            catch
             {
                $Script:ReachNoPath = $True
                return $False
@@ -55,52 +58,52 @@ function Test-ListPath
             return $True
          }
       }
-      catch 
+      catch
       {
-         try 
+         try
          {
             $content = $wc.DownloadString(('{0}' -f $ExternalList))
-
-            if ($null -ne $content -and $content -match '\w\.\w') 
+            
+            if ($null -ne $content -and $content -match '\w\.\w')
             {
                $wc.DownloadFile($ExternalList, $LocalList)
                return $True
             }
-            else 
+            else
             {
                $Script:ReachNoPath = $True
                return $False
             }
          }
-         catch 
+         catch
          {
             $Script:ReachNoPath = $True
             return $False
          }
       }
    }
-   else 
+   else
    {
       # If path is UNC or local
-      if (Test-Path -Path $ExternalList) 
+      if (Test-Path -Path $ExternalList)
       {
-         try 
+         try
          {
             $dateExternal = (Get-Item -Path ('{0}' -f $ExternalList)).LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss')
          }
-         catch 
+         catch
          {
             $Script:ReachNoPath = $True
             return $False
          }
-
-         if ($dateExternal -gt $dateLocal) 
+         
+         if ($dateExternal -gt $dateLocal)
          {
-            try 
+            try
             {
                Copy-Item -Path $ExternalList -Destination $LocalList -Force
             }
-            catch 
+            catch
             {
                $Script:ReachNoPath = $True
                return $False
@@ -108,11 +111,11 @@ function Test-ListPath
             return $True
          }
       }
-      else 
+      else
       {
          $Script:ReachNoPath = $True
       }
-
+      
       return $False
    }
 }

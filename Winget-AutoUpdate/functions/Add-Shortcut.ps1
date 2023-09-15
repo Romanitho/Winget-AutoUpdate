@@ -1,16 +1,21 @@
 # Function to create shortcuts
-function Add-Shortcut 
-{ 
+function Add-Shortcut
+{
    [CmdletBinding()]
    param
    (
-      [string]$Target,
-      [string]$Shortcut,
-      [string]$Arguments,
-      [string]$Icon,
-      [string]$Description
+      [string]
+      $Target,
+      [string]
+      $Shortcut,
+      [string]
+      $Arguments,
+      [string]
+      $Icon,
+      [string]
+      $Description
    )
-
+   
    $WScriptShell = (New-Object -ComObject WScript.Shell)
    $Shortcut = $WScriptShell.CreateShortcut($Shortcut)
    $Shortcut.TargetPath = $Target

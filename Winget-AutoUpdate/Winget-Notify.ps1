@@ -4,7 +4,7 @@
 $WAUinstalledPath = (Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\' -Name InstallLocation)
 [xml]$NotifConf = (Get-Content -Path "$WAUinstalledPath\config\notif.xml" -Encoding UTF8 -ErrorAction SilentlyContinue)
 
-if (!($NotifConf)) 
+if (!($NotifConf))
 {
    break
 }

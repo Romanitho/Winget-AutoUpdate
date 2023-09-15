@@ -23,7 +23,7 @@ $Script:WAUConfig = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows\Cu
 if ($IsSystem)
 {
    Write-ToLog 'Running in System context'
-   
+
    #Get and set Domain/Local Policies (GPO)
    $ActivateGPOManagement, $ChangedSettings = Get-Policies
    if ($ActivateGPOManagement)
@@ -38,7 +38,7 @@ if ($IsSystem)
          Write-ToLog 'No Changed settings detected' 'Yellow'
       }
    }
-   
+
    # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
    $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles
    if ($null -eq $MaxLogFiles)
@@ -49,7 +49,7 @@ if ($IsSystem)
    {
       [int]$MaxLogFiles = $MaxLogFiles
    }
-   
+
    # Maximum size of log file.
    $MaxLogSize = $WAUConfig.WAU_MaxLogSize
    if (!$MaxLogSize)
@@ -60,14 +60,14 @@ if ($IsSystem)
    {
       [long]$MaxLogSize = $MaxLogSize
    }
-   
+
    #LogRotation if System
    $LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
    if ($LogRotate -eq $False)
    {
       Write-ToLog 'An Exception occured during Log Rotation...'
    }
-   
+
    #Run post update actions if necessary if run as System
    if (!($WAUConfig.WAU_PostUpdateActions -eq 0))
    {
@@ -91,7 +91,7 @@ if (Test-Network)
 {
    #Check if Winget is installed and get Winget cmd
    $TestWinget = Get-WingetCmd
-   
+
    if ($TestWinget)
    {
       #Get Current Version
@@ -123,13 +123,13 @@ if (Test-Network)
                Write-ToLog 'WAU is up to date.' 'Green'
             }
          }
-         
+
          #Delete previous list_/winget_error (if they exist) if run as System
          if (Test-Path -Path "$WorkingDir\logs\error.txt")
          {
             Remove-Item -Path "$WorkingDir\logs\error.txt" -Force
          }
-         
+
          #Get External ListPath if run as System
          if ($WAUConfig.WAU_ListPath)
          {
@@ -180,7 +180,7 @@ if (Test-Network)
                }
             }
          }
-         
+
          #Get External ModsPath if run as System
          if ($WAUConfig.WAU_ModsPath)
          {
@@ -219,7 +219,7 @@ if (Test-Network)
                Write-ToLog "$DeletedMods Mods deleted (not externally managed) from local path: $($WAUConfig.InstallLocation.TrimEnd(' ', '\'))\mods" 'Red'
             }
          }
-         
+
          #Test if _WAU-mods.ps1 exist: Mods for WAU (if Network is active/any Winget is installed/running as SYSTEM)
          $Mods = "$WorkingDir\mods"
          if (Test-Path -Path "$Mods\_WAU-mods.ps1")
@@ -235,14 +235,14 @@ if (Test-Network)
                exit
             }
          }
-         
+
       }
-      
+
       if ($($WAUConfig.WAU_ListPath) -eq 'GPO')
       {
          $Script:GPOList = $True
       }
-      
+
       #Get White or Black list
       if ($WAUConfig.WAU_UseWhiteList -eq 1)
       {
@@ -255,7 +255,7 @@ if (Test-Network)
          Write-ToLog 'WAU uses Black List config'
          $toSkip = Get-ExcludedApps
       }
-      
+
       #Fix and count the array if GPO List as ERROR handling!
       if ($GPOList)
       {
@@ -282,18 +282,18 @@ if (Test-Network)
             $toSkip = $toSkip.Data
          }
       }
-      
+
       #Get outdated Winget packages
       Write-ToLog 'Checking application updates on Winget Repository...' 'yellow'
       $outdated = Get-WingetOutdatedApps
-      
+
       #If something unusual happened
       if ($outdated -like 'An unusual*')
       {
          Write-ToLog "$outdated" 'cyan'
          $outdated = $False
       }
-      
+
       #Run only if $outdated is populated!
       if ($outdated)
       {
@@ -305,10 +305,10 @@ if (Test-Network)
             $Log | Write-host
             $Log | out-file -filepath $LogFile -Append
          }
-         
+
          #Count good update installations
          $Script:InstallOK = 0
-         
+
          #Trick under user context when -BypassListForUsers is used
          if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq 1)
          {
@@ -316,7 +316,7 @@ if (Test-Network)
             $UseWhiteList = $false
             $toSkip = $null
          }
-         
+
          #If White List
          if ($UseWhiteList)
          {
@@ -361,18 +361,18 @@ if (Test-Network)
                }
             }
          }
-         
+
          if ($InstallOK -gt 0)
          {
             Write-ToLog "$InstallOK apps updated ! No more update." 'Green'
          }
       }
-      
+
       if ($InstallOK -eq 0 -or !$InstallOK)
       {
          Write-ToLog 'No new update.' 'Green'
       }
-      
+
       #Check if any user is logged on if System and run User task (if installed)
       if ($IsSystem)
       {
@@ -388,11 +388,11 @@ if (Test-Network)
             $UserScheduledTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
             if ($UserScheduledTask)
             {
-               
+
                #Get Winget system apps to excape them befor running user context
                Write-ToLog 'User logged on, get a list of installed Winget apps in System context...'
                Get-WingetSystemApps
-               
+
                #Run user context scheduled task
                Write-ToLog 'Starting WAU in User context'
                Start-ScheduledTask -TaskName $UserScheduledTask.TaskName -ErrorAction SilentlyContinue

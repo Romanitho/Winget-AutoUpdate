@@ -150,14 +150,14 @@ param (
 function Install-Prerequisites
 {
    Write-Host -Object "`nChecking prerequisites..." -ForegroundColor Yellow
-   
+
    #Check if Visual C++ 2019 or 2022 installed
    $Visual2019 = 'Microsoft Visual C++ 2015-2019 Redistributable*'
    $Visual2022 = 'Microsoft Visual C++ 2015-2022 Redistributable*'
    $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object -FilterScript {
       $_.GetValue('DisplayName') -like $Visual2019 -or $_.GetValue('DisplayName') -like $Visual2022
    }
-   
+
    #If not installed, ask for installation
    if (!($path))
    {
@@ -225,12 +225,12 @@ function Install-Prerequisites
 function Install-WinGet
 {
    Write-Host -Object "`nChecking if Winget is installed" -ForegroundColor Yellow
-   
+
    #Check Package Install
    $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object -FilterScript {
       $_.DisplayName -eq 'Microsoft.DesktopAppInstaller'
    }
-   
+
    #Current: v1.5.2201 = 1.20.2201.0 = 2023.808.2243.0
    if ([Version]$TestWinGet.Version -ge '2023.808.2243.0')
    {
@@ -239,13 +239,13 @@ function Install-WinGet
    else
    {
       Write-Host -Object '-> Winget is not installed:'
-      
+
       #Check if $WingetUpdatePath exist
       if (!(Test-Path $WingetUpdatePath))
       {
          $null = New-Item -ItemType Directory -Force -Path $WingetUpdatePath
       }
-      
+
       #Downloading and Installing Dependencies in SYSTEM context
       if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.7'))
       {
@@ -267,7 +267,7 @@ function Install-WinGet
          Remove-Item -Path $UiXamlZip -Force
          Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
       }
-      
+
       if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop'))
       {
          Write-Host -Object '-> Downloading Microsoft.VCLibs.140.00.UWPDesktop...'
@@ -286,13 +286,13 @@ function Install-WinGet
          }
          Remove-Item -Path $VCLibsFile -Force
       }
-      
+
       #Download WinGet MSIXBundle
       Write-Host -Object '-> Downloading Winget MSIXBundle for App Installer...'
       $WinGetURL = 'https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle'
       $WebClient = New-Object -TypeName System.Net.WebClient
       $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
-      
+
       #Install WinGet MSIXBundle in SYSTEM context
       try
       {
@@ -304,7 +304,7 @@ function Install-WinGet
       {
          Write-Host -Object 'Failed to intall Winget MSIXBundle for App Installer...' -ForegroundColor Red
       }
-      
+
       #Remove WinGet MSIXBundle
       Remove-Item -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
    }
@@ -313,7 +313,7 @@ function Install-WinGet
 function Install-WingetAutoUpdate
 {
    Write-Host -Object "`nInstalling WAU..." -ForegroundColor Yellow
-   
+
    try
    {
       #Copy files to location (and clean old install)
@@ -334,7 +334,7 @@ function Install-WingetAutoUpdate
          }
       }
       Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
-      
+
       #White List or Black List apps
       if ($UseWhiteList)
       {
@@ -378,11 +378,11 @@ function Install-WingetAutoUpdate
             Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
          }
       }
-      
+
       # Set dummy regkeys for notification name and icon
       $null = & "$env:windir\system32\reg.exe" add 'HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification' /v DisplayName /t REG_EXPAND_SZ /d 'Application Update' /f
       $null = & "$env:windir\system32\reg.exe" add 'HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification' /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f
-      
+
       # Settings for the scheduled task for Updates
       $taskAction = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
       $taskTriggers = @()
@@ -412,7 +412,7 @@ function Install-WingetAutoUpdate
       }
       $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
       $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-      
+
       # Set up the task, and register it
       if ($taskTriggers)
       {
@@ -422,30 +422,30 @@ function Install-WingetAutoUpdate
       {
          $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
       }
-      
+
       $null = Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force
-      
+
       if ($InstallUserContext)
       {
          # Settings for the scheduled task in User context
          $taskAction = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
          $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
          $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-         
+
          # Set up the task for user apps
          $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
          $null = Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -InputObject $task -Force
       }
-      
+
       # Settings for the scheduled task for Notifications
       $taskAction = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
       $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
       $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
-      
+
       # Set up the task, and register it
       $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
       $null = Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force
-      
+
       #Set task readable/runnable for all users
       $scheduler = New-Object -ComObject 'Schedule.Service'
       $scheduler.Connect()
@@ -453,7 +453,7 @@ function Install-WingetAutoUpdate
       $sec = $task.GetSecurityDescriptor(0xF)
       $sec = $sec + '(A;;GRGX;;;AU)'
       $task.SetSecurityDescriptor($sec, 0)
-      
+
       # Configure Reg Key
       $regPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate'
       $null = New-Item $regPath -Force
@@ -507,11 +507,11 @@ function Install-WingetAutoUpdate
       {
          $null = New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force
       }
-      
+
       #Log file and symlink initialization
       . "$WingetUpdatePath\functions\Start-Init.ps1"
       Start-Init
-      
+
       #Security check
       Write-Host -Object "`nChecking Mods Directory:" -ForegroundColor Yellow
       . "$WingetUpdatePath\functions\Invoke-ModsProtect.ps1"
@@ -528,7 +528,7 @@ function Install-WingetAutoUpdate
       {
          Write-Host -Object "Error: The mods directory couldn't be verified as secured!`n" -ForegroundColor Red
       }
-      
+
       #Create Shortcuts
       if ($StartMenuShortcut)
       {
@@ -540,15 +540,15 @@ function Install-WingetAutoUpdate
          Add-Shortcut 'wscript.exe' "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Open logs.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`" -Logs`"" "${env:SystemRoot}\System32\shell32.dll,-16763" 'Open existing WAU logs...'
          Add-Shortcut 'wscript.exe' "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Web Help.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`" -Help`"" "${env:SystemRoot}\System32\shell32.dll,-24" 'Help for WAU...'
       }
-      
+
       if ($DesktopShortcut)
       {
          Add-Shortcut 'wscript.exe' "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" 'Manual start of Winget-AutoUpdate (WAU)...'
       }
-      
+
       Write-Host -Object 'WAU Installation succeeded!' -ForegroundColor Green
       Start-Sleep -Seconds 1
-      
+
       #Run Winget ?
       Start-WingetAutoUpdate
    }
@@ -563,12 +563,12 @@ function Install-WingetAutoUpdate
 function Uninstall-WingetAutoUpdate
 {
    Write-Host -Object "`nUninstalling WAU..." -ForegroundColor Yellow
-   
+
    try
    {
       #Get registry install location
       $InstallLocation = Get-ItemPropertyValue -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\' -Name InstallLocation
-      
+
       #Check if installed location exists and delete
       if (Test-Path ($InstallLocation))
       {
@@ -594,17 +594,17 @@ function Uninstall-WingetAutoUpdate
          Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false
          $null = & "$env:windir\system32\reg.exe" delete 'HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification' /f
          $null = & "$env:windir\system32\reg.exe" delete 'HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate' /f
-         
+
          if ((Test-Path -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)"))
          {
             $null = Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force
          }
-         
+
          if ((Test-Path -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk"))
          {
             $null = Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force
          }
-         
+
          Write-Host -Object 'Uninstallation succeeded!' -ForegroundColor Green
          Start-Sleep -Seconds 1
       }

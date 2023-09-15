@@ -90,7 +90,7 @@ else
       {
          Start-Sleep -Seconds 3
       }
-      
+
       # Test if there was a list_/winget_error
       if (Test-Path -Path ('{0}\logs\error.txt' -f $WorkingDir) -ErrorAction SilentlyContinue)
       {

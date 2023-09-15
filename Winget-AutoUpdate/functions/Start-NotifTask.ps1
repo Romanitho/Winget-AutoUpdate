@@ -170,8 +170,6 @@ function Start-NotifTask
       {
          #else, run as connected user
          # Load Assemblies
-         $null = (Add-Type -AssemblyName Windows.UI)
-         $null = (Add-Type -AssemblyName Windows.Data)
          $null = [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime]
          $null = [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime]
 

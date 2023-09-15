@@ -18,16 +18,18 @@
 #>
 
 [CmdletBinding()]
-param(
-    [Switch] $Logs = $False,
-    [Switch] $Help = $False
+param (
+   [Switch]
+   $Logs = $False,
+   [Switch]
+   $Help = $False
 )
 
-function Test-WAUisRunning 
+function Test-WAUisRunning
 {
-   If (((Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue).State -eq 'Running') -or ((Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue).State -eq 'Running')) 
+   if (((Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue).State -eq 'Running') -or ((Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue).State -eq 'Running'))
    {
-      Return $True
+      return $True
    }
 }
 
@@ -47,13 +49,13 @@ Get-NotifLocale
 $OnClickAction = ('{0}\logs\updates.log' -f $WorkingDir)
 $Button1Text = $NotifLocale.local.outputs.output[11].message
 
-if ($Logs) 
+if ($Logs)
 {
-   if (Test-Path -Path ('{0}\logs\updates.log' -f $WorkingDir)) 
+   if (Test-Path -Path ('{0}\logs\updates.log' -f $WorkingDir))
    {
       Invoke-Item -Path ('{0}\logs\updates.log' -f $WorkingDir)
    }
-   else 
+   else
    {
       #Not available yet
       $Message = $NotifLocale.local.outputs.output[5].message
@@ -61,16 +63,16 @@ if ($Logs)
       Start-NotifTask -Message $Message -MessageType $MessageType -UserRun
    }
 }
-elseif ($Help) 
+elseif ($Help)
 {
    Start-Process -FilePath 'https://github.com/Romanitho/Winget-AutoUpdate'
 }
-else 
+else
 {
-   try 
+   try
    {
       # Check if WAU is currently running
-      if (Test-WAUisRunning) 
+      if (Test-WAUisRunning)
       {
          $Message = $NotifLocale.local.outputs.output[8].message
          $MessageType = 'warning'
@@ -84,13 +86,13 @@ else
       $MessageType = 'info'
       Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss -UserRun
       # Sleep until the task is done
-      While (Test-WAUisRunning) 
+      while (Test-WAUisRunning)
       {
          Start-Sleep -Seconds 3
       }
-
+      
       # Test if there was a list_/winget_error
-      if (Test-Path -Path ('{0}\logs\error.txt' -f $WorkingDir) -ErrorAction SilentlyContinue) 
+      if (Test-Path -Path ('{0}\logs\error.txt' -f $WorkingDir) -ErrorAction SilentlyContinue)
       {
          $MessageType = 'error'
          $Critical = Get-Content -Path ('{0}\logs\error.txt' -f $WorkingDir) -Raw
@@ -98,14 +100,14 @@ else
          $Critical = $Critical.Substring(0, [Math]::Min($Critical.Length, 50))
          $Message = ("Critical:`n{0}..." -f $Critical)
       }
-      else 
+      else
       {
          $MessageType = 'success'
          $Message = $NotifLocale.local.outputs.output[9].message
       }
       Start-NotifTask -Message $Message -MessageType $MessageType -Button1Text $Button1Text -Button1Action $OnClickAction -ButtonDismiss -UserRun
    }
-   catch 
+   catch
    {
       # Check failed - Just send notification
       $Message = $NotifLocale.local.outputs.output[7].message

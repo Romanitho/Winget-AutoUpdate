@@ -35,14 +35,14 @@ function Wait-ModsProc ($Wait) {
 
 function Install-WingetID ($WingetIDInst) {
     foreach ($app in $WingetIDInst) {
-        & $Winget install --id $app --accept-package-agreements --accept-source-agreements -h
+        & $Winget install --id $app -e --accept-package-agreements --accept-source-agreements -s winget -h
     }
     Return
 }
 
 function Uninstall-WingetID ($WingetIDUninst) {
     foreach ($app in $WingetIDUninst) {
-        & $Winget uninstall --id $app -e --accept-source-agreements -h
+        & $Winget uninstall --id $app -e --accept-source-agreements -s winget -h
     }
     Return
 }

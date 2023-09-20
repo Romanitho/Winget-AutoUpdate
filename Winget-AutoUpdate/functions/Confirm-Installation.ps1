@@ -1,27 +1,41 @@
-Function Confirm-Installation ($AppName, $AppVer){
+function Confirm-Installation
+{
+   # Set json export file
 
-    #Set json export file
-    $JsonFile = "$WorkingDir\Config\InstalledApps.json"
+   [CmdletBinding()]
+   param
+   (
+      [string]
+      $AppName,
+      [string]
+      $AppVer
+   )
 
-    #Get installed apps and version in json file
-    & $Winget export -s winget -o $JsonFile --include-versions | Out-Null
+   $JsonFile = ('{0}\Config\InstalledApps.json' -f $WorkingDir)
 
-    #Get json content
-    $Json = Get-Content $JsonFile -Raw | ConvertFrom-Json
+   # Get installed apps and version in json file
+   $null = (& $Winget export -s winget -o $JsonFile --include-versions)
 
-    #Get apps and version in hashtable
-    $Packages = $Json.Sources.Packages
+   # Get json content
+   $Json = (Get-Content -Path $JsonFile -Raw | ConvertFrom-Json)
 
-    #Remove json file
-    Remove-Item $JsonFile -Force
+   # Get apps and version in hashtable
+   $Packages = $Json.Sources.Packages
 
-    # Search for specific app and version
-    $Apps = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -like "$AppVer*"}
+   # Remove json file
+   $null = (Remove-Item -Path $JsonFile -Force -Confirm:$false -ErrorAction SilentlyContinue)
 
-    if ($Apps){
-        return $true
-    }
-    else{
-        return $false
-    }
+   # Search for specific app and version
+   $Apps = $Packages | Where-Object -FilterScript {
+      ($_.PackageIdentifier -eq $AppName -and $_.Version -like ('{0}*' -f $AppVer))
+   }
+
+   if ($Apps)
+   {
+      return $true
+   }
+   else
+   {
+      return $false
+   }
 }

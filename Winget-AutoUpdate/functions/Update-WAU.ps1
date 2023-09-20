@@ -1,77 +1,74 @@
-#Function to update WAU
+# Function to update WAU
 
-function Update-WAU {
+function Update-WAU
+{
+   $OnClickAction = 'https://github.com/Romanitho/Winget-AutoUpdate/releases'
+   $Button1Text = $NotifLocale.local.outputs.output[10].message
 
-    $OnClickAction = "https://github.com/Romanitho/Winget-AutoUpdate/releases"
-    $Button1Text = $NotifLocale.local.outputs.output[10].message
+   #Send available update notification
+   $Title = $NotifLocale.local.outputs.output[2].title -f 'Winget-AutoUpdate'
+   $Message = $NotifLocale.local.outputs.output[2].message -f $WAUCurrentVersion, $WAUAvailableVersion
+   $MessageType = 'info'
+   Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
 
-    #Send available update notification
-    $Title = $NotifLocale.local.outputs.output[2].title -f "Winget-AutoUpdate"
-    $Message = $NotifLocale.local.outputs.output[2].message -f $WAUCurrentVersion, $WAUAvailableVersion
-    $MessageType = "info"
-    Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
+   # Run WAU update
+   try
+   {
+      # Force to create a zip file
+      $ZipFile = ('{0}\WAU_update.zip' -f $WorkingDir)
+      $null = New-Item -Path $ZipFile -ItemType File -Force
 
-    #Run WAU update
-    try {
+      # Download the zip
+      Write-ToLog -LogMsg ('Downloading the GitHub Repository version {0}' -f $WAUAvailableVersion) -LogColor 'Cyan'
+      $null = (Invoke-RestMethod -Uri ('https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v{0}/WAU.zip' -f ($WAUAvailableVersion)) -OutFile $ZipFile)
 
-        #Force to create a zip file
-        $ZipFile = "$WorkingDir\WAU_update.zip"
-        New-Item $ZipFile -ItemType File -Force | Out-Null
+      # Extract Zip File
+      Write-ToLog -LogMsg 'Unzipping the WAU Update package' -LogColor 'Cyan'
+      $location = ('{0}\WAU_update' -f $WorkingDir)
+      $null = (Expand-Archive -Path $ZipFile -DestinationPath $location -Force)
+      $null = (Get-ChildItem -Path $location -Recurse | Unblock-File -ErrorAction SilentlyContinue)
 
-        #Download the zip
-        Write-ToLog "Downloading the GitHub Repository version $WAUAvailableVersion" "Cyan"
-        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUAvailableVersion)/WAU.zip" -OutFile $ZipFile
+      # Update scritps
+      Write-ToLog -LogMsg 'Updating WAU...' -LogColor 'Yellow'
+      $TempPath = (Resolve-Path -Path ('{0}\Winget-AutoUpdate\' -f $location) -ErrorAction SilentlyContinue)[0].Path
+      if ($TempPath)
+      {
+         $null = (Copy-Item -Path ('{0}\*' -f $TempPath) -Destination ('{0}\' -f $WorkingDir) -Exclude 'icons' -Recurse -Force -Confirm:$false)
+      }
 
-        #Extract Zip File
-        Write-ToLog "Unzipping the WAU Update package" "Cyan"
-        $location = "$WorkingDir\WAU_update"
-        Expand-Archive -Path $ZipFile -DestinationPath $location -Force
-        Get-ChildItem -Path $location -Recurse | Unblock-File
+      # Remove update zip file and update temp folder
+      Write-ToLog -LogMsg 'Done. Cleaning temp files...' -LogColor 'Cyan'
+      $null = (Remove-Item -Path $ZipFile -Force -Confirm:$false -ErrorAction SilentlyContinue)
+      $null = (Remove-Item -Path $location -Recurse -Force -Confirm:$false -ErrorAction SilentlyContinue)
 
-        #Update scritps
-        Write-ToLog "Updating WAU..." "Yellow"
-        $TempPath = (Resolve-Path "$location\Winget-AutoUpdate\")[0].Path
-        if ($TempPath) {
-            Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
-        }
+      # Set new version to registry
+      $WAUConfig | New-ItemProperty -Name DisplayVersion -Value $WAUAvailableVersion -Force
+      $WAUConfig | New-ItemProperty -Name VersionMajor -Value ([version]$WAUAvailableVersion.Replace('-', '.')).Major -Force
+      $WAUConfig | New-ItemProperty -Name VersionMinor -Value ([version]$WAUAvailableVersion.Replace('-', '.')).Minor -Force
 
-        #Remove update zip file and update temp folder
-        Write-ToLog "Done. Cleaning temp files..." "Cyan"
-        Remove-Item -Path $ZipFile -Force -ErrorAction SilentlyContinue
-        Remove-Item -Path $location -Recurse -Force -ErrorAction SilentlyContinue
+      # Set Post Update actions to 1
+      $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 1 -Force
 
-        #Set new version to registry
-        $WAUConfig | New-ItemProperty -Name DisplayVersion -Value $WAUAvailableVersion -Force
-        $WAUConfig | New-ItemProperty -Name VersionMajor -Value ([version]$WAUAvailableVersion.Replace("-", ".")).Major -Force
-        $WAUConfig | New-ItemProperty -Name VersionMinor -Value ([version]$WAUAvailableVersion.Replace("-", ".")).Minor -Force
+      # Send success Notif
+      Write-ToLog -LogMsg 'WAU Update completed.' -LogColor 'Green'
+      $Title = $NotifLocale.local.outputs.output[3].title -f 'Winget-AutoUpdate'
+      $Message = $NotifLocale.local.outputs.output[3].message -f $WAUAvailableVersion
+      $MessageType = 'success'
+      Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
 
-        #Set Post Update actions to 1
-        $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 1 -Force
+      # Rerun with newer version
+      Write-ToLog -LogMsg 'Re-run WAU'
+      Start-Process -FilePath powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
 
-        #Send success Notif
-        Write-ToLog "WAU Update completed." "Green"
-        $Title = $NotifLocale.local.outputs.output[3].title -f "Winget-AutoUpdate"
-        $Message = $NotifLocale.local.outputs.output[3].message -f $WAUAvailableVersion
-        $MessageType = "success"
-        Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
-
-        #Rerun with newer version
-        Write-ToLog "Re-run WAU"
-        Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
-
-        exit
-
-    }
-
-    catch {
-
-        #Send Error Notif
-        $Title = $NotifLocale.local.outputs.output[4].title -f "Winget-AutoUpdate"
-        $Message = $NotifLocale.local.outputs.output[4].message
-        $MessageType = "error"
-        Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
-        Write-ToLog "WAU Update failed" "Red"
-
-    }
-
+      exit
+   }
+   catch
+   {
+      # Send Error Notif
+      $Title = $NotifLocale.local.outputs.output[4].title -f 'Winget-AutoUpdate'
+      $Message = $NotifLocale.local.outputs.output[4].message
+      $MessageType = 'error'
+      Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
+      Write-ToLog -LogMsg 'WAU Update failed' -LogColor 'Red'
+   }
 }

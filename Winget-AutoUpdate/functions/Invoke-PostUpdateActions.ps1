@@ -19,49 +19,6 @@ function Invoke-PostUpdateActions
       $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
    }
 
-   Write-ToLog -LogMsg '-> Checking prerequisites...' -LogColor 'yellow'
-
-   # Check if Visual C++ 2019 or 2022 installed
-   $Visual2019 = 'Microsoft Visual C++ 2015-2019 Redistributable*'
-   $Visual2022 = 'Microsoft Visual C++ 2015-2022 Redistributable*'
-   $path = (Get-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*' -ErrorAction SilentlyContinue | Where-Object -FilterScript {
-         $_.GetValue('DisplayName') -like $Visual2019 -or $_.GetValue('DisplayName') -like $Visual2022
-      })
-
-   # If not installed, install
-   if (!($path))
-   {
-      try
-      {
-         if ((Get-CimInstance -ClassName Win32_OperatingSystem).OSArchitecture -like '*64*')
-         {
-            $OSArch = 'x64'
-         }
-         else
-         {
-            $OSArch = 'x86'
-         }
-
-         Write-ToLog -LogMsg ('-> Downloading VC_redist.{0}.exe...' -f $OSArch)
-         $SourceURL = ('https://aka.ms/vs/17/release/VC_redist.{0}.exe' -f $OSArch)
-         $Installer = ('{0}\VC_redist.{1}.exe' -f $WAUConfig.InstallLocation, $OSArch)
-         $ProgressPreference = 'SilentlyContinue'
-         $null = (Invoke-WebRequest -Uri $SourceURL -UseBasicParsing -OutFile (New-Item -Path $Installer -Force))
-         Write-ToLog -LogMsg ('-> Installing VC_redist.{0}.exe...' -f $OSArch)
-         Start-Process -FilePath $Installer -ArgumentList '/quiet /norestart' -Wait
-         Remove-Item -Path $Installer -ErrorAction Ignore
-         Write-ToLog -LogMsg '-> MS Visual C++ 2015-2022 installed successfully' -LogColor 'green'
-      }
-      catch
-      {
-         Write-ToLog -LogMsg '-> MS Visual C++ 2015-2022 installation failed.' -LogColor 'red'
-      }
-   }
-   else
-   {
-      Write-ToLog -LogMsg '-> Prerequisites checked. OK' -LogColor 'green'
-   }
-
    # Check Package Install
    Write-ToLog -LogMsg '-> Checking if Winget is installed/up to date' -LogColor 'yellow'
    $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object -FilterScript {

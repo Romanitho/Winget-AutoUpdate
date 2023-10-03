@@ -1,50 +1,34 @@
-# Function to check if modification exists within 'mods' directory
+#Function to check if modification exists within 'mods' directory
 
-function Test-Mods
-{
-   # Takes care of a null situation
-   [CmdletBinding()]
-   param
-   (
-      [string]
-      $app
-   )
+function Test-Mods ($app) {
 
-   $ModsPreInstall = $null
-   $ModsOverride = $null
-   $ModsUpgrade = $null
-   $ModsInstall = $null
-   $ModsInstalled = $null
-   $Mods = ('{0}\mods' -f $WorkingDir)
+    #Takes care of a null situation
+    $ModsPreInstall = $null
+    $ModsOverride = $null
+    $ModsUpgrade = $null
+    $ModsInstall = $null
+    $ModsInstalled = $null
 
-   if (Test-Path -Path ('{0}\{1}-*' -f $Mods, $app) -ErrorAction SilentlyContinue)
-   {
-      if (Test-Path -Path ('{0}\{1}-preinstall.ps1' -f $Mods, $app) -ErrorAction SilentlyContinue)
-      {
-         $ModsPreInstall = ('{0}\{1}-preinstall.ps1' -f $Mods, $app)
-      }
+    $Mods = "$WorkingDir\mods"
+    if (Test-Path "$Mods\$app-*") {
+        if (Test-Path "$Mods\$app-preinstall.ps1") {
+            $ModsPreInstall = "$Mods\$app-preinstall.ps1"
+        }
+        if (Test-Path "$Mods\$app-override.txt") {
+            $ModsOverride = Get-Content "$Mods\$app-override.txt" -Raw
+        }
+        if (Test-Path "$Mods\$app-install.ps1") {
+            $ModsInstall = "$Mods\$app-install.ps1"
+            $ModsUpgrade = "$Mods\$app-install.ps1"
+        }
+        if (Test-Path "$Mods\$app-upgrade.ps1") {
+            $ModsUpgrade = "$Mods\$app-upgrade.ps1"
+        }
+        if (Test-Path "$Mods\$app-installed.ps1") {
+            $ModsInstalled = "$Mods\$app-installed.ps1"
+        }
+    }
 
-      if (Test-Path -Path ('{0}\{1}-override.txt' -f $Mods, $app) -ErrorAction SilentlyContinue)
-      {
-         $ModsOverride = Get-Content -Path ('{0}\{1}-override.txt' -f $Mods, $app) -Raw
-      }
+    return $ModsPreInstall, $ModsOverride, $ModsUpgrade, $ModsInstall, $ModsInstalled
 
-      if (Test-Path -Path ('{0}\{1}-install.ps1' -f $Mods, $app) -ErrorAction SilentlyContinue)
-      {
-         $ModsInstall = ('{0}\{1}-install.ps1' -f $Mods, $app)
-         $ModsUpgrade = ('{0}\{1}-install.ps1' -f $Mods, $app)
-      }
-
-      if (Test-Path -Path ('{0}\{1}-upgrade.ps1' -f $Mods, $app) -ErrorAction SilentlyContinue)
-      {
-         $ModsUpgrade = ('{0}\{1}-upgrade.ps1' -f $Mods, $app)
-      }
-
-      if (Test-Path -Path ('{0}\{1}-installed.ps1' -f $Mods, $app) -ErrorAction SilentlyContinue)
-      {
-         $ModsInstalled = ('{0}\{1}-installed.ps1' -f $Mods, $app)
-      }
-   }
-
-   return $ModsPreInstall, $ModsOverride, $ModsUpgrade, $ModsInstall, $ModsInstalled
 }

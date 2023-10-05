@@ -323,7 +323,7 @@ if (Test-Network) {
 
                     #Run user context scheduled task
                     Write-ToLog "Starting WAU in User context..."
-                    Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
+                    Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
                     Exit 0
                 }
             }

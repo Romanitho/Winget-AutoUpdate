@@ -305,29 +305,26 @@ if (Test-Network) {
             Write-ToLog "No new update." "Green"
         }
 
-        #Check if any user is logged on if System and run User task (if installed)
+        #Check if user context is activated during system run
         if ($IsSystem) {
-            #User check routine from: https://stackoverflow.com/questions/23219718/powershell-script-to-see-currently-logged-in-users-domain-and-machine-status
-            $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
-            If ($explorerprocesses.Count -eq 0) {
-                Write-ToLog "No explorer process found / Nobody interactively logged on..."
-            }
-            Else {
-                #Run WAU in user context if the user task exist
-                $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
-                if ($UserScheduledTask) {
 
+            #Run WAU in user context if feature is activated
+            if ($WAUConfig.WAU_UserContext -eq 1) {
+
+                #User check routine from: https://stackoverflow.com/questions/23219718/powershell-script-to-see-currently-logged-in-users-domain-and-machine-status
+                $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+                If ($explorerprocesses.Count -eq 0) {
+                    Write-ToLog "No explorer process found / Nobody interactively logged on..."
+                }
+                Else {
                     #Get Winget system apps to excape them befor running user context
                     Write-ToLog "User logged on, get a list of installed Winget apps in System context..."
                     Get-WingetSystemApps
 
                     #Run user context scheduled task
-                    Write-ToLog "Starting WAU in User context"
+                    Write-ToLog "Starting WAU in User context..."
                     Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
                     Exit 0
-                }
-                elseif (!$UserScheduledTask) {
-                    Write-ToLog "User context execution not installed..."
                 }
             }
         }

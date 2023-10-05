@@ -186,6 +186,28 @@ function Invoke-PostUpdateActions {
         }
     }
 
+    #Create User context task if not existing and manage its activation
+    $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
+    if (!$UserContextTask) {
+        #Create the scheduled task in User context
+        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
+
+        #If scheduled task didn't exist, user context was not activated. Set it in registry.
+        New-ItemProperty $regPath -Name WAU_UserContext -Value 0 -PropertyType DWord -Force | Out-Null
+        Write-ToLog "-> User Context task created and set to 'disabled' in registry."
+    }
+    #If scheduled task exists but no WAU_UserContext setting, user context was activated. Set it in registry.
+    elseif (!($WAUConfig.WAU_UserContext)) {
+        New-ItemProperty $regPath -Name WAU_UserContext -Value 1 -PropertyType DWord -Force | Out-Null
+        Write-ToLog "-> User Context task existes and set to 'enabled' in registry."
+    }
+
+    ### End of post update actions ###
+
     #Reset WAU_UpdatePostActions Value
     $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 0 -Force
 

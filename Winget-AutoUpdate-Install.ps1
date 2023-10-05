@@ -394,7 +394,7 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name WAU_PostUpdateActions -Value 0 -PropertyType DWord -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value $MaxLogFiles -PropertyType DWord -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_MaxLogSize -Value $MaxLogSize -PropertyType DWord -Force | Out-Null
-        New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $UpdatesAtTime -PropertyType DWord -Force | Out-Null
+        New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $UpdatesAtTime -Force | Out-Null
         if ($UpdatesAtLogon) {
             New-ItemProperty $regPath -Name WAU_UpdatesAtLogon -Value 1 -PropertyType DWord -Force | Out-Null
         }

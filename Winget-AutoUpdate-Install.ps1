@@ -366,7 +366,7 @@ function Install-WingetAutoUpdate {
         #Set task readable/runnable for all users
         $scheduler = New-Object -ComObject "Schedule.Service"
         $scheduler.Connect()
-        $task = $scheduler.GetFolder("").GetTask("Winget-AutoUpdate")
+        $task = $scheduler.GetFolder("WAU").GetTask("Winget-AutoUpdate")
         $sec = $task.GetSecurityDescriptor(0xF)
         $sec = $sec + '(A;;GRGX;;;AU)'
         $task.SetSecurityDescriptor($sec, 0)

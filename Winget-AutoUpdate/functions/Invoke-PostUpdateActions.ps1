@@ -25,20 +25,15 @@ function Invoke-PostUpdateActions {
         $AvailableWinGetVersion = "1.6.2771"
     }
 
-    #Check if WinGet is installed, if not set version to dummy...
-    if (!(Get-WingetCmd)) {
-        $InstalledWinGetVersion = "0.0.0000"
-    }
-    else {
-        #Get installed WinGet version
-        $LocalWinGet = & $Winget --version
-        $InstalledWinGetVersion = $LocalWinGet.Replace("v", "")
-    }
+    #Check installed WinGet version
+    Get-WingetCmd
+    $InstalledWinGetVersion = & $Winget --version
+    $InstalledWinGetVersion = $InstalledWinGetVersion.Replace("v", "")
 
     #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
     if (!($AvailableWinGetVersion -match "-pre") -and ($AvailableWinGetVersion -gt $InstalledWinGetVersion)) {
 
-        Write-ToLog "-> WinGet is not installed/up to date (v$InstalledWinGetVersion):" "red"
+        Write-ToLog "-> WinGet is not installed/up to date (v$InstalledWinGetVersion) - v$AvailableWinGetVersion is available:" "red"
 
         #Download WinGet MSIXBundle
         Write-ToLog "-> Downloading WinGet MSIXBundle for App Installer..."
@@ -51,6 +46,16 @@ function Invoke-PostUpdateActions {
             Write-ToLog "-> Installing WinGet MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
             Write-ToLog "-> Winget MSIXBundle (v$AvailableWinGetVersion) for App Installer installed successfully" "green"
+
+            #Reset WinGet Sources
+            $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
+            if ($ResolveWingetPath) {
+                #If multiple version, pick last one
+                $WingetPath = $ResolveWingetPath[-1].Path
+                & $WingetPath source reset --force
+                #log
+                Write-ToLog "-> WinGet sources reset." "green"
+            }
         }
         catch {
             Write-ToLog "-> Failed to intall WinGet MSIXBundle for App Installer..." "red"
@@ -60,22 +65,10 @@ function Invoke-PostUpdateActions {
         Remove-Item -Path "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
     }
     elseif ($AvailableWinGetVersion -match "-pre") {
-        Write-ToLog "-> Available WinGet is a Pre-release: v$AvailableWinGetVersion" "yellow"
-        Write-ToLog "-> Installed WinGet is: v$InstalledWinGetVersion"
+        Write-ToLog "-> WinGet is up to date (v$InstalledWinGetVersion) - v$AvailableWinGetVersion is available but only as a Pre-release" "yellow"
     }
     else {
         Write-ToLog "-> WinGet is up to date: v$InstalledWinGetVersion" "green"
-    }
-
-    #Reset Winget Sources
-    $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
-    if ($ResolveWingetPath) {
-        #If multiple version, pick last one
-        $WingetPath = $ResolveWingetPath[-1].Path
-        & $WingetPath source reset --force
-
-        #log
-        Write-ToLog "-> WinGet sources reset." "green"
     }
 
     #Create WAU Regkey if not present

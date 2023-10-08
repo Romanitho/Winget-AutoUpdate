@@ -17,37 +17,54 @@ function Invoke-PostUpdateActions {
         $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
     }
 
-    #Check Package Install
-    Write-ToLog "-> Checking if Winget is installed/up to date" "yellow"
-    $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
+    Write-ToLog "-> Checking if WinGet is installed/up to date" "yellow"
 
-    #Current: v1.5.2201 = 1.20.2201.0 = 2023.808.2243.0
-    If ([Version]$TestWinGet.Version -ge "2023.808.2243.0") {
-
-        Write-ToLog "-> WinGet is Installed/up to date" "green"
-
+    #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
+    $AvailableWinGetVersion = Get-AvailableWinGetVersion
+    if (!$AvailableWinGetVersion) {
+        $AvailableWinGetVersion = "1.6.2771"
     }
-    Else {
+
+    #Check if WinGet is installed, if not set version to dummy...
+    if (!(Get-WingetCmd)) {
+        $InstalledWinGetVersion = "0.0.0000"
+    }
+    else {
+        #Get installed WinGet version
+        $LocalWinGet = & $Winget --version
+        $InstalledWinGetVersion = $LocalWinGet.Replace("v", "")
+    }
+
+    #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
+    if (!($AvailableWinGetVersion -match "-pre") -and ($AvailableWinGetVersion -gt $InstalledWinGetVersion)) {
+
+        Write-ToLog "-> WinGet is not installed/up to date (v$InstalledWinGetVersion):" "red"
 
         #Download WinGet MSIXBundle
-        Write-ToLog "-> Not installed/up to date. Downloading WinGet..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        Write-ToLog "-> Downloading WinGet MSIXBundle for App Installer..."
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$AvailableWinGetVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
-        #Install WinGet MSIXBundle
+        #Install WinGet MSIXBundle in SYSTEM context
         try {
-            Write-ToLog "-> Installing Winget MSIXBundle for App Installer..."
+            Write-ToLog "-> Installing WinGet MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-ToLog "-> Installed Winget MSIXBundle for App Installer" "green"
+            Write-ToLog "-> Winget MSIXBundle (v$AvailableWinGetVersion) for App Installer installed successfully" "green"
         }
         catch {
-            Write-ToLog "-> Failed to intall Winget MSIXBundle for App Installer..." "red"
+            Write-ToLog "-> Failed to intall WinGet MSIXBundle for App Installer..." "red"
         }
 
         #Remove WinGet MSIXBundle
         Remove-Item -Path "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
-
+    }
+    elseif ($AvailableWinGetVersion -match "-pre") {
+        Write-ToLog "-> Available WinGet is a Pre-release: v$AvailableWinGetVersion" "yellow"
+        Write-ToLog "-> Installed WinGet is: v$InstalledWinGetVersion"
+    }
+    else {
+        Write-ToLog "-> WinGet is up to date: v$InstalledWinGetVersion" "green"
     }
 
     #Reset Winget Sources
@@ -58,7 +75,7 @@ function Invoke-PostUpdateActions {
         & $WingetPath source reset --force
 
         #log
-        Write-ToLog "-> Winget sources reseted." "green"
+        Write-ToLog "-> WinGet sources reset." "green"
     }
 
     #Create WAU Regkey if not present

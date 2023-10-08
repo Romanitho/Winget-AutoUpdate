@@ -179,22 +179,83 @@ function Install-Prerequisites {
     }
 }
 
+#Function to get the winget command regarding execution context (User, System...)
+Function Get-WingetCmd {
+
+    #Get WinGet Path (if Admin context)
+    # Includes Workaround for ARM64 (removed X64 and replaces it with a wildcard)
+    $ResolveWingetPath = Resolve-Path "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
+
+    if ($ResolveWingetPath) {
+        #If multiple version, pick last one
+        $WingetPath = $ResolveWingetPath[-1].Path
+    }
+
+    #If running under System or Admin context obtain Winget from Program Files
+    if((([System.Security.Principal.WindowsIdentity]::GetCurrent().User) -eq "S-1-5-18") -or ($WingetPath)){
+        if (Test-Path "$WingetPath\winget.exe") {
+            $Script:Winget = "$WingetPath\winget.exe"
+        }
+    }else{
+        #Get Winget Location in User context
+        $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
+        if ($WingetCmd) {
+            $Script:Winget = $WingetCmd.Source
+        }
+    }
+
+    If(!($Script:Winget)){
+        return $false
+    }
+
+    #Run winget to list apps and accept source agrements (necessary on first run)
+    & $Winget list --accept-source-agreements -s winget | Out-Null
+
+    return $true
+
+}
+
+#Function to get the latest WinGet available version on Github
+Function Get-AvailableWinGetVersion {
+
+    #Get latest WinGet info
+    $WinGeturl = 'https://api.github.com/repos/microsoft/winget-cli/releases/latest'
+
+    try {
+        #Return latest version
+        return ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
+    }
+    catch {
+        return $false
+    }
+
+}
+
+
 function Install-WinGet {
 
-    Write-Host "`nChecking if Winget is installed" -ForegroundColor Yellow
+    Write-Host "`nChecking if Winget is installed/up to date" -ForegroundColor Yellow
 
-    #Check Package Install
-    $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
-
-    #Current: v1.5.2201 = 1.20.2201.0 = 2023.808.2243.0
-    If ([Version]$TestWinGet.Version -ge "2023.808.2243.0") {
-
-        Write-Host "Winget is Installed" -ForegroundColor Green
-
+    #Check available WinGet version, if fail set version to the latest version in 2023-10-08
+    $AvailableWinGetVersion = Get-AvailableWinGetVersion
+    if (!$AvailableWinGetVersion) {
+        $AvailableWinGetVersion = "1.6.2771"
     }
-    Else {
 
-        Write-Host "-> Winget is not installed:"
+    #Check if WinGet is installed, if not set version to dummy...
+    if (!(Get-WingetCmd)) {
+        $InstalledWinGetVersion = "0.0.0001"
+    }
+    else {
+        #Get installed WinGet version
+        $LocalWinGet = & $Winget --version
+        $InstalledWinGetVersion = $LocalWinGet.Replace("v", "")
+    }
+
+    #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
+    if (!($AvailableWinGetVersion -match "-pre") -and ($AvailableWinGetVersion -gt $InstalledWinGetVersion)) {
+
+        Write-Host "-> Winget is not installed/up to date:"
 
         #Check if $WingetUpdatePath exist
         if (!(Test-Path $WingetUpdatePath)) {
@@ -235,10 +296,10 @@ function Install-WinGet {
             }
             Remove-Item -Path $VCLibsFile -Force
         }
-
+        
         #Download WinGet MSIXBundle
         Write-Host "-> Downloading Winget MSIXBundle for App Installer..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$AvailableWinGetVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
@@ -254,9 +315,10 @@ function Install-WinGet {
 
         #Remove WinGet MSIXBundle
         Remove-Item -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
-
     }
-
+    else {
+        Write-Host "-> Winget is up to date: $InstalledWinGetVersion"
+    }
 }
 
 function Install-WingetAutoUpdate {

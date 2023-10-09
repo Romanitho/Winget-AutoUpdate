@@ -305,29 +305,41 @@ if (Test-Network) {
             Write-ToLog "No new update." "Green"
         }
 
-        #Check if any user is logged on if System and run User task (if installed)
+        #Check if user context is activated during system run
         if ($IsSystem) {
-            #User check routine from: https://stackoverflow.com/questions/23219718/powershell-script-to-see-currently-logged-in-users-domain-and-machine-status
-            $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
-            If ($explorerprocesses.Count -eq 0) {
-                Write-ToLog "No explorer process found / Nobody interactively logged on..."
-            }
-            Else {
-                #Run WAU in user context if the user task exist
-                $UserScheduledTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue
-                if ($UserScheduledTask) {
 
+            #Run WAU in user context if feature is activated
+            if ($WAUConfig.WAU_UserContext -eq 1) {
+
+                #Create User context task if not existing
+                $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
+                if (!$UserContextTask) {
+                    #Create the scheduled task in User context
+                    $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+                    $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+                    $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+                    $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+                    Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
+                    Write-ToLog "-> User Context task created."
+
+                    #Load it
+                    $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
+                }
+
+                #User check routine from: https://stackoverflow.com/questions/23219718/powershell-script-to-see-currently-logged-in-users-domain-and-machine-status
+                $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+                If ($explorerprocesses.Count -eq 0) {
+                    Write-ToLog "No explorer process found / Nobody interactively logged on..."
+                }
+                Else {
                     #Get Winget system apps to excape them befor running user context
                     Write-ToLog "User logged on, get a list of installed Winget apps in System context..."
                     Get-WingetSystemApps
 
                     #Run user context scheduled task
-                    Write-ToLog "Starting WAU in User context"
-                    Start-ScheduledTask $UserScheduledTask.TaskName -ErrorAction SilentlyContinue
+                    Write-ToLog "Starting WAU in User context..."
+                    $null = $UserContextTask | Start-ScheduledTask -ErrorAction SilentlyContinue
                     Exit 0
-                }
-                elseif (!$UserScheduledTask) {
-                    Write-ToLog "User context execution not installed..."
                 }
             }
         }

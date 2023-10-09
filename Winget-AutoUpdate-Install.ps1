@@ -181,20 +181,31 @@ function Install-Prerequisites {
 
 function Install-WinGet {
 
-    Write-Host "`nChecking if Winget is installed" -ForegroundColor Yellow
+    Write-Host "`nChecking if WinGet is installed/up to date" -ForegroundColor Yellow
 
-    #Check Package Install
-    $TestWinGet = Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -eq "Microsoft.DesktopAppInstaller" }
-
-    #Current: v1.5.2201 = 1.20.2201.0 = 2023.808.2243.0
-    If ([Version]$TestWinGet.Version -ge "2023.808.2243.0") {
-
-        Write-Host "Winget is Installed" -ForegroundColor Green
-
+    #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
+    . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-AvailableWinGetVersion.ps1"
+    $AvailableWinGetVersion = Get-AvailableWinGetVersion
+    if (!$AvailableWinGetVersion) {
+        $AvailableWinGetVersion = "1.6.2771"
     }
-    Else {
 
-        Write-Host "-> Winget is not installed:"
+    #Check if WinGet is installed, if not set version to dummy...
+    $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
+    if (!$ResolveWingetPath) {
+        $InstalledWinGetVersion = "0.0.0000"
+    }
+    else {
+        #If multiple version, pick last one
+        $WingetPath = $ResolveWingetPath[-1].Path
+        $InstalledWinGetVersion = & $WingetPath --version
+        $InstalledWinGetVersion = $InstalledWinGetVersion.Replace("v", "")
+    }
+
+    #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
+    if (!($AvailableWinGetVersion -match "-pre") -and ($AvailableWinGetVersion -gt $InstalledWinGetVersion)) {
+
+        Write-Host "-> WinGet is not installed/up to date (v$InstalledWinGetVersion) - v$AvailableWinGetVersion is available:" -ForegroundColor Red
 
         #Check if $WingetUpdatePath exist
         if (!(Test-Path $WingetUpdatePath)) {
@@ -235,28 +246,42 @@ function Install-WinGet {
             }
             Remove-Item -Path $VCLibsFile -Force
         }
-
+        
         #Download WinGet MSIXBundle
-        Write-Host "-> Downloading Winget MSIXBundle for App Installer..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v1.5.2201/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        Write-Host "-> Downloading WinGet MSIXBundle for App Installer..."
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$AvailableWinGetVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
         #Install WinGet MSIXBundle in SYSTEM context
         try {
-            Write-Host "-> Installing Winget MSIXBundle for App Installer..."
+            Write-Host "-> Installing WinGet MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-host "Winget MSIXBundle for App Installer installed successfully" -ForegroundColor Green
+            Write-host "Winget MSIXBundle (v$AvailableWinGetVersion) for App Installer installed successfully" -ForegroundColor Green
+
+            #Reset WinGet Sources
+            $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
+            if ($ResolveWingetPath) {
+                #If multiple version, pick last one
+                $WingetPath = $ResolveWingetPath[-1].Path
+                & $WingetPath source reset --force
+                #log
+                Write-Host "-> WinGet sources reset." -ForegroundColor Green
+            }
         }
         catch {
-            Write-Host "Failed to intall Winget MSIXBundle for App Installer..." -ForegroundColor Red
+            Write-Host "Failed to intall WinGet MSIXBundle for App Installer..." -ForegroundColor Red
         }
 
         #Remove WinGet MSIXBundle
         Remove-Item -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
-
     }
-
+    elseif ($AvailableWinGetVersion -match "-pre") {
+        Write-Host "-> WinGet is up to date (v$InstalledWinGetVersion) - v$AvailableWinGetVersion is available but only as a Pre-release" -ForegroundColor Yellow
+    }
+    else {
+        Write-Host "-> WinGet is up to date: v$InstalledWinGetVersion" -ForegroundColor Green
+    }
 }
 
 function Install-WingetAutoUpdate {

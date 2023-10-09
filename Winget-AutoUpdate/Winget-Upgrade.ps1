@@ -321,6 +321,9 @@ if (Test-Network) {
                     $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
                     Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
                     Write-ToLog "-> User Context task created."
+
+                    #Load it
+                    $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
                 }
 
                 #User check routine from: https://stackoverflow.com/questions/23219718/powershell-script-to-see-currently-logged-in-users-domain-and-machine-status
@@ -335,7 +338,7 @@ if (Test-Network) {
 
                     #Run user context scheduled task
                     Write-ToLog "Starting WAU in User context..."
-                    Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
+                    $null = $UserContextTask | Start-ScheduledTask -ErrorAction SilentlyContinue
                     Exit 0
                 }
             }

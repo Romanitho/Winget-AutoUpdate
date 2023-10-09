@@ -427,9 +427,6 @@ function Install-WingetAutoUpdate {
         if ($InstallUserContext) {
             New-ItemProperty $regPath -Name WAU_UserContext -Value 1 -PropertyType DWord -Force | Out-Null
         }
-        else {
-            New-ItemProperty $regPath -Name WAU_UserContext -Value 0 -PropertyType DWord -Force | Out-Null
-        }
         if ($DesktopShortcut) {
             New-ItemProperty $regPath -Name WAU_DesktopShortcut -Value 1 -PropertyType DWord -Force | Out-Null
         }

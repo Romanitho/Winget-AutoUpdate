@@ -260,7 +260,7 @@ function Install-WinGet {
         try {
             Write-Host "-> Installing WinGet MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-host "Winget MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully" -ForegroundColor Green
+            Write-host "WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully" -ForegroundColor Green
 
             #Reset WinGet Sources
             $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }

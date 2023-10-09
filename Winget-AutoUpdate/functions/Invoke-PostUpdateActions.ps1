@@ -26,9 +26,13 @@ function Invoke-PostUpdateActions {
     }
 
     #Check installed WinGet version
-    Get-WingetCmd
-    $InstalledWinGetVersion = & $Winget --version
-    $InstalledWinGetVersion = $InstalledWinGetVersion.Replace("v", "")
+    $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
+    if ($ResolveWingetPath) {
+        #If multiple version, pick last one
+        $WingetPath = $ResolveWingetPath[-1].Path
+        $InstalledWinGetVersion = & $WingetPath --version
+        $InstalledWinGetVersion = $InstalledWinGetVersion.Replace("v", "")
+    }
 
     #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
     if (!($AvailableWinGetVersion -match "-pre") -and ($AvailableWinGetVersion -gt $InstalledWinGetVersion)) {

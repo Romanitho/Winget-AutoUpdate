@@ -186,6 +186,20 @@ function Invoke-PostUpdateActions {
         }
     }
 
+    #Activate WAU in user context if previously configured (as "Winget-AutoUpdate-UserContext" at root)
+    $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath '\' -ErrorAction SilentlyContinue
+    if ($UserContextTask) {
+        #Remove Winget-AutoUpdate-UserContext at root.
+        Unregister-ScheduledTask $UserContextTask -Confirm:$False
+
+        #Set it in registry as activated.
+        New-ItemProperty $regPath -Name WAU_UserContext -Value 1 -PropertyType DWord -Force | Out-Null
+        Write-ToLog "-> Old User Context task deleted and set to 'enabled' in registry."
+    }
+
+
+    ### End of post update actions ###
+
     #Reset WAU_UpdatePostActions Value
     $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 0 -Force
 

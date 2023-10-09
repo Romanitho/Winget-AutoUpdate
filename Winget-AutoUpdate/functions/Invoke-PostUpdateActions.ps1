@@ -174,6 +174,7 @@ function Invoke-PostUpdateActions {
 
     #Remove old functions / files
     $FileNames = @(
+        "$WorkingDir\functions\Get-Policies.ps1",
         "$WorkingDir\functions\Get-WAUConfig.ps1",
         "$WorkingDir\functions\Get-WAUCurrentVersion.ps1",
         "$WorkingDir\functions\Get-WAUUpdateStatus.ps1",

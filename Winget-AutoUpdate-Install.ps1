@@ -315,7 +315,12 @@ function Install-WingetAutoUpdate {
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f | Out-Null
 
-        # Settings for the scheduled task for Updates
+        # Clean potential old install
+        Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+        Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+        Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+
+        # Settings for the scheduled task for Updates (System)
         $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
         $taskTriggers = @()
         if ($UpdatesAtLogon) {
@@ -338,7 +343,6 @@ function Install-WingetAutoUpdate {
         }
         $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-
         # Set up the task, and register it
         if ($taskTriggers) {
             $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
@@ -346,33 +350,28 @@ function Install-WingetAutoUpdate {
         else {
             $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
         }
-        
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -InputObject $task -Force | Out-Null
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
-        if ($InstallUserContext) {
-            # Settings for the scheduled task in User context
-            $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
-            $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
-            $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-
-            # Set up the task for user apps
-            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-            Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -InputObject $task -Force | Out-Null
-        }
+        # Settings for the scheduled task in User context
+        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+        # Set up the task for user apps
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
         # Settings for the scheduled task for Notifications
         $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
         $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
-
         # Set up the task, and register it
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -InputObject $task -Force | Out-Null
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
         #Set task readable/runnable for all users
         $scheduler = New-Object -ComObject "Schedule.Service"
         $scheduler.Connect()
-        $task = $scheduler.GetFolder("").GetTask("Winget-AutoUpdate")
+        $task = $scheduler.GetFolder("WAU").GetTask("Winget-AutoUpdate")
         $sec = $task.GetSecurityDescriptor(0xF)
         $sec = $sec + '(A;;GRGX;;;AU)'
         $task.SetSecurityDescriptor($sec, 0)
@@ -391,7 +390,7 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force | Out-Null
         New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force | Out-Null
-        if ($WAUVersion -match "-"){
+        if ($WAUVersion -match "-") {
             New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 1 -PropertyType DWord -Force | Out-Null
         }
         else {
@@ -400,6 +399,10 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name WAU_PostUpdateActions -Value 0 -PropertyType DWord -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value $MaxLogFiles -PropertyType DWord -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_MaxLogSize -Value $MaxLogSize -PropertyType DWord -Force | Out-Null
+        New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $UpdatesAtTime -Force | Out-Null
+        if ($UpdatesAtLogon) {
+            New-ItemProperty $regPath -Name WAU_UpdatesAtLogon -Value 1 -PropertyType DWord -Force | Out-Null
+        }
         if ($DisableWAUAutoUpdate) {
             New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force | Out-Null
         }
@@ -421,6 +424,16 @@ function Install-WingetAutoUpdate {
         if ($BypassListForUsers) {
             New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
         }
+        if ($InstallUserContext) {
+            New-ItemProperty $regPath -Name WAU_UserContext -Value 1 -PropertyType DWord -Force | Out-Null
+        }
+        if ($DesktopShortcut) {
+            New-ItemProperty $regPath -Name WAU_DesktopShortcut -Value 1 -PropertyType DWord -Force | Out-Null
+        }
+        if ($StartMenuShortcut) {
+            New-ItemProperty $regPath -Name WAU_StartMenuShortcut -Value 1 -PropertyType DWord -Force | Out-Null
+        }
+
 
         #Log file and symlink initialization
         . "$WingetUpdatePath\functions\Start-Init.ps1"

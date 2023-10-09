@@ -20,9 +20,9 @@ function Invoke-PostUpdateActions {
     Write-ToLog "-> Checking if WinGet is installed/up to date" "yellow"
 
     #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
-    $AvailableWinGetVersion = Get-AvailableWinGetVersion
-    if (!$AvailableWinGetVersion) {
-        $AvailableWinGetVersion = "1.6.2771"
+    $WinGetAvailableVersion = Get-WinGetAvailableVersion
+    if (!$WinGetAvailableVersion) {
+        $WinGetAvailableVersion = "1.6.2771"
     }
 
     #Check installed WinGet version
@@ -30,18 +30,18 @@ function Invoke-PostUpdateActions {
     if ($ResolveWingetPath) {
         #If multiple version, pick last one
         $WingetPath = $ResolveWingetPath[-1].Path
-        $InstalledWinGetVersion = & $WingetPath --version
-        $InstalledWinGetVersion = $InstalledWinGetVersion.Replace("v", "")
+        $WinGetInstalledVersion = & $WingetPath --version
+        $WinGetInstalledVersion = $WinGetInstalledVersion.Replace("v", "")
     }
 
     #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
-    if (!($AvailableWinGetVersion -match "-pre") -and ($AvailableWinGetVersion -gt $InstalledWinGetVersion)) {
+    if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
 
-        Write-ToLog "-> WinGet is not installed/up to date (v$InstalledWinGetVersion) - v$AvailableWinGetVersion is available:" "red"
+        Write-ToLog "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" "red"
 
         #Download WinGet MSIXBundle
         Write-ToLog "-> Downloading WinGet MSIXBundle for App Installer..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$AvailableWinGetVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
@@ -49,7 +49,7 @@ function Invoke-PostUpdateActions {
         try {
             Write-ToLog "-> Installing WinGet MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-ToLog "-> Winget MSIXBundle (v$AvailableWinGetVersion) for App Installer installed successfully" "green"
+            Write-ToLog "-> Winget MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully" "green"
 
             #Reset WinGet Sources
             $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
@@ -68,11 +68,16 @@ function Invoke-PostUpdateActions {
         #Remove WinGet MSIXBundle
         Remove-Item -Path "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
     }
-    elseif ($AvailableWinGetVersion -match "-pre") {
-        Write-ToLog "-> WinGet is up to date (v$InstalledWinGetVersion) - v$AvailableWinGetVersion is available but only as a Pre-release" "yellow"
+    elseif ($WinGetAvailableVersion -match "-pre") {
+        Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" "yellow"
+        #If not WSB or Server, upgrade Microsoft Store Apps!
+        if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
+            Write-ToLog "-> Forcing an upgrade of Store Apps (this can take a minute)..." "yellow"
+            Get-StoreApps
+        }
     }
     else {
-        Write-ToLog "-> WinGet is up to date: v$InstalledWinGetVersion" "green"
+        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "green"
     }
 
     #Create WAU Regkey if not present

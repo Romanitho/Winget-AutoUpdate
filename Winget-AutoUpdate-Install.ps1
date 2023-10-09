@@ -183,29 +183,32 @@ function Install-WinGet {
 
     Write-Host "`nChecking if WinGet is installed/up to date" -ForegroundColor Yellow
 
+    #Include external Functions
+    . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
+    . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-StoreApps.ps1"
+
     #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
-    . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-AvailableWinGetVersion.ps1"
-    $AvailableWinGetVersion = Get-AvailableWinGetVersion
-    if (!$AvailableWinGetVersion) {
-        $AvailableWinGetVersion = "1.6.2771"
+    $WinGetAvailableVersion = Get-WinGetAvailableVersion
+    if (!$WinGetAvailableVersion) {
+        $WinGetAvailableVersion = "1.6.2771"
     }
 
     #Check if WinGet is installed, if not set version to dummy...
     $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
     if (!$ResolveWingetPath) {
-        $InstalledWinGetVersion = "0.0.0000"
+        $WinGetInstalledVersion = "0.0.0000"
     }
     else {
         #If multiple version, pick last one
         $WingetPath = $ResolveWingetPath[-1].Path
-        $InstalledWinGetVersion = & $WingetPath --version
-        $InstalledWinGetVersion = $InstalledWinGetVersion.Replace("v", "")
+        $WinGetInstalledVersion = & $WingetPath --version
+        $WinGetInstalledVersion = $WinGetInstalledVersion.Replace("v", "")
     }
 
     #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
-    if (!($AvailableWinGetVersion -match "-pre") -and ($AvailableWinGetVersion -gt $InstalledWinGetVersion)) {
+    if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
 
-        Write-Host "-> WinGet is not installed/up to date (v$InstalledWinGetVersion) - v$AvailableWinGetVersion is available:" -ForegroundColor Red
+        Write-Host "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" -ForegroundColor Red
 
         #Check if $WingetUpdatePath exist
         if (!(Test-Path $WingetUpdatePath)) {
@@ -249,7 +252,7 @@ function Install-WinGet {
         
         #Download WinGet MSIXBundle
         Write-Host "-> Downloading WinGet MSIXBundle for App Installer..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$AvailableWinGetVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
         $WebClient = New-Object System.Net.WebClient
         $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
 
@@ -257,7 +260,7 @@ function Install-WinGet {
         try {
             Write-Host "-> Installing WinGet MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-host "Winget MSIXBundle (v$AvailableWinGetVersion) for App Installer installed successfully" -ForegroundColor Green
+            Write-host "Winget MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully" -ForegroundColor Green
 
             #Reset WinGet Sources
             $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
@@ -276,11 +279,16 @@ function Install-WinGet {
         #Remove WinGet MSIXBundle
         Remove-Item -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
     }
-    elseif ($AvailableWinGetVersion -match "-pre") {
-        Write-Host "-> WinGet is up to date (v$InstalledWinGetVersion) - v$AvailableWinGetVersion is available but only as a Pre-release" -ForegroundColor Yellow
+    elseif ($WinGetAvailableVersion -match "-pre") {
+        Write-Host "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" -ForegroundColor Yellow
+        #If not WSB or Server, upgrade Microsoft Store Apps!
+        if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
+            Write-Host "-> Forcing an upgrade of Store Apps (this can take a minute)..." -ForegroundColor Yellow
+            Get-StoreApps
+        }
     }
     else {
-        Write-Host "-> WinGet is up to date: v$InstalledWinGetVersion" -ForegroundColor Green
+        Write-Host "-> WinGet is up to date: v$WinGetInstalledVersion" -ForegroundColor Green
     }
 }
 

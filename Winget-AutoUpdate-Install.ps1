@@ -246,7 +246,7 @@ function Install-WinGet {
             }
             Remove-Item -Path $VCLibsFile -Force
         }
-        
+
         #Download WinGet MSIXBundle
         Write-Host "-> Downloading WinGet MSIXBundle for App Installer..."
         $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$AvailableWinGetVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
@@ -393,6 +393,13 @@ function Install-WingetAutoUpdate {
         $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\WAU-Policies.ps1`""
+        $tasktrigger = New-ScheduledTaskTrigger -Daily -At 6am
+        $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
+        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTrigger
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Policies' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
+
         #Set task readable/runnable for all users
         $scheduler = New-Object -ComObject "Schedule.Service"
         $scheduler.Connect()
@@ -425,6 +432,7 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value $MaxLogFiles -PropertyType DWord -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_MaxLogSize -Value $MaxLogSize -PropertyType DWord -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $UpdatesAtTime -Force | Out-Null
+        New-ItemProperty $regPath -Name WAU_UpdatesInterval -Value $UpdatesInterval -Force | Out-Null
         if ($UpdatesAtLogon) {
             New-ItemProperty $regPath -Name WAU_UpdatesAtLogon -Value 1 -PropertyType DWord -Force | Out-Null
         }

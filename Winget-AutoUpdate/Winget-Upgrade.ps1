@@ -14,24 +14,12 @@ $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsS
 #Run log initialisation function
 Start-Init
 
-#Get WAU Configurations
-$Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+#Get settings and Domain/Local Policies (GPO) if activated.
+$WAUConfig = Get-WAUConfig
 
 #Log running context and more...
 if ($IsSystem) {
     Write-ToLog "Running in System context"
-
-    #Get and set Domain/Local Policies (GPO)
-    $ActivateGPOManagement, $ChangedSettings = Get-Policies
-    if ($ActivateGPOManagement) {
-        Write-ToLog "Activated WAU GPO Management detected, comparing..."
-        if ($null -ne $ChangedSettings -and $ChangedSettings -ne 0) {
-            Write-ToLog "Changed settings detected and applied" "Yellow"
-        }
-        else {
-            Write-ToLog "No Changed settings detected" "Yellow"
-        }
-    }
 
     # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
     $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles

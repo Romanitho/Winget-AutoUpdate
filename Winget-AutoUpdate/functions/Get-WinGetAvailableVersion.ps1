@@ -1,5 +1,5 @@
 #Function to get the latest WinGet available version on Github
-Function Get-AvailableWinGetVersion {
+Function Get-WinGetAvailableVersion {
 
     #Get latest WinGet info
     $WinGeturl = 'https://api.github.com/repos/microsoft/winget-cli/releases/latest'

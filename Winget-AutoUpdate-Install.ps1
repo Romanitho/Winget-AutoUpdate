@@ -118,22 +118,6 @@ param(
 
 <# FUNCTIONS #>
 
-#Function to get the latest WinGet available version on Github
-Function Get-AvailableWinGetVersion {
-
-    #Get latest WinGet info
-    $WinGeturl = 'https://api.github.com/repos/microsoft/winget-cli/releases/latest'
-
-    try {
-        #Return latest version
-        return ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
-    }
-    catch {
-        return $false
-    }
-
-}
-
 function Install-Prerequisites {
 
     Write-Host "`nChecking prerequisites..." -ForegroundColor Yellow
@@ -200,6 +184,7 @@ function Install-WinGet {
     Write-Host "`nChecking if WinGet is installed/up to date" -ForegroundColor Yellow
 
     #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
+    . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-AvailableWinGetVersion.ps1"
     $AvailableWinGetVersion = Get-AvailableWinGetVersion
     if (!$AvailableWinGetVersion) {
         $AvailableWinGetVersion = "1.6.2771"

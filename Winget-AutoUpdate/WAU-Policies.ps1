@@ -60,6 +60,12 @@ if ($WAUConfig.WAU_ManagementTag -eq 1) {
     elseif ($WAUConfig.WAU_StartMenuShortcut -ne 1) {
         Remove-Item -Path $StartMenuShortcut -Recurse -Force | Out-Null
     }
+
+    #Log latest applied config
+    $GPOLogFile = "$($WAUConfig.InstallLocation)\logs\LatestAppliedSettings.txt"
+    Set-Content -Path $GPOLogFile -Value "### POLICY CYCLE - $(Get-Date) ###"
+    $WAUConfig.PSObject.Properties | Where-Object { $_.Name -like "WAU_*" } | Select-Object Name, Value | Out-File -FilePath $GPOLogFile -Append
+
 }
 
 Exit 0

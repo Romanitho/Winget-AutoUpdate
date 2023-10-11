@@ -13,8 +13,8 @@ Daily update settings from policies
 #Get WAU settings
 $WAUConfig = Get-WAUConfig
 
-#Check if GPO already applied at least once to this machine (ManagementTag)
-if ($WAUConfig.WAU_ManagementTag -eq 1) {
+#Check if GPO got applied from Get-WAUConfig
+if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
 
     #Update 'Winget-AutoUpdate' scheduled task settings
     $taskTriggers = @()
@@ -66,6 +66,14 @@ if ($WAUConfig.WAU_ManagementTag -eq 1) {
     Set-Content -Path $GPOLogFile -Value "### POLICY CYCLE - $(Get-Date) ###"
     $WAUConfig.PSObject.Properties | Where-Object { $_.Name -like "WAU_*" } | Select-Object Name, Value | Out-File -FilePath $GPOLogFile -Append
 
+    #Reset WAU_RunGPOManagement if not GPO managed anymore (This is used to run this job one last time and reset initial settings)
+    if ($($WAUPolicies.WAU_ActivateGPOManagement -eq 1)) {
+        Add-Content -Path $GPOLogFile -Value "GPO Management Enabled."
+    }
+    else {
+        New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name WAU_RunGPOManagement -Value 0 -Force | Out-Null
+        Add-Content -Path $GPOLogFile -Value "GPO Management Disabled. Policies removed."
+    }
 }
 
 Exit 0

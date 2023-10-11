@@ -17,7 +17,7 @@ Start-Init
 #Get settings and Domain/Local Policies (GPO) if activated.
 $WAUConfig = Get-WAUConfig
 if ($($WAUPolicies.WAU_ActivateGPOManagement -eq 1)) {
-    Write-ToLog "WAU Policies management activated."
+    Write-ToLog "WAU Policies management Enabled."
 }
 
 #Log running context and more...

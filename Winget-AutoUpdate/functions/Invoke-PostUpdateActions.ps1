@@ -36,44 +36,18 @@ function Invoke-PostUpdateActions {
 
     #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
     if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
-
         Write-ToLog "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" "red"
-
-        #Download WinGet MSIXBundle
-        Write-ToLog "-> Downloading WinGet MSIXBundle for App Installer..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        $WebClient = New-Object System.Net.WebClient
-        $WebClient.DownloadFile($WinGetURL, "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
-
-        #Install WinGet MSIXBundle in SYSTEM context
-        try {
-            Write-ToLog "-> Installing WinGet MSIXBundle for App Installer..."
-            Add-AppxProvisionedPackage -Online -PackagePath "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-ToLog "-> WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully" "green"
-
-            #Reset WinGet Sources
-            $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
-            if ($ResolveWingetPath) {
-                #If multiple version, pick last one
-                $WingetPath = $ResolveWingetPath[-1].Path
-                & $WingetPath source reset --force
-                #log
-                Write-ToLog "-> WinGet sources reset." "green"
-            }
-        }
-        catch {
-            Write-ToLog "-> Failed to intall WinGet MSIXBundle for App Installer..." "red"
-        }
-
-        #Remove WinGet MSIXBundle
-        Remove-Item -Path "$($WAUConfig.InstallLocation)\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
+				Update-WinGet $WinGetAvailableVersion $($WAUConfig.InstallLocation) $true
     }
     elseif ($WinGetAvailableVersion -match "-pre") {
         Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" "yellow"
         #If not WSB or Server, upgrade Microsoft Store Apps!
         if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
             Write-ToLog "-> Forcing an upgrade of Store Apps (this can take a minute)..." "yellow"
-            Get-StoreApps
+		        $namespaceName = "root\cimv2\mdm\dmmap"
+		        $className = "MDM_EnterpriseModernAppManagement_AppManagement01"
+		        $wmiObj = Get-WmiObject -Namespace $namespaceName -Class $className
+		        $wmiObj.UpdateScanMethod()
         }
     }
     else {

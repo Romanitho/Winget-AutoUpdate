@@ -11,15 +11,13 @@ Function Get-WAUConfig {
     #If WAU Policies detected, apply settings
     if ($($WAUPolicies.WAU_ActivateGPOManagement -eq 1)) {
 
-        Write-ToLog "WAU Policies management activated."
-
-        #Replace loaded configurations by ones from Policies in 'WAUConfig'
+        #Replace loaded configurations by ones from Policies
         $WAUPolicies.PSObject.Properties | ForEach-Object {
             $WAUConfig.PSObject.Properties.add($_)
         }
 
-        #Add tag to activate WAU-Policies
-        New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name WAU_ManagementTag -Value 1 -Force | Out-Null
+        #Add tag to activate WAU-Policies scheduled task
+        New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name WAU_RunGPOManagement -Value 1 -Force | Out-Null
     }
 
     return $WAUConfig

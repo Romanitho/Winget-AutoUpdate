@@ -13,7 +13,7 @@ function Invoke-PostUpdateActions {
 
     # Check if Intune Management Extension Logs folder and WAU-install.log exists, make symlink
     if ((Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs" -ErrorAction SilentlyContinue) -and (Test-Path -Path ('{0}\logs\install.log' -f $WorkingDir) -ErrorAction SilentlyContinue) -and !(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ErrorAction SilentlyContinue)) {
-        Write-ToLog "Creating SymLink for log file (WAU-install) in Intune Management Extension log folder" "yellow"
+        Write-ToLog "-> Creating SymLink for log file (WAU-install) in Intune Management Extension log folder" "yellow"
         $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
     }
 

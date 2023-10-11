@@ -118,6 +118,12 @@ param(
 
 <# FUNCTIONS #>
 
+#Include external Functions
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Start-Init.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Invoke-ModsProtect.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Update-WinGet.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
+
 function Install-Prerequisites {
 
     Write-Host "`nChecking prerequisites..." -ForegroundColor Yellow
@@ -183,10 +189,6 @@ function Install-WinGet {
 
     Write-Host "`nChecking if WinGet is installed/up to date" -ForegroundColor Yellow
 
-    #Include external Functions
-    . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
-    . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-StoreApps.ps1"
-
     #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
     $WinGetAvailableVersion = Get-WinGetAvailableVersion
     if (!$WinGetAvailableVersion) {
@@ -250,41 +252,18 @@ function Install-WinGet {
             Remove-Item -Path $VCLibsFile -Force
         }
         
-        #Download WinGet MSIXBundle
-        Write-Host "-> Downloading WinGet MSIXBundle for App Installer..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        $WebClient = New-Object System.Net.WebClient
-        $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+				Update-WinGet "1.6.2721" $WingetUpdatePath
 
-        #Install WinGet MSIXBundle in SYSTEM context
-        try {
-            Write-Host "-> Installing WinGet MSIXBundle for App Installer..."
-            Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-host "WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully" -ForegroundColor Green
-
-            #Reset WinGet Sources
-            $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
-            if ($ResolveWingetPath) {
-                #If multiple version, pick last one
-                $WingetPath = $ResolveWingetPath[-1].Path
-                & $WingetPath source reset --force
-                #log
-                Write-Host "-> WinGet sources reset." -ForegroundColor Green
-            }
-        }
-        catch {
-            Write-Host "Failed to intall WinGet MSIXBundle for App Installer..." -ForegroundColor Red
-        }
-
-        #Remove WinGet MSIXBundle
-        Remove-Item -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
     }
     elseif ($WinGetAvailableVersion -match "-pre") {
         Write-Host "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" -ForegroundColor Yellow
         #If not WSB or Server, upgrade Microsoft Store Apps!
         if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
             Write-Host "-> Forcing an upgrade of Store Apps (this can take a minute)..." -ForegroundColor Yellow
-            Get-StoreApps
+		        $namespaceName = "root\cimv2\mdm\dmmap"
+		        $className = "MDM_EnterpriseModernAppManagement_AppManagement01"
+		        $wmiObj = Get-WmiObject -Namespace $namespaceName -Class $className
+		        $wmiObj.UpdateScanMethod()
         }
     }
     else {
@@ -469,12 +448,10 @@ function Install-WingetAutoUpdate {
 
 
         #Log file and symlink initialization
-        . "$WingetUpdatePath\functions\Start-Init.ps1"
         Start-Init
 
         #Security check
         Write-host "`nChecking Mods Directory:" -ForegroundColor Yellow
-        . "$WingetUpdatePath\functions\Invoke-ModsProtect.ps1"
         $Protected = Invoke-ModsProtect "$WingetUpdatePath\mods"
         if ($Protected -eq $True) {
             Write-Host "The mods directory is now secured!`n" -ForegroundColor Green

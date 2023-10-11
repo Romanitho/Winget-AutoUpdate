@@ -252,7 +252,7 @@ function Install-WinGet {
             Remove-Item -Path $VCLibsFile -Force
         }
         
-				Update-WinGet "1.6.2721" $WingetUpdatePath
+				Update-WinGet $WinGetAvailableVersion $WingetUpdatePath
 
     }
     elseif ($WinGetAvailableVersion -match "-pre") {

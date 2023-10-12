@@ -13,7 +13,7 @@ Daily update settings from policies
 #Check if GPO Management is enabled
 $ActivateGPOManagement = Get-ItemPropertyValue "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "WAU_ActivateGPOManagement" -ErrorAction SilentlyContinue
 if ($ActivateGPOManagement -eq 1) {
-    #Add (or update) tag to activate WAU-Policies scheduled task
+    #Add (or update) tag to activate WAU-Policies Management
     New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name WAU_RunGPOManagement -Value 1 -Force | Out-Null
 }
 
@@ -29,13 +29,16 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
 
     #Reset WAU_RunGPOManagement if not GPO managed anymore (This is used to run this job one last time and reset initial settings)
     if ($($WAUConfig.WAU_ActivateGPOManagement -eq 1)) {
-        Add-Content -Path $GPOLogFile -Value "GPO Management Enabled."
+        Add-Content -Path $GPOLogFile -Value "GPO Management Enabled. Policies updated."
     }
     else {
         New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name WAU_RunGPOManagement -Value 0 -Force | Out-Null
         $WAUConfig.WAU_RunGPOManagement = 0
         Add-Content -Path $GPOLogFile -Value "GPO Management Disabled. Policies removed."
     }
+
+    #Get Winget-AutoUpdate scheduled task
+    $WAUTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue
 
     #Update 'Winget-AutoUpdate' scheduled task settings
     $taskTriggers = @()
@@ -57,10 +60,15 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
     elseif ($WAUConfig.WAU_UpdatesInterval -eq "Monthly") {
         $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
     }
+    #If trigger(s) set
     if ($taskTriggers) {
-        #Get Winget-AutoUpdate scheduled task
-        $WAUTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue
         #Edit scheduled task
+        Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Trigger $taskTriggers | Out-Null
+    }
+    #If not, remove trigger(s)
+    else {
+        #Remove by setting past due date
+        $tasktriggers = New-ScheduledTaskTrigger -Once -At "01/01/1970"
         Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Trigger $taskTriggers | Out-Null
     }
 

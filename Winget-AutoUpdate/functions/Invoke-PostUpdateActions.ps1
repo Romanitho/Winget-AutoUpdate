@@ -7,7 +7,7 @@ function Invoke-PostUpdateActions {
 
     # Check if Intune Management Extension Logs folder and WAU-updates.log exists, make symlink
     if ((Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs" -ErrorAction SilentlyContinue) -and !(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ErrorAction SilentlyContinue)) {
-        Write-ToLog "-> Creating SymLink for log file in Intune Management Extension log folder" "yellow"
+        Write-ToLog "-> Creating SymLink for log file (WAU-updates) in Intune Management Extension log folder" "yellow"
         $null = New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue
     }
 
@@ -37,18 +37,11 @@ function Invoke-PostUpdateActions {
     #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
     if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
         Write-ToLog "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" "red"
-				Update-WinGet $WinGetAvailableVersion $($WAUConfig.InstallLocation) $true
+        Update-WinGet $WinGetAvailableVersion $($WAUConfig.InstallLocation) $true
     }
     elseif ($WinGetAvailableVersion -match "-pre") {
         Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" "yellow"
-        #If not WSB or Server, upgrade Microsoft Store Apps!
-        if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
-            Write-ToLog "-> Forcing an upgrade of Store Apps (this can take a minute)..." "yellow"
-		        $namespaceName = "root\cimv2\mdm\dmmap"
-		        $className = "MDM_EnterpriseModernAppManagement_AppManagement01"
-		        $wmiObj = Get-WmiObject -Namespace $namespaceName -Class $className
-		        $wmiObj.UpdateScanMethod()
-        }
+        Update-StoreApps $true
     }
     else {
         Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "green"

@@ -10,10 +10,17 @@ Daily update settings from policies
 . "$PSScriptRoot\functions\Get-WAUConfig.ps1"
 . "$PSScriptRoot\functions\Add-Shortcut.ps1"
 
+#Check if GPO Management is enabled
+$ActivateGPOManagement = Get-ItemPropertyValue "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "WAU_ActivateGPOManagement" -ErrorAction SilentlyContinue
+if ($ActivateGPOManagement -eq 1) {
+    #Add (or update) tag to activate WAU-Policies scheduled task
+    New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name WAU_RunGPOManagement -Value 1 -Force | Out-Null
+}
+
 #Get WAU settings
 $WAUConfig = Get-WAUConfig
 
-#Check if GPO got applied from Get-WAUConfig
+#Check if GPO got applied from Get-WAUConfig (tag)
 if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
 
     #Log init

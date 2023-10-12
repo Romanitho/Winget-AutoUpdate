@@ -172,8 +172,8 @@ Remove scheduled tasks and scripts.
 See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 
 ## Custom script (Mods for WAU)
-**Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.  
-This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM**.  
+**Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.<br>
+This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM**.<br>
 If **ExitCode** is **1** from `_WAU-mods.ps1` then **Re-run WAU**.
 ## Custom scripts (Mods feature for Apps)
 From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
@@ -206,7 +206,7 @@ This will use the **content** of the text file as a native **winget --override**
 In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.<br>
 **WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).<br>
 With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.<br>
-They will be detected/evaluated during the next run of **WAU** (taking effect before any actions).<br>
+They will be detected/evaluated on a daily basis.<br>
 The **GPO ADMX/ADML** validated with: [Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)<br>
 Read more in the `README.md` under the directory **Policies**.
 

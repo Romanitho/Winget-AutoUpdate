@@ -17,8 +17,8 @@ Function Update-StoreApps ($Log = $false) {
 		}
 		catch {
 			switch ($Log) {
-				$true {Write-ToLog "-> Something went wrong..." "red"}
-				Default {Write-Host "-> Something went wrong..." -ForegroundColor Red}
+				$true {Write-ToLog "-> ...something went wrong!" "red"}
+				Default {Write-Host "-> ...something went wrong!" -ForegroundColor Red}
 			}
 			return $false
 		}

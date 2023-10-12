@@ -2,11 +2,14 @@
 
 Function Update-StoreApps ($Log = $false) {
 
+	$force_string = "-> Forcing an upgrade of Store Apps (this can take a minute)..."
+	$fail_string = "-> ...something went wrong!"
+
 	#If not WSB or Server, upgrade Microsoft Store Apps!
 	if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
 		switch ($Log) {
-			$true {Write-ToLog "-> Forcing an upgrade of Store Apps (this can take a minute)..." "yellow"}
-			Default {Write-Host "-> Forcing an upgrade of Store Apps (this can take a minute)..." -ForegroundColor Yellow}
+			$true {Write-ToLog $force_string "yellow"}
+			Default {Write-Host $force_string -ForegroundColor Yellow}
 		}
 		try {
 			$namespaceName = "root\cimv2\mdm\dmmap"
@@ -17,8 +20,8 @@ Function Update-StoreApps ($Log = $false) {
 		}
 		catch {
 			switch ($Log) {
-				$true {Write-ToLog "-> ...something went wrong!" "red"}
-				Default {Write-Host "-> ...something went wrong!" -ForegroundColor Red}
+				$true {Write-ToLog $fail_string "red"}
+				Default {Write-Host $fail_string -ForegroundColor Red}
 			}
 			return $false
 		}

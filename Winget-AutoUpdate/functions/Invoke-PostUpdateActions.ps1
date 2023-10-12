@@ -179,7 +179,7 @@ function Invoke-PostUpdateActions {
 
     #Remove old functions / files
     $FileNames = @(
-        "$WorkingDir\functions\Get-WAUConfig.ps1",
+        "$WorkingDir\functions\Get-Policies.ps1",
         "$WorkingDir\functions\Get-WAUCurrentVersion.ps1",
         "$WorkingDir\functions\Get-WAUUpdateStatus.ps1",
         "$WorkingDir\functions\Write-Log.ps1",
@@ -209,7 +209,7 @@ function Invoke-PostUpdateActions {
     $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath '\' -ErrorAction SilentlyContinue
     if ($UserContextTask) {
         #Remove Winget-AutoUpdate-UserContext at root.
-        Unregister-ScheduledTask $UserContextTask -Confirm:$False
+        $null = $UserContextTask | Unregister-ScheduledTask -Confirm:$False
 
         #Set it in registry as activated.
         New-ItemProperty $regPath -Name WAU_UserContext -Value 1 -PropertyType DWord -Force | Out-Null

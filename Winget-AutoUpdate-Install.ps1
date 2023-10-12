@@ -121,8 +121,9 @@ param(
 #Include external Functions
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Start-Init.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Invoke-ModsProtect.ps1"
-. "$PSScriptRoot\Winget-AutoUpdate\functions\Update-WinGet.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Update-WinGet.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Update-StoreApps.ps1"
 
 function Install-Prerequisites {
 
@@ -251,20 +252,13 @@ function Install-WinGet {
             }
             Remove-Item -Path $VCLibsFile -Force
         }
-        
-				Update-WinGet $WinGetAvailableVersion $WingetUpdatePath
+
+        Update-WinGet $WinGetAvailableVersion $WingetUpdatePath
 
     }
     elseif ($WinGetAvailableVersion -match "-pre") {
         Write-Host "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" -ForegroundColor Yellow
-        #If not WSB or Server, upgrade Microsoft Store Apps!
-        if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
-            Write-Host "-> Forcing an upgrade of Store Apps (this can take a minute)..." -ForegroundColor Yellow
-		        $namespaceName = "root\cimv2\mdm\dmmap"
-		        $className = "MDM_EnterpriseModernAppManagement_AppManagement01"
-		        $wmiObj = Get-WmiObject -Namespace $namespaceName -Class $className
-		        $wmiObj.UpdateScanMethod()
-        }
+        Update-StoreApps
     }
     else {
         Write-Host "-> WinGet is up to date: v$WinGetInstalledVersion" -ForegroundColor Green

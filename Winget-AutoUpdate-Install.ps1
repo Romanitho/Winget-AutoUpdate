@@ -170,10 +170,10 @@ function Install-Prerequisites {
                 Write-host "-> Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
-                Write-host "MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
+                Write-host "-> MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
             }
             catch {
-                Write-host "MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
+                Write-host "-> MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
                 Start-Sleep 3
             }
         }
@@ -182,7 +182,7 @@ function Install-Prerequisites {
         }
     }
     else {
-        Write-Host "Prerequisites checked. OK" -ForegroundColor Green
+        Write-Host "-> Prerequisites checked. OK" -ForegroundColor Green
     }
 }
 
@@ -228,10 +228,10 @@ function Install-WinGet {
             try {
                 Write-Host "-> Installing Microsoft.UI.Xaml.2.7..."
                 Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx" -SkipLicense | Out-Null
-                Write-host "Microsoft.UI.Xaml.2.7 installed successfully" -ForegroundColor Green
+                Write-host "-> Microsoft.UI.Xaml.2.7 installed successfully" -ForegroundColor Green
             }
             catch {
-                Write-Host "Failed to intall Wicrosoft.UI.Xaml.2.7..." -ForegroundColor Red
+                Write-Host "-> Failed to intall Wicrosoft.UI.Xaml.2.7..." -ForegroundColor Red
             }
             Remove-Item -Path $UiXamlZip -Force
             Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
@@ -245,10 +245,10 @@ function Install-WinGet {
             try {
                 Write-Host "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
                 Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
-                Write-host "Microsoft.VCLibs.140.00.UWPDesktop installed successfully" -ForegroundColor Green
+                Write-host "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully" -ForegroundColor Green
             }
             catch {
-                Write-Host "Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." -ForegroundColor Red
+                Write-Host "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." -ForegroundColor Red
             }
             Remove-Item -Path $VCLibsFile -Force
         }

@@ -40,6 +40,7 @@ Function Update-WinGet ($WinGetAvailableVersion, $DownloadPath, $Log = $false) {
             $WingetPath = $ResolveWingetPath[-1].Path
             & $WingetPath source reset --force
         }
+        Update-StoreApps
     }
     catch {
         switch ($Log) {

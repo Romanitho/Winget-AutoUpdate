@@ -14,24 +14,15 @@ $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsS
 #Run log initialisation function
 Start-Init
 
-#Get WAU Configurations
-$Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+#Get settings and Domain/Local Policies (GPO) if activated.
+$WAUConfig = Get-WAUConfig
+if ($($WAUPolicies.WAU_ActivateGPOManagement -eq 1)) {
+    Write-ToLog "WAU Policies management Enabled."
+}
 
 #Log running context and more...
 if ($IsSystem) {
     Write-ToLog "Running in System context"
-
-    #Get and set Domain/Local Policies (GPO)
-    $ActivateGPOManagement, $ChangedSettings = Get-Policies
-    if ($ActivateGPOManagement) {
-        Write-ToLog "Activated WAU GPO Management detected, comparing..."
-        if ($null -ne $ChangedSettings -and $ChangedSettings -ne 0) {
-            Write-ToLog "Changed settings detected and applied" "Yellow"
-        }
-        else {
-            Write-ToLog "No Changed settings detected" "Yellow"
-        }
-    }
 
     # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
     $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles
@@ -315,7 +306,7 @@ if (Test-Network) {
                 $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
                 if (!$UserContextTask) {
                     #Create the scheduled task in User context
-                    $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+                    $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WAUConfig.InstallLocation)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUConfig.InstallLocation)\winget-upgrade.ps1`"`""
                     $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
                     $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
                     $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings

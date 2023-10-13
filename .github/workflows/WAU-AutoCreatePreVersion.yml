@@ -82,11 +82,14 @@ jobs:
 
       - name: Build project
         run: |
-          zip -r WAU Winget-AutoUpdate/*
-          zip -r WAU Winget-AutoUpdate-Install.ps1
-          zip -r WAU excluded_apps.txt
-          zip -r WAU install.bat
-          zip -r WAU uninstall.bat
+          zip -r WAU.zip Winget-AutoUpdate
+          zip WAU.zip Winget-AutoUpdate-Install.ps1
+          zip WAU.zip excluded_apps.txt
+          zip WAU.zip install.bat
+          zip WAU.zip uninstall.bat
+          cd Policies
+          zip -r ../WAU_ADMX.zip *
+          cd ..
 
       - name: Create release
         uses: "ncipollo/release-action@v1"
@@ -96,7 +99,7 @@ jobs:
           prerelease: true
           generateReleaseNotes: true
           name: "v${{ steps.versioning.outputs.version }} [Nightly Build]"
-          artifacts: "WAU.zip"
+          artifacts: "WAU.zip,WAU_ADMX.zip"
 
       - name: URL to release
         run: echo "Release -> ${{ steps.release.outputs.html_url }}"

@@ -118,6 +118,13 @@ param(
 
 <# FUNCTIONS #>
 
+#Include external Functions
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Start-Init.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Invoke-ModsProtect.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Update-WinGet.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Update-StoreApps.ps1"
+
 function Install-Prerequisites {
 
     Write-Host "`nChecking prerequisites..." -ForegroundColor Yellow
@@ -163,10 +170,10 @@ function Install-Prerequisites {
                 Write-host "-> Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
-                Write-host "MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
+                Write-host "-> MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
             }
             catch {
-                Write-host "MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
+                Write-host "-> MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
                 Start-Sleep 3
             }
         }
@@ -175,17 +182,13 @@ function Install-Prerequisites {
         }
     }
     else {
-        Write-Host "Prerequisites checked. OK" -ForegroundColor Green
+        Write-Host "-> Prerequisites checked. OK" -ForegroundColor Green
     }
 }
 
 function Install-WinGet {
 
     Write-Host "`nChecking if WinGet is installed/up to date" -ForegroundColor Yellow
-
-    #Include external Functions
-    . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
-    . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-StoreApps.ps1"
 
     #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
     $WinGetAvailableVersion = Get-WinGetAvailableVersion
@@ -225,10 +228,10 @@ function Install-WinGet {
             try {
                 Write-Host "-> Installing Microsoft.UI.Xaml.2.7..."
                 Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx" -SkipLicense | Out-Null
-                Write-host "Microsoft.UI.Xaml.2.7 installed successfully" -ForegroundColor Green
+                Write-host "-> Microsoft.UI.Xaml.2.7 installed successfully" -ForegroundColor Green
             }
             catch {
-                Write-Host "Failed to intall Wicrosoft.UI.Xaml.2.7..." -ForegroundColor Red
+                Write-Host "-> Failed to intall Wicrosoft.UI.Xaml.2.7..." -ForegroundColor Red
             }
             Remove-Item -Path $UiXamlZip -Force
             Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
@@ -242,50 +245,20 @@ function Install-WinGet {
             try {
                 Write-Host "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
                 Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
-                Write-host "Microsoft.VCLibs.140.00.UWPDesktop installed successfully" -ForegroundColor Green
+                Write-host "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully" -ForegroundColor Green
             }
             catch {
-                Write-Host "Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." -ForegroundColor Red
+                Write-Host "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." -ForegroundColor Red
             }
             Remove-Item -Path $VCLibsFile -Force
         }
 
-        #Download WinGet MSIXBundle
-        Write-Host "-> Downloading WinGet MSIXBundle for App Installer..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        $WebClient = New-Object System.Net.WebClient
-        $WebClient.DownloadFile($WinGetURL, "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+        Update-WinGet $WinGetAvailableVersion $WingetUpdatePath
 
-        #Install WinGet MSIXBundle in SYSTEM context
-        try {
-            Write-Host "-> Installing WinGet MSIXBundle for App Installer..."
-            Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
-            Write-host "WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully" -ForegroundColor Green
-
-            #Reset WinGet Sources
-            $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
-            if ($ResolveWingetPath) {
-                #If multiple version, pick last one
-                $WingetPath = $ResolveWingetPath[-1].Path
-                & $WingetPath source reset --force
-                #log
-                Write-Host "-> WinGet sources reset." -ForegroundColor Green
-            }
-        }
-        catch {
-            Write-Host "Failed to intall WinGet MSIXBundle for App Installer..." -ForegroundColor Red
-        }
-
-        #Remove WinGet MSIXBundle
-        Remove-Item -Path "$WingetUpdatePath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
     }
     elseif ($WinGetAvailableVersion -match "-pre") {
         Write-Host "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" -ForegroundColor Yellow
-        #If not WSB or Server, upgrade Microsoft Store Apps!
-        if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
-            Write-Host "-> Forcing an upgrade of Store Apps (this can take a minute)..." -ForegroundColor Yellow
-            Get-StoreApps
-        }
+        Update-StoreApps
     }
     else {
         Write-Host "-> WinGet is up to date: v$WinGetInstalledVersion" -ForegroundColor Green
@@ -479,12 +452,10 @@ function Install-WingetAutoUpdate {
 
 
         #Log file and symlink initialization
-        . "$WingetUpdatePath\functions\Start-Init.ps1"
         Start-Init
 
         #Security check
         Write-host "`nChecking Mods Directory:" -ForegroundColor Yellow
-        . "$WingetUpdatePath\functions\Invoke-ModsProtect.ps1"
         $Protected = Invoke-ModsProtect "$WingetUpdatePath\mods"
         if ($Protected -eq $True) {
             Write-Host "The mods directory is now secured!`n" -ForegroundColor Green

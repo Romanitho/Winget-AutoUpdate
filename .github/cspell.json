@@ -1,9 +1,19 @@
 {
   "language": "en",
   "words": [
+    "Winget",
     "WAU",
     "soredake",
-    "msstore"
+    "msstore",
+    "Intune",
+    "Regkey",
+    "Romanitho",
+    "noprofile",
+    "executionpolicy",
+    "Notif",
+    "HKLM",
+    "MSIX",
+    "msixbundle"
   ],
   "ignorePaths": [
     ".github/*",

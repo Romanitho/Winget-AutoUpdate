@@ -124,6 +124,7 @@ param(
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-WinGet.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-StoreApps.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Add-Shortcut.ps1"
 
 function Install-Prerequisites {
 
@@ -582,16 +583,6 @@ function Start-WingetAutoUpdate {
     else {
         Write-host "Skip running Winget-AutoUpdate"
     }
-}
-
-function Add-Shortcut ($Target, $Shortcut, $Arguments, $Icon, $Description) {
-    $WScriptShell = New-Object -ComObject WScript.Shell
-    $Shortcut = $WScriptShell.CreateShortcut($Shortcut)
-    $Shortcut.TargetPath = $Target
-    $Shortcut.Arguments = $Arguments
-    $Shortcut.IconLocation = $Icon
-    $Shortcut.Description = $Description
-    $Shortcut.Save()
 }
 
 

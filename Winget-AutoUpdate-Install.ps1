@@ -489,7 +489,7 @@ function Install-WingetAutoUpdate {
         Start-WingetAutoUpdate
     }
     catch {
-        Write-host "WAU Installation failed! Run me with admin rights" -ForegroundColor Red
+        Write-host "WAU Installation failed! Error $_ - Try running me with admin rights" -ForegroundColor Red
         Start-sleep 1
         return $False
     }
@@ -625,6 +625,8 @@ else {
     Uninstall-WingetAutoUpdate
 }
 
-Remove-Item "$WingetUpdatePath\Version.txt" -Force
+if (Test-Path "$WingetUpdatePath\Version.txt") {
+    Remove-Item "$WingetUpdatePath\Version.txt" -Force
+}
 Write-host "`nEnd of process." -ForegroundColor Cyan
 Start-Sleep 3

@@ -183,6 +183,18 @@ function Invoke-PostUpdateActions {
         Write-ToLog "-> Old User Context task deleted and set to 'enabled' in registry."
     }
 
+    #Set GPO scheduled task if not existing
+    $GPOTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-Policies' -ErrorAction SilentlyContinue
+    if ($GPOTask) {
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\WAU-Policies.ps1`""
+        $tasktrigger = New-ScheduledTaskTrigger -Daily -At 6am
+        $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
+        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
+        # Set up the task, and register it
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTrigger
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Policies' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
+        Write-ToLog "-> Policies task created."
+    }
 
     ### End of post update actions ###
 

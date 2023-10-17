@@ -11,11 +11,12 @@ Get-ChildItem "$WorkingDir\functions" | ForEach-Object { . $_.FullName }
 #Check if running account is system or interactive logon
 $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
 
-#Run log initialisation function
+#Log initialisation
+$LogFile = "$WorkingDir\logs\updates.log"
 Write-ToLog -LogMsg "CHECK FOR APP UPDATES" -IsHeader
 
 #Get settings and Domain/Local Policies (GPO) if activated.
-$WAUConfig = Get-WAUConfig
+$Script:WAUConfig = Get-WAUConfig
 if ($($WAUPolicies.WAU_ActivateGPOManagement -eq 1)) {
     Write-ToLog "WAU Policies management Enabled."
 }

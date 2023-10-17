@@ -246,7 +246,7 @@ function Install-WinGet {
             try {
                 Write-ToLog "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
                 Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
-                Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully" "Green"
+                Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully." "Green"
             }
             catch {
                 Write-ToLog "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." "Red"
@@ -258,17 +258,17 @@ function Install-WinGet {
 
     }
     elseif ($WinGetAvailableVersion -match "-pre") {
-        Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" "Yellow"
+        Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release." "Yellow"
         Update-StoreApps
     }
     else {
-        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "Green"
+        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"
     }
 }
 
 function Install-WingetAutoUpdate {
 
-    Write-ToLog "`nInstalling WAU..." "Yellow"
+    Write-ToLog "Installing WAU..." "Yellow"
 
     try {
         #Copy files to location (and clean old install)
@@ -452,16 +452,16 @@ function Install-WingetAutoUpdate {
         }
 
         #Security check
-        Write-ToLog "`nChecking Mods Directory:" "Yellow"
+        Write-ToLog "Checking Mods Directory:" "Yellow"
         $Protected = Invoke-ModsProtect "$WingetUpdatePath\mods"
         if ($Protected -eq $True) {
-            Write-ToLog "The mods directory is now secured!`n" "Green"
+            Write-ToLog "-> The mods directory is now secured!`n" "Green"
         }
         elseif ($Protected -eq $False) {
-            Write-ToLog "The mods directory was already secured!`n" "Green"
+            Write-ToLog "-> The mods directory was already secured!`n" "Green"
         }
         else {
-            Write-ToLog "Error: The mods directory couldn't be verified as secured!`n" "Red"
+            Write-ToLog "-> Error: The mods directory couldn't be verified as secured!`n" "Red"
         }
 
         #Create Shortcuts
@@ -493,7 +493,7 @@ function Install-WingetAutoUpdate {
 
 function Uninstall-WingetAutoUpdate {
 
-    Write-ToLog "`nUninstalling WAU..." "Yellow"
+    Write-ToLog "Uninstalling WAU..." "Yellow"
 
     try {
         #Get registry install location
@@ -530,15 +530,15 @@ function Uninstall-WingetAutoUpdate {
                 Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
             }
 
-            Write-ToLog "Uninstallation succeeded!" "Green"
+            Write-ToLog "Uninstallation succeeded!`n" "Green"
             Start-sleep 1
         }
         else {
-            Write-ToLog "$InstallLocation not found! Uninstallation failed!" "Red"
+            Write-ToLog "$InstallLocation not found! Uninstallation failed!`n" "Red"
         }
     }
     catch {
-        Write-ToLog "Uninstallation failed! Run as admin ?" "Red"
+        Write-ToLog "Uninstallation failed! Run as admin ?`n" "Red"
         Start-sleep 1
     }
 }
@@ -565,7 +565,7 @@ function Start-WingetAutoUpdate {
         }
         if ($RunWinget -eq 1) {
             try {
-                Write-ToLog "`nRunning Winget-AutoUpdate..." "Yellow"
+                Write-ToLog "Running Winget-AutoUpdate..." "Yellow"
                 Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
                 while ((Get-ScheduledTask -TaskName "Winget-AutoUpdate").State -ne 'Ready') {
                     Start-Sleep 1
@@ -621,7 +621,7 @@ Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -Foreground
 Write-Host "`t________________________________________________________`n`n"
 
 if (!$Uninstall) {
-    Write-ToLog "Installing WAU to $WingetUpdatePath\`n"
+    Write-ToLog "Installing WAU to $WingetUpdatePath\"
     Install-Prerequisites
     Install-WinGet
     Install-WingetAutoUpdate

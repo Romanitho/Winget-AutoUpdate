@@ -37,11 +37,11 @@ function Invoke-PostUpdateActions {
     #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
     if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
         Write-ToLog "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" "red"
-        Update-WinGet $WinGetAvailableVersion $($WAUConfig.InstallLocation) $true
+        Update-WinGet $WinGetAvailableVersion $($WAUConfig.InstallLocation)
     }
     elseif ($WinGetAvailableVersion -match "-pre") {
         Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" "yellow"
-        Update-StoreApps $true
+        Update-StoreApps
     }
     else {
         Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "green"

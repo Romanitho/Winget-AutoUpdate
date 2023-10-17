@@ -1,6 +1,13 @@
 #Write to Log Function
 
-function Write-ToLog ($LogMsg, $LogColor = "White", $IsHeader) {
+function Write-ToLog {
+
+    [CmdletBinding()]
+    param(
+        [Parameter()] [String] $LogMsg,
+        [Parameter()] [String] $LogColor = "White",
+        [Parameter()] [Switch] $IsHeader = $false
+    )
 
     #Create file if doesn't exist
     if (!(Test-Path $LogFile)) {

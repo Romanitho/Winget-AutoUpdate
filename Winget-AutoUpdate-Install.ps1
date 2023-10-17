@@ -128,7 +128,7 @@ param(
 
 function Install-Prerequisites {
 
-    Write-ToLog "`nChecking prerequisites..." "Yellow"
+    Write-ToLog "Checking prerequisites..." "Yellow"
 
     #Check if Visual C++ 2019 or 2022 installed
     $Visual2019 = "Microsoft Visual C++ 2015-2019 Redistributable*"
@@ -171,25 +171,25 @@ function Install-Prerequisites {
                 Write-ToLog "-> Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
-                Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully" "Green"
+                Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully`n" "Green"
             }
             catch {
-                Write-ToLog "-> MS Visual C++ 2015-2022 installation failed." "Red"
+                Write-ToLog "-> MS Visual C++ 2015-2022 installation failed.`n" "Red"
                 Start-Sleep 3
             }
         }
         else {
-            Write-ToLog "-> MS Visual C++ 2015-2022 will not be installed." "Magenta"
+            Write-ToLog "-> MS Visual C++ 2015-2022 will not be installed.`n" "Magenta"
         }
     }
     else {
-        Write-ToLog "-> Prerequisites checked. OK" "Green"
+        Write-ToLog "-> Prerequisites checked. OK`n" "Green"
     }
 }
 
 function Install-WinGet {
 
-    Write-ToLog "`nChecking if WinGet is installed/up to date" "Yellow"
+    Write-ToLog "Checking if WinGet is installed/up to date" "Yellow"
 
     #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
     $WinGetAvailableVersion = Get-WinGetAvailableVersion
@@ -607,21 +607,21 @@ $Script:ProgressPreference = 'SilentlyContinue'
 #Set install log file
 $Script:LogFile = "$WingetUpdatePath\logs\WAU-Installer.log"
 
-Write-ToLog "`n"
-Write-ToLog "`t        888       888        d8888  888     888" "Magenta"
-Write-ToLog "`t        888   o   888       d88888  888     888" "Magenta"
-Write-ToLog "`t        888  d8b  888      d88P888  888     888" "Magenta"
-Write-ToLog "`t        888 d888b 888     d88P 888  888     888" "Magenta"
-Write-ToLog "`t        888d88888b888    d88P  888  888     888" "Magenta"
-Write-ToLog "`t        88888P Y88888   d88P   888  888     888" "Cyan"
-Write-ToLog "`t        8888P   Y8888  d88P    888  888     888" "Magenta"
-Write-ToLog "`t        888P     Y888 d88P     888   Y8888888P`n" "Magenta"
-Write-ToLog "`t                 Winget-AutoUpdate $WAUVersion`n" "Cyan"
-Write-ToLog "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" "Magenta"
-Write-ToLog "`t________________________________________________________`n`n"
+Write-Host "`n"
+Write-Host "`t        888       888        d8888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888   o   888       d88888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888  d8b  888      d88P888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888 d888b 888     d88P 888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888d88888b888    d88P  888  888     888" -ForegroundColor Magenta
+Write-Host "`t        88888P Y88888   d88P   888  888     888" -ForegroundColor Cyan
+Write-Host "`t        8888P   Y8888  d88P    888  888     888" -ForegroundColor Magenta
+Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n" -ForegroundColor Magenta
+Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n" -ForegroundColor Cyan
+Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
+Write-Host "`t________________________________________________________`n`n"
 
 if (!$Uninstall) {
-    Write-ToLog "Installing WAU to $WingetUpdatePath\"
+    Write-ToLog "Installing WAU to $WingetUpdatePath\`n"
     Install-Prerequisites
     Install-WinGet
     Install-WingetAutoUpdate
@@ -635,5 +635,5 @@ if (Test-Path "$WingetUpdatePath\Version.txt") {
     Remove-Item "$WingetUpdatePath\Version.txt" -Force
 }
 
-Write-ToLog "`nEnd of process." "Cyan"
+Write-ToLog "End of process." "Cyan"
 Start-Sleep 3

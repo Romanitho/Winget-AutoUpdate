@@ -8,6 +8,10 @@ Get-ChildItem "$WorkingDir\functions" | ForEach-Object { . $_.FullName }
 
 <# MAIN #>
 
+#Config console output encoding
+$null = cmd /c ''
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
 #Check if running account is system or interactive logon
 $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
 

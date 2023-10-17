@@ -199,10 +199,10 @@ function Invoke-PostUpdateActions {
     ### End of post update actions ###
 
     #Reset WAU_UpdatePostActions Value
-    $WAUConfig | New-ItemProperty -Name WAU_PostUpdateActions -Value 0 -Force | Out-Null
+    New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "WAU_PostUpdateActions" -Value 0 -Force | Out-Null
 
     #Get updated WAU Config
-    $Script:WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+    $Script:WAUConfig = Get-WAUConfig
 
     #log
     Write-ToLog "Post Update actions finished" "green"

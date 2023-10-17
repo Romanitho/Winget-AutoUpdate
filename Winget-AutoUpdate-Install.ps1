@@ -119,16 +119,16 @@ param(
 <# FUNCTIONS #>
 
 #Include external Functions
-. "$PSScriptRoot\Winget-AutoUpdate\functions\Start-Init.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Invoke-ModsProtect.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-WinGet.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-StoreApps.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Add-Shortcut.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Write-ToLog.ps1"
 
 function Install-Prerequisites {
 
-    Write-Host "`nChecking prerequisites..." -ForegroundColor Yellow
+    Write-ToLog "`nChecking prerequisites..." "Yellow"
 
     #Check if Visual C++ 2019 or 2022 installed
     $Visual2019 = "Microsoft Visual C++ 2015-2019 Redistributable*"
@@ -163,33 +163,33 @@ function Install-Prerequisites {
                 else {
                     $OSArch = "x86"
                 }
-                Write-host "-> Downloading VC_redist.$OSArch.exe..."
+                Write-ToLog "-> Downloading VC_redist.$OSArch.exe..."
                 $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
                 $Installer = $WingetUpdatePath + "\VC_redist.$OSArch.exe"
                 $ProgressPreference = 'SilentlyContinue'
                 Invoke-WebRequest $SourceURL -UseBasicParsing -OutFile (New-Item -Path $Installer -Force)
-                Write-host "-> Installing VC_redist.$OSArch.exe..."
+                Write-ToLog "-> Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
-                Write-host "-> MS Visual C++ 2015-2022 installed successfully" -ForegroundColor Green
+                Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully" "Green"
             }
             catch {
-                Write-host "-> MS Visual C++ 2015-2022 installation failed." -ForegroundColor Red
+                Write-ToLog "-> MS Visual C++ 2015-2022 installation failed." "Red"
                 Start-Sleep 3
             }
         }
         else {
-            Write-host "-> MS Visual C++ 2015-2022 will not be installed." -ForegroundColor Magenta
+            Write-ToLog "-> MS Visual C++ 2015-2022 will not be installed." "Magenta"
         }
     }
     else {
-        Write-Host "-> Prerequisites checked. OK" -ForegroundColor Green
+        Write-ToLog "-> Prerequisites checked. OK" "Green"
     }
 }
 
 function Install-WinGet {
 
-    Write-Host "`nChecking if WinGet is installed/up to date" -ForegroundColor Yellow
+    Write-ToLog "`nChecking if WinGet is installed/up to date" "Yellow"
 
     #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
     $WinGetAvailableVersion = Get-WinGetAvailableVersion
@@ -212,7 +212,7 @@ function Install-WinGet {
     #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
     if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
 
-        Write-Host "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" -ForegroundColor Red
+        Write-ToLog "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" "Red"
 
         #Check if $WingetUpdatePath exist
         if (!(Test-Path $WingetUpdatePath)) {
@@ -221,35 +221,35 @@ function Install-WinGet {
 
         #Downloading and Installing Dependencies in SYSTEM context
         if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.7')) {
-            Write-Host "-> Downloading Microsoft.UI.Xaml.2.7..."
+            Write-ToLog "-> Downloading Microsoft.UI.Xaml.2.7..."
             $UiXamlUrl = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.7.0"
             $UiXamlZip = "$WingetUpdatePath\Microsoft.UI.XAML.2.7.zip"
             Invoke-RestMethod -Uri $UiXamlUrl -OutFile $UiXamlZip
             Expand-Archive -Path $UiXamlZip -DestinationPath "$WingetUpdatePath\extracted" -Force
             try {
-                Write-Host "-> Installing Microsoft.UI.Xaml.2.7..."
+                Write-ToLog "-> Installing Microsoft.UI.Xaml.2.7..."
                 Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx" -SkipLicense | Out-Null
-                Write-host "-> Microsoft.UI.Xaml.2.7 installed successfully" -ForegroundColor Green
+                Write-ToLog "-> Microsoft.UI.Xaml.2.7 installed successfully" "Green"
             }
             catch {
-                Write-Host "-> Failed to intall Wicrosoft.UI.Xaml.2.7..." -ForegroundColor Red
+                Write-ToLog "-> Failed to intall Wicrosoft.UI.Xaml.2.7..." "Red"
             }
             Remove-Item -Path $UiXamlZip -Force
             Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
         }
 
         if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop')) {
-            Write-Host "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
+            Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
             $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
             $VCLibsFile = "$WingetUpdatePath\Microsoft.VCLibs.x64.14.00.Desktop.appx"
             Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
             try {
-                Write-Host "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
+                Write-ToLog "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
                 Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
-                Write-host "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully" -ForegroundColor Green
+                Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully" "Green"
             }
             catch {
-                Write-Host "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." -ForegroundColor Red
+                Write-ToLog "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." "Red"
             }
             Remove-Item -Path $VCLibsFile -Force
         }
@@ -258,17 +258,17 @@ function Install-WinGet {
 
     }
     elseif ($WinGetAvailableVersion -match "-pre") {
-        Write-Host "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" -ForegroundColor Yellow
+        Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" "Yellow"
         Update-StoreApps
     }
     else {
-        Write-Host "-> WinGet is up to date: v$WinGetInstalledVersion" -ForegroundColor Green
+        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "Green"
     }
 }
 
 function Install-WingetAutoUpdate {
 
-    Write-Host "`nInstalling WAU..." -ForegroundColor Yellow
+    Write-ToLog "`nInstalling WAU..." "Yellow"
 
     try {
         #Copy files to location (and clean old install)
@@ -451,21 +451,17 @@ function Install-WingetAutoUpdate {
             New-ItemProperty $regPath -Name WAU_StartMenuShortcut -Value 1 -PropertyType DWord -Force | Out-Null
         }
 
-
-        #Log file and symlink initialization
-        Start-Init
-
         #Security check
-        Write-host "`nChecking Mods Directory:" -ForegroundColor Yellow
+        Write-ToLog "`nChecking Mods Directory:" "Yellow"
         $Protected = Invoke-ModsProtect "$WingetUpdatePath\mods"
         if ($Protected -eq $True) {
-            Write-Host "The mods directory is now secured!`n" -ForegroundColor Green
+            Write-ToLog "The mods directory is now secured!`n" "Green"
         }
         elseif ($Protected -eq $False) {
-            Write-Host "The mods directory was already secured!`n" -ForegroundColor Green
+            Write-ToLog "The mods directory was already secured!`n" "Green"
         }
         else {
-            Write-Host "Error: The mods directory couldn't be verified as secured!`n" -ForegroundColor Red
+            Write-ToLog "Error: The mods directory couldn't be verified as secured!`n" "Red"
         }
 
         #Create Shortcuts
@@ -482,14 +478,14 @@ function Install-WingetAutoUpdate {
             Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
         }
 
-        Write-host "WAU Installation succeeded!" -ForegroundColor Green
+        Write-ToLog "WAU Installation succeeded!" "Green"
         Start-sleep 1
 
         #Run Winget ?
         Start-WingetAutoUpdate
     }
     catch {
-        Write-host "WAU Installation failed! Error $_ - Try running me with admin rights" -ForegroundColor Red
+        Write-ToLog "WAU Installation failed! Error $_ - Try running me with admin rights" "Red"
         Start-sleep 1
         return $False
     }
@@ -497,7 +493,7 @@ function Install-WingetAutoUpdate {
 
 function Uninstall-WingetAutoUpdate {
 
-    Write-Host "`nUninstalling WAU..." -ForegroundColor Yellow
+    Write-ToLog "`nUninstalling WAU..." "Yellow"
 
     try {
         #Get registry install location
@@ -534,15 +530,15 @@ function Uninstall-WingetAutoUpdate {
                 Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
             }
 
-            Write-host "Uninstallation succeeded!" -ForegroundColor Green
+            Write-ToLog "Uninstallation succeeded!" "Green"
             Start-sleep 1
         }
         else {
-            Write-host "$InstallLocation not found! Uninstallation failed!" -ForegroundColor Red
+            Write-ToLog "$InstallLocation not found! Uninstallation failed!" "Red"
         }
     }
     catch {
-        Write-host "Uninstallation failed! Run as admin ?" -ForegroundColor Red
+        Write-ToLog "Uninstallation failed! Run as admin ?" "Red"
         Start-sleep 1
     }
 }
@@ -569,19 +565,19 @@ function Start-WingetAutoUpdate {
         }
         if ($RunWinget -eq 1) {
             try {
-                Write-host "`nRunning Winget-AutoUpdate..." -ForegroundColor Yellow
+                Write-ToLog "`nRunning Winget-AutoUpdate..." "Yellow"
                 Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
                 while ((Get-ScheduledTask -TaskName "Winget-AutoUpdate").State -ne 'Ready') {
                     Start-Sleep 1
                 }
             }
             catch {
-                Write-host "Failed to run Winget-AutoUpdate..." -ForegroundColor Red
+                Write-ToLog "Failed to run Winget-AutoUpdate..." "Red"
             }
         }
     }
     else {
-        Write-host "Skip running Winget-AutoUpdate"
+        Write-ToLog "Skip running Winget-AutoUpdate"
     }
 }
 
@@ -601,32 +597,43 @@ if ("$env:PROCESSOR_ARCHITEW6432" -ne "ARM64") {
     }
 }
 
-Write-Host "`n"
-Write-Host "`t        888       888        d8888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888   o   888       d88888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888  d8b  888      d88P888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888 d888b 888     d88P 888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888d88888b888    d88P  888  888     888" -ForegroundColor Magenta
-Write-Host "`t        88888P Y88888   d88P   888  888     888" -ForegroundColor Cyan
-Write-Host "`t        8888P   Y8888  d88P    888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n" -ForegroundColor Magenta
-Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n" -ForegroundColor Cyan
-Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
-Write-Host "`t________________________________________________________`n`n"
+#Config console output encoding
+$null = cmd /c '' #Tip for ISE
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+# Workaround for ARM64 (Access Denied / Win32 internal Server error)
+$Script:ProgressPreference = 'SilentlyContinue'
+
+#Set install log file
+$Script:LogFile = "$WingetUpdatePath\logs\WAU-Installer.log"
+
+Write-ToLog "`n"
+Write-ToLog "`t        888       888        d8888  888     888" "Magenta"
+Write-ToLog "`t        888   o   888       d88888  888     888" "Magenta"
+Write-ToLog "`t        888  d8b  888      d88P888  888     888" "Magenta"
+Write-ToLog "`t        888 d888b 888     d88P 888  888     888" "Magenta"
+Write-ToLog "`t        888d88888b888    d88P  888  888     888" "Magenta"
+Write-ToLog "`t        88888P Y88888   d88P   888  888     888" "Cyan"
+Write-ToLog "`t        8888P   Y8888  d88P    888  888     888" "Magenta"
+Write-ToLog "`t        888P     Y888 d88P     888   Y8888888P`n" "Magenta"
+Write-ToLog "`t                 Winget-AutoUpdate $WAUVersion`n" "Cyan"
+Write-ToLog "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" "Magenta"
+Write-ToLog "`t________________________________________________________`n`n"
 
 if (!$Uninstall) {
-    Write-host "Installing WAU to $WingetUpdatePath\"
+    Write-ToLog "Installing WAU to $WingetUpdatePath\"
     Install-Prerequisites
     Install-WinGet
     Install-WingetAutoUpdate
 }
 else {
-    Write-Host "Uninstalling WAU..."
+    Write-ToLog "Uninstalling WAU..."
     Uninstall-WingetAutoUpdate
 }
 
 if (Test-Path "$WingetUpdatePath\Version.txt") {
     Remove-Item "$WingetUpdatePath\Version.txt" -Force
 }
-Write-host "`nEnd of process." -ForegroundColor Cyan
+
+Write-ToLog "`nEnd of process." "Cyan"
 Start-Sleep 3

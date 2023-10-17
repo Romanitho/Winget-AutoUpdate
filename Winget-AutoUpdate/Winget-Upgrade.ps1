@@ -12,7 +12,7 @@ Get-ChildItem "$WorkingDir\functions" | ForEach-Object { . $_.FullName }
 $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
 
 #Run log initialisation function
-Start-Init
+Write-ToLog -LogMsg "CHECK FOR APP UPDATES" -IsHeader
 
 #Get settings and Domain/Local Policies (GPO) if activated.
 $WAUConfig = Get-WAUConfig
@@ -341,6 +341,13 @@ if (Test-Network) {
         Write-ToLog "End of process!" "Cyan"
         Exit 1
     }
+}
+
+#Adds SymLink if Intune managed
+$IntuneLodPath = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs"
+if ((Test-Path "$IntuneLodPath") -and !(Test-Path "$IntuneLodPath\WAU-updates.log")) {
+    Write-ToLog "`nCreating SymLink for log file (WAU-updates) in Intune Management Extension log folder" "Yellow"
+    New-Item -Path "$IntuneLodPath\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null
 }
 
 #End

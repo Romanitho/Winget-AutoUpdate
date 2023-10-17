@@ -1,0 +1,62 @@
+<local>
+	<outputs>
+		<output id="0">
+			<!--Check network connection-->
+			<title>檢查網路連線。</title>
+			<!--Unable to check for software updates at this time!-->
+			<message>目前無法檢查軟體更新！</message>
+		</output>
+		<output id="1">
+			<!--No internet connection-->
+			<title>沒有網路連線。</title>
+			<!--Updates could not be verified-->
+			<message>無法驗證更新。</message>
+		</output>
+		<output id="2">
+			<!--{App} will be updated-->
+			<title>{0} 將會更新！</title>
+			<!--{v1.0} to {v2.0}-->
+			<message>{0} 至 {1}</message>
+		</output>
+		<output id="3">
+			<!--{App} updated-->
+			<title>{0} 已更新。</title>
+			<!--Installed version: {v1.0}-->
+			<message>已安裝版本： {0}</message>
+		</output>
+		<output id="4">
+			<!--{App} could not be updated-->
+			<title>{0} 無法更新！</title>
+			<!--Please contact support-->
+			<message>請聯絡支援。</message>
+		</output>
+		<output id="5">
+			<!--Logs are not available yet-->
+			<message>日誌尚未可用！</message>
+		</output>
+		<output id="6">
+			<!--Starting a manual check for updated apps-->
+			<message>開始手動檢查軟體更新...</message>
+		</output>
+		<output id="7">
+			<!--Couldn't start a manual check for updated apps-->
+			<message>無法手動檢查軟體更新！</message>
+		</output>
+		<output id="8">
+			<!--Check for updated apps already running-->
+			<message>軟體更新檢查正在運行...</message>
+		</output>
+		<output id="9">
+			<!--Manual check for updated apps completed-->
+			<message>已完成手動檢查軟體更新...</message>
+		</output>
+		<output id="10">
+			<!--See changelog-->
+			<message>查看更新日誌</message>
+		</output>
+		<output id="11">
+			<!--Open log file-->
+			<message>打開日誌文件</message>
+		</output>
+	</outputs>
+</local>

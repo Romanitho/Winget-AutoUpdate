@@ -187,7 +187,7 @@ function Invoke-PostUpdateActions {
     #Set GPO scheduled task if not existing
     $GPOTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-Policies' -ErrorAction SilentlyContinue
     if (!$GPOTask) {
-        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\WAU-Policies.ps1`""
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WorkingDir)\WAU-Policies.ps1`""
         $tasktrigger = New-ScheduledTaskTrigger -Daily -At 6am
         $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00

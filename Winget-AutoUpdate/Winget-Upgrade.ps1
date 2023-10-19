@@ -17,7 +17,31 @@ $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsS
 
 #Log initialisation
 $LogFile = "$WorkingDir\logs\updates.log"
-Write-ToLog -LogMsg "CHECK FOR APP UPDATES" -IsHeader
+
+if ($IsSystem) {
+    #Check if any connected user when running as system
+    $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+    #Check if ServiceUI exists
+    $ServiceUI = Test-Path "$WorkingDir\ServiceUI.exe"
+    If ($explorerprocesses.Count -gt 0 -and $ServiceUI) {
+        #User connected, Check for current session ID (O = system)
+        $SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
+        if ($SessionID -eq 0) {
+            #Rerun WAU in system context with ServiceUI
+            & $WorkingDir\ServiceUI.exe -process:explorer.exe $env:windir\System32\wscript.exe \`"$WorkingDir\Invisible.vbs\`" \`"powershell.exe -NoProfile -ExecutionPolicy Bypass -File \`"\`"$WorkingDir\winget-upgrade.ps1\`"\`"\`"
+            Exit 0
+        }
+        else {
+            Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context with ServiceUI)" -IsHeader
+        }
+    }
+    else {
+        Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
+    }
+}
+else {
+    Write-ToLog -LogMsg "CHECK FOR APP UPDATES (User context)" -IsHeader
+}
 
 #Get settings and Domain/Local Policies (GPO) if activated.
 $Script:WAUConfig = Get-WAUConfig
@@ -27,7 +51,6 @@ if ($($WAUConfig.WAU_ActivateGPOManagement -eq 1)) {
 
 #Log running context and more...
 if ($IsSystem) {
-    Write-ToLog "Running in System context"
 
     # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
     $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles
@@ -60,9 +83,6 @@ if ($IsSystem) {
     #Run Scope Machine funtion if run as System
     $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\defaultState\settings.json"
     Add-ScopeMachine $SettingsPath
-}
-else {
-    Write-ToLog "Running in User context"
 }
 
 #Get Notif Locale function

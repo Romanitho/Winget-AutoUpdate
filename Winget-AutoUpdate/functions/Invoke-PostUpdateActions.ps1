@@ -197,6 +197,7 @@ function Invoke-PostUpdateActions {
         Write-ToLog "-> Policies task created."
     }
 
+
     ### End of post update actions ###
 
     #Reset WAU_UpdatePostActions Value

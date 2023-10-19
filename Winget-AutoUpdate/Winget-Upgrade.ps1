@@ -21,7 +21,7 @@ Write-ToLog -LogMsg "CHECK FOR APP UPDATES" -IsHeader
 
 #Get settings and Domain/Local Policies (GPO) if activated.
 $Script:WAUConfig = Get-WAUConfig
-if ($($WAUPolicies.WAU_ActivateGPOManagement -eq 1)) {
+if ($($WAUConfig.WAU_ActivateGPOManagement -eq 1)) {
     Write-ToLog "WAU Policies management Enabled."
 }
 

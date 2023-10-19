@@ -171,19 +171,19 @@ function Install-Prerequisites {
                 Write-ToLog "-> Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Remove-Item $Installer -ErrorAction Ignore
-                Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully`n" "Green"
+                Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully`n " "Green"
             }
             catch {
-                Write-ToLog "-> MS Visual C++ 2015-2022 installation failed.`n" "Red"
+                Write-ToLog "-> MS Visual C++ 2015-2022 installation failed.`n " "Red"
                 Start-Sleep 3
             }
         }
         else {
-            Write-ToLog "-> MS Visual C++ 2015-2022 will not be installed.`n" "Magenta"
+            Write-ToLog "-> MS Visual C++ 2015-2022 will not be installed.`n " "Magenta"
         }
     }
     else {
-        Write-ToLog "-> Prerequisites checked. OK`n" "Green"
+        Write-ToLog "-> Prerequisites checked. OK`n " "Green"
     }
 }
 
@@ -262,7 +262,7 @@ function Install-WinGet {
         Update-StoreApps
     }
     else {
-        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"
+        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n " "Green"
     }
 }
 
@@ -455,13 +455,13 @@ function Install-WingetAutoUpdate {
         Write-ToLog "Checking Mods Directory:" "Yellow"
         $Protected = Invoke-ModsProtect "$WingetUpdatePath\mods"
         if ($Protected -eq $True) {
-            Write-ToLog "-> The mods directory is now secured!`n" "Green"
+            Write-ToLog "-> The mods directory is now secured!`n " "Green"
         }
         elseif ($Protected -eq $False) {
-            Write-ToLog "-> The mods directory was already secured!`n" "Green"
+            Write-ToLog "-> The mods directory was already secured!`n " "Green"
         }
         else {
-            Write-ToLog "-> Error: The mods directory couldn't be verified as secured!`n" "Red"
+            Write-ToLog "-> Error: The mods directory couldn't be verified as secured!`n " "Red"
         }
 
         #Create Shortcuts
@@ -530,15 +530,15 @@ function Uninstall-WingetAutoUpdate {
                 Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
             }
 
-            Write-ToLog "Uninstallation succeeded!`n" "Green"
+            Write-ToLog "Uninstallation succeeded!`n " "Green"
             Start-sleep 1
         }
         else {
-            Write-ToLog "$InstallLocation not found! Uninstallation failed!`n" "Red"
+            Write-ToLog "$InstallLocation not found! Uninstallation failed!`n " "Red"
         }
     }
     catch {
-        Write-ToLog "Uninstallation failed! Run as admin ?`n" "Red"
+        Write-ToLog "Uninstallation failed! Run as admin ?`n " "Red"
         Start-sleep 1
     }
 }
@@ -607,7 +607,7 @@ $Script:ProgressPreference = 'SilentlyContinue'
 #Set install log file
 $Script:LogFile = "$WingetUpdatePath\logs\WAU-Installer.log"
 
-Write-Host "`n"
+Write-Host "`n "
 Write-Host "`t        888       888        d8888  888     888" -ForegroundColor Magenta
 Write-Host "`t        888   o   888       d88888  888     888" -ForegroundColor Magenta
 Write-Host "`t        888  d8b  888      d88P888  888     888" -ForegroundColor Magenta
@@ -615,10 +615,10 @@ Write-Host "`t        888 d888b 888     d88P 888  888     888" -ForegroundColor 
 Write-Host "`t        888d88888b888    d88P  888  888     888" -ForegroundColor Magenta
 Write-Host "`t        88888P Y88888   d88P   888  888     888" -ForegroundColor Cyan
 Write-Host "`t        8888P   Y8888  d88P    888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n" -ForegroundColor Magenta
-Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n" -ForegroundColor Cyan
-Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
-Write-Host "`t________________________________________________________`n`n"
+Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n " -ForegroundColor Magenta
+Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n " -ForegroundColor Cyan
+Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n " -ForegroundColor Magenta
+Write-Host "`t________________________________________________________`n `n "
 
 if (!$Uninstall) {
     Write-ToLog "Installing WAU to $WingetUpdatePath\"

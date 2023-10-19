@@ -351,7 +351,7 @@ if (Test-Network) {
 #Adds SymLink if Intune managed
 $IntuneLogPath = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs"
 if ((Test-Path "$IntuneLogPath") -and !(Test-Path "$IntuneLogPath\WAU-updates.log")) {
-    Write-ToLog "`nCreating SymLink for log file (WAU-updates) in Intune Management Extension log folder" "Yellow"
+    Write-ToLog " `nCreating SymLink for log file (WAU-updates) in Intune Management Extension log folder" "Yellow"
     New-Item -Path "$IntuneLogPath\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null
 }
 

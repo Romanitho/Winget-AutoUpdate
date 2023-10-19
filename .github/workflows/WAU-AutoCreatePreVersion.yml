@@ -82,11 +82,19 @@ jobs:
 
       - name: Build project
         run: |
+          # Get MDT from Microsoft
+          wget https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi
+          # Extract MSI
+          7z x MicrosoftDeploymentToolkit_x64.msi
+          # Copy ServiceUI.exe to Winget-AutoUpdate folder
+          mv Modena_File206 Winget-AutoUpdate/ServiceUI.exe
+          # Zip WAU
           zip -r WAU.zip Winget-AutoUpdate
           zip WAU.zip Winget-AutoUpdate-Install.ps1
           zip WAU.zip excluded_apps.txt
           zip WAU.zip install.bat
           zip WAU.zip uninstall.bat
+          # Zip ADMX
           cd Policies
           zip -r ../WAU_ADMX.zip *
           cd ..

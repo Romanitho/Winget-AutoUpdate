@@ -304,6 +304,13 @@ if (Test-Network) {
         #Check if user context is activated during system run
         if ($IsSystem) {
 
+            #Adds SymLink if Intune managed
+            $IntuneLogPath = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs"
+            if ((Test-Path "$IntuneLogPath") -and !(Test-Path "$IntuneLogPath\WAU-updates.log")) {
+                Write-ToLog "Creating SymLink for log file (WAU-updates) in Intune Management Extension log folder" "Yellow"
+                New-Item -Path "$IntuneLogPath\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null
+            }
+
             #Run WAU in user context if feature is activated
             if ($WAUConfig.WAU_UserContext -eq 1) {
 
@@ -346,13 +353,6 @@ if (Test-Network) {
         Write-ToLog "End of process!" "Cyan"
         Exit 1
     }
-}
-
-#Adds SymLink if Intune managed
-$IntuneLogPath = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs"
-if ((Test-Path "$IntuneLogPath") -and !(Test-Path "$IntuneLogPath\WAU-updates.log")) {
-    Write-ToLog " `nCreating SymLink for log file (WAU-updates) in Intune Management Extension log folder" "Yellow"
-    New-Item -Path "$IntuneLogPath\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null
 }
 
 #End

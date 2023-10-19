@@ -197,18 +197,6 @@ function Invoke-PostUpdateActions {
         Write-ToLog "-> Policies task created."
     }
 
-    #Set WAU scheduled task with ServiceUI
-    $WAUTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue
-    $ServiceUI = Test-Path "$($WorkingDir)\ServiceUI.exe"
-    if ($ServiceUI) {
-        $taskAction = New-ScheduledTaskAction -Execute "$($WorkingDir)\ServiceUI.exe" -Argument "-process:explorer.exe %windir%\System32\wscript.exe \`"$($WorkingDir)\Invisible.vbs \`" \`"powershell.exe -NoProfile -ExecutionPolicy Bypass -File \`"\`"$WingetUpdatePath\winget-upgrade.ps1\`"\`"\`""
-        Write-ToLog "-> ServiceUI enabled."
-    }
-    else {
-        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WorkingDir)\winget-upgrade.ps1`""
-    }
-    Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Action $taskAction | Out-Null
-
 
     ### End of post update actions ###
 

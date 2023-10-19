@@ -328,13 +328,7 @@ function Install-WingetAutoUpdate {
         Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
 
         # Settings for the scheduled task for Updates (System)
-        $ServiceUI = Test-Path "$PSScriptRoot\Winget-AutoUpdate\ServiceUI.exe"
-        if ($ServiceUI) {
-            $taskAction = New-ScheduledTaskAction -Execute "$WingetUpdatePath\ServiceUI.exe" -Argument "-process:explorer.exe %windir%\System32\wscript.exe \`"$WingetUpdatePath\Invisible.vbs \`" \`"powershell.exe -NoProfile -ExecutionPolicy Bypass -File \`"\`"$WingetUpdatePath\winget-upgrade.ps1\`"\`"\`""
-        }
-        else {
-            $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
-        }
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
         $taskTriggers = @()
         if ($UpdatesAtLogon) {
             $tasktriggers += New-ScheduledTaskTrigger -AtLogOn

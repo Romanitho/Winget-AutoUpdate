@@ -43,14 +43,14 @@ else {
     Write-ToLog -LogMsg "CHECK FOR APP UPDATES (User context)" -IsHeader
 }
 
-#Get settings and Domain/Local Policies (GPO) if activated.
-$Script:WAUConfig = Get-WAUConfig
-if ($($WAUConfig.WAU_ActivateGPOManagement -eq 1)) {
-    Write-ToLog "WAU Policies management Enabled."
-}
-
 #Log running context and more...
 if ($IsSystem) {
+
+    #Get settings and Domain/Local Policies (GPO) if activated.
+    $Script:WAUConfig = Get-WAUConfig
+    if ($($WAUConfig.WAU_ActivateGPOManagement -eq 1)) {
+        Write-ToLog "WAU Policies management Enabled."
+    }
 
     # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
     $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles

@@ -71,19 +71,8 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
                 }
 
                 #Log Header
-                $Log = "##################################################`n#     CHECK FOR APP UPDATES - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n##################################################"
-                $Log | out-file -filepath $LogFile -Append
-                Write-ToLog "Running in System context"
-                if ($ActivateGPOManagement) {
-                    Write-ToLog "Activated WAU GPO Management detected, comparing..."
-                    if ($null -ne $ChangedSettings -and $ChangedSettings -ne 0) {
-                        Write-ToLog "Changed settings detected and applied" "Yellow"
-                    }
-                    else {
-                        Write-ToLog "No Changed settings detected" "Yellow"
-                    }
-                }
-                Write-ToLog "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
+                Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
+                Write-ToLog -LogMsg "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
 
                 Return $True
             }

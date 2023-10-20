@@ -11,6 +11,7 @@ Function Update-StoreApps {
 		Write-ToLog $force_string "yellow"
 
 		try {
+			# Can't get it done with Get-CimInstance, using deprecated Get-WmiObject
 			$namespaceName = "root\cimv2\mdm\dmmap"
 			$className = "MDM_EnterpriseModernAppManagement_AppManagement01"
 			$wmiObj = Get-WmiObject -Namespace $namespaceName -Class $className

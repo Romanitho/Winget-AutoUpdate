@@ -20,7 +20,7 @@ $LogFile = "$WorkingDir\logs\updates.log"
 
 if ($IsSystem) {
     #Check if any connected user when running as system
-    $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+    $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
     #Check if ServiceUI exists
     $ServiceUI = Test-Path "$WorkingDir\ServiceUI.exe"
     If ($explorerprocesses.Count -gt 0 -and $ServiceUI) {
@@ -349,8 +349,7 @@ if (Test-Network) {
                     $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
                 }
 
-                #User check routine from: https://stackoverflow.com/questions/23219718/powershell-script-to-see-currently-logged-in-users-domain-and-machine-status
-                $explorerprocesses = @(Get-WmiObject -Query "Select * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+                $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
                 If ($explorerprocesses.Count -eq 0) {
                     Write-ToLog "No explorer process found / Nobody interactively logged on..."
                 }

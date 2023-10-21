@@ -4,6 +4,7 @@ Function Update-StoreApps {
 
 	$force_string = "-> Forcing an upgrade of Store Apps (this can take a minute)..."
 	$fail_string = "-> ...something went wrong!"
+	$notrelevant_string = "-> WAU is running on a WSB (Windows Sandbox) or a Windows Server - Microsoft Store is not available!"
 
 	#If not WSB or Server, upgrade Microsoft Store Apps!
 	if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
@@ -22,5 +23,8 @@ Function Update-StoreApps {
 			Write-ToLog $fail_string "red"
 			return $false
 		}
+	}
+	else {
+		Write-ToLog $notrelevant_string "yellow"
 	}
 }

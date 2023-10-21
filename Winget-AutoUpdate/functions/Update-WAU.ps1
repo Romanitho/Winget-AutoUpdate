@@ -31,7 +31,12 @@ function Update-WAU {
         #Update scritps
         Write-ToLog "Updating WAU..." "Yellow"
         $TempPath = (Resolve-Path "$location\Winget-AutoUpdate\")[0].Path
-        if ($TempPath) {
+        $ServiceUI = Test-Path "$WorkingDir\ServiceUI.exe"
+        if ($TempPath -and $ServiceUI) {
+            #Do not copy ServiceUI if already existing, causing error if in use.
+            Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude ("icons", "ServiceUI.exe") -Recurse -Force
+        }
+        elseif ($TempPath) {
             Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
         }
 
@@ -55,7 +60,7 @@ function Update-WAU {
 
         #Rerun with newer version
         Write-ToLog "Re-run WAU"
-        Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
+        Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
 
         exit
 

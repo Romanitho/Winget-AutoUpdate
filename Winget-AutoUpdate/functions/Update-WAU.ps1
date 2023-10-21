@@ -31,7 +31,12 @@ function Update-WAU {
         #Update scritps
         Write-ToLog "Updating WAU..." "Yellow"
         $TempPath = (Resolve-Path "$location\Winget-AutoUpdate\")[0].Path
-        if ($TempPath) {
+        $ServiceUI = Test-Path "$WorkingDir\ServiceUI.exe"
+        if ($TempPath -and $ServiceUI) {
+            #Do not copy ServiceUI if already existing, causing error if in use.
+            Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude ("icons", "ServiceUI.exe") -Recurse -Force
+        }
+        elseif ($TempPath) {
             Copy-Item -Path "$TempPath\*" -Destination "$WorkingDir\" -Exclude "icons" -Recurse -Force
         }
 

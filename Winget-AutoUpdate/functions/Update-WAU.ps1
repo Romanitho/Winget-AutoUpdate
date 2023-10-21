@@ -60,7 +60,7 @@ function Update-WAU {
 
         #Rerun with newer version
         Write-ToLog "Re-run WAU"
-        Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
+        Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
 
         exit
 

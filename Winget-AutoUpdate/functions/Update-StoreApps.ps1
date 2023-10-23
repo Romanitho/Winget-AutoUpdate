@@ -2,20 +2,22 @@
 
 Function Update-StoreApps {
 
-	$force_string = "-> Forcing an upgrade of Store Apps (this can take a minute)..."
+	$info_string = "-> Forcing an upgrade of Store Apps..."
+	$action_string = "-> ...this can take a minute!"
 	$fail_string = "-> ...something went wrong!"
-	$notrelevant_string = "-> WAU is running on a WSB (Windows Sandbox) or a Windows Server - Microsoft Store is not available!"
+	$irrelevant_string = "-> ...WAU is running on WSB (Windows Sandbox) or Windows Server - Microsoft Store is not available!"
+
+	Write-ToLog $info_string "yellow"
 
 	#If not WSB or Server, upgrade Microsoft Store Apps!
 	if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
-
-		Write-ToLog $force_string "yellow"
 
 		try {
 			# Can't get it done with Get-CimInstance, using deprecated Get-WmiObject
 			$namespaceName = "root\cimv2\mdm\dmmap"
 			$className = "MDM_EnterpriseModernAppManagement_AppManagement01"
 			$wmiObj = Get-WmiObject -Namespace $namespaceName -Class $className
+			Write-ToLog $action_string "green"
 			$wmiObj.UpdateScanMethod() | Out-Null
 			return $true
 		}
@@ -25,6 +27,6 @@ Function Update-StoreApps {
 		}
 	}
 	else {
-		Write-ToLog $notrelevant_string "yellow"
+		Write-ToLog $irrelevant_string "yellow"
 	}
 }

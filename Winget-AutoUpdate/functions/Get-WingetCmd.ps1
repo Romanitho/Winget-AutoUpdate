@@ -18,9 +18,8 @@ Function Get-WingetCmd {
         }
     }else{
         #Get Winget Location in User context
-        $WingetCmd = Get-Command winget.exe -ErrorAction SilentlyContinue
-        if ($WingetCmd) {
-            $Script:Winget = $WingetCmd.Source
+        if (Test-Path "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe") {
+            $Script:Winget = "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe"
         }
     }
 

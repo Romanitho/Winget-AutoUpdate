@@ -44,19 +44,19 @@
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->
-			<message>Die Such nach Updates läuft bereits.</message>
+			<message>Die Suche nach Updates läuft bereits.</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Die manuelle suche nach Updates wurde abgeschlossen.</message>
+			<message>Die manuelle Suche nach Updates wurde abgeschlossen.</message>
 		</output>
 		<output id="10">
 			<!--See changelog-->
-			<message>See changelog</message>
+			<message>Changelog prüfen</message>
 		</output>
 		<output id="11">
 			<!--Open log file-->
-			<message>Open log file</message>
+			<message>Öffne Logfile</message>
 		</output>
 	</outputs>
 </local>

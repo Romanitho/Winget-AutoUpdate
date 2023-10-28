@@ -9,10 +9,10 @@ function Test-Network {
     Write-ToLog "Checking internet connection..." "Yellow"
     While ($timeout -lt 1800) {
 
-        $URLtoTest = "https://raw.githubusercontent.com/Romanitho/Winget-AutoUpdate/main/LICENSE"
-        $URLcontent = ((Invoke-WebRequest -URI $URLtoTest -UseBasicParsing).content)
+        $URLtoTest = "https://github.com/Romanitho/Winget-AutoUpdate"
+        $UrlStatusCode = ((Invoke-WebRequest -URI $URLtoTest -UseBasicParsing).StatusCode)
 
-        if ($URLcontent -like "*MIT License*") {
+        if ($UrlStatusCode -eq "200"){
 
             Write-ToLog "Connected !" "Green"
 

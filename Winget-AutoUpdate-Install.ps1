@@ -220,7 +220,7 @@ function Install-WinGet {
         }
 
         #Downloading and Installing Dependencies in SYSTEM context
-        if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.7')) {
+        if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.7' -AllUsers)) {
             Write-ToLog "-> Downloading Microsoft.UI.Xaml.2.7..."
             $UiXamlUrl = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.7.0"
             $UiXamlZip = "$WingetUpdatePath\Microsoft.UI.XAML.2.7.zip"
@@ -238,7 +238,7 @@ function Install-WinGet {
             Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
         }
 
-        if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop')) {
+        if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {
             Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
             $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
             $VCLibsFile = "$WingetUpdatePath\Microsoft.VCLibs.x64.14.00.Desktop.appx"

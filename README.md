@@ -162,7 +162,7 @@ Setting it to 1 keeps the original one and just let it grow.
 Specify the size of the log file in bytes before rotating.<br>
 Default is 1048576 = 1 MB (ca. 7500 lines)
 
-**-WingetUpdatePath**<br>
+**-WAUinstallPath**<br>
 Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
 
 **-Uninstall**<br>

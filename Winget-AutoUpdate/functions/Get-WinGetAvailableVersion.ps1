@@ -9,7 +9,8 @@ Function Get-WinGetAvailableVersion {
         return ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
     }
     catch {
-        return $false
+        #if fail set version to the latest version as of 2023-10-08
+        return "1.6.2771"
     }
 
 }

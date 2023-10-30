@@ -19,11 +19,8 @@ function Invoke-PostUpdateActions {
 
     Write-ToLog "-> Checking if WinGet is installed/up to date" "yellow"
 
-    #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
+    #Check available WinGet version
     $WinGetAvailableVersion = Get-WinGetAvailableVersion
-    if (!$WinGetAvailableVersion) {
-        $WinGetAvailableVersion = "1.6.2771"
-    }
 
     #Check installed WinGet version
     $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
@@ -37,7 +34,7 @@ function Invoke-PostUpdateActions {
     #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
     if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
         Write-ToLog "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" "red"
-        Update-WinGet $WinGetAvailableVersion $($WAUConfig.InstallLocation)
+        Update-WinGet $WinGetAvailableVersion
     }
     elseif ($WinGetAvailableVersion -match "-pre") {
         Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" "yellow"

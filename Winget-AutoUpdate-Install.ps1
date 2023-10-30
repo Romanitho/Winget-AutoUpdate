@@ -213,7 +213,6 @@ function Install-WinGet {
 
         #Check if Microsoft.VCLibs.140.00.UWPDesktop is installed
         if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {
-            Write-ToLog "Microsoft.VCLibs.140.00.UWPDesktop is not installed" "Red"
             $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
             $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
             Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
@@ -231,7 +230,7 @@ function Install-WinGet {
 
         #Install/Update Winget
         Update-WinGet $WinGetAvailableVersion
-
+        Write-ToLog "-> WinGet v$WinGetInstalledVersion installed!`n" "Green"
     }
     else {
         Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"

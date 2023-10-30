@@ -4,9 +4,9 @@ Function Update-WinGet ($WinGetAvailableVersion) {
 
     $download_string = "-> Downloading WinGet MSIXBundle for App Installer..."
     $install_string = "-> Installing WinGet MSIXBundle for App Installer..."
-    $success_string = "-> WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully"
-    $reset_string = "-> WinGet sources reset."
-    $fail_string = "-> Failed to install WinGet MSIXBundle for App Installer..."
+    $success_string = "-> WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully!"
+    $reset_string = "-> WinGet sources reset.`n"
+    $fail_string = "-> Failed to install WinGet MSIXBundle for App Installer...`n"
 
     #Download WinGet MSIXBundle
     Write-ToLog $download_string

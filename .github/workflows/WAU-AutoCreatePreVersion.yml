@@ -53,7 +53,7 @@ jobs:
           fetch-depth: 0
 
       - name: Auto Increment Semver Action
-        uses: MCKanpolat/auto-semver-action@1.0.10
+        uses: MCKanpolat/auto-semver-action@b0314e8d64baee1c3f74233edb71eb976503a6a4 # 1.0.10
         id: versioning
         with:
           releaseType: prerelease
@@ -66,14 +66,14 @@ jobs:
           echo "Next Release version: ${{ steps.versioning.outputs.version }}"
 
       - name: Overwrite Version.txt file
-        uses: DamianReeves/write-file-action@v1.2
+        uses: DamianReeves/write-file-action@0a7fcbe1960c53fc08fe789fa4850d24885f4d84 # v1.2
         with:
           path: Winget-AutoUpdate/Version.txt
           write-mode: overwrite
           contents: ${{ steps.versioning.outputs.version }}
 
       - name: Commit & Push
-        uses: actions-js/push@v1.4
+        uses: actions-js/push@156f2b10c3aa000c44dbe75ea7018f32ae999772 # v1.4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: main
@@ -100,7 +100,7 @@ jobs:
           cd ..
 
       - name: Create release
-        uses: "ncipollo/release-action@v1"
+        uses: ncipollo/release-action@6c75be85e571768fa31b40abf38de58ba0397db5 # v1.13.0
         id: release
         with:
           tag: "v${{ steps.versioning.outputs.version }}"

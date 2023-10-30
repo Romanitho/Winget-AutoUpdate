@@ -230,7 +230,6 @@ function Install-WinGet {
 
         #Install/Update Winget
         Update-WinGet $WinGetAvailableVersion
-        Write-ToLog "-> WinGet v$WinGetInstalledVersion installed!`n" "Green"
     }
     else {
         Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"
@@ -246,15 +245,14 @@ function Install-WingetAutoUpdate {
         if (!(Test-Path $WAUinstallPath)) {
             New-Item -ItemType Directory -Force -Path $WAUinstallPath | Out-Null
         }
-        else {
-            if (!$NoClean) {
-                Remove-Item -Path "$WAUinstallPath\*" -Exclude *.log -Recurse -Force
-            }
-            else {
-                #Keep critical files
-                Get-ChildItem -Path $WAUinstallPath -Exclude *.txt, mods, logs | Remove-Item -Recurse -Force
-            }
+        elseif (!$NoClean) {
+            Remove-Item -Path "$WAUinstallPath\*" -Exclude *.log -Recurse -Force
         }
+        else {
+            #Keep critical files
+            Get-ChildItem -Path $WAUinstallPath -Exclude *.txt, mods, logs | Remove-Item -Recurse -Force
+        }
+
         Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
 
         #White List or Black List apps

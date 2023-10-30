@@ -1,6 +1,6 @@
 #Function to download and update WinGet
 
-Function Update-WinGet ($WinGetAvailableVersion, $DownloadPath) {
+Function Update-WinGet ($WinGetAvailableVersion) {
 
     $download_string = "-> Downloading WinGet MSIXBundle for App Installer..."
     $install_string = "-> Installing WinGet MSIXBundle for App Installer..."
@@ -11,23 +11,22 @@ Function Update-WinGet ($WinGetAvailableVersion, $DownloadPath) {
     #Download WinGet MSIXBundle
     Write-ToLog $download_string
     $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-    $WebClient = New-Object System.Net.WebClient
-    $WebClient.DownloadFile($WinGetURL, "$DownloadPath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle")
+    $WingetInstaller = "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+    Invoke-RestMethod -Uri $WinGetURL -OutFile $WingetInstaller
 
     #Install WinGet MSIXBundle in SYSTEM context
     try {
         Write-ToLog $install_string
-        Add-AppxProvisionedPackage -Online -PackagePath "$DownloadPath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -SkipLicense | Out-Null
+        Add-AppxProvisionedPackage -Online -PackagePath $WingetInstaller -SkipLicense | Out-Null
         Write-ToLog $success_string "green"
 
         #Reset WinGet Sources
-        $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
-        if ($ResolveWingetPath) {
-            Write-ToLog $reset_string "green"
-            #If multiple version, pick last one
-            $WingetPath = $ResolveWingetPath[-1].Path
-            & $WingetPath source reset --force
-        }
+        $WingetInfo = (Get-Item "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
+        #If multiple versions, pick most recent one
+        $WingetCmd = $WingetInfo[-1].FileName
+        & $WingetCmd source reset --force
+        Write-ToLog $reset_string "green"
+
     }
     catch {
         Write-ToLog $fail_string "red"
@@ -35,5 +34,5 @@ Function Update-WinGet ($WinGetAvailableVersion, $DownloadPath) {
     }
 
     #Remove WinGet MSIXBundle
-    Remove-Item -Path "$DownloadPath\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle" -Force -ErrorAction Continue
+    Remove-Item -Path $WingetInstaller -Force -ErrorAction SilentlyContinue
 }

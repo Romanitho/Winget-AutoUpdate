@@ -1,6 +1,6 @@
 <# ARRAYS/VARIABLES #>
 #App to Run (as SYSTEM)
-#$RunWait = $False if it shouldn't be waited for completion. For example:
+#$RunWait = $False if it shouldn't be waited for completion. Example:
 #$RunSystem = "$PSScriptRoot\bins\MsiZap.exe"
 #$RunSwitch = "tw! {GUID}"
 $RunSystem = ""
@@ -24,7 +24,9 @@ $WingetIDUninst = @("")
 
 #Beginning of App Name string to Silently Uninstall (MSI/NSIS/INNO/EXE with defined silent uninstall in registry)
 #Multiple: "app1*","app2*", required wildcard (*) after; search is done with "-like"!
+#Uninstall all versions if there exist several?
 $AppUninst = @("")
+$AllVersions = $False
 
 #Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1","lnk2"
 $Lnk = @("")
@@ -97,7 +99,7 @@ if ($WingetIDUninst) {
     Uninstall-WingetID $WingetIDUninst
 }
 if ($AppUninst) {
-    Uninstall-ModsApp $AppUninst
+    Uninstall-ModsApp $AppUninst $AllVersions
 }
 if ($Lnk) {
     Remove-ModsLnk $Lnk

@@ -124,7 +124,7 @@ function Invoke-PostUpdateActions {
         "$WorkingDir\functions\Get-WAUCurrentVersion.ps1",
         "$WorkingDir\functions\Get-WAUUpdateStatus.ps1",
         "$WorkingDir\functions\Write-Log.ps1",
-        "$WorkingDir\Get-WinGetAvailableVersion.ps1",
+        "$WorkingDir\functions\Get-WinGetAvailableVersion.ps1",
         "$WorkingDir\Version.txt"
     )
     foreach ($FileName in $FileNames) {

@@ -33,11 +33,13 @@ Function Update-WinGet {
 
         #Check if Microsoft.VCLibs.140.00.UWPDesktop is installed
         if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {
-            $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-            $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
-            Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
-            Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
             try {
+                #Download
+                $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
+                $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
+                Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
+                Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
+                #Install
                 Write-ToLog "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
                 Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
                 Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully." "Green"
@@ -48,14 +50,15 @@ Function Update-WinGet {
             Remove-Item -Path $VCLibsFile -Force
         }
 
-        #Download WinGet MSIXBundle
-        Write-ToLog "-> Downloading WinGet MSIXBundle for App Installer..."
-        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        $WingetInstaller = "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        Invoke-RestMethod -Uri $WinGetURL -OutFile $WingetInstaller
-
         #Install WinGet MSIXBundle in SYSTEM context
         try {
+            #Download WinGet MSIXBundle
+            Write-ToLog "-> Downloading WinGet MSIXBundle for App Installer..."
+            $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+            $WingetInstaller = "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+            Invoke-RestMethod -Uri $WinGetURL -OutFile $WingetInstaller
+
+            #Install
             Write-ToLog "-> Installing WinGet MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath $WingetInstaller -SkipLicense | Out-Null
             Write-ToLog "-> WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully!" "green"

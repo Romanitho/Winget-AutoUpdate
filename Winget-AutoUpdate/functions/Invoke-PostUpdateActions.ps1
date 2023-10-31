@@ -137,15 +137,11 @@ function Invoke-PostUpdateActions {
     }
 
     #Remove old registry key
-    $RegistryKeys = @(
-        "VersionMajor",
-        "VersionMinor"
-    )
-    foreach ($RegistryKey in $RegistryKeys) {
-        if (Get-ItemProperty -Path $regPath -Name $RegistryKey -ErrorAction SilentlyContinue) {
-            Remove-ItemProperty -Path $regPath -Name $RegistryKey
-        }
-    }
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "VersionMajor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "VersionMinor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "VersionMajor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "VersionMinor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "DisplayVersion" -ErrorAction SilentlyContinue
 
     #Activate WAU in user context if previously configured (as "Winget-AutoUpdate-UserContext" at root)
     $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath '\' -ErrorAction SilentlyContinue

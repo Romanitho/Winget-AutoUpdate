@@ -193,19 +193,21 @@ function Install-WingetAutoUpdate {
     Write-ToLog "Installing WAU..." "Yellow"
 
     try {
-        #Copy files to location (and clean old install)
+        #Copy files to location
         if (!(Test-Path $WAUinstallPath)) {
             New-Item -ItemType Directory -Force -Path $WAUinstallPath | Out-Null
+            Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
         }
-        elseif (!$NoClean) {
-            Remove-Item -Path "$WAUinstallPath\*" -Exclude *.log -Recurse -Force
+        elseif ($NoClean) {
+            #Keep critical files
+            Get-ChildItem -Path $WAUinstallPath -Exclude *.txt, mods, logs, icons | Remove-Item -Recurse -Force
+            Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Exclude icons -Recurse -Force -ErrorAction SilentlyContinue #Exclude icons if personalized
         }
         else {
-            #Keep critical files
-            Get-ChildItem -Path $WAUinstallPath -Exclude *.txt, mods, logs | Remove-Item -Recurse -Force
+            #Keep logs only
+            Get-ChildItem -Path $WAUinstallPath -Exclude *.logs | Remove-Item -Recurse -Force
+            Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
         }
-
-        Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
 
         #White List or Black List apps
         if ($UseWhiteList) {

@@ -197,47 +197,42 @@ function Install-WingetAutoUpdate {
         if (!(Test-Path $WAUinstallPath)) {
             New-Item -ItemType Directory -Force -Path $WAUinstallPath | Out-Null
             Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+            Write-ToLog "-> Running fresh installation..."
         }
         elseif ($NoClean) {
             #Keep critical files
             Get-ChildItem -Path $WAUinstallPath -Exclude *.txt, mods, logs, icons | Remove-Item -Recurse -Force
             Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Exclude icons -Recurse -Force -ErrorAction SilentlyContinue #Exclude icons if personalized
+            Write-ToLog "-> Updating previous installation. Keeping critical existing files..."
         }
         else {
             #Keep logs only
             Get-ChildItem -Path $WAUinstallPath -Exclude *.logs | Remove-Item -Recurse -Force
             Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+            Write-ToLog "-> Updating previous installation..."
         }
 
         #White List or Black List apps
         if ($UseWhiteList) {
-            if (!$NoClean) {
-                if ((Test-Path "$PSScriptRoot\included_apps.txt")) {
-                    Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
-                }
-                else {
-                    if (!$ListPath) {
-                        New-Item -Path $WAUinstallPath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
-                    }
-                }
+            #If fresh install and "included_apps.txt" exists, copy the list to WAU
+            if ((!$NoClean) -and (Test-Path "$PSScriptRoot\included_apps.txt")) {
+                Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-ToLog "-> Copied a brand new Whitelist."
             }
-            elseif (!(Test-Path "$WAUinstallPath\included_apps.txt")) {
-                if ((Test-Path "$PSScriptRoot\included_apps.txt")) {
-                    Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
-                }
-                else {
-                    if (!$ListPath) {
-                        New-Item -Path $WAUinstallPath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
-                    }
-                }
+            #Else, only copy the "included_apps.txt" list if not existing in WAU
+            elseif (Test-Path "$WAUinstallPath\included_apps.txt") {
+                Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-ToLog "-> No Whitelist was existing. Copied from install sources."
             }
         }
         else {
             if (!$NoClean) {
                 Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-ToLog "-> Copied brand new Blacklist."
             }
             elseif (!(Test-Path "$WAUinstallPath\excluded_apps.txt")) {
                 Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-ToLog "-> No Blacklist was existing. Copied from install sources."
             }
         }
 

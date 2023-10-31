@@ -17,32 +17,8 @@ function Invoke-PostUpdateActions {
         $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
     }
 
-    Write-ToLog "-> Checking if WinGet is installed/up to date" "yellow"
-
-    #Check available WinGet version
-    $WinGetAvailableVersion = Get-WinGetAvailableVersion
-
-    #Check installed WinGet version
-    $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
-    if ($ResolveWingetPath) {
-        #If multiple version, pick last one
-        $WingetPath = $ResolveWingetPath[-1].Path
-        $WinGetInstalledVersion = & $WingetPath --version
-        $WinGetInstalledVersion = $WinGetInstalledVersion.Replace("v", "")
-    }
-
-    #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
-    if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
-        Write-ToLog "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" "red"
-        Update-WinGet $WinGetAvailableVersion
-    }
-    elseif ($WinGetAvailableVersion -match "-pre") {
-        Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" "yellow"
-        Update-StoreApps
-    }
-    else {
-        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "green"
-    }
+    #Update Winget if not up to date
+    Update-WinGet
 
     #Create WAU Regkey if not present
     $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
@@ -148,6 +124,7 @@ function Invoke-PostUpdateActions {
         "$WorkingDir\functions\Get-WAUCurrentVersion.ps1",
         "$WorkingDir\functions\Get-WAUUpdateStatus.ps1",
         "$WorkingDir\functions\Write-Log.ps1",
+        "$WorkingDir\Get-WinGetAvailableVersion.ps1",
         "$WorkingDir\Version.txt"
     )
     foreach ($FileName in $FileNames) {

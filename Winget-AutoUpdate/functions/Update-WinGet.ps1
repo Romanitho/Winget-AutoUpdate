@@ -1,38 +1,82 @@
 #Function to download and update WinGet
 
-Function Update-WinGet ($WinGetAvailableVersion) {
+Function Update-WinGet {
 
-    $download_string = "-> Downloading WinGet MSIXBundle for App Installer..."
-    $install_string = "-> Installing WinGet MSIXBundle for App Installer..."
-    $success_string = "-> WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully!"
-    $reset_string = "-> WinGet sources reset.`n"
-    $fail_string = "-> Failed to install WinGet MSIXBundle for App Installer...`n"
+    Write-ToLog "Checking if WinGet is installed/up to date." "Yellow"
 
-    #Download WinGet MSIXBundle
-    Write-ToLog $download_string
-    $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-    $WingetInstaller = "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-    Invoke-RestMethod -Uri $WinGetURL -OutFile $WingetInstaller
+    #Get latest WinGet info
+    $WinGeturl = 'https://api.github.com/repos/microsoft/winget-cli/releases/latest'
 
-    #Install WinGet MSIXBundle in SYSTEM context
     try {
-        Write-ToLog $install_string
-        Add-AppxProvisionedPackage -Online -PackagePath $WingetInstaller -SkipLicense | Out-Null
-        Write-ToLog $success_string "green"
+        #Return latest version
+        return ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
+    }
+    catch {
+        #if fail set version to the latest version as of 2023-10-08
+        return "1.6.2771"
+    }
 
-        #Reset WinGet Sources
+    try {
+        #Get Admin Context Winget Location
         $WingetInfo = (Get-Item "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
         #If multiple versions, pick most recent one
         $WingetCmd = $WingetInfo[-1].FileName
-        & $WingetCmd source reset --force
-        Write-ToLog $reset_string "green"
-
+        #Get current Winget Version
+        $WingetInstalledVersion = [regex]::match((& $WingetCmd -v), '((\d+\.)(\d+\.)(\d+))').Groups[1].Value
     }
     catch {
-        Write-ToLog $fail_string "red"
-        Update-StoreApps
+        Write-ToLog "-> WinGet is not installed" "Red"
     }
 
-    #Remove WinGet MSIXBundle
-    Remove-Item -Path $WingetInstaller -Force -ErrorAction SilentlyContinue
+    #Check if the current available WinGet is newer than the installed
+    if ($WinGetAvailableVersion -gt $WinGetInstalledVersion) {
+
+        #Check if Microsoft.VCLibs.140.00.UWPDesktop is installed
+        if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {
+            $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
+            $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
+            Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
+            Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
+            try {
+                Write-ToLog "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
+                Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
+                Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully." "Green"
+            }
+            catch {
+                Write-ToLog "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." "Red"
+            }
+            Remove-Item -Path $VCLibsFile -Force
+        }
+
+        #Download WinGet MSIXBundle
+        Write-ToLog "-> Downloading WinGet MSIXBundle for App Installer..."
+        $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $WingetInstaller = "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        Invoke-RestMethod -Uri $WinGetURL -OutFile $WingetInstaller
+
+        #Install WinGet MSIXBundle in SYSTEM context
+        try {
+            Write-ToLog "-> Installing WinGet MSIXBundle for App Installer..."
+            Add-AppxProvisionedPackage -Online -PackagePath $WingetInstaller -SkipLicense | Out-Null
+            Write-ToLog "-> WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully!" "green"
+
+            #Reset WinGet Sources
+            $WingetInfo = (Get-Item "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
+            #If multiple versions, pick most recent one
+            $WingetCmd = $WingetInfo[-1].FileName
+            & $WingetCmd source reset --force
+            Write-ToLog "-> WinGet sources reset.`n" "green"
+
+        }
+        catch {
+            Write-ToLog "-> Failed to install WinGet MSIXBundle for App Installer...`n" "red"
+            Update-StoreApps
+        }
+
+        #Remove WinGet MSIXBundle
+        Remove-Item -Path $WingetInstaller -Force -ErrorAction SilentlyContinue
+    }
+    else {
+        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"
+    }
 }

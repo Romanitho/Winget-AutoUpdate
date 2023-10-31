@@ -189,53 +189,6 @@ function Install-Prerequisites {
     }
 }
 
-function Install-WinGet {
-
-    Write-ToLog "Checking if WinGet is installed/up to date." "Yellow"
-
-    #Check available WinGet version
-    $WinGetAvailableVersion = Get-WinGetAvailableVersion
-
-    try {
-        #Get Admin Context Winget Location
-        $WingetInfo = (Get-Item "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
-        #If multiple versions, pick most recent one
-        $WingetCmd = $WingetInfo[-1].FileName
-        #Get current Winget Version
-        $WingetInstalledVersion = ((& $WingetCmd -v).Replace("-preview", "")).Replace("v", "")
-    }
-    catch {
-        Write-ToLog "-> WinGet is not installed" "Red"
-    }
-
-    #Check if the current available WinGet is newer than the installed
-    if ($WinGetAvailableVersion -gt $WinGetInstalledVersion) {
-
-        #Check if Microsoft.VCLibs.140.00.UWPDesktop is installed
-        if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {
-            $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-            $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
-            Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
-            Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
-            try {
-                Write-ToLog "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
-                Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
-                Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully." "Green"
-            }
-            catch {
-                Write-ToLog "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." "Red"
-            }
-            Remove-Item -Path $VCLibsFile -Force
-        }
-
-        #Install/Update Winget
-        Update-WinGet $WinGetAvailableVersion
-    }
-    else {
-        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"
-    }
-}
-
 function Install-WingetAutoUpdate {
 
     Write-ToLog "Installing WAU..." "Yellow"
@@ -589,7 +542,7 @@ Write-Host "`t________________________________________________________`n `n "
 if (!$Uninstall) {
     Write-ToLog "Installing WAU to $WAUinstallPath\"
     Install-Prerequisites
-    Install-WinGet
+    Update-Winget
     Install-WingetAutoUpdate
 }
 else {

@@ -120,7 +120,6 @@ param(
 
 #Include external Functions
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Invoke-ModsProtect.ps1"
-. "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-WinGet.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-StoreApps.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Add-Shortcut.ps1"

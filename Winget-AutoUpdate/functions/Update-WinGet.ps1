@@ -62,6 +62,8 @@ Function Update-WinGet {
             Write-ToLog "-> Installing WinGet MSIXBundle for App Installer..."
             Add-AppxProvisionedPackage -Online -PackagePath $WingetInstaller -SkipLicense | Out-Null
             Write-ToLog "-> WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully!" "green"
+            #Remove WinGet MSIXBundle
+            Remove-Item -Path $WingetInstaller -Force -ErrorAction SilentlyContinue
 
             #Reset WinGet Sources
             $WingetInfo = (Get-Item "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
@@ -74,12 +76,12 @@ Function Update-WinGet {
         }
         catch {
             Write-ToLog "-> Failed to install WinGet MSIXBundle for App Installer...`n" "red"
+            #Remove WinGet MSIXBundle
+            Remove-Item -Path $WingetInstaller -Force -ErrorAction SilentlyContinue
+            #Force Store Apps to update
             Update-StoreApps
             return "fail"
         }
-
-        #Remove WinGet MSIXBundle
-        Remove-Item -Path $WingetInstaller -Force -ErrorAction SilentlyContinue
     }
     else {
         Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"

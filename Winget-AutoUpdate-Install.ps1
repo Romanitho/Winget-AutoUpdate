@@ -16,7 +16,7 @@ Specify number of allowed log files (Default is 3 of 0-99: Setting MaxLogFiles t
 .PARAMETER MaxLogSize
 Specify the size of the log file in bytes before rotating. (Default is 1048576 = 1 MB)
 
-.PARAMETER WingetUpdatePath
+.PARAMETER WAUinstallPath
 Specify Winget-AutoUpdate installation localtion. Default: C:\ProgramData\Winget-AutoUpdate\
 
 .PARAMETER DoNotUpdate
@@ -93,7 +93,7 @@ Configure WAU to bypass the Black/White list when run in user context. Applicati
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $False)] [Alias('S')] [Switch] $Silent = $false,
-    [Parameter(Mandatory = $False)] [Alias('Path')] [String] $WingetUpdatePath = "$env:ProgramData\Winget-AutoUpdate",
+    [Parameter(Mandatory = $False)] [Alias('Path', 'WingetUpdatePath')] [String] $WAUinstallPath = "$env:ProgramData\Winget-AutoUpdate",
     [Parameter(Mandatory = $False)] [Alias('List')] [String] $ListPath,
     [Parameter(Mandatory = $False)] [Alias('Mods')] [String] $ModsPath,
     [Parameter(Mandatory = $False)] [Alias('AzureBlobURL')] [String] $AzureBlobSASURL,
@@ -120,7 +120,6 @@ param(
 
 #Include external Functions
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Invoke-ModsProtect.ps1"
-. "$PSScriptRoot\Winget-AutoUpdate\functions\Get-WinGetAvailableVersion.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-WinGet.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-StoreApps.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Add-Shortcut.ps1"
@@ -139,7 +138,7 @@ function Install-Prerequisites {
     if (!($path)) {
         #If -silent option, force installation
         if ($Silent) {
-            $InstallApp = 1
+            $InstallApp = $True
         }
         else {
             #Ask for installation
@@ -148,28 +147,30 @@ function Install-Prerequisites {
             $MsgBoxTimeOut = 60
             $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent, $MsgBoxTimeOut, $MsgBoxTitle, 4 + 32)
             if ($MsgBoxReturn -ne 7) {
-                $InstallApp = 1
-            }
-            else {
-                $InstallApp = 0
+                $InstallApp = $True
             }
         }
         #Install if approved
-        if ($InstallApp -eq 1) {
+        if ($InstallApp) {
             try {
-                if ((Get-CimInStance Win32_OperatingSystem).OSArchitecture -like "*64*") {
+                #Get proc architecture
+                if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+                    $OSArch = "arm64"
+                }
+                elseif ($env:PROCESSOR_ARCHITECTURE -like "*64*") {
                     $OSArch = "x64"
                 }
                 else {
                     $OSArch = "x86"
                 }
-                Write-ToLog "-> Downloading VC_redist.$OSArch.exe..."
+
                 $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
-                $Installer = $WingetUpdatePath + "\VC_redist.$OSArch.exe"
-                $ProgressPreference = 'SilentlyContinue'
+                $Installer = $WAUinstallPath + "\VC_redist.$OSArch.exe"
+                Write-ToLog "-> Downloading VC_redist.$OSArch.exe..."
                 Invoke-WebRequest $SourceURL -UseBasicParsing -OutFile (New-Item -Path $Installer -Force)
                 Write-ToLog "-> Installing VC_redist.$OSArch.exe..."
-                Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
+                Start-Process -FilePath $Installer -Args "/passive /norestart" -Wait
+                Start-Sleep 1
                 Remove-Item $Installer -ErrorAction Ignore
                 Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully`n" "Green"
             }
@@ -187,134 +188,51 @@ function Install-Prerequisites {
     }
 }
 
-function Install-WinGet {
-
-    Write-ToLog "Checking if WinGet is installed/up to date" "Yellow"
-
-    #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
-    $WinGetAvailableVersion = Get-WinGetAvailableVersion
-    if (!$WinGetAvailableVersion) {
-        $WinGetAvailableVersion = "1.6.2771"
-    }
-
-    #Check if WinGet is installed, if not set version to dummy...
-    $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
-    if (!$ResolveWingetPath) {
-        $WinGetInstalledVersion = "0.0.0000"
-    }
-    else {
-        #If multiple version, pick last one
-        $WingetPath = $ResolveWingetPath[-1].Path
-        $WinGetInstalledVersion = & $WingetPath --version
-        $WinGetInstalledVersion = $WinGetInstalledVersion.Replace("v", "")
-    }
-
-    #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
-    if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
-
-        Write-ToLog "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" "Red"
-
-        #Check if $WingetUpdatePath exist
-        if (!(Test-Path $WingetUpdatePath)) {
-            New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
-        }
-
-        #Downloading and Installing Dependencies in SYSTEM context
-        if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.7' -AllUsers)) {
-            Write-ToLog "-> Downloading Microsoft.UI.Xaml.2.7..."
-            $UiXamlUrl = "https://www.nuget.org/api/v2/package/Microsoft.UI.Xaml/2.7.0"
-            $UiXamlZip = "$WingetUpdatePath\Microsoft.UI.XAML.2.7.zip"
-            Invoke-RestMethod -Uri $UiXamlUrl -OutFile $UiXamlZip
-            Expand-Archive -Path $UiXamlZip -DestinationPath "$WingetUpdatePath\extracted" -Force
-            try {
-                Write-ToLog "-> Installing Microsoft.UI.Xaml.2.7..."
-                Add-AppxProvisionedPackage -Online -PackagePath "$WingetUpdatePath\extracted\tools\AppX\x64\Release\Microsoft.UI.Xaml.2.7.appx" -SkipLicense | Out-Null
-                Write-ToLog "-> Microsoft.UI.Xaml.2.7 installed successfully" "Green"
-            }
-            catch {
-                Write-ToLog "-> Failed to intall Wicrosoft.UI.Xaml.2.7..." "Red"
-            }
-            Remove-Item -Path $UiXamlZip -Force
-            Remove-Item -Path "$WingetUpdatePath\extracted" -Force -Recurse
-        }
-
-        if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {
-            Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
-            $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-            $VCLibsFile = "$WingetUpdatePath\Microsoft.VCLibs.x64.14.00.Desktop.appx"
-            Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
-            try {
-                Write-ToLog "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
-                Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
-                Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully." "Green"
-            }
-            catch {
-                Write-ToLog "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." "Red"
-            }
-            Remove-Item -Path $VCLibsFile -Force
-        }
-
-        Update-WinGet $WinGetAvailableVersion $WingetUpdatePath
-
-    }
-    elseif ($WinGetAvailableVersion -match "-pre") {
-        Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release." "Yellow"
-        Update-StoreApps
-    }
-    else {
-        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"
-    }
-}
-
 function Install-WingetAutoUpdate {
 
     Write-ToLog "Installing WAU..." "Yellow"
 
     try {
-        #Copy files to location (and clean old install)
-        if (!(Test-Path $WingetUpdatePath)) {
-            New-Item -ItemType Directory -Force -Path $WingetUpdatePath | Out-Null
+        #Copy files to location
+        if (!(Test-Path $WAUinstallPath)) {
+            New-Item -ItemType Directory -Force -Path $WAUinstallPath | Out-Null
+            Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+            Write-ToLog "-> Running fresh installation..."
+        }
+        elseif ($NoClean) {
+            #Keep critical files
+            Get-ChildItem -Path $WAUinstallPath -Exclude *.txt, mods, logs, icons | Remove-Item -Recurse -Force
+            Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Exclude icons -Recurse -Force -ErrorAction SilentlyContinue #Exclude icons if personalized
+            Write-ToLog "-> Updating previous installation. Keeping critical existing files..."
         }
         else {
-            if (!$NoClean) {
-                Remove-Item -Path "$WingetUpdatePath\*" -Exclude *.log -Recurse -Force
-            }
-            else {
-                #Keep critical files
-                Get-ChildItem -Path $WingetUpdatePath -Exclude *.txt, mods, logs | Remove-Item -Recurse -Force
-            }
+            #Keep logs only
+            Get-ChildItem -Path $WAUinstallPath -Exclude *.logs | Remove-Item -Recurse -Force
+            Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+            Write-ToLog "-> Updating previous installation..."
         }
-        Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
 
         #White List or Black List apps
         if ($UseWhiteList) {
-            if (!$NoClean) {
-                if ((Test-Path "$PSScriptRoot\included_apps.txt")) {
-                    Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
-                }
-                else {
-                    if (!$ListPath) {
-                        New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
-                    }
-                }
+            #If fresh install and "included_apps.txt" exists, copy the list to WAU
+            if ((!$NoClean) -and (Test-Path "$PSScriptRoot\included_apps.txt")) {
+                Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-ToLog "-> Copied a brand new Whitelist."
             }
-            elseif (!(Test-Path "$WingetUpdatePath\included_apps.txt")) {
-                if ((Test-Path "$PSScriptRoot\included_apps.txt")) {
-                    Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
-                }
-                else {
-                    if (!$ListPath) {
-                        New-Item -Path $WingetUpdatePath -Name "included_apps.txt" -ItemType "file" -ErrorAction SilentlyContinue | Out-Null
-                    }
-                }
+            #Else, only copy the "included_apps.txt" list if not existing in WAU
+            elseif (!(Test-Path "$WAUinstallPath\included_apps.txt")) {
+                Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-ToLog "-> No Whitelist was existing. Copied from install sources."
             }
         }
         else {
             if (!$NoClean) {
-                Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+                Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-ToLog "-> Copied brand new Blacklist."
             }
-            elseif (!(Test-Path "$WingetUpdatePath\excluded_apps.txt")) {
-                Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WingetUpdatePath -Recurse -Force -ErrorAction SilentlyContinue
+            elseif (!(Test-Path "$WAUinstallPath\excluded_apps.txt")) {
+                Copy-Item -Path "$PSScriptRoot\excluded_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-ToLog "-> No Blacklist was existing. Copied from install sources."
             }
         }
 
@@ -328,7 +246,7 @@ function Install-WingetAutoUpdate {
         Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
 
         # Settings for the scheduled task for Updates (System)
-        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\winget-upgrade.ps1`""
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUinstallPath)\winget-upgrade.ps1`""
         $taskTriggers = @()
         if ($UpdatesAtLogon) {
             $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
@@ -360,7 +278,7 @@ function Install-WingetAutoUpdate {
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
         # Settings for the scheduled task in User context
-        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-upgrade.ps1`"`""
+        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\winget-upgrade.ps1`"`""
         $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
         # Set up the task for user apps
@@ -368,7 +286,7 @@ function Install-WingetAutoUpdate {
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
         # Settings for the scheduled task for Notifications
-        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\winget-notify.ps1`"`""
+        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\winget-notify.ps1`"`""
         $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
         # Set up the task, and register it
@@ -376,7 +294,7 @@ function Install-WingetAutoUpdate {
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
         # Settings for the GPO scheduled task
-        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WingetUpdatePath)\WAU-Policies.ps1`""
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUinstallPath)\WAU-Policies.ps1`""
         $tasktrigger = New-ScheduledTaskTrigger -Daily -At 6am
         $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
@@ -398,9 +316,9 @@ function Install-WingetAutoUpdate {
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force | Out-Null
         New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
         New-ItemProperty $regPath -Name DisplayVersion -Value $WAUVersion -Force | Out-Null
-        New-ItemProperty $regPath -Name InstallLocation -Value $WingetUpdatePath -Force | Out-Null
-        New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null
-        New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WingetUpdatePath\WAU-Uninstall.ps1`"" -Force | Out-Null
+        New-ItemProperty $regPath -Name InstallLocation -Value $WAUinstallPath -Force | Out-Null
+        New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
+        New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
         New-ItemProperty $regPath -Name NoModify -Value 1 -Force | Out-Null
         New-ItemProperty $regPath -Name NoRepair -Value 1 -Force | Out-Null
         New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force | Out-Null
@@ -453,7 +371,7 @@ function Install-WingetAutoUpdate {
 
         #Security check
         Write-ToLog "Checking Mods Directory:" "Yellow"
-        $Protected = Invoke-ModsProtect "$WingetUpdatePath\mods"
+        $Protected = Invoke-ModsProtect "$WAUinstallPath\mods"
         if ($Protected -eq $True) {
             Write-ToLog "-> The mods directory is now secured!`n" "Green"
         }
@@ -469,13 +387,13 @@ function Install-WingetAutoUpdate {
             if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
                 New-Item -ItemType Directory -Force -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" | Out-Null
             }
-            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Check for updated Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
-            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Open logs.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`" -Logs`"" "${env:SystemRoot}\System32\shell32.dll,-16763" "Open existing WAU logs..."
-            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Web Help.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`" -Help`"" "${env:SystemRoot}\System32\shell32.dll,-24" "Help for WAU..."
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Check for updated Apps.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Open logs.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`" -Logs`"" "${env:SystemRoot}\System32\shell32.dll,-16763" "Open existing WAU logs..."
+            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Web Help.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`" -Help`"" "${env:SystemRoot}\System32\shell32.dll,-24" "Help for WAU..."
         }
 
         if ($DesktopShortcut) {
-            Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WingetUpdatePath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WingetUpdatePath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+            Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
         }
 
         Write-ToLog "WAU Installation succeeded!" "Green"
@@ -548,7 +466,7 @@ function Start-WingetAutoUpdate {
     if (!($DoNotUpdate)) {
         #If -Silent, run Winget-AutoUpdate now
         if ($Silent) {
-            $RunWinget = 1
+            $RunWinget = $True
         }
         #Ask for WingetAutoUpdate
         else {
@@ -557,13 +475,10 @@ function Start-WingetAutoUpdate {
             $MsgBoxTimeOut = 60
             $MsgBoxReturn = (New-Object -ComObject "Wscript.Shell").Popup($MsgBoxContent, $MsgBoxTimeOut, $MsgBoxTitle, 4 + 32)
             if ($MsgBoxReturn -ne 7) {
-                $RunWinget = 1
-            }
-            else {
-                $RunWinget = 0
+                $RunWinget = $True
             }
         }
-        if ($RunWinget -eq 1) {
+        if ($RunWinget) {
             try {
                 Write-ToLog "Running Winget-AutoUpdate..." "Yellow"
                 Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Start-ScheduledTask -ErrorAction SilentlyContinue
@@ -605,7 +520,7 @@ $null = cmd /c '' #Tip for ISE
 $Script:ProgressPreference = 'SilentlyContinue'
 
 #Set install log file
-$Script:LogFile = "$WingetUpdatePath\logs\WAU-Installer.log"
+$Script:LogFile = "$WAUinstallPath\logs\WAU-Installer.log"
 
 Write-Host "`n "
 Write-Host "`t        888       888        d8888  888     888" -ForegroundColor Magenta
@@ -621,9 +536,9 @@ Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n " -Foregroun
 Write-Host "`t________________________________________________________`n `n "
 
 if (!$Uninstall) {
-    Write-ToLog "Installing WAU to $WingetUpdatePath\"
+    Write-ToLog "Installing WAU to $WAUinstallPath\"
     Install-Prerequisites
-    Install-WinGet
+    Update-Winget
     Install-WingetAutoUpdate
 }
 else {
@@ -631,8 +546,8 @@ else {
     Uninstall-WingetAutoUpdate
 }
 
-if (Test-Path "$WingetUpdatePath\Version.txt") {
-    Remove-Item "$WingetUpdatePath\Version.txt" -Force
+if (Test-Path "$WAUinstallPath\Version.txt") {
+    Remove-Item "$WAUinstallPath\Version.txt" -Force
 }
 
 Write-ToLog "End of process." "Cyan"

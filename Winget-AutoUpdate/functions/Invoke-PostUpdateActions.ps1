@@ -17,35 +17,8 @@ function Invoke-PostUpdateActions {
         $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
     }
 
-    Write-ToLog "-> Checking if WinGet is installed/up to date" "yellow"
-
-    #Check available WinGet version, if fail set version to the latest version as of 2023-10-08
-    $WinGetAvailableVersion = Get-WinGetAvailableVersion
-    if (!$WinGetAvailableVersion) {
-        $WinGetAvailableVersion = "1.6.2771"
-    }
-
-    #Check installed WinGet version
-    $ResolveWingetPath = Resolve-Path "$env:programfiles\WindowsApps\Microsoft.DesktopAppInstaller_*_*__8wekyb3d8bbwe\winget.exe" | Sort-Object { [version]($_.Path -replace '^[^\d]+_((\d+\.)*\d+)_.*', '$1') }
-    if ($ResolveWingetPath) {
-        #If multiple version, pick last one
-        $WingetPath = $ResolveWingetPath[-1].Path
-        $WinGetInstalledVersion = & $WingetPath --version
-        $WinGetInstalledVersion = $WinGetInstalledVersion.Replace("v", "")
-    }
-
-    #Check if the current available WinGet isn't a Pre-release and if it's newer than the installed
-    if (!($WinGetAvailableVersion -match "-pre") -and ($WinGetAvailableVersion -gt $WinGetInstalledVersion)) {
-        Write-ToLog "-> WinGet is not installed/up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available:" "red"
-        Update-WinGet $WinGetAvailableVersion $($WAUConfig.InstallLocation)
-    }
-    elseif ($WinGetAvailableVersion -match "-pre") {
-        Write-ToLog "-> WinGet is probably up to date (v$WinGetInstalledVersion) - v$WinGetAvailableVersion is available but only as a Pre-release" "yellow"
-        Update-StoreApps
-    }
-    else {
-        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "green"
-    }
+    #Update Winget if not up to date
+    Update-WinGet
 
     #Create WAU Regkey if not present
     $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
@@ -151,6 +124,7 @@ function Invoke-PostUpdateActions {
         "$WorkingDir\functions\Get-WAUCurrentVersion.ps1",
         "$WorkingDir\functions\Get-WAUUpdateStatus.ps1",
         "$WorkingDir\functions\Write-Log.ps1",
+        "$WorkingDir\functions\Get-WinGetAvailableVersion.ps1",
         "$WorkingDir\Version.txt"
     )
     foreach ($FileName in $FileNames) {
@@ -163,15 +137,11 @@ function Invoke-PostUpdateActions {
     }
 
     #Remove old registry key
-    $RegistryKeys = @(
-        "VersionMajor",
-        "VersionMinor"
-    )
-    foreach ($RegistryKey in $RegistryKeys) {
-        if (Get-ItemProperty -Path $regPath -Name $RegistryKey -ErrorAction SilentlyContinue) {
-            Remove-ItemProperty -Path $regPath -Name $RegistryKey
-        }
-    }
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "VersionMajor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "VersionMinor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "VersionMajor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "VersionMinor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "DisplayVersion" -ErrorAction SilentlyContinue
 
     #Activate WAU in user context if previously configured (as "Winget-AutoUpdate-UserContext" at root)
     $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath '\' -ErrorAction SilentlyContinue

@@ -10,6 +10,9 @@ https://github.com/Romanitho/Winget-AutoUpdate
 .PARAMETER Silent
 Install Winget-AutoUpdate and prerequisites silently
 
+.PARAMETER Update
+Update Winget-AutoUpdate. WAU must be installed.
+
 .PARAMETER MaxLogFiles
 Specify number of allowed log files (Default is 3 of 0-99: Setting MaxLogFiles to 0 don't delete any old archived log files, 1 keeps the original one and just let it grow)
 
@@ -102,6 +105,7 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $RunOnMetered = $false,
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false,
     [Parameter(Mandatory = $False)] [Switch] $NoClean = $false,
+    [Parameter(Mandatory = $False)] [Switch] $Update = $false,
     [Parameter(Mandatory = $False)] [Switch] $DesktopShortcut = $false,
     [Parameter(Mandatory = $False)] [Switch] $StartMenuShortcut = $false,
     [Parameter(Mandatory = $False)] [Switch] $UseWhiteList = $false,
@@ -240,164 +244,168 @@ function Install-WingetAutoUpdate {
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v DisplayName /t REG_EXPAND_SZ /d "Application Update" /f | Out-Null
         & reg add "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /v IconUri /t REG_EXPAND_SZ /d %SystemRoot%\system32\@WindowsUpdateToastIcon.png /f | Out-Null
 
-        # Clean potential old install
-        Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-        Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-        Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+        if (!$Update) {
+            # Clean potential old install
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
 
-        # Settings for the scheduled task for Updates (System)
-        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUinstallPath)\winget-upgrade.ps1`""
-        $taskTriggers = @()
-        if ($UpdatesAtLogon) {
-            $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
-        }
-        if ($UpdatesInterval -eq "Daily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $UpdatesAtTime
-        }
-        elseif ($UpdatesInterval -eq "BiDaily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $UpdatesAtTime -DaysInterval 2
-        }
-        elseif ($UpdatesInterval -eq "Weekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2
-        }
-        elseif ($UpdatesInterval -eq "BiWeekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2
-        }
-        elseif ($UpdatesInterval -eq "Monthly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
-        }
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
-        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-        # Set up the task, and register it
-        if ($taskTriggers) {
-            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
-        }
-        else {
-            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        }
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
-
-        # Settings for the scheduled task in User context
-        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\winget-upgrade.ps1`"`""
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
-        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-        # Set up the task for user apps
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
-
-        # Settings for the scheduled task for Notifications
-        $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\winget-notify.ps1`"`""
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
-        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
-        # Set up the task, and register it
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
-
-        # Settings for the GPO scheduled task
-        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUinstallPath)\WAU-Policies.ps1`""
-        $tasktrigger = New-ScheduledTaskTrigger -Daily -At 6am
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
-        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
-        # Set up the task, and register it
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTrigger
-        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Policies' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
-
-        #Set task readable/runnable for all users
-        $scheduler = New-Object -ComObject "Schedule.Service"
-        $scheduler.Connect()
-        $task = $scheduler.GetFolder("WAU").GetTask("Winget-AutoUpdate")
-        $sec = $task.GetSecurityDescriptor(0xF)
-        $sec = $sec + '(A;;GRGX;;;AU)'
-        $task.SetSecurityDescriptor($sec, 0)
-
-        # Configure Reg Key
-        $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
-        New-Item $regPath -Force | Out-Null
-        New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force | Out-Null
-        New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
-        New-ItemProperty $regPath -Name DisplayVersion -Value $WAUVersion -Force | Out-Null
-        New-ItemProperty $regPath -Name InstallLocation -Value $WAUinstallPath -Force | Out-Null
-        New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
-        New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
-        New-ItemProperty $regPath -Name NoModify -Value 1 -Force | Out-Null
-        New-ItemProperty $regPath -Name NoRepair -Value 1 -Force | Out-Null
-        New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force | Out-Null
-        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force | Out-Null
-        New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force | Out-Null
-        if ($WAUVersion -match "-") {
-            New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 1 -PropertyType DWord -Force | Out-Null
-        }
-        else {
-            New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force | Out-Null
-        }
-        New-ItemProperty $regPath -Name WAU_PostUpdateActions -Value 0 -PropertyType DWord -Force | Out-Null
-        New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value $MaxLogFiles -PropertyType DWord -Force | Out-Null
-        New-ItemProperty $regPath -Name WAU_MaxLogSize -Value $MaxLogSize -PropertyType DWord -Force | Out-Null
-        New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $UpdatesAtTime -Force | Out-Null
-        New-ItemProperty $regPath -Name WAU_UpdatesInterval -Value $UpdatesInterval -Force | Out-Null
-        if ($UpdatesAtLogon) {
-            New-ItemProperty $regPath -Name WAU_UpdatesAtLogon -Value 1 -PropertyType DWord -Force | Out-Null
-        }
-        if ($DisableWAUAutoUpdate) {
-            New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force | Out-Null
-        }
-        if ($UseWhiteList) {
-            New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force | Out-Null
-        }
-        if (!$RunOnMetered) {
-            New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value 1 -PropertyType DWord -Force | Out-Null
-        }
-        if ($ListPath) {
-            New-ItemProperty $regPath -Name WAU_ListPath -Value $ListPath -Force | Out-Null
-        }
-        if ($ModsPath) {
-            New-ItemProperty $regPath -Name WAU_ModsPath -Value $ModsPath -Force | Out-Null
-        }
-        if ($AzureBlobSASURL) {
-            New-ItemProperty $regPath -Name WAU_AzureBlobSASURL -Value $AzureBlobSASURL -Force | Out-Null
-        }
-        if ($BypassListForUsers) {
-            New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
-        }
-        if ($InstallUserContext) {
-            New-ItemProperty $regPath -Name WAU_UserContext -Value 1 -PropertyType DWord -Force | Out-Null
-        }
-        if ($DesktopShortcut) {
-            New-ItemProperty $regPath -Name WAU_DesktopShortcut -Value 1 -PropertyType DWord -Force | Out-Null
-        }
-        if ($StartMenuShortcut) {
-            New-ItemProperty $regPath -Name WAU_StartMenuShortcut -Value 1 -PropertyType DWord -Force | Out-Null
-        }
-
-        #Security check
-        Write-ToLog "Checking Mods Directory:" "Yellow"
-        $Protected = Invoke-ModsProtect "$WAUinstallPath\mods"
-        if ($Protected -eq $True) {
-            Write-ToLog "-> The mods directory is now secured!`n" "Green"
-        }
-        elseif ($Protected -eq $False) {
-            Write-ToLog "-> The mods directory was already secured!`n" "Green"
-        }
-        else {
-            Write-ToLog "-> Error: The mods directory couldn't be verified as secured!`n" "Red"
-        }
-
-        #Create Shortcuts
-        if ($StartMenuShortcut) {
-            if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
-                New-Item -ItemType Directory -Force -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" | Out-Null
+            # Settings for the scheduled task for Updates (System)
+            $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUinstallPath)\winget-upgrade.ps1`""
+            $taskTriggers = @()
+            if ($UpdatesAtLogon) {
+                $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
             }
-            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Check for updated Apps.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
-            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Open logs.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`" -Logs`"" "${env:SystemRoot}\System32\shell32.dll,-16763" "Open existing WAU logs..."
-            Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Web Help.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`" -Help`"" "${env:SystemRoot}\System32\shell32.dll,-24" "Help for WAU..."
-        }
+            if ($UpdatesInterval -eq "Daily") {
+                $tasktriggers += New-ScheduledTaskTrigger -Daily -At $UpdatesAtTime
+            }
+            elseif ($UpdatesInterval -eq "BiDaily") {
+                $tasktriggers += New-ScheduledTaskTrigger -Daily -At $UpdatesAtTime -DaysInterval 2
+            }
+            elseif ($UpdatesInterval -eq "Weekly") {
+                $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2
+            }
+            elseif ($UpdatesInterval -eq "BiWeekly") {
+                $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2
+            }
+            elseif ($UpdatesInterval -eq "Monthly") {
+                $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
+            }
+            $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
+            $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+            # Set up the task, and register it
+            if ($taskTriggers) {
+                $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
+            }
+            else {
+                $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+            }
+            Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
-        if ($DesktopShortcut) {
-            Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
-        }
+            # Settings for the scheduled task in User context
+            $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\winget-upgrade.ps1`"`""
+            $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+            $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
+            # Set up the task for user apps
+            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+            Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
-        Write-ToLog "WAU Installation succeeded!" "Green"
-        Start-sleep 1
+            # Settings for the scheduled task for Notifications
+            $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\winget-notify.ps1`"`""
+            $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+            $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
+            # Set up the task, and register it
+            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+            Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
+
+            # Settings for the GPO scheduled task
+            $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUinstallPath)\WAU-Policies.ps1`""
+            $tasktrigger = New-ScheduledTaskTrigger -Daily -At 6am
+            $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
+            $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
+            # Set up the task, and register it
+            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTrigger
+            Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Policies' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
+
+            #Set task readable/runnable for all users
+            $scheduler = New-Object -ComObject "Schedule.Service"
+            $scheduler.Connect()
+            $task = $scheduler.GetFolder("WAU").GetTask("Winget-AutoUpdate")
+            $sec = $task.GetSecurityDescriptor(0xF)
+            $sec = $sec + '(A;;GRGX;;;AU)'
+            $task.SetSecurityDescriptor($sec, 0)
+
+            # Configure Reg Key
+            New-Item $regPath -Force | Out-Null
+            New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force | Out-Null
+            New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
+            New-ItemProperty $regPath -Name DisplayVersion -Value $WAUVersion -Force | Out-Null
+            New-ItemProperty $regPath -Name InstallLocation -Value $WAUinstallPath -Force | Out-Null
+            New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
+            New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
+            New-ItemProperty $regPath -Name NoModify -Value 1 -Force | Out-Null
+            New-ItemProperty $regPath -Name NoRepair -Value 1 -Force | Out-Null
+            New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force | Out-Null
+            New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force | Out-Null
+            New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force | Out-Null
+            if ($WAUVersion -match "-") {
+                New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 1 -PropertyType DWord -Force | Out-Null
+            }
+            else {
+                New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force | Out-Null
+            }
+            New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value $MaxLogFiles -PropertyType DWord -Force | Out-Null
+            New-ItemProperty $regPath -Name WAU_MaxLogSize -Value $MaxLogSize -PropertyType DWord -Force | Out-Null
+            New-ItemProperty $regPath -Name WAU_UpdatesAtTime -Value $UpdatesAtTime -Force | Out-Null
+            New-ItemProperty $regPath -Name WAU_UpdatesInterval -Value $UpdatesInterval -Force | Out-Null
+            if ($UpdatesAtLogon) {
+                New-ItemProperty $regPath -Name WAU_UpdatesAtLogon -Value 1 -PropertyType DWord -Force | Out-Null
+            }
+            if ($DisableWAUAutoUpdate) {
+                New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force | Out-Null
+            }
+            if ($UseWhiteList) {
+                New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force | Out-Null
+            }
+            if (!$RunOnMetered) {
+                New-ItemProperty $regPath -Name WAU_DoNotRunOnMetered -Value 1 -PropertyType DWord -Force | Out-Null
+            }
+            if ($ListPath) {
+                New-ItemProperty $regPath -Name WAU_ListPath -Value $ListPath -Force | Out-Null
+            }
+            if ($ModsPath) {
+                New-ItemProperty $regPath -Name WAU_ModsPath -Value $ModsPath -Force | Out-Null
+            }
+            if ($AzureBlobSASURL) {
+                New-ItemProperty $regPath -Name WAU_AzureBlobSASURL -Value $AzureBlobSASURL -Force | Out-Null
+            }
+            if ($BypassListForUsers) {
+                New-ItemProperty $regPath -Name WAU_BypassListForUsers -Value 1 -PropertyType DWord -Force | Out-Null
+            }
+            if ($InstallUserContext) {
+                New-ItemProperty $regPath -Name WAU_UserContext -Value 1 -PropertyType DWord -Force | Out-Null
+            }
+            if ($DesktopShortcut) {
+                New-ItemProperty $regPath -Name WAU_DesktopShortcut -Value 1 -PropertyType DWord -Force | Out-Null
+            }
+            if ($StartMenuShortcut) {
+                New-ItemProperty $regPath -Name WAU_StartMenuShortcut -Value 1 -PropertyType DWord -Force | Out-Null
+            }
+
+            #Security check
+            Write-ToLog "Checking Mods Directory:" "Yellow"
+            $Protected = Invoke-ModsProtect "$WAUinstallPath\mods"
+            if ($Protected -eq $True) {
+                Write-ToLog "-> The mods directory is now secured!`n" "Green"
+            }
+            elseif ($Protected -eq $False) {
+                Write-ToLog "-> The mods directory was already secured!`n" "Green"
+            }
+            else {
+                Write-ToLog "-> Error: The mods directory couldn't be verified as secured!`n" "Red"
+            }
+
+            #Create Shortcuts
+            if ($StartMenuShortcut) {
+                if (!(Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
+                    New-Item -ItemType Directory -Force -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" | Out-Null
+                }
+                Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Check for updated Apps.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+                Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Open logs.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`" -Logs`"" "${env:SystemRoot}\System32\shell32.dll,-16763" "Open existing WAU logs..."
+                Add-Shortcut "wscript.exe" "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)\WAU - Web Help.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`" -Help`"" "${env:SystemRoot}\System32\shell32.dll,-24" "Help for WAU..."
+            }
+
+            if ($DesktopShortcut) {
+                Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
+            }
+
+            Write-ToLog "WAU Installation succeeded!" "Green"
+            Start-sleep 1
+        }
+        else {
+            Write-ToLog "WAU Update succeeded!" "Green"
+            Start-sleep 1
+        }
 
         #Run Winget ?
         Start-WingetAutoUpdate
@@ -534,6 +542,22 @@ Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n " -ForegroundColo
 Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n " -ForegroundColor Cyan
 Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n " -ForegroundColor Magenta
 Write-Host "`t________________________________________________________`n `n "
+
+#Define WAU registry key
+$Script:regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+
+if ($Update) {
+    if (Test-Path $regPath) {
+        #If 'Update' argument is set, force 'Silent' and 'NoClean' to 'True'
+        $Silent = $True
+        $NoClean = $True
+    }
+    else {
+        Write-ToLog "Winget-AutoUpdate not detected. Please run installer without Update argument." "Red"
+        Start-Sleep 3
+        Exit 1
+    }
+}
 
 if (!$Uninstall) {
     Write-ToLog "Installing WAU to $WAUinstallPath\"

@@ -220,7 +220,7 @@ function Install-WingetAutoUpdate {
                 Write-ToLog "-> Copied a brand new Whitelist."
             }
             #Else, only copy the "included_apps.txt" list if not existing in WAU
-            elseif (Test-Path "$WAUinstallPath\included_apps.txt") {
+            elseif (!(Test-Path "$WAUinstallPath\included_apps.txt")) {
                 Copy-Item -Path "$PSScriptRoot\included_apps.txt" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
                 Write-ToLog "-> No Whitelist was existing. Copied from install sources."
             }

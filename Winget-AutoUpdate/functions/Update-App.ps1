@@ -30,12 +30,12 @@ Function Update-App ($app) {
 
     #Run Winget Upgrade command
     if ($ModsOverride) {
-        Write-ToLog "-> Running (overriding default): Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride"
-        & $Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        Write-ToLog "-> Running (overriding default): Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride"
+        & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
     }
     else {
-        Write-ToLog "-> Running: Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h"
-        & $Winget upgrade --id $($app.Id) --accept-package-agreements --accept-source-agreements -h | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        Write-ToLog "-> Running: Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h"
+        & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
     }
 
     if ($ModsUpgrade) {
@@ -61,12 +61,12 @@ Function Update-App ($app) {
         Write-ToLog "-> An upgrade for $($app.Name) failed, now trying an install instead..." "Yellow"
 
         if ($ModsOverride) {
-            Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force --override $ModsOverride"
-            & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+            Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride"
+            & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
         }
         else {
-            Write-ToLog "-> Running: Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force -h"
-            & $Winget install --id $($app.Id) --accept-package-agreements --accept-source-agreements --force -h | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+            Write-ToLog "-> Running: Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force"
+            & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
         }
 
         if ($ModsInstall) {

@@ -62,7 +62,7 @@ By default, scripts and components will be placed in ProgramData location (insid
 ## GUI installation
 [WiGui](https://github.com/Romanitho/Winget-Install-GUI/) can be used to install WAU even easier:
 
-<img src="https://user-images.githubusercontent.com/96626929/167912772-de5a55fe-68a8-44ed-91fb-fcf5b34d891f.png" width="400">
+<img src="https://github.com/Romanitho/Winget-AutoUpdate/assets/96626929/94edde1c-9723-4a26-8410-c8663861f0cf" width="450">
 
 ## Update WAU
 ### Manual Update

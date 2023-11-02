@@ -47,7 +47,7 @@ function Uninstall-WingetID ($WingetIDUninst) {
     Return
 }
 
-function Uninstall-ModsApp ($AppUninst) {
+function Uninstall-ModsApp ($AppUninst, $AllVersions) {
     foreach ($app in $AppUninst) {
         $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
         foreach ($obj in $InstalledSoftware) {
@@ -101,7 +101,9 @@ function Uninstall-ModsApp ($AppUninst) {
                     }
                 }
                 $x64 = $true
-                break
+                if (!$AllVersions) {
+                    break
+                }
             }
         }
         if (!$x64) {
@@ -156,7 +158,9 @@ function Uninstall-ModsApp ($AppUninst) {
                             }
                         }
                     }
-                    break
+                    if (!$AllVersions) {
+                        break
+                    }
                 }
             }
         }
@@ -232,13 +236,21 @@ function Grant-ModsPath ($GrantPath) {
             $NewAcl = Get-Acl -Path $path
             $identity = New-Object System.Security.Principal.SecurityIdentifier S-1-5-11
             if ((Get-Item $path) -is [System.IO.DirectoryInfo]) {
-                $fileSystemAccessRuleArgumentList = $identity, 'Modify', 'ContainerInherit, ObjectInherit', 'InheritOnly', 'Allow'
+                $fileSystemAccessRuleArgumentList = $identity, 'Modify', 'ContainerInherit, ObjectInherit', 'None', 'Allow'
             }
             else {
                 $fileSystemAccessRuleArgumentList = $identity, 'Modify', 'Allow'
             }
             $fileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $fileSystemAccessRuleArgumentList
             $NewAcl.SetAccessRule($fileSystemAccessRule)
+
+            # Grant delete permissions to subfolders and files
+            $inheritanceFlag = [System.Security.AccessControl.InheritanceFlags]::ContainerInherit -bor [System.Security.AccessControl.InheritanceFlags]::ObjectInherit
+            $propagationFlag = [System.Security.AccessControl.PropagationFlags]::InheritOnly
+            $deleteAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $identity, 'Delete', $inheritanceFlag, $propagationFlag, 'Allow'
+            $NewAcl.AddAccessRule($deleteAccessRule)
+
+
             Set-Acl -Path $path -AclObject $NewAcl
         }
     }

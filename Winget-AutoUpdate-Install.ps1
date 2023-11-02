@@ -562,8 +562,14 @@ if ($Update) {
 if (!$Uninstall) {
     Write-ToLog "Installing WAU to $WAUinstallPath\"
     Install-Prerequisites
-    Update-Winget
-    Install-WingetAutoUpdate
+    $UpdateWinget = Update-Winget
+    if ($UpdateWinget -ne "fail") {
+        Write-Host "`r" #Extra Line in console only
+        Install-WingetAutoUpdate
+    }
+    else {
+        Write-ToLog "Winget is mandatory to execute WAU." "Red"
+    }
 }
 else {
     Write-ToLog "Uninstalling WAU..."

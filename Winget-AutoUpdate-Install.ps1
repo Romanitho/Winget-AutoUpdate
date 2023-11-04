@@ -509,7 +509,7 @@ function Start-WingetAutoUpdate {
 <# APP INFO #>
 
 #Set WAU version
-$WAUVersion = Get-Content "$PSScriptRoot\Winget-AutoUpdate\Version.txt" -ErrorAction SilentlyContinue
+$WAUVersion = (Get-Content "$PSScriptRoot\Winget-AutoUpdate\Version.txt" -ErrorAction SilentlyContinue).Trim()
 
 #Define WAU registry key
 $Script:regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"

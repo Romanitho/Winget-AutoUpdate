@@ -90,7 +90,6 @@ Configure WAU to bypass the Black/White list when run in user context. Applicati
 
 .EXAMPLE
 .\Winget-AutoUpdate-Install.ps1 -Silent -Uninstall -NoClean
-
 #>
 
 [CmdletBinding()]
@@ -118,6 +117,7 @@ param(
     [Parameter(Mandatory = $False)] [ValidateRange(0, 99)] [int32] $MaxLogFiles = 3,
     [Parameter(Mandatory = $False)] [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
 )
+
 
 
 <# FUNCTIONS #>
@@ -505,9 +505,15 @@ function Start-WingetAutoUpdate {
 }
 
 
+
 <# APP INFO #>
 
+#Set WAU version
 $WAUVersion = Get-Content "$PSScriptRoot\Winget-AutoUpdate\Version.txt" -ErrorAction SilentlyContinue
+
+#Define WAU registry key
+$Script:regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+
 
 
 <# MAIN #>
@@ -523,12 +529,7 @@ if ("$env:PROCESSOR_ARCHITEW6432" -ne "ARM64") {
 #Config console output encoding
 $null = cmd /c '' #Tip for ISE
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-
-# Workaround for ARM64 (Access Denied / Win32 internal Server error)
 $Script:ProgressPreference = 'SilentlyContinue'
-
-#Set install log file
-$Script:LogFile = "$WAUinstallPath\logs\WAU-Installer.log"
 
 Write-Host "`n "
 Write-Host "`t        888       888        d8888  888     888" -ForegroundColor Magenta
@@ -543,8 +544,8 @@ Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n " -ForegroundColo
 Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n " -ForegroundColor Magenta
 Write-Host "`t________________________________________________________`n `n "
 
-#Define WAU registry key
-$Script:regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+#Set install log file
+$Script:LogFile = "$WAUinstallPath\logs\WAU-Installer.log"
 
 if ($Update) {
     if (Test-Path $regPath) {

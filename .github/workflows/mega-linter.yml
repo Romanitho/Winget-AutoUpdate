@@ -55,6 +55,7 @@ jobs:
           DISABLE_ERRORS_LINTERS: REPOSITORY_DEVSKIM,REPOSITORY_CHECKOV,REPOSITORY_GIT_DIFF,SPELL_CSPELL,SPELL_PROSELINT,COPYPASTE_JSCPD,MARKDOWN_MARKDOWN_LINK_CHECK
           FILTER_REGEX_EXCLUDE: (workflows/)
           REPOSITORY_TRUFFLEHOG_DISABLE_ERRORS_IF_LESS_THAN: 2
+          REPORT_OUTPUT_FOLDER: none #set due to https://github.com/oxsecurity/megalinter/issues/1975
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts

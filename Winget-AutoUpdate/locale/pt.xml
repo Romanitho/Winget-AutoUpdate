@@ -14,7 +14,7 @@
 		</output>
 		<output id="2">
 			<!--{App} will be updated-->
-			<title>¡{0} será atualizado!</title>
+			<title>{0} será atualizado!</title>
 			<!--{v1.0} to {v2.0}-->
 			<message>{0} para {1}</message>
 		</output>
@@ -26,7 +26,7 @@
 		</output>
 		<output id="4">
 			<!--{App} could not be updated-->
-			<title>!{0} não pôde ser atualizado!</title>
+			<title>{0} não pôde ser atualizado!</title>
 			<!--Please contact support-->
 			<message>Entre em contato com o suporte.</message>
 		</output>

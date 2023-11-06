@@ -28,35 +28,35 @@
 			<!--{App} could not be updated-->
 			<title>Nie można zaktualizować {0}!</title>
 			<!--Please contact support-->
-			<message>Skontaktuj się z pomocą techniczną.</message>
+			<message>Skontaktuj się proszę z pomocą techniczną.</message>
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Logs are not available yet!</message>
+			<message>Pliki dziennika nie są jeszcze dostępne!</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Starting a manual check for updated apps...</message>
+			<message>Rozpoczyna się zainicjowany ręcznie proces wyszukiwania aktualizacji...</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Couldn't start a manual check for updated apps!</message>
+			<message>Zainicjowany ręcznie proces wyszukiwania aktualizacji nie mógł zostać rozpoczęty!</message>
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->
-			<message>Check for updated apps already running...</message>
+			<message>Proces wyszukiwania aktualizacji już trwa...</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Manual check for updated apps completed...</message>
+			<message>Proces wyszukiwania aktualizacji zakończył się...</message>
 		</output>
 		<output id="10">
 			<!--See changelog-->
-			<message>See changelog</message>
+			<message>Przeczytaj listę zmian</message>
 		</output>
 		<output id="11">
 			<!--Open log file-->
-			<message>Open log file</message>
+			<message>Otwórz plik dziennika</message>
 		</output>
 	</outputs>
 </local>

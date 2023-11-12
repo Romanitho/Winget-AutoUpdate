@@ -17,11 +17,15 @@ function Test-Network {
             $ncsiHost = "www.msftconnecttest.com"
             $ncsiPath = "connecttest.txt"
             $ncsiContent = "Microsoft Connect Test"
-        } finally {
-            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing
         }
         
-        if (($ncsiResponse.StatusCode -eq 200) -and ($ncsiResponse.content -eq $ncsiContent)) {
+        try {
+            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing
+        } catch {
+            $ncsiResponse = $false
+        }
+
+        if (($ncsiResponse) -and ($ncsiResponse.StatusCode -eq 200) -and ($ncsiResponse.content -eq $ncsiContent)) {
             Write-ToLog "Connected !" "Green"
 
             #Check for metered connection

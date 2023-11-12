@@ -9,11 +9,19 @@ function Test-Network {
     Write-ToLog "Checking internet connection..." "Yellow"
     While ($timeout -lt 1800) {
 
-        $URLtoTest = "https://raw.githubusercontent.com/Romanitho/Winget-AutoUpdate/main/LICENSE"
-        $URLcontent = ((Invoke-WebRequest -URI $URLtoTest -UseBasicParsing).content)
-
-        if ($URLcontent -like "*MIT License*") {
-
+        try {
+            $ncsiHost = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbeHost
+            $ncsiPath = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbePath
+            $ncsiContent = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbeContent
+        } catch {
+            $ncsiHost = "www.msftconnecttest.com"
+            $ncsiPath = "connecttest.txt"
+            $ncsiContent = "Microsoft Connect Test"
+        } finally {
+            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing
+        }
+        
+        if (($ncsiResponse.StatusCode -eq 200) -and ($ncsiResponse.content -eq $ncsiContent)) {
             Write-ToLog "Connected !" "Green"
 
             #Check for metered connection

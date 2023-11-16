@@ -130,6 +130,7 @@ function Invoke-PostUpdateActions {
         "$WorkingDir\functions\Get-WAUUpdateStatus.ps1",
         "$WorkingDir\functions\Write-Log.ps1",
         "$WorkingDir\functions\Get-WinGetAvailableVersion.ps1",
+        "$WorkingDir\functions\Invoke-ModsProtect.ps1",
         "$WorkingDir\Version.txt"
     )
     foreach ($FileName in $FileNames) {

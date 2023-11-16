@@ -119,7 +119,7 @@ param(
 <# FUNCTIONS #>
 
 #Include external Functions
-. "$PSScriptRoot\Winget-AutoUpdate\functions\Invoke-ModsProtect.ps1"
+. "$PSScriptRoot\Winget-AutoUpdate\functions\Invoke-DirProtect.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-WinGet.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Update-StoreApps.ps1"
 . "$PSScriptRoot\Winget-AutoUpdate\functions\Add-Shortcut.ps1"
@@ -371,15 +371,20 @@ function Install-WingetAutoUpdate {
 
         #Security check
         Write-ToLog "Checking Mods Directory:" "Yellow"
-        $Protected = Invoke-ModsProtect "$WAUinstallPath\mods"
+        $Protected = Invoke-DirProtect "$WAUinstallPath\mods"
         if ($Protected -eq $True) {
-            Write-ToLog "-> The mods directory is now secured!`n" "Green"
-        }
-        elseif ($Protected -eq $False) {
-            Write-ToLog "-> The mods directory was already secured!`n" "Green"
+            Write-ToLog "-> The mods directory is secured!`n" "Green"
         }
         else {
             Write-ToLog "-> Error: The mods directory couldn't be verified as secured!`n" "Red"
+        }
+        Write-ToLog "Checking Functions Directory:" "Yellow"
+        $Protected = Invoke-DirProtect "$WAUinstallPath\Functions"
+        if ($Protected -eq $True) {
+            Write-ToLog "-> The Functions directory is secured!`n" "Green"
+        }
+        else {
+            Write-ToLog "-> Error: The Functions directory couldn't be verified as secured!`n" "Red"
         }
 
         #Create Shortcuts

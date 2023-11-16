@@ -1,94 +1,44 @@
 #Function to check the connectivity
+# rewritten to use INetworkListManager interface
+# https://learn.microsoft.com/en-us/windows/win32/api/netlistmgr/nn-netlistmgr-inetworklistmanager?redirectedfrom=MSDN#methods
+# UTF-8-BOM encoded
 
 function Test-Network {
-
-    #Init
-    $timeout = 0
-
-    #Test connectivity during 30 min then timeout
     Write-ToLog "Checking internet connection..." "Yellow"
-    While ($timeout -lt 1800) {
+    $NetworkListManager = [Activator]::CreateInstance([Type]::GetTypeFromCLSID(‘DCB00C01-570F-4A9B-8D69-199FDBA5723B’));
+    if($NetworkListManager.IsConnectedToInternet)
+    {
+        Write-ToLog "Connected!" "Green";
 
-        try {
-            $ncsiHost = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbeHost
-            $ncsiPath = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbePath
-            $ncsiContent = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbeContent
-        } catch {
-            $ncsiHost = "www.msftconnecttest.com"
-            $ncsiPath = "connecttest.txt"
-            $ncsiContent = "Microsoft Connect Test"
-        }
-        
-        try {
-            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing
-        } catch {
-            $ncsiResponse = $false
-        }
-
-        if (($ncsiResponse) -and ($ncsiResponse.StatusCode -eq 200) -and ($ncsiResponse.content -eq $ncsiContent)) {
-            Write-ToLog "Connected !" "Green"
-
-            #Check for metered connection
-            [void][Windows.Networking.Connectivity.NetworkInformation, Windows, ContentType = WindowsRuntime]
-            $cost = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile().GetConnectionCost()
-
-            if ($cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or ($cost.NetworkCostType -ne "Unrestricted")) {
-
-                Write-ToLog "Metered connection detected." "Yellow"
-
-                if ($WAUConfig.WAU_DoNotRunOnMetered -eq 1) {
-
-                    Write-ToLog "WAU is configured to bypass update checking on metered connection"
-                    return $false
-
-                }
-                else {
-
-                    Write-ToLog "WAU is configured to force update checking on metered connection"
-                    return $true
-
-                }
-
+        #Check for metered connection
+        [void][Windows.Networking.Connectivity.NetworkInformation, Windows, ContentType = WindowsRuntime]
+        $cost = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile().GetConnectionCost()
+        if ($cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or ($cost.NetworkCostType -ne "Unrestricted")) 
+        {
+            Write-ToLog "Metered connection detected." "Yellow"
+            $DoNotRunOnMetered = $WAUConfig.WAU_DoNotRunOnMetered -eq 1;
+            if ($DoNotRunOnMetered) 
+            {
+                Write-ToLog "WAU is configured to bypass update checking on metered connection" "Yellow"
             }
-            else {
-
-                return $true
-
+            else 
+            {
+                Write-ToLog "WAU is configured to force update checking on metered connection" "Yellow"
             }
-
+            return !$DoNotRunOnMetered;
         }
-        else {
-
-            Start-Sleep 10
-            $timeout += 10
-
-            #Send Warning Notif if no connection for 5 min
-            if ($timeout -eq 300) {
-                #Log
-                Write-ToLog "Notify 'No connection' sent." "Yellow"
-
-                #Notif
-                $Title = $NotifLocale.local.outputs.output[0].title
-                $Message = $NotifLocale.local.outputs.output[0].message
-                $MessageType = "warning"
-                $Balise = "Connection"
-                Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise
-            }
-
-        }
-
     }
+    else
+    {
+        #Send Timeout Notif if no connection
+        Write-ToLog "No internet connection!" "Red"
 
-    #Send Timeout Notif if no connection for 30 min
-    Write-ToLog "Timeout. No internet connection !" "Red"
-
-    #Notif
-    $Title = $NotifLocale.local.outputs.output[1].title
-    $Message = $NotifLocale.local.outputs.output[1].message
-    $MessageType = "error"
-    $Balise = "Connection"
-    Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise
-
-    return $false
-
+        #Notification for user shall be sent via scheduled task with popup
+        $Title = $Script:NotifLocale.local.outputs.output[1].title
+        $Message = $Script:NotifLocale.local.outputs.output[1].message
+        $MessageType = "error"
+        $Balise = "Connection"
+        Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise;
+    }
+    return $NetworkListManager.IsConnectedToInternet;
 }

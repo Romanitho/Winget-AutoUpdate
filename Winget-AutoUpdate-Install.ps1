@@ -172,7 +172,7 @@ function Install-Prerequisites {
                 Start-Process -FilePath $Installer -Args "/passive /norestart" -Wait
                 Start-Sleep 1
                 Remove-Item $Installer -ErrorAction Ignore
-                Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully`n" "Green"
+                Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully`n" "Cyan"
             }
             catch {
                 Write-ToLog "-> MS Visual C++ 2015-2022 installation failed.`n" "Red"
@@ -194,8 +194,7 @@ function Install-WingetAutoUpdate {
 
     try {
         #Copy files to location
-        if (!(Test-Path $WAUinstallPath)) {
-            New-Item -ItemType Directory -Force -Path $WAUinstallPath | Out-Null
+        if (!(Test-Path "$WAUinstallPath\Winget-Upgrade.ps1")) {
             Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
             Write-ToLog "-> Running fresh installation..."
         }
@@ -207,7 +206,7 @@ function Install-WingetAutoUpdate {
         }
         else {
             #Keep logs only
-            Get-ChildItem -Path $WAUinstallPath -Exclude *.logs | Remove-Item -Recurse -Force
+            Get-ChildItem -Path $WAUinstallPath -Exclude logs | Remove-Item -Recurse -Force
             Copy-Item -Path "$PSScriptRoot\Winget-AutoUpdate\*" -Destination $WAUinstallPath -Recurse -Force -ErrorAction SilentlyContinue
             Write-ToLog "-> Updating previous installation..."
         }
@@ -370,21 +369,21 @@ function Install-WingetAutoUpdate {
         }
 
         #Security check
-        Write-ToLog "Checking Mods Directory:" "Yellow"
+        Write-ToLog "-> Checking Mods Directory:"
         $Protected = Invoke-DirProtect "$WAUinstallPath\mods"
         if ($Protected -eq $True) {
-            Write-ToLog "-> The mods directory is secured!`n" "Green"
+            Write-ToLog "   The mods directory is secured!" "Cyan"
         }
         else {
-            Write-ToLog "-> Error: The mods directory couldn't be verified as secured!`n" "Red"
+            Write-ToLog "   Error: The mods directory couldn't be verified as secured!" "Red"
         }
-        Write-ToLog "Checking Functions Directory:" "Yellow"
+        Write-ToLog "-> Checking Functions Directory:"
         $Protected = Invoke-DirProtect "$WAUinstallPath\Functions"
         if ($Protected -eq $True) {
-            Write-ToLog "-> The Functions directory is secured!`n" "Green"
+            Write-ToLog "   The Functions directory is secured!" "Cyan"
         }
         else {
-            Write-ToLog "-> Error: The Functions directory couldn't be verified as secured!`n" "Red"
+            Write-ToLog "   Error: The Functions directory couldn't be verified as secured!" "Red"
         }
 
         #Create Shortcuts
@@ -401,14 +400,14 @@ function Install-WingetAutoUpdate {
             Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
         }
 
-        Write-ToLog "WAU Installation succeeded!" "Green"
+        Write-ToLog "-> WAU Installation succeeded!`n" "Green"
         Start-sleep 1
 
         #Run Winget ?
         Start-WingetAutoUpdate
     }
     catch {
-        Write-ToLog "WAU Installation failed! Error $_ - Try running me with admin rights" "Red"
+        Write-ToLog "-> WAU Installation failed! Error $_ - Try running me with admin rights.`n" "Red"
         Start-sleep 1
         return $False
     }
@@ -416,17 +415,18 @@ function Install-WingetAutoUpdate {
 
 function Uninstall-WingetAutoUpdate {
 
-    Write-ToLog "Uninstalling WAU..." "Yellow"
+    Write-ToLog "Uninstalling WAU started!" "Yellow"
 
-    try {
-        #Get registry install location
-        $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
+    #Get registry install location
+    $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation -ErrorAction SilentlyContinue
 
-        #Check if installed location exists and delete
-        if (Test-Path ($InstallLocation)) {
+    #Check if installed location exists and delete
+    if ($InstallLocation) {
 
+        try {
             if (!$NoClean) {
-                Remove-Item $InstallLocation -Force -Recurse
+                Write-ToLog "-> Removing files and config."
+                Get-ChildItem -Path $InstallLocation -Exclude logs | Remove-Item -Force -Recurse
                 if (Test-Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log") {
                     Remove-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -Force -ErrorAction SilentlyContinue | Out-Null
                 }
@@ -436,12 +436,9 @@ function Uninstall-WingetAutoUpdate {
             }
             else {
                 #Keep critical files
+                Write-ToLog "-> Removing files. Keeping config."
                 Get-ChildItem -Path $InstallLocation -Exclude *.txt, mods, logs | Remove-Item -Recurse -Force
             }
-            Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-            Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-            Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-            Get-ScheduledTask -TaskName "Winget-AutoUpdate-Policies" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
             & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
 
@@ -453,15 +450,22 @@ function Uninstall-WingetAutoUpdate {
                 Remove-Item -Path "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" -Force | Out-Null
             }
 
+            Write-ToLog "-> Removing scheduled tasks."
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+            Get-ScheduledTask -TaskName "Winget-AutoUpdate-Policies" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+
             Write-ToLog "Uninstallation succeeded!`n" "Green"
             Start-sleep 1
         }
-        else {
-            Write-ToLog "$InstallLocation not found! Uninstallation failed!`n" "Red"
+        catch {
+            Write-ToLog "Uninstallation failed! Run as admin ?`n" "Red"
+            Start-sleep 1
         }
     }
-    catch {
-        Write-ToLog "Uninstallation failed! Run as admin ?`n" "Red"
+    else {
+        Write-ToLog "WAU is not installed!`n" "Red"
         Start-sleep 1
     }
 }
@@ -535,13 +539,13 @@ Write-Host "`t        888 d888b 888     d88P 888  888     888" -ForegroundColor 
 Write-Host "`t        888d88888b888    d88P  888  888     888" -ForegroundColor Magenta
 Write-Host "`t        88888P Y88888   d88P   888  888     888" -ForegroundColor Cyan
 Write-Host "`t        8888P   Y8888  d88P    888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n " -ForegroundColor Magenta
-Write-Host "`t                 Winget-AutoUpdate $WAUVersion`n " -ForegroundColor Cyan
-Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n " -ForegroundColor Magenta
-Write-Host "`t________________________________________________________`n `n "
+Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n" -ForegroundColor Magenta
+Write-Host "`t                Winget-AutoUpdate $WAUVersion`n" -ForegroundColor Cyan
+Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
+Write-Host "`t________________________________________________________`n"
 
 if (!$Uninstall) {
-    Write-ToLog "Installing WAU to $WAUinstallPath\"
+    Write-ToLog "  INSTALLING WAU" -LogColor "Cyan" -IsHeader
     Install-Prerequisites
     $UpdateWinget = Update-Winget
     if ($UpdateWinget -ne "fail") {
@@ -553,7 +557,7 @@ if (!$Uninstall) {
     }
 }
 else {
-    Write-ToLog "Uninstalling WAU..."
+    Write-ToLog " UNINSTALLING WAU" -LogColor "Cyan" -IsHeader
     Uninstall-WingetAutoUpdate
 }
 

@@ -5,7 +5,7 @@
 
 function Test-Network {
     Write-ToLog "Checking internet connection..." "Yellow"
-    $NetworkListManager = [Activator]::CreateInstance([Type]::GetTypeFromCLSID(‘DCB00C01-570F-4A9B-8D69-199FDBA5723B’));
+    $NetworkListManager = [Activator]::CreateInstance([Type]::GetTypeFromCLSID('DCB00C01-570F-4A9B-8D69-199FDBA5723B'));
     if($NetworkListManager.IsConnectedToInternet)
     {
         Write-ToLog "Connected!" "Green";

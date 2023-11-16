@@ -77,15 +77,20 @@ function Invoke-PostUpdateActions {
 
     #Security check
     Write-ToLog "-> Checking Mods Directory:" "yellow"
-    $Protected = Invoke-ModsProtect "$($WAUConfig.InstallLocation)\mods"
+    $Protected = Invoke-DirProtect "$($WAUConfig.InstallLocation)\mods"
     if ($Protected -eq $True) {
-        Write-ToLog "-> The mods directory is now secured!" "green"
-    }
-    elseif ($Protected -eq $False) {
-        Write-ToLog "-> The mods directory was already secured!" "green"
+        Write-ToLog "-> The mods directory is secured!" "green"
     }
     else {
         Write-ToLog "-> Error: The mods directory couldn't be verified as secured!" "red"
+    }
+    Write-ToLog "-> Checking Functions Directory:" "yellow"
+    $Protected = Invoke-DirProtect "$($WAUConfig.InstallLocation)\Functions"
+    if ($Protected -eq $True) {
+        Write-ToLog "-> The Functions directory is secured!" "green"
+    }
+    else {
+        Write-ToLog "-> Error: The Functions directory couldn't be verified as secured!" "red"
     }
 
     #Convert about.xml if exists (old WAU versions) to reg
@@ -125,6 +130,7 @@ function Invoke-PostUpdateActions {
         "$WorkingDir\functions\Get-WAUUpdateStatus.ps1",
         "$WorkingDir\functions\Write-Log.ps1",
         "$WorkingDir\functions\Get-WinGetAvailableVersion.ps1",
+        "$WorkingDir\functions\Invoke-DirProtect.ps1",
         "$WorkingDir\Version.txt"
     )
     foreach ($FileName in $FileNames) {

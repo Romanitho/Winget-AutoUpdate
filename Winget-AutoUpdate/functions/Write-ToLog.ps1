@@ -29,7 +29,7 @@ function Write-ToLog {
         $Log = " `n###########################################################`n#     $LogMsg - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)`n###########################################################`n"
     }
     else {
-        $Log = "$(Get-Date -UFormat "%T") - $LogMsg"
+        $Log = [string]::Format("{0} [{1}] - {2}", $(Get-Date -UFormat "%T"), (Get-PSCallStack)[1].InvocationInfo.MyCommand, $LogMsg);
     }
 
     #Echo log

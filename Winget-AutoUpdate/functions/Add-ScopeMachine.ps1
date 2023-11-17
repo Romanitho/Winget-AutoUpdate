@@ -15,6 +15,6 @@ function Add-ScopeMachine ($SettingsPath) {
         $Preference = New-Object PSObject -Property $(@{preferences = $Scope })
         Add-Member -InputObject $ConfigFile -MemberType NoteProperty -Name 'installBehavior' -Value $Preference -Force
     }
-    $ConfigFile | ConvertTo-Json | Out-File $SettingsPath -Encoding utf8 -Force
+    $ConfigFile | ConvertTo-Json  -Depth 100 | Out-File $SettingsPath -Encoding utf8 -Force
 
 }

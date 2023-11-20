@@ -81,8 +81,7 @@ if ($IsSystem) {
         Invoke-PostUpdateActions
     }
     #Run Scope Machine funtion if run as System
-    $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\defaultState\settings.json"
-    Add-ScopeMachine $SettingsPath
+    Add-ScopeMachine
 }
 
 #Get Notif Locale function

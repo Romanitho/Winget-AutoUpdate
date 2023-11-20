@@ -92,9 +92,14 @@ Write-ToLog "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notificati
 #Check network connectivity
 if (Test-Network) {
     #Check if Winget is installed and get Winget cmd
-    $TestWinget = Get-WingetCmd
+    $Script:Winget = Get-WingetCmd
 
-    if ($TestWinget) {
+    if ($Winget) {
+
+        #Log Winget installed version
+        $WingetVer = & $Winget --version
+        Write-ToLog "Winget Version: $WingetVer"
+
         #Get Current Version
         $WAUCurrentVersion = $WAUConfig.DisplayVersion
         Write-ToLog "WAU current version: $WAUCurrentVersion"

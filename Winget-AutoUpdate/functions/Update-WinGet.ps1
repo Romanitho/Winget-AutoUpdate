@@ -68,12 +68,12 @@ Function Update-WinGet {
             #If multiple versions, pick most recent one
             $WingetCmd = $WingetInfo[-1].FileName
             & $WingetCmd source reset --force
-            Write-ToLog "-> WinGet sources reset." "green"
+            Write-ToLog "-> WinGet sources reset.`n" "green"
             $return = "success"
 
         }
         catch {
-            Write-ToLog "-> Failed to install WinGet MSIXBundle for App Installer..." "red"
+            Write-ToLog "-> Failed to install WinGet MSIXBundle for App Installer...`n" "red"
             #Force Store Apps to update
             Update-StoreApps
             $return = "fail"
@@ -86,7 +86,7 @@ Function Update-WinGet {
         return $return
     }
     else {
-        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "Green"
+        Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"
         return "current"
     }
 }

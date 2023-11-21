@@ -81,8 +81,7 @@ if ($IsSystem) {
         Invoke-PostUpdateActions
     }
     #Run Scope Machine funtion if run as System
-    $SettingsPath = "$Env:windir\system32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\defaultState\settings.json"
-    Add-ScopeMachine $SettingsPath
+    Add-ScopeMachine
 }
 
 #Get Notif Locale function
@@ -92,9 +91,14 @@ Write-ToLog "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notificati
 #Check network connectivity
 if (Test-Network) {
     #Check if Winget is installed and get Winget cmd
-    $TestWinget = Get-WingetCmd
+    $Script:Winget = Get-WingetCmd
 
-    if ($TestWinget) {
+    if ($Winget) {
+
+        #Log Winget installed version
+        $WingetVer = & $Winget --version
+        Write-ToLog "Winget Version: $WingetVer"
+
         #Get Current Version
         $WAUCurrentVersion = $WAUConfig.DisplayVersion
         Write-ToLog "WAU current version: $WAUCurrentVersion"

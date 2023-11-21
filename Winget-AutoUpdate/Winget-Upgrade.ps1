@@ -12,31 +12,38 @@ Get-ChildItem "$WorkingDir\functions" | ForEach-Object { . $_.FullName }
 $null = cmd /c ''
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-#Check if running account is system or interactive logon
-$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
-
 #Log initialisation
 $LogFile = "$WorkingDir\logs\updates.log"
 
+#Check if running account is system or interactive logon
+$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
+#Check for current session ID (O = system without ServiceUI)
+$Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
+
+#Check if running as system
 if ($IsSystem) {
-    #Check if any connected user when running as system
-    $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
-    #Check if ServiceUI exists
-    $ServiceUI = Test-Path "$WorkingDir\ServiceUI.exe"
-    If ($explorerprocesses.Count -gt 0 -and $ServiceUI) {
-        #User connected, Check for current session ID (O = system)
-        $SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
-        if ($SessionID -eq 0) {
-            #Rerun WAU in system context with ServiceUI
-            & $WorkingDir\ServiceUI.exe -process:explorer.exe $env:windir\System32\wscript.exe \`"$WorkingDir\Invisible.vbs\`" \`"powershell.exe -NoProfile -ExecutionPolicy Bypass -File \`"\`"$WorkingDir\winget-upgrade.ps1\`"\`"\`"
-            Exit 0
+    #Check if running with session ID 0
+    if ($SessionID -eq 0) {
+        #Check if ServiceUI exists
+        $ServiceUI = Test-Path "$WorkingDir\ServiceUI.exe"
+        if ($ServiceUI) {
+            #Check if any connected user
+            $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+            if ($explorerprocesses.Count -gt 0) {
+                #Rerun WAU in system context with ServiceUI
+                & $WorkingDir\ServiceUI.exe -process:explorer.exe $env:windir\System32\wscript.exe \`"$WorkingDir\Invisible.vbs\`" \`"powershell.exe -NoProfile -ExecutionPolicy Bypass -File \`"\`"$WorkingDir\winget-upgrade.ps1\`"\`"\`"
+                Exit 0
+            }
+            else {
+                Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
+            }
         }
         else {
-            Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context with ServiceUI)" -IsHeader
+            Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context - No ServiceUI)" -IsHeader
         }
     }
     else {
-        Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
+        Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context - Connected user)" -IsHeader
     }
 }
 else {

@@ -33,7 +33,7 @@ function Start-NotifTask {
 
         $XMLimagepath = "$WorkingDir\icons\$MessageType.png"
         if (Test-Path $XMLimagepath) {
-            # Creation of a image node
+            # Creation of an image node
             $XMLimage = $ToastTemplate.CreateElement("image")
             $XMLbinding.AppendChild($XMLimage) | Out-Null
             $XMLimageAtt1 = $ToastTemplate.CreateAttribute("placement")
@@ -132,8 +132,8 @@ function Start-NotifTask {
             $ToastTemplate.toast.SetAttribute("launch", $OnClickAction) | Out-Null
         }
 
-        #if not "Interactive" user, run as system
-        if ($IsSystem) {
+        #if not "Interactive" user, run Winget-AutoUpdate-Notify scheduled task
+        if ($SessionID -eq 0) {
 
             #Save XML to File
             $ToastTemplateLocation = "$($WAUConfig.InstallLocation)\config\"

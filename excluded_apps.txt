@@ -4,6 +4,7 @@ Microsoft.EdgeWebView2Runtime
 Microsoft.Office
 Microsoft.OneDrive
 Microsoft.Teams
+Microsoft.Teams.Classic
 Mozilla.Firefox
 Mozilla.Firefox.DeveloperEdition
 Mozilla.Firefox.ESR

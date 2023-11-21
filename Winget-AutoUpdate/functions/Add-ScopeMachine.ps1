@@ -20,12 +20,12 @@ function Add-ScopeMachine {
     }
 
     if ($ConfigFile.installBehavior.preferences) {
-        Add-Member -InputObject $ConfigFile.installBehavior.preferences -MemberType NoteProperty -Name 'scope' -Value 'Machine' -Force
+        Add-Member -InputObject $ConfigFile.installBehavior.preferences -MemberType NoteProperty -Name "scope" -Value "Machine" -Force
     }
     else {
-        $Scope = New-Object PSObject -Property $(@{scope = 'Machine' })
+        $Scope = New-Object PSObject -Property $(@{scope = "Machine" })
         $Preference = New-Object PSObject -Property $(@{preferences = $Scope })
-        Add-Member -InputObject $ConfigFile -MemberType NoteProperty -Name 'installBehavior' -Value $Preference -Force
+        Add-Member -InputObject $ConfigFile -MemberType NoteProperty -Name "installBehavior" -Value $Preference -Force
     }
 
     $ConfigFile | ConvertTo-Json -Depth 100 | Out-File $SettingsPath -Encoding utf8 -Force

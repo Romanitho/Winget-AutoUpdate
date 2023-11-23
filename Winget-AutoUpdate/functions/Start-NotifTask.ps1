@@ -132,8 +132,8 @@ function Start-NotifTask {
             $ToastTemplate.toast.SetAttribute("launch", $OnClickAction) | Out-Null
         }
 
-        #if not "Interactive" user, run Winget-AutoUpdate-Notify scheduled task
-        if ($SessionID -eq 0) {
+        #if running as System, run Winget-AutoUpdate-Notify scheduled task
+        if ($IsSystem) {
 
             #Save XML to File
             $ToastTemplateLocation = "$($WAUConfig.InstallLocation)\config\"

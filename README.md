@@ -177,12 +177,12 @@ This script executes **if the network is active/any version of Winget is install
 If **ExitCode** is **1** from `_WAU-mods.ps1` then **Re-run WAU**.
 ## Custom scripts (Mods feature for Apps)
 From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
-Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install` or `-installed` suffix in the **mods** folder.
+Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install`, `-installed` or `-notinstalled` suffix in the **mods** folder.
 
->- Runs before upgrade/install: `AppID-preinstall.ps1`<br>
->- Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`<br>
->- Runs after upgrade/install has been confirmed: `AppID-installed.ps1`<br>
->- Runs after a failed upgrade/install: `AppID-notinstalled.ps1`<br>
+>- Runs before upgrade/install: `AppID-preinstall.ps1`
+>- Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`
+>- Runs after upgrade/install has been confirmed: `AppID-installed.ps1`
+>- Runs after a failed upgrade/install: `AppID-notinstalled.ps1`
 
 The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist (**WAU** first tries `& $Winget upgrade --id` and if the app isn't detected after that `& $Winget install --id` is tried).<br>
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.

@@ -81,15 +81,24 @@ Function Update-App ($app) {
         }
     }
 
-    if ($FailedToUpgrade -eq $false) {
-        if ($ModsInstalled) {
-            Write-ToLog "Modifications for $($app.Id) after upgrade/install are being applied..." "Yellow"
-            & "$ModsInstalled"
+    switch ($FailedToUpgrade)
+    {
+        # Upgrade/install was successful
+        $false
+        {
+            if ($ModsInstalled) {
+                Write-ToLog "Modifications for $($app.Id) after upgrade/install are being applied..." "Yellow"
+                & "$ModsInstalled"
+            }
         }
-    }
-    elseif ($FailedToUpgrade -eq $true -and $ModsNotInstalled) {
-        Write-ToLog "Modifications for $($app.Id) after a failed upgrade/install are being applied..." "Yellow"
-        & "$ModsNotInstalled"
+        # Upgrade/install was unsuccessful
+        $true
+        {
+            if ($ModsNotInstalled) {
+                Write-ToLog "Modifications for $($app.Id) after a failed upgrade/install are being applied..." "Yellow"
+                & "$ModsNotInstalled"
+            }
+        }
     }
 
     Write-ToLog "##########   WINGET UPGRADE PROCESS FINISHED FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"

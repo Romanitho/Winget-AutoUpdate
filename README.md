@@ -183,6 +183,7 @@ Just put the scripts in question with the **AppID** followed by the `-preinstall
 >- Runs during upgrade/install (before install check): `AppID-upgrade.ps1`/`AppID-install.ps1`
 >- Runs after upgrade/install has been confirmed: `AppID-installed.ps1`
 >- Runs after a failed upgrade/install: `AppID-notinstalled.ps1`
+>- Runs after a failed upgrade/install: `_WAU-notinstalled.ps1` (any individual `AppID-notinstalled.ps1` overrides this global one)
 
 The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist (**WAU** first tries `& $Winget upgrade --id` and if the app isn't detected after that `& $Winget install --id` is tried).<br>
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.

@@ -31,25 +31,6 @@ Function Update-WinGet {
     #Check if the current available WinGet is newer than the installed
     if ($WinGetAvailableVersion -gt $WinGetInstalledVersion) {
 
-        #Check if Microsoft.VCLibs.140.00.UWPDesktop is installed
-        if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {
-            try {
-                #Download
-                $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-                $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
-                Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
-                Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
-                #Install
-                Write-ToLog "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
-                Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
-                Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully." "Green"
-            }
-            catch {
-                Write-ToLog "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." "Red"
-            }
-            Remove-Item -Path $VCLibsFile -Force
-        }
-
         #Install WinGet MSIXBundle in SYSTEM context
         try {
             #Download WinGet MSIXBundle

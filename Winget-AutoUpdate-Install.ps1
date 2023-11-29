@@ -490,7 +490,6 @@ if (!$Uninstall) {
     Install-Prerequisites
     $UpdateWinget = Update-Winget
     if ($UpdateWinget -ne "fail") {
-        Write-Host "`r" #Extra Line in console only
         Install-WingetAutoUpdate
     }
     else {

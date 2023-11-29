@@ -8,8 +8,14 @@ function Test-Mods ($app) {
     $ModsUpgrade = $null
     $ModsInstall = $null
     $ModsInstalled = $null
+    $ModsNotInstalled = $null
 
     $Mods = "$WorkingDir\mods"
+
+    if (Test-Path "$Mods\_WAU-notinstalled.ps1") {
+        $ModsNotInstalled = "$Mods\_WAU-notinstalled.ps1"
+    }
+
     if (Test-Path "$Mods\$app-*") {
         if (Test-Path "$Mods\$app-preinstall.ps1") {
             $ModsPreInstall = "$Mods\$app-preinstall.ps1"
@@ -27,8 +33,11 @@ function Test-Mods ($app) {
         if (Test-Path "$Mods\$app-installed.ps1") {
             $ModsInstalled = "$Mods\$app-installed.ps1"
         }
+        if (Test-Path "$Mods\$app-notinstalled.ps1") {
+            $ModsNotInstalled = "$Mods\$app-notinstalled.ps1"
+        }
     }
 
-    return $ModsPreInstall, $ModsOverride, $ModsUpgrade, $ModsInstall, $ModsInstalled
+    return $ModsPreInstall, $ModsOverride, $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled
 
 }

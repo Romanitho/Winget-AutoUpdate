@@ -16,8 +16,8 @@ Function Update-App ($app) {
     $Balise = $($app.Name)
     Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
 
-    #Check if mods exist for preinstall/install/upgrade
-    $ModsPreInstall, $ModsOverride, $ModsUpgrade, $ModsInstall, $ModsInstalled = Test-Mods $($app.Id)
+    #Check if mods exist for preinstall/override/upgrade/install/installed/notinstalled
+    $ModsPreInstall, $ModsOverride, $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled = Test-Mods $($app.Id)
 
     #Winget upgrade
     Write-ToLog "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
@@ -81,10 +81,23 @@ Function Update-App ($app) {
         }
     }
 
-    if ($FailedToUpgrade -eq $false) {
-        if ($ModsInstalled) {
-            Write-ToLog "Modifications for $($app.Id) after upgrade/install are being applied..." "Yellow"
-            & "$ModsInstalled"
+    switch ($FailedToUpgrade)
+    {
+        # Upgrade/install was successful
+        $false
+        {
+            if ($ModsInstalled) {
+                Write-ToLog "Modifications for $($app.Id) after upgrade/install are being applied..." "Yellow"
+                & "$ModsInstalled"
+            }
+        }
+        # Upgrade/install was unsuccessful
+        $true
+        {
+            if ($ModsNotInstalled) {
+                Write-ToLog "Modifications for $($app.Id) after a failed upgrade/install are being applied..." "Yellow"
+                & "$ModsNotInstalled"
+            }
         }
     }
 

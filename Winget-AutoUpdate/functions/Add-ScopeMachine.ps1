@@ -3,7 +3,7 @@ function Add-ScopeMachine {
 
     #Get Settings path for system or current user
     if ([System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) {
-        $SettingsPath = "$Env:windir\System32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\settings.json"
+        $SettingsPath = "$Env:windir\System32\config\systemprofile\AppData\Local\Microsoft\WinGet\Settings\defaultState\settings.json"
     }
     else {
         $SettingsPath = "$env:LOCALAPPDATA\Packages\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\LocalState\settings.json"

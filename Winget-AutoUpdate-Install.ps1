@@ -338,6 +338,9 @@ function Install-WingetAutoUpdate {
             Add-Shortcut "wscript.exe" "${env:Public}\Desktop\WAU - Check for updated Apps.lnk" "`"$($WAUinstallPath)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUinstallPath)\user-run.ps1`"`"" "${env:SystemRoot}\System32\shell32.dll,-16739" "Manual start of Winget-AutoUpdate (WAU)..."
         }
 
+        #Add 1 to counter file
+        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/$($WAUVersion)/WAU_InstallCounter" | Out-Null
+
         Write-ToLog "-> WAU Installation succeeded!`n" "Green"
         Start-sleep 1
 

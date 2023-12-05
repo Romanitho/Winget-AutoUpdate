@@ -1,6 +1,6 @@
 #Function to make actions after WAU update
 
-function Invoke-PostUpdateActions {
+function Invoke-PostUpdateAction {
 
     #log
     Write-ToLog "Running Post Update actions:" "yellow"
@@ -22,7 +22,7 @@ function Invoke-PostUpdateActions {
 
     #Create WAU Regkey if not present
     $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
-    if (!(test-path $regPath)) {
+    if (!(Test-Path $regPath)) {
         New-Item $regPath -Force
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
         New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force
@@ -95,7 +95,7 @@ function Invoke-PostUpdateActions {
 
     #Convert about.xml if exists (old WAU versions) to reg
     $WAUAboutPath = "$WorkingDir\config\about.xml"
-    if (test-path $WAUAboutPath) {
+    if (Test-Path $WAUAboutPath) {
         [xml]$About = Get-Content $WAUAboutPath -Encoding UTF8 -ErrorAction SilentlyContinue
         New-ItemProperty $regPath -Name DisplayVersion -Value $About.app.version -Force
 
@@ -108,7 +108,7 @@ function Invoke-PostUpdateActions {
 
     #Convert config.xml if exists (previous WAU versions) to reg
     $WAUConfigPath = "$WorkingDir\config\config.xml"
-    if (test-path $WAUConfigPath) {
+    if (Test-Path $WAUConfigPath) {
         [xml]$Config = Get-Content $WAUConfigPath -Encoding UTF8 -ErrorAction SilentlyContinue
         if ($Config.app.WAUautoupdate -eq "False") { New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force }
         if ($Config.app.NotificationLevel) { New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $Config.app.NotificationLevel -Force }

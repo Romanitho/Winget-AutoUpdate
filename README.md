@@ -21,9 +21,9 @@ Just [download latest release (WAU.zip)](https://github.com/Romanitho/Winget-Aut
 You can exclude apps from update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update):
 Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
 - #### Or AllowList
-From 1.7.0 version, you can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: https://github.com/Romanitho/Winget-AutoUpdate/issues/36
+From 1.7.0 version, you can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: <https://github.com/Romanitho/Winget-AutoUpdate/issues/36>
 
-> You can use WiGui to create these lists: https://github.com/Romanitho/Winget-Install-GUI
+> You can use WiGui to create these lists: <https://github.com/Romanitho/Winget-Install-GUI>
 
 ### Notification Level
 From version 1.9.0, you can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`.
@@ -170,7 +170,7 @@ Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget
 Remove scheduled tasks and scripts.
 
 ## Intune/SCCM use
-See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
+See <https://github.com/Romanitho/Winget-AutoUpdate/discussions/88>
 
 ## Custom script (Mods for WAU)
 **Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.<br>
@@ -196,7 +196,7 @@ You can find more information on [Winget-Install Repo](https://github.com/Romani
 Read more in the `README.md` under the directory **mods**.
 
 Share your mods with the community:<br>
-https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods
+<https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods>
 
 ### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
@@ -219,7 +219,7 @@ Read more in the `README.md` under the directory **Policies**.
 In some cases, you need to "unblock" the `install.bat` file (Windows Defender SmartScreen). Right click, properties and unblock. Then, you'll be able to run it.
 
 ## Known issues
-* As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See https://github.com/Romanitho/Winget-AutoUpdate/issues/113
+* As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See <https://github.com/Romanitho/Winget-AutoUpdate/issues/113>
 
 ## Optimization
 Feel free to give us any suggestions or optimizations in code and support us by adding a star :)

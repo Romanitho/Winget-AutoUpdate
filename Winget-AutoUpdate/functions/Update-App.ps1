@@ -44,7 +44,7 @@ Function Update-App ($app) {
     }
 
     #Check if application updated properly
-    $FailedToUpgrade = $false
+    #$FailedToUpgrade = $false
     $ConfirmInstall = Confirm-Installation $($app.Id) $($app.AvailableVersion)
 
     if ($ConfirmInstall -ne $true) {
@@ -53,47 +53,45 @@ Function Update-App ($app) {
         $PendingReboot = Test-PendingReboot
         if ($PendingReboot -eq $true) {
             Write-ToLog "-> A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n-> ...an install for $($app.Name) is NOT executed!" "Red"
-            $FailedToUpgrade = $true
             break
         }
 
-        #If app failed to upgrade, run Install command
-        Write-ToLog "-> An upgrade for $($app.Name) failed, now trying an install instead..." "Yellow"
+        #If app failed to upgrade, run Install command (2 tries max - some apps get uninstalled after single "Install" command.)
+        $retry = 1
+        While (($ConfirmInstall -eq $false) -and ($retry -le 2)) {
 
-        if ($ModsOverride) {
-            Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride"
-            & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
-        }
-        else {
-            Write-ToLog "-> Running: Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force"
-            & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
-        }
+            Write-ToLog "-> An upgrade for $($app.Name) failed, now trying an install instead... ($retry/2)" "Yellow"
 
-        if ($ModsInstall) {
-            Write-ToLog "Modifications for $($app.Id) during install are being applied..." "Yellow"
-            & "$ModsInstall"
-        }
+            if ($ModsOverride) {
+                Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride"
+                & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+            }
+            else {
+                Write-ToLog "-> Running: Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force"
+                & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+            }
 
-        #Check if application installed properly
-        $ConfirmInstall = Confirm-Installation $($app.Id) $($app.AvailableVersion)
-        if ($ConfirmInstall -eq $false) {
-            $FailedToUpgrade = $true
+            if ($ModsInstall) {
+                Write-ToLog "Modifications for $($app.Id) during install are being applied..." "Yellow"
+                & "$ModsInstall"
+            }
+
+            #Check if application installed properly
+            $ConfirmInstall = Confirm-Installation $($app.Id) $($app.AvailableVersion)
+            $retry += 1
         }
     }
 
-    switch ($FailedToUpgrade)
-    {
+    switch ($ConfirmInstall) {
         # Upgrade/install was successful
-        $false
-        {
+        $true {
             if ($ModsInstalled) {
                 Write-ToLog "Modifications for $($app.Id) after upgrade/install are being applied..." "Yellow"
                 & "$ModsInstalled"
             }
         }
         # Upgrade/install was unsuccessful
-        $true
-        {
+        $false {
             if ($ModsNotInstalled) {
                 Write-ToLog "Modifications for $($app.Id) after a failed upgrade/install are being applied..." "Yellow"
                 & "$ModsNotInstalled"
@@ -104,7 +102,7 @@ Function Update-App ($app) {
     Write-ToLog "##########   WINGET UPGRADE PROCESS FINISHED FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
 
     #Notify installation
-    if ($FailedToUpgrade -eq $false) {
+    if ($ConfirmInstall -eq $true) {
 
         #Send success updated app notification
         Write-ToLog "$($app.Name) updated to $($app.AvailableVersion) !" "Green"

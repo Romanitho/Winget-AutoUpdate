@@ -12,9 +12,6 @@ Function Confirm-Installation ($AppName, $AppVer) {
     #Get apps and version in hashtable
     $Packages = $Json.Sources.Packages
 
-    #Remove json file
-    Remove-Item $JsonFile -Force
-
     # Search for specific app and version
     $Apps = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -like "$AppVer*" }
 

@@ -44,7 +44,6 @@ Function Update-App ($app) {
     }
 
     #Check if application updated properly
-    #$FailedToUpgrade = $false
     $ConfirmInstall = Confirm-Installation $($app.Id) $($app.AvailableVersion)
 
     if ($ConfirmInstall -ne $true) {

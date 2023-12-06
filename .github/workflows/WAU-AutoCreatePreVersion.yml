@@ -3,7 +3,7 @@ name: WAU - Auto Create Pre-Release Version
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "30 0 * * *"
 
 permissions:
   contents: write

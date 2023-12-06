@@ -1,7 +1,7 @@
-Function Confirm-Installation ($AppName, $AppVer){
+Function Confirm-Installation ($AppName, $AppVer) {
 
     #Set json export file
-    $JsonFile = "$WorkingDir\InstalledApps.json"
+    $JsonFile = "$env:TEMP\InstalledApps.json"
 
     #Get installed apps and version in json file
     & $Winget export -s winget -o $JsonFile --include-versions | Out-Null
@@ -16,12 +16,12 @@ Function Confirm-Installation ($AppName, $AppVer){
     Remove-Item $JsonFile -Force
 
     # Search for specific app and version
-    $Apps = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -like "$AppVer*"}
+    $Apps = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -like "$AppVer*" }
 
-    if ($Apps){
+    if ($Apps) {
         return $true
     }
-    else{
+    else {
         return $false
     }
 }

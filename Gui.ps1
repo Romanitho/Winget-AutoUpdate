@@ -300,7 +300,7 @@ function Get-WAUConfiguratorLatestVersion {
     mc:Ignorable="d"
     Title="WAU Configurator {0} - Update available" ResizeMode="NoResize" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
-        <TextBlock x:Name="TextBlock" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" Margin="26,26,26,60" MaxWidth="480" Text="A New WAUConfigurator version is available. Version $WAUConfiguratorLatestVersion"/>
+        <TextBlock x:Name="TextBlock" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Center" Margin="26,26,26,60" MaxWidth="480" Text="A New WAU Configurator version is available. Version $WAUConfiguratorLatestVersion"/>
         <StackPanel Height="32" Orientation="Horizontal" UseLayoutRounding="False" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="6">
             <Button x:Name="GithubButton" Content="See on GitHub" Margin="4" Width="100"/>
             <Button x:Name="DownloadButton" Content="Download" Margin="4" Width="100"/>
@@ -336,16 +336,19 @@ function Get-WAUConfiguratorLatestVersion {
         $DownloadButton.add_click(
             {
                 $WAUConfiguratorSaveFile = New-Object System.Windows.Forms.SaveFileDialog
-                $WAUConfiguratorSaveFile.Filter = "Exe file (*.exe)|*.exe"
-                $WAUConfiguratorSaveFile.FileName = "WAUConfigurator_$WAUConfiguratorLatestVersion.exe"
+                $WAUConfiguratorSaveFile.Filter = "Zip file (*.zip)|*.zip"
+                $WAUConfiguratorSaveFile.FileName = "WAU_$WAUConfiguratorLatestVersion.zip"
                 $response = $WAUConfiguratorSaveFile.ShowDialog() # $response can return OK or Cancel
                 if ( $response -eq 'OK' ) {
-                    Start-PopUp "Downloading WAUConfigurator $WAUConfiguratorLatestVersion..."
+                    Start-PopUp "Downloading WAU Configurator $WAUConfiguratorLatestVersion..."
                     $WAUConfiguratorDlLink = "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$WAUConfiguratorLatestVersion/WAU.zip"
                     Invoke-WebRequest -Uri $WAUConfiguratorDlLink -OutFile $WAUConfiguratorSaveFile.FileName -UseBasicParsing
                     $UpdateWindow.DialogResult = [System.Windows.Forms.DialogResult]::OK
                     $UpdateWindow.Close()
                     Start-Sleep 3
+
+                    #Open folder
+                    Start-Process (Split-Path -parent $WAUConfiguratorSaveFile.FileName)
 
                     Close-PopUp
                     Exit 0

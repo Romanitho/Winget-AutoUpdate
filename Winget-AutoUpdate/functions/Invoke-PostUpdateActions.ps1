@@ -183,7 +183,7 @@ function Invoke-PostUpdateActions {
     $Script:WAUConfig = Get-WAUConfig
 
     #Add 1 to counter file
-    Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/$($WAUVersion)/WAU_InstallCounter" | Out-Null
+    Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUConfig.DisplayVersion)/WAU_InstallCounter" | Out-Null
 
     #log
     Write-ToLog "Post Update actions finished" "green"

@@ -13,7 +13,7 @@ Function Confirm-Installation ($AppName, $AppVer) {
     $Packages = $Json.Sources.Packages
 
     #Remove json file
-    Remove-Item $JsonFile -Force
+    Get-Item $JsonFile -ErrorAction SilentlyContinue | Remove-Item -Force
 
     # Search for specific app and version
     $Apps = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -like "$AppVer*" }

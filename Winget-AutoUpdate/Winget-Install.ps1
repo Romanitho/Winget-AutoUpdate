@@ -365,7 +365,7 @@ if ($IsElevated -eq $True) {
     #Check/install prerequisites
     Install-Prerequisites
     #Install/Update Winget
-    Update-Winget
+    $null = Update-Winget
     #Reload Winget command
     $Script:Winget = Get-WingetCmd
     #Run Scope Machine funtion

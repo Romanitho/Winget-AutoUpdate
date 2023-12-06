@@ -136,25 +136,12 @@ function Get-WingetInstalledApps {
 
 function Start-Installations {
 
-    ## WINGET-INSTALL PART ##
-
-    #Run Winget-Install script if box is checked
-    if ($AppToInstall) {
-
-        Start-PopUp "Installing applications..."
-
-        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$PSScriptRoot\Winget-AutoUpdate\Winget-Install.ps1 -AppIDs $AppToInstall`"" -Wait #-Verb RunAs -> Removing admin rights for user context apps
-    }
-
     ## WAU PART ##
 
     #Download and install Winget-AutoUpdate if box is checked
     if ($InstallWAU) {
 
         Start-PopUp "Installing WAU..."
-
-        #Set WAU subfolder
-        $WAUInstallFolder = "$PSScriptRoot\WAU"
 
         #Configure parameters
         $WAUParameters = "-Silent "
@@ -179,12 +166,12 @@ function Start-Installations {
         if ($WAUUseWhiteList) {
             $WAUParameters += "-UseWhiteList "
             if ($WAUListPath) {
-                Copy-Item $WAUListPath -Destination "$WAUInstallFolder\included_apps.txt" -Force -ErrorAction SilentlyContinue
+                Copy-Item $WAUListPath -Destination "$PSScriptRoot\included_apps.txt" -Force -ErrorAction SilentlyContinue
             }
         }
         else {
             if ($WAUListPath) {
-                Copy-Item $WAUListPath -Destination "$WAUInstallFolder\excluded_apps.txt" -Force -ErrorAction SilentlyContinue
+                Copy-Item $WAUListPath -Destination "$PSScriptRoot\excluded_apps.txt" -Force -ErrorAction SilentlyContinue
             }
         }
         if ($WAUDesktopShortcut) {
@@ -198,8 +185,19 @@ function Start-Installations {
         }
 
         #Install Winget-Autoupdate
-        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$WAUInstallFolder\Winget-AutoUpdate-Install.ps1 $WAUParameters`"" -Wait -Verb RunAs
+        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$PSScriptRoot\Winget-AutoUpdate-Install.ps1 $WAUParameters`"" -Wait -Verb RunAs
     }
+
+
+    ## WINGET-INSTALL PART ##
+
+    #Run Winget-Install script if box is checked
+    if ($AppToInstall) {
+        Start-PopUp "Installing applications..."
+        $WAUInstallPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
+        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$WAUInstallPath\Winget-Install.ps1 -AppIDs $AppToInstall`"" -Wait #-Verb RunAs -> Removing admin rights for user context apps
+    }
+
 
     ## ADMIN PART ##
 
@@ -506,6 +504,74 @@ function Start-InstallGUI {
     ### FORM ACTIONS ###
 
     ##
+    # "Configure WAU" Tab
+    ##
+    $WAUCheckBox.add_click(
+        {
+            if ($WAUCheckBox.IsChecked -eq $true) {
+                $WAUConfGroupBox.IsEnabled = $true
+                $WAUFreqGroupBox.IsEnabled = $true
+                $WAUWhiteBlackGroupBox.IsEnabled = $true
+                $WAUShortcutsGroupBox.IsEnabled = $true
+            }
+            elseif ($WAUCheckBox.IsChecked -eq $false) {
+                $WAUConfGroupBox.IsEnabled = $false
+                $WAUFreqGroupBox.IsEnabled = $false
+                $WAUWhiteBlackGroupBox.IsEnabled = $false
+                $WAUShortcutsGroupBox.IsEnabled = $false
+            }
+        }
+    )
+
+    $WAUMoreInfoLabel.Add_PreviewMouseDown(
+        {
+            [System.Diagnostics.Process]::Start("https://github.com/Romanitho/Winget-AutoUpdate")
+        }
+    )
+
+    $BlackRadioBut.add_click(
+        {
+            $WAULoadListButton.IsEnabled = $true
+        }
+    )
+
+    $WhiteRadioBut.add_click(
+        {
+            $WAULoadListButton.IsEnabled = $true
+        }
+    )
+
+    $DefaultRadioBut.add_click(
+        {
+            $WAULoadListButton.IsEnabled = $false
+            $WAUListFileTextBox.Clear()
+        }
+    )
+
+    $WAULoadListButton.add_click(
+        {
+            $response = $WAUListOpenFile.ShowDialog() # $response can return OK or Cancel
+            if ( $response -eq 'OK' ) {
+                $WAUListFileTextBox.Text = $WAUListOpenFile.FileName
+            }
+        }
+    )
+
+    $UninstallWAUButton.add_click(
+        {
+            #Uninstall WAU from registry command
+            $Arguments = Get-ItemPropertyValue "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "UninstallString"
+            Start-Process "cmd.exe" -ArgumentList "/c $Arguments" -Wait -Verb RunAs
+            $WAUInstallStatus = Get-WAUInstallStatus
+            $WAUStatusLabel.Text = $WAUInstallStatus[0]
+            $WAUStatusLabel.Foreground = $WAUInstallStatus[1]
+            $AppsTabPage.IsEnabled = $WAUInstallStatus[2]
+            $UninstallWAUButton.IsEnabled = $WAUInstallStatus[2]
+            $AppListBox.Items.Clear()
+        }
+    )
+
+    ##
     # "Select Apps" Tab
     ##
     $SearchButton.add_click(
@@ -597,74 +663,6 @@ function Start-InstallGUI {
                 Start-Sleep 1
                 Close-PopUp
             }
-        }
-    )
-
-    ##
-    # "Configure WAU" Tab
-    ##
-    $WAUCheckBox.add_click(
-        {
-            if ($WAUCheckBox.IsChecked -eq $true) {
-                $WAUConfGroupBox.IsEnabled = $true
-                $WAUFreqGroupBox.IsEnabled = $true
-                $WAUWhiteBlackGroupBox.IsEnabled = $true
-                $WAUShortcutsGroupBox.IsEnabled = $true
-            }
-            elseif ($WAUCheckBox.IsChecked -eq $false) {
-                $WAUConfGroupBox.IsEnabled = $false
-                $WAUFreqGroupBox.IsEnabled = $false
-                $WAUWhiteBlackGroupBox.IsEnabled = $false
-                $WAUShortcutsGroupBox.IsEnabled = $false
-            }
-        }
-    )
-
-    $WAUMoreInfoLabel.Add_PreviewMouseDown(
-        {
-            [System.Diagnostics.Process]::Start("https://github.com/Romanitho/Winget-AutoUpdate")
-        }
-    )
-
-    $BlackRadioBut.add_click(
-        {
-            $WAULoadListButton.IsEnabled = $true
-        }
-    )
-
-    $WhiteRadioBut.add_click(
-        {
-            $WAULoadListButton.IsEnabled = $true
-        }
-    )
-
-    $DefaultRadioBut.add_click(
-        {
-            $WAULoadListButton.IsEnabled = $false
-            $WAUListFileTextBox.Clear()
-        }
-    )
-
-    $WAULoadListButton.add_click(
-        {
-            $response = $WAUListOpenFile.ShowDialog() # $response can return OK or Cancel
-            if ( $response -eq 'OK' ) {
-                $WAUListFileTextBox.Text = $WAUListOpenFile.FileName
-            }
-        }
-    )
-
-    $UninstallWAUButton.add_click(
-        {
-            #Uninstall WAU from registry command
-            $Arguments = Get-ItemPropertyValue "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "UninstallString"
-            Start-Process "cmd.exe" -ArgumentList "/c $Arguments" -Wait -Verb RunAs
-            $WAUInstallStatus = Get-WAUInstallStatus
-            $WAUStatusLabel.Text = $WAUInstallStatus[0]
-            $WAUStatusLabel.Foreground = $WAUInstallStatus[1]
-            $AppsTabPage.IsEnabled = $WAUInstallStatus[2]
-            $UninstallWAUButton.IsEnabled = $WAUInstallStatus[2]
-            $AppListBox.Items.Clear()
         }
     )
 

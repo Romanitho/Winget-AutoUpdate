@@ -92,8 +92,8 @@ jobs:
           zip -r WAU.zip Winget-AutoUpdate
           zip WAU.zip Winget-AutoUpdate-Install.ps1
           zip WAU.zip excluded_apps.txt
-          zip WAU.zip install.bat
-          zip WAU.zip uninstall.bat
+          zip WAU.zip Gui.ps1
+          zip WAU.zip "WAU Configurator.lnk"
           # Zip ADMX
           cd Policies
           zip -r ../WAU_ADMX.zip *

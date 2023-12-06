@@ -339,7 +339,7 @@ function Install-WingetAutoUpdate {
         }
 
         #Add 1 to counter file
-        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/$($WAUVersion)/WAU_InstallCounter" | Out-Null
+        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUVersion)/WAU_InstallCounter" | Out-Null
 
         Write-ToLog "-> WAU Installation succeeded!`n" "Green"
         Start-sleep 1

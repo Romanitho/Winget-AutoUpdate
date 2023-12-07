@@ -184,6 +184,7 @@ function Install-WingetAutoUpdate {
         Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
 
         # Settings for the scheduled task for Updates (System)
+        Write-ToLog "-> Installing WAU scheduled tasks"
         $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUinstallPath)\winget-upgrade.ps1`""
         $taskTriggers = @()
         if ($UpdatesAtLogon) {
@@ -249,6 +250,7 @@ function Install-WingetAutoUpdate {
         $task.SetSecurityDescriptor($sec, 0)
 
         # Configure Reg Key
+        Write-ToLog "-> Setting Registry config"
         New-Item $regPath -Force | Out-Null
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force | Out-Null
         New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
@@ -339,7 +341,12 @@ function Install-WingetAutoUpdate {
         }
 
         #Add 1 to counter file
-        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUVersion)/WAU_InstallCounter" | Out-Null
+        try {
+            Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUVersion)/WAU_InstallCounter" | Out-Null
+        }
+        catch {
+            Write-ToLog "-> Not able to report installation." "Yellow"
+        }
 
         Write-ToLog "-> WAU Installation succeeded!`n" "Green"
         Start-sleep 1

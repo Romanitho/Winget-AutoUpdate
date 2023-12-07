@@ -57,24 +57,6 @@ function Invoke-PostUpdateActions {
         Write-ToLog "-> MaxLogFiles/MaxLogSize setting was missing. Fixed with 3/1048576 (in bytes, default is 1048576 = 1 MB)."
     }
 
-    #Set WAU_ListPath if not set
-    $ListPath = Get-ItemProperty $regPath -Name WAU_ListPath -ErrorAction SilentlyContinue
-    if (!$ListPath) {
-        New-ItemProperty $regPath -Name WAU_ListPath -Force | Out-Null
-
-        #log
-        Write-ToLog "-> ListPath setting was missing. Fixed with empty string."
-    }
-
-    #Set WAU_ModsPath if not set
-    $ModsPath = Get-ItemProperty $regPath -Name WAU_ModsPath -ErrorAction SilentlyContinue
-    if (!$ModsPath) {
-        New-ItemProperty $regPath -Name WAU_ModsPath -Force | Out-Null
-
-        #log
-        Write-ToLog "-> ModsPath setting was missing. Fixed with empty string."
-    }
-
     #Security check
     Write-ToLog "-> Checking Mods Directory:" "yellow"
     $Protected = Invoke-DirProtect "$($WAUConfig.InstallLocation)\mods"
@@ -183,7 +165,12 @@ function Invoke-PostUpdateActions {
     $Script:WAUConfig = Get-WAUConfig
 
     #Add 1 to counter file
-    Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUConfig.DisplayVersion)/WAU_InstallCounter" | Out-Null
+    try {
+        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUConfig.DisplayVersion)/WAU_InstallCounter" | Out-Null
+    }
+    catch {
+        Write-ToLog "-> Not able to report installation." "Yellow"
+    }
 
     #log
     Write-ToLog "Post Update actions finished" "green"

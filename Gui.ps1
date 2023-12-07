@@ -82,7 +82,9 @@ function Get-WingetAppInfo ($SearchApp) {
 
     #Start Convertion of winget format to an array. Check if "-----" exists
     if (!($AppResult -match "-----")) {
-        Write-Host "No application found."
+        Start-PopUp "No application found!"
+        Start-Sleep 2
+        Close-PopUp
         return
     }
 
@@ -185,7 +187,7 @@ function Start-Installations {
         }
 
         #Install Winget-Autoupdate
-        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$PSScriptRoot\Winget-AutoUpdate-Install.ps1 $WAUParameters`"" -Wait -Verb RunAs
+        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command ""& '$PSScriptRoot\Winget-AutoUpdate-Install.ps1' $WAUParameters""" -Wait -Verb RunAs
     }
 
 
@@ -240,7 +242,7 @@ function Start-Installations {
     if ($PopUpWindow) {
         #Installs finished
         Start-PopUp "Done!"
-        Start-Sleep 1
+        Start-Sleep 2
         #Close Popup
         Close-PopUp
     }
@@ -272,8 +274,8 @@ function Get-WAUInstallStatus {
         $WAUInstalled = $true
     }
     elseif ($WAUVersion) {
-        $WAULabelText = "WAU is currently installed (v$WAUVersion) but in another version!"
-        $WAUStatus = "Orange"
+        $WAULabelText = "WAU is currently installed but in a different version - v$WAUVersion"
+        $WAUStatus = "DarkOrange"
         $WAUInstalled = $true
     }
     else {
@@ -623,7 +625,9 @@ function Start-InstallGUI {
             $response = $SaveFileDialog.ShowDialog() # $response can return OK or Cancel
             if ( $response -eq 'OK' ) {
                 $AppListBox.Items | Out-File $SaveFileDialog.FileName -Append
-                Write-Host "File saved to:`n$($SaveFileDialog.FileName)"
+                Start-PopUp "File saved to:`n$($SaveFileDialog.FileName)"
+                Start-Sleep 2
+                Close-PopUp
             }
         }
     )
@@ -667,7 +671,7 @@ function Start-InstallGUI {
             }
             else {
                 Start-PopUp "Please select apps to uninstall..."
-                Start-Sleep 1
+                Start-Sleep 2
                 Close-PopUp
             }
         }
@@ -686,15 +690,14 @@ function Start-InstallGUI {
 
     $LogButton.add_click(
         {
-            if (Test-Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\") {
-                $LogPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
+            try {
+                $LogPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocatifon
                 Start-Process "$LogPath\Logs"
             }
-            elseif (Test-Path "$env:programdata\Winget-AutoUpdate\Logs") {
-                Start-Process "$env:programdata\Winget-AutoUpdate\Logs"
-            }
-            else {
-                Write-Host "Log location not found."
+            catch {
+                Start-PopUp "Log location not found."
+                Start-Sleep 2
+                Close-PopUp
             }
         }
     )
@@ -704,7 +707,7 @@ function Start-InstallGUI {
     ##
     $WAUConfiguratorLinkLabel.Add_PreviewMouseDown(
         {
-            [System.Diagnostics.Process]::Start("https://github.com/Romanitho/Winget-Install-GUI")
+            [System.Diagnostics.Process]::Start("https://github.com/Romanitho/Winget-AutoUpdate")
         }
     )
 

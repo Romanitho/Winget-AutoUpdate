@@ -195,7 +195,14 @@ function Start-Installations {
     if ($AppToInstall) {
         Start-PopUp "Installing applications..."
         $WAUInstallPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
-        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$WAUInstallPath\Winget-Install.ps1 -AppIDs $AppToInstall`"" -Wait #-Verb RunAs -> Removing admin rights for user context apps
+
+        #Try with admin rights.
+        try {
+            Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$WAUInstallPath\Winget-Install.ps1 -AppIDs $AppToInstall`"" -Wait -Verb RunAs
+        }
+        catch {
+            Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$WAUInstallPath\Winget-Install.ps1 -AppIDs $AppToInstall`"" -Wait
+        }
     }
 
 
@@ -775,7 +782,7 @@ Start-PopUp "Starting..."
 Get-WAUConfiguratorLatestVersion
 
 #Check if Winget is installed, and install if not
-Update-WinGet
+$null = Update-WinGet
 
 #Get WinGet cmd
 $Script:Winget = Get-WingetCmd

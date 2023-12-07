@@ -18,7 +18,7 @@ function Invoke-PostUpdateActions {
     }
 
     #Update Winget if not up to date
-    Update-WinGet
+    $null = Update-WinGet
 
     #Create WAU Regkey if not present
     $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"

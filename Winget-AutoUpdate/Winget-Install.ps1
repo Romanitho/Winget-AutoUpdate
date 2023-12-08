@@ -361,7 +361,7 @@ else {
 $Script:Winget = Get-WingetCmd
 
 if ($IsElevated -eq $True) {
-    Write-ToLog "Running with admin rights.`n "
+    Write-ToLog "Running with admin rights.`n"
     #Check/install prerequisites
     Install-Prerequisites
     #Install/Update Winget
@@ -372,7 +372,7 @@ if ($IsElevated -eq $True) {
     Add-ScopeMachine
 }
 else {
-    Write-ToLog "Running without admin rights.`n "
+    Write-ToLog "Running without admin rights.`n"
 }
 
 if ($Winget) {

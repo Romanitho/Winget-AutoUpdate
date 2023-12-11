@@ -4,7 +4,7 @@
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/Romanitho/Winget-AutoUpdate?label=Latest%20Stable%20Release&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest)
 [![GitHub release (by tag)](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/latest/WAU.zip?label=Downloads&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest)
-<!-- [![GitHub release (by tag)](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/latest/WAU_InstallCounter?label=Installations&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest) -->
+[![GitHub release (by tag)](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/latest/WAU_InstallCounter?label=Installations&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest)
 
 </div>
 
@@ -13,7 +13,7 @@ This project uses the Winget tool to daily update apps (with system context) and
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 
 ## Intallation
-Just [download latest release (WAU.zip)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest/download/WAU.zip), unzip, run "install.bat" as admin to install by default.
+Just [download latest release (WAU.zip)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest/download/WAU.zip), unzip, run "WAU Configurator":
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
@@ -21,18 +21,18 @@ Just [download latest release (WAU.zip)](https://github.com/Romanitho/Winget-Aut
 You can exclude apps from update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update):
 Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
 - #### Or AllowList
-From 1.7.0 version, you can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: https://github.com/Romanitho/Winget-AutoUpdate/issues/36
+You can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: https://github.com/Romanitho/Winget-AutoUpdate/issues/36
 
 > You can use WiGui to create these lists: https://github.com/Romanitho/Winget-Install-GUI
 
 ### Notification Level
-From version 1.9.0, you can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`.
+You can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`.
 
 ### Notification language
 You can easily translate toast notifications by creating your locale xml config file (and share it with us :) ).
 
 ### When does the script run?
-From version 1.9.0 (on new installations) WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never). You can also add `-UpdatesAtLogon` parameter to run at user logon (recommanded).
+WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never). You can also add `-UpdatesAtLogon` parameter to run at user logon (recommanded).
 
 ### Log location
 You can find logs in install location, in logs folder.<br>
@@ -48,29 +48,22 @@ Eventually, try to reinstall or update app manually to see if new version is det
 
 ### Handle metered connections
 
-We might want to stop WAU on metered connection (to save cellular data on connection sharing for instance). That's why from v1.12.0 the default behavior will detect and stop WAU on limited connections (only for fresh install).
-
-> Previous installed versions will ignore this new setting on update to keep historical operation.
+We might want to stop WAU on metered connection (to save cellular data on connection sharing for instance). The default behavior will detect and stop WAU on limited connections (only for fresh install).
 
 To force WAU to run on metered connections anyway, run new installation with `-RunOnMetered` parameter.
 
 ### System & user context
-From version 1.15.0, WAU run with system and user contexts. This way, even apps installed on User's scope are updated. Shorcuts for manually run can also be installed.
+WAU runs with system and user contexts. This way, even apps installed on User's scope are updated. Shorcuts for manually run can also be installed.
 
 ### Default install location
 By default, scripts and components will be placed in ProgramData location (inside a Winget-AutoUpdate folder). You can change this with script argument (Not Recommended).
 
-## GUI installation
-[WiGui](https://github.com/Romanitho/Winget-Install-GUI/) can be used to install WAU even easier:
-
-<img src="https://github.com/Romanitho/Winget-AutoUpdate/assets/96626929/94edde1c-9723-4a26-8410-c8663861f0cf" width="450">
-
 ## Update WAU
 ### Manual Update
-Same process as new installation : download, unzip and run `install.bat`.
+Same process as new installation.
 
 ### Automatic Update
-A new Auto-Update process has been released from version 1.5.0. By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...
+By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...
 To disable WAU AutoUpdate, run the `Winget-AutoUpdate-Install.ps1` with `-DisableWAUAutoUpdate` parameter.
 
 ## Uninstall WAU
@@ -79,6 +72,7 @@ Simply uninstall it from your programs:
 ![image](https://user-images.githubusercontent.com/96626929/170879336-ef034956-4778-41f0-b8fd-d307b77b70a9.png)
 
 ## Advanced installation
+**Mainly for admins or advanced user installation.**<br>
 You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
 
 **-Silent**<br>
@@ -120,23 +114,23 @@ Validated on **IIS/Apache**.
 For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with an appropriate Azure Blob Storage URL including the SAS token. See **-AzureBlobURL** for more information.
 
 **-AzureBlobURL**<br>
-Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder. (From version 1.16.4).
+Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder.
 
 **-InstallUserContext**<br>
-Install WAU with system and **user** context executions (From version 1.15.3).<br>
+Install WAU with system and **user** context executions.<br>
 Applications installed in system context will be ignored under user context.
 
 **-BypassListForUsers**<br>
-Bypass Black/White list when run in user context (From version 1.15.0).
+Bypass Black/White list when run in user context.
 
 **-NoClean**<br>
 Keep critical files when installing/uninstalling. This setting will keep "excluded_apps.txt", "included_apps.txt", "mods" and "logs" as they were.
 
 **-DesktopShortcut**<br>
-Create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate` (From version 1.15.0).
+Create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate`
 
 **-StartMenuShortcut**<br>
-Create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate`, open Logs and Web Help (From version 1.15.0).
+Create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate`, open Logs and Web Help.
 
 **-NotificationLevel**<br>
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
@@ -148,7 +142,7 @@ Set WAU to run at user logon.
 Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance.
 
 **-UpdatesAtTime**<br>
-Specify the time of the update interval execution time. Default 6AM. (From version 1.15.0).
+Specify the time of the update interval execution time. Default 6AM.
 
 **-RunOnMetered**<br>
 Force WAU to run on metered connections. May add cellular data costs on shared connexion from smartphone for example.
@@ -177,7 +171,7 @@ See https://github.com/Romanitho/Winget-AutoUpdate/discussions/88
 This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM**.<br>
 If **ExitCode** is **1** from `_WAU-mods.ps1` then **Re-run WAU**.
 ## Custom scripts (Mods feature for Apps)
-From version 1.8.0, the Mods feature allows you to run additional scripts when upgrading or installing an app.
+The Mods feature allows you to run additional scripts when upgrading or installing an app.
 Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install`, `-installed` or `-notinstalled` suffix in the **mods** folder.
 
 >- Runs before upgrade/install: `AppID-preinstall.ps1`

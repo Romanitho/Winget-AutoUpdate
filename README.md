@@ -15,6 +15,9 @@ This project uses the Winget tool to daily update apps (with system context) and
 ## Intallation
 Just [download latest release (WAU.zip)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest/download/WAU.zip), unzip, run "WAU Configurator":
 
+![WAU Configurator Screenshot](https://github.com/Romanitho/Winget-AutoUpdate/assets/96626929/e3c3a331-1c49-40c5-8f70-e39cf9fc7fd1)
+
+
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
 - #### BlockList

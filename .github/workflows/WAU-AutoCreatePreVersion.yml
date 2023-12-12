@@ -121,7 +121,7 @@ jobs:
           prerelease: true
           generateReleaseNotes: true
           name: "v${{ steps.versioning.outputs.version }} [Nightly Build]"
-          artifacts: "WAU.zip,WAU_ADMX.zip,WAU_InstallCounter"
+          artifacts: "WAU-Configurator.zip,WAU.zip,WAU_ADMX.zip,WAU_InstallCounter"
 
       - name: URL to release
         run: echo "Release -> ${{ steps.release.outputs.html_url }}"

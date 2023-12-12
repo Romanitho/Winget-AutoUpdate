@@ -21,7 +21,7 @@ jobs:
       - name: Perform a Pester test for the WAU installation
         shell: powershell
         run: |
-          $command = New-PesterContainer -Path Winget-AutoUpdate-Install.ps1 -Data @{ Silent = $true }
+          $command = New-PesterContainer -Path Sources/WAU/Winget-AutoUpdate-Install.ps1 -Data @{ Silent = $true }
           Invoke-Pester -PassThru -Container $command -ErrorAction Continue
       - name: Perform a Pester test for WAU run
         shell: powershell

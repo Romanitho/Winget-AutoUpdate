@@ -68,7 +68,7 @@ jobs:
       - name: Overwrite Version.txt file
         uses: DamianReeves/write-file-action@0a7fcbe1960c53fc08fe789fa4850d24885f4d84 # v1.2
         with:
-          path: Winget-AutoUpdate/Version.txt
+          path: Sources/WAU/Winget-AutoUpdate/Version.txt
           write-mode: overwrite
           contents: ${{ steps.versioning.outputs.version }}
 
@@ -82,23 +82,35 @@ jobs:
 
       - name: Build project
         run: |
-          # Get MDT from Microsoft
+          echo "### Get MDT from Microsoft ###"
           wget https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi
-          # Extract MSI
+
+          echo "### Extract MSI ###"
           7z x MicrosoftDeploymentToolkit_x64.msi
-          # Copy ServiceUI.exe to Winget-AutoUpdate folder
-          mv Modena_File206 Winget-AutoUpdate/ServiceUI.exe
-          # Zip WAU
-          zip -r WAU.zip Winget-AutoUpdate
-          zip WAU.zip Winget-AutoUpdate-Install.ps1
-          zip WAU.zip excluded_apps.txt
-          zip WAU.zip Gui.ps1
-          zip WAU.zip "WAU Configurator.lnk"
-          # Zip ADMX
-          cd Policies
-          zip -r ../WAU_ADMX.zip *
+
+          echo "### Copy ServiceUI.exe to 'Sources/WAU/Winget-AutoUpdate' folder ###"
+          mv Modena_File206 Sources/WAU/Winget-AutoUpdate/ServiceUI.exe -v
+
+          echo "### Go to Sources ###"
+          cd Sources
+
+          echo "### Zip WAU ###"
+          cd WAU
+          zip -r ../../WAU.zip Winget-AutoUpdate
+          zip ../../WAU.zip Winget-AutoUpdate-Install.ps1
+          zip ../../WAU.zip excluded_apps.txt
           cd ..
-          # Add install counter
+
+          echo "### Zip WAU-Configurator ###"
+          zip -r ../WAU-Configurator.zip WAU
+          zip ../WAU-Configurator.zip "WAU Configurator.lnk"
+
+          echo "### Zip ADMX ###"
+          cd Policies
+          zip -r ../../WAU_ADMX.zip *
+          cd ../..
+
+          echo "### Create install counter file ###"
           echo "Install counter file." > WAU_InstallCounter
 
       - name: Create release

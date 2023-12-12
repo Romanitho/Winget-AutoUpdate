@@ -26,14 +26,14 @@ function Write-ToLog {
 
     #If header requested
     if ($IsHeader) {
-        $Log = " `n################################################################`n#     $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern) - $LogMsg`n################################################################"
+        $Log = " `n################################################################`n#     $(Get-Date -Format (Get-Culture).DateTimeFormat.ShortDatePattern) - $LogMsg`n################################################################"
     }
     else {
         $Log = "$(Get-Date -UFormat "%T") - $LogMsg"
     }
 
     #Echo log
-    $Log | Write-host -ForegroundColor $LogColor
+    $Log | Write-Host -ForegroundColor $LogColor
 
     #Write log to file
     $Log | Out-File -FilePath $LogFile -Append

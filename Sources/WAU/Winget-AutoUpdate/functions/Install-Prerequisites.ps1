@@ -1,4 +1,4 @@
-function Install-Prerequisites {
+function Install-Prerequisite {
 
     try {
 

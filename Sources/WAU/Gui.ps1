@@ -13,7 +13,7 @@ This script will:
 
 # import Appx module if the powershell version is 7/core
 if ( $psversionTable.PSEdition -eq "core" ) {
-    import-Module -name Appx -UseWIndowsPowershell -WarningAction:SilentlyContinue
+    Import-Module -Name Appx -UseWindowsPowerShell -WarningAction:SilentlyContinue
 }
 
 $Script:WAUConfiguratorVersion = Get-Content "$PSScriptRoot\Winget-AutoUpdate\Version.txt"
@@ -124,7 +124,7 @@ function Get-WingetAppInfo ($SearchApp) {
     return $searchList
 }
 
-function Get-WingetInstalledApps {
+function Get-WingetInstalledApp {
 
     #Json File where to export install apps
     $jsonFile = "$env:TEMP\Installed_Apps.json"
@@ -133,13 +133,13 @@ function Get-WingetInstalledApps {
     & $Winget export -o $jsonFile --accept-source-agreements | Out-Null
 
     #Convert from json file
-    $InstalledApps = get-content $jsonFile | ConvertFrom-Json
+    $InstalledApps = Get-Content $jsonFile | ConvertFrom-Json
 
     #Return app list
     return $InstalledApps.Sources.Packages.PackageIdentifier | Sort-Object | Get-Unique
 }
 
-function Start-Installations {
+function Start-Installation {
 
     ## WAU PART ##
 
@@ -255,7 +255,7 @@ function Start-Installations {
     }
 }
 
-function Start-Uninstallations ($AppToUninstall) {
+function Start-Uninstallation ($AppToUninstall) {
     #Download and run Winget-Install script if box is checked
     if ($AppToUninstall) {
 
@@ -358,7 +358,7 @@ function Get-WAUConfiguratorLatestVersion {
                     Start-Sleep 3
 
                     #Open folder
-                    Start-Process (Split-Path -parent $WAUConfiguratorSaveFile.FileName)
+                    Start-Process (Split-Path -Parent $WAUConfiguratorSaveFile.FileName)
 
                     Close-PopUp
                     Exit 0

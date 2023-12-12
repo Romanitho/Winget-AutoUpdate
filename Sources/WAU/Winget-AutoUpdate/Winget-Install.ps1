@@ -245,7 +245,7 @@ function Add-WAUWhiteList ($AppID) {
     if (Test-Path $WhiteList) {
         Write-ToLog "-> Add $AppID to WAU included_apps.txt"
         #Add App to "included_apps.txt"
-        Add-Content -path $WhiteList -Value "`n$AppID" -Force
+        Add-Content -Path $WhiteList -Value "`n$AppID" -Force
         #Remove duplicate and blank lines
         $file = Get-Content $WhiteList | Select-Object -Unique | Where-Object { $_.trim() -ne "" } | Sort-Object
         $file | Out-File $WhiteList
@@ -265,7 +265,7 @@ function Remove-WAUWhiteList ($AppID) {
 }
 
 #Function to Add Mods to WAU "mods"
-function Add-WAUMods ($AppID) {
+function Add-WAUMod ($AppID) {
     #Check if WAU default install path exists
     $Mods = "$WAUInstallLocation\mods"
     if (Test-Path $Mods) {
@@ -276,7 +276,7 @@ function Add-WAUMods ($AppID) {
 }
 
 #Function to Remove Mods from WAU "mods"
-function Remove-WAUMods ($AppID) {
+function Remove-WAUMod ($AppID) {
     #Check if WAU default install path exists
     $Mods = "$WAUInstallLocation\mods"
     if (Test-Path "$Mods\$AppID*") {

@@ -1,6 +1,6 @@
 #Function to get the allow List apps
 
-function Get-IncludedApps {
+function Get-IncludedApp {
 
     if ($GPOList) {
 

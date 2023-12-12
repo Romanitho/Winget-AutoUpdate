@@ -13,7 +13,8 @@ function Test-Network {
             $ncsiHost = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbeHost
             $ncsiPath = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbePath
             $ncsiContent = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbeContent
-        } catch {
+        }
+        catch {
             $ncsiHost = "www.msftconnecttest.com"
             $ncsiPath = "connecttest.txt"
             $ncsiContent = "Microsoft Connect Test"
@@ -21,7 +22,8 @@ function Test-Network {
         
         try {
             $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing
-        } catch {
+        }
+        catch {
             $ncsiResponse = $false
         }
 

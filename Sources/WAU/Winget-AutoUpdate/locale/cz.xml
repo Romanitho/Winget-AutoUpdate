@@ -1,0 +1,62 @@
+<local>
+	<outputs>
+		<output id="0">
+			<!--Check network connection-->
+			<title>Zkontrolujte připojení k internetu.</title>
+			<!--Unable to check for software updates at this time!-->
+			<message>Není možné nyní zkontrolovat aktualizace aplikací!</message>
+		</output>
+		<output id="1">
+			<!--No internet connection-->
+			<title>Připojení k internetu není dostupné.</title>
+			<!--Updates could not be verified-->
+			<message>Není možné zkontrolovat aktualizace.</message>
+		</output>
+		<output id="2">
+			<!--{App} will be updated-->
+			<title>Aplikace {0} bude aktualizována!</title>
+			<!--{v1.0} to {v2.0}-->
+			<message>{0} na {1}</message>
+		</output>
+		<output id="3">
+			<!--{App} updated-->
+			<title>Aplikace {0} byla úspěšně aktualizována.</title>
+			<!--Installed version: {v1.0}-->
+			<message>Nainstalovaná verze: {0}</message>
+		</output>
+		<output id="4">
+			<!--{App} could not be updated-->
+			<title>Aplikace {0} nemůže být aktualizována!</title>
+			<!--Please contact support-->
+			<message>Kontaktujte prosím podporu.</message>
+		</output>
+		<output id="5">
+			<!--Logs are not available yet-->
+			<message>Logy ještě nejsou dostupné!</message>
+		</output>
+		<output id="6">
+			<!--Starting a manual check for updated apps-->
+			<message>Spouštění manuální kontroly aktualizací...</message>
+		</output>
+		<output id="7">
+			<!--Couldn't start a manual check for updated apps-->
+			<message>Nelze spustit manuální kontrolu aktualizací!</message>
+		</output>
+		<output id="8">
+			<!--A check for updated apps already running-->
+			<message>Kontrola aktualizací už probíhá...</message>
+		</output>
+		<output id="9">
+			<!--Manual check for updated apps completed-->
+			<message>Manuální kontrola aktualizací je dokončena.</message>
+		</output>
+		<output id="10">
+			<!--See changelog-->
+			<message>Podívat se na změny ve WAU</message>
+		</output>
+		<output id="11">
+			<!--Open log file-->
+			<message>Otevřít soubor s logy</message>
+		</output>
+	</outputs>
+</local>

@@ -1,8 +1,8 @@
-### Mods for WAU (if Network is active/any Winget is installed/running as SYSTEM):
+### Mods for WAU (if Network is active/any Winget is installed/running as SYSTEM)
 Custom script should be placed here.  
 A script **Template** `_WAU-mods-template.ps1` is included to get you started.  
 Rename it to `_WAU-mods.ps1` if you want to activate/run it via `Winget-Upgrade.ps1`.
-### AppID Pre/During/Post install/uninstall:
+### AppID Pre/During/Post install/uninstall
 Custom scripts should be placed here.  
 A script **Template** and **Mods Functions** are included as an **example** to get you started...  
 
@@ -23,9 +23,9 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 A script **Template** for an all-purpose mod (`_WAU-notinstalled-template.ps1`) is included in which actions can be taken if an upgrade/install fails for any **AppID** (any individual `AppID-notinstalled.ps1` overrides this global one)
 Name it `_WAU-notinstalled.ps1` for activation
 
-### Winget native parameters:
+### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a **text file** (**.txt**).
 > Example:  
->  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
+> **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
 This will use the **content** of the text file as a native **winget --override** parameter in **WAU upgrading**.

@@ -1,6 +1,6 @@
 #Function to get the Block List apps
 
-function Get-ExcludedApps {
+function Get-ExcludedApp {
 
     if ($GPOList) {
 

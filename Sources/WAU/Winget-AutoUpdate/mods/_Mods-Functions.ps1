@@ -28,7 +28,7 @@ function Stop-ModsProc ($Proc) {
 
 function Wait-ModsProc ($Wait) {
     foreach ($process in $Wait) {
-        Get-Process $process -ErrorAction SilentlyContinue | Foreach-Object { $_.WaitForExit() }
+        Get-Process $process -ErrorAction SilentlyContinue | ForEach-Object { $_.WaitForExit() }
     }
     Return
 }
@@ -55,7 +55,7 @@ function Uninstall-ModsApp ($AppUninst, $AllVersions) {
                 $UninstallString = $obj.GetValue('UninstallString')
                 $CleanedUninstallString = $UninstallString.Trim([char]0x0022)
                 if ($UninstallString -like "MsiExec.exe*") {
-                    $ProductCode = Select-String "{.*}" -inputobject $UninstallString
+                    $ProductCode = Select-String "{.*}" -InputObject $UninstallString
                     $ProductCode = $ProductCode.matches.groups[0].value
                     #MSI x64 Installer
                     $Exec = Start-Process "C:\Windows\System32\msiexec.exe" -ArgumentList "/x$ProductCode REBOOT=R /qn" -PassThru -Wait
@@ -67,7 +67,7 @@ function Uninstall-ModsApp ($AppUninst, $AllVersions) {
                 else {
                     $QuietUninstallString = $obj.GetValue('QuietUninstallString')
                     if ($QuietUninstallString) {
-                        $QuietUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $QuietUninstallString
+                        $QuietUninstallString = Select-String "(\x22.*\x22) +(.*)" -InputObject $QuietUninstallString
                         $Command = $QuietUninstallString.matches.groups[1].value
                         $Parameter = $QuietUninstallString.matches.groups[2].value
                         #All EXE x64 Installers (already defined silent uninstall)
@@ -91,7 +91,7 @@ function Uninstall-ModsApp ($AppUninst, $AllVersions) {
                             }
                             else {
                                 Write-Host "x64 Uninstaller unknown, trying the UninstallString from registry..."
-                                $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $UninstallString
+                                $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -InputObject $UninstallString
                                 $Command = $NativeUninstallString.matches.groups[1].value
                                 $Parameter = $NativeUninstallString.matches.groups[2].value
                                 #All EXE x64 Installers (native defined uninstall)
@@ -113,7 +113,7 @@ function Uninstall-ModsApp ($AppUninst, $AllVersions) {
                     $UninstallString = $obj.GetValue('UninstallString')
                     $CleanedUninstallString = $UninstallString.Trim([char]0x0022)
                     if ($UninstallString -like "MsiExec.exe*") {
-                        $ProductCode = Select-String "{.*}" -inputobject $UninstallString
+                        $ProductCode = Select-String "{.*}" -InputObject $UninstallString
                         $ProductCode = $ProductCode.matches.groups[0].value
                         #MSI x86 Installer
                         $Exec = Start-Process "C:\Windows\System32\msiexec.exe" -ArgumentList "/x$ProductCode REBOOT=R /qn" -PassThru -Wait
@@ -125,7 +125,7 @@ function Uninstall-ModsApp ($AppUninst, $AllVersions) {
                     else {
                         $QuietUninstallString = $obj.GetValue('QuietUninstallString')
                         if ($QuietUninstallString) {
-                            $QuietUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $QuietUninstallString
+                            $QuietUninstallString = Select-String "(\x22.*\x22) +(.*)" -InputObject $QuietUninstallString
                             $Command = $QuietUninstallString.matches.groups[1].value
                             $Parameter = $QuietUninstallString.matches.groups[2].value
                             #All EXE x86 Installers (already defined silent uninstall)
@@ -149,7 +149,7 @@ function Uninstall-ModsApp ($AppUninst, $AllVersions) {
                                 }
                                 else {
                                     Write-Host "x86 Uninstaller unknown, trying the UninstallString from registry..."
-                                    $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $UninstallString
+                                    $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -InputObject $UninstallString
                                     $Command = $NativeUninstallString.matches.groups[1].value
                                     $Parameter = $NativeUninstallString.matches.groups[2].value
                                     #All EXE x86 Installers (native defined uninstall)
@@ -225,7 +225,7 @@ function Copy-ModsFile ($CopyFile, $CopyTo) {
 
 function Edit-ModsFile ($File, $FindText, $ReplaceText) {
     if (Test-Path "$File") {
-        ((Get-Content -path $File -Raw) -replace "$FindText", "$ReplaceText") | Set-Content -Path $File -Force -ErrorAction SilentlyContinue | Out-Null
+        ((Get-Content -Path $File -Raw) -replace "$FindText", "$ReplaceText") | Set-Content -Path $File -Force -ErrorAction SilentlyContinue | Out-Null
     }
     Return
 }

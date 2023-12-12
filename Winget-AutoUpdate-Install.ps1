@@ -61,6 +61,12 @@ Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthl
 .PARAMETER UpdatesAtTime
 Specify the time of the update interval execution time. Default 6AM
 
+.PARAMETER DelayLogonTask
+Set WAU installer to add random delay to AtLogon trigger.
+
+.PARAMETER DelayLogonTaskMax
+Specify the max time for random delay of task started by AtLogon trigger: 15m (Default), 30m, 45m, 1h
+
 .PARAMETER RunOnMetered
 Run WAU on metered connection. Default No.
 
@@ -109,6 +115,8 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $UpdatesAtLogon = $false,
     [Parameter(Mandatory = $False)] [ValidateSet("Daily", "BiDaily", "Weekly", "BiWeekly", "Monthly", "Never")] [String] $UpdatesInterval = "Daily",
     [Parameter(Mandatory = $False)] [DateTime] $UpdatesAtTime = ("06am"),
+    [Parameter(Mandatory = $False)] [Switch] $DelayLogonTask = $false,
+    [Parameter(Mandatory = $False)] [ValidateSet("15m", "30m", "45m", "1h")] [String] $DelayLogonTaskMax = "15m",
     [Parameter(Mandatory = $False)] [Switch] $BypassListForUsers = $false,
     [Parameter(Mandatory = $False)] [Switch] $InstallUserContext = $false,
     [Parameter(Mandatory = $False)] [ValidateRange(0, 99)] [int32] $MaxLogFiles = 3,
@@ -188,7 +196,13 @@ function Install-WingetAutoUpdate {
         $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUinstallPath)\winget-upgrade.ps1`""
         $taskTriggers = @()
         if ($UpdatesAtLogon) {
-            $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
+            if($true -eq $DelayLogonTask) {
+                $tasktriggers += New-ScheduledTaskTrigger -AtLogOn -RandomDelay $DelayLogonTaskMax
+            }
+            else
+            {
+                $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
+            }
         }
         if ($UpdatesInterval -eq "Daily") {
             $tasktriggers += New-ScheduledTaskTrigger -Daily -At $UpdatesAtTime

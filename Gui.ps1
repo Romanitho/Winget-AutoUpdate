@@ -78,7 +78,7 @@ function Get-WingetAppInfo ($SearchApp) {
     }
 
     #Search for winget apps
-    $AppResult = & $Winget search $SearchApp --accept-source-agreements --source winget
+    $AppResult = & $Winget search $SearchApp --accept-source-agreements --source winget | Out-String
 
     #Start Convertion of winget format to an array. Check if "-----" exists
     if (!($AppResult -match "-----")) {
@@ -99,21 +99,24 @@ function Get-WingetAppInfo ($SearchApp) {
 
     $fl = $fl - 1
 
-    #Get header titles
-    $index = $lines[$fl] -split '\s+'
+    #Get header titles [without remove seperator]
+    $index = $lines[$fl] -split '(?<=\s)(?!\s)'
 
-    # Line $fl has the header, we can find char where we find ID and Version
-    $idStart = $lines[$fl].IndexOf($index[1])
-    $versionStart = $lines[$fl].IndexOf($index[2])
+    # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
+    $idStart = $($index[0] -replace '[\u4e00-\u9fa5]', '**').Length
+    $versionStart = $idStart + $($index[1] -replace '[\u4e00-\u9fa5]', '**').Length
 
     # Now cycle in real package and split accordingly
     $searchList = @()
     For ($i = $fl + 2; $i -le $lines.Length; $i++) {
-        $line = $lines[$i]
-        if ($line.Length -gt ($sourceStart + 5)) {
+        $line = $lines[$i] -replace "[\u2026]", " " #Fix "..." in long names
+        # If line contains an ID (Alphanumeric | Literal "." | Alphanumeric)
+        if ($line -match "\w\.\w") {
             $software = [Software]::new()
-            $software.Name = $line.Substring(0, $idStart).TrimEnd()
-            $software.Id = $line.Substring($idStart, $versionStart - $idStart).TrimEnd()
+            #Manage non latin characters
+            $nameDeclination = $($line.Substring(0, $idStart) -replace '[\u4e00-\u9fa5]', '**').Length - $line.Substring(0, $idStart).Length
+            $software.Name = $line.Substring(0, $idStart - $nameDeclination).TrimEnd()
+            $software.Id = $line.Substring($idStart - $nameDeclination, $versionStart - $idStart).TrimEnd()
             #add formated soft to list
             $searchList += $software
         }
@@ -398,7 +401,7 @@ function Start-InstallGUI {
     <TabControl x:Name="WAUConfiguratorTabControl" Margin="10,10,10,44">
         <TabItem x:Name="WAUTabPage" Header="Configure WAU">
             <Grid>
-                <CheckBox x:Name="WAUCheckBox" Content="Install WAU (Winget-AutoUpdate) - v{1}" Margin="10,20,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" ToolTip="Install WAU with system and user context executions. Applications installed in system context will be ignored under user context."/>
+                <CheckBox x:Name="WAUCheckBox" Content="Install WAU (Winget-AutoUpdate) - v{0}" Margin="10,20,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" ToolTip="Install WAU with system and user context executions. Applications installed in system context will be ignored under user context."/>
                 <GroupBox x:Name="WAUConfGroupBox" Header="Configurations" VerticalAlignment="Top" Margin="10,46,10,0" Height="134" IsEnabled="False">
                     <Grid>
                         <CheckBox x:Name="WAUDoNotUpdateCheckBox" Content="Do not run WAU just after install" Margin="10,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" ToolTip="Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate is run just after installation."/>
@@ -482,7 +485,7 @@ function Start-InstallGUI {
 "@
 
     #Create window
-    [xml]$XAML = ($inputXML -replace 'mc:Ignorable="d"', '' -replace "x:N", 'N' -replace '^<Win.*', '<Window') -f $WAUConfiguratorVersion, $WAUConfiguratorVersion
+    [xml]$XAML = ($inputXML -replace 'mc:Ignorable="d"', '' -replace "x:N", 'N' -replace '^<Win.*', '<Window') -f $WAUConfiguratorVersion
 
     #Read the form
     $Reader = (New-Object System.Xml.XmlNodeReader $xaml)

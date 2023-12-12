@@ -93,4 +93,4 @@ jobs:
           prerelease: ${{ github.event.inputs.pre-release }}
           generateReleaseNotes: true
           name: "v${{ steps.versioning.outputs.version }}"
-          artifacts: "WAU.zip,WAU_ADMX.zip,WAU_InstallCounter"
+          artifacts: "WAU-Configurator.zip,WAU.zip,WAU_ADMX.zip,WAU_InstallCounter"

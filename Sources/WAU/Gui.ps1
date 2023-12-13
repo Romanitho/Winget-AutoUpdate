@@ -347,11 +347,11 @@ function Get-WAUConfiguratorLatestVersion {
             {
                 $WAUConfiguratorSaveFile = New-Object System.Windows.Forms.SaveFileDialog
                 $WAUConfiguratorSaveFile.Filter = "Zip file (*.zip)|*.zip"
-                $WAUConfiguratorSaveFile.FileName = "WAU_$WAUConfiguratorLatestVersion.zip"
+                $WAUConfiguratorSaveFile.FileName = "WAU-Configurator_$WAUConfiguratorLatestVersion.zip"
                 $response = $WAUConfiguratorSaveFile.ShowDialog() # $response can return OK or Cancel
                 if ( $response -eq 'OK' ) {
                     Start-PopUp "Downloading WAU Configurator $WAUConfiguratorLatestVersion..."
-                    $WAUConfiguratorDlLink = "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$WAUConfiguratorLatestVersion/WAU.zip"
+                    $WAUConfiguratorDlLink = "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$WAUConfiguratorLatestVersion/WAU-Configurator.zip"
                     Invoke-WebRequest -Uri $WAUConfiguratorDlLink -OutFile $WAUConfiguratorSaveFile.FileName -UseBasicParsing
                     $UpdateWindow.DialogResult = [System.Windows.Forms.DialogResult]::OK
                     $UpdateWindow.Close()

@@ -261,6 +261,30 @@ if (Test-Network) {
         #Get outdated Winget packages
         Write-ToLog "Checking application updates on Winget Repository..." "yellow"
         $outdated = Get-WingetOutdatedApps
+        $installedApps = Get-WingetInstalledApps
+
+        # exclude apps where more than one version is installed
+        # and one of the instances has already newest available version 
+        $outdated = $outdated | ? {
+            $app = $_
+
+            $installedInstance = $installedApps | ? { $_.Id -eq $app.Id }
+
+            if (!$installedInstance) {
+                # upgrade can proceed
+                return $true
+            } elseif (!($installedInstance | ? { $_.Version -match "^\d+\.\d+" })) {
+                # there are just obsolete/unknown version(s) (version like '< 3.12.0.0' or 'unknown')
+                return $true
+            } elseif ($installedInstance | ? { $_.Version -match "^\d+\.\d+" -and [version]$_.Version -ge $app.AvailableVersion }) {
+                # there is some updated instance installed already hence installation would be skipped anyway 
+                Write-ToLog "$($app.Id) : Skipped upgrade because there is already instance with version that is greater then or equal to $($app.AvailableVersion)" "Gray"
+                return $false
+            } else {
+                # upgrade can proceed
+                return $true
+            }
+        }
 
         #If something unusual happened
         if ($outdated -like "An unusual*") {

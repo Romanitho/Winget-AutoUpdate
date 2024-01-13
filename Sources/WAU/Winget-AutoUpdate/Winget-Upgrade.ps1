@@ -3,7 +3,7 @@
 #Get the Working Dir
 $Script:WorkingDir = $PSScriptRoot
 #Get Functions
-Get-ChildItem "$WorkingDir\functions" | ForEach-Object { . $_.FullName }
+Get-ChildItem "$WorkingDir\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-Object { . $_.FullName }
 
 
 <# MAIN #>

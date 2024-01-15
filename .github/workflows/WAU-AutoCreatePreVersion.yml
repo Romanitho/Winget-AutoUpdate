@@ -53,7 +53,7 @@ jobs:
           fetch-depth: 0
 
       - name: Auto Increment Semver Action
-        uses: MCKanpolat/auto-semver-action@b0314e8d64baee1c3f74233edb71eb976503a6a4 # 1.0.10
+        uses: MCKanpolat/auto-semver-action@5003b8d37f4b03d95f15303ea10242cbf7c13141 # 2
         id: versioning
         with:
           releaseType: prerelease

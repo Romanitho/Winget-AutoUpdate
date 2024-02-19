@@ -9,6 +9,11 @@ This script will:
  - Install apps with Winget from a custom list file (apps.txt) or directly from popped up default list.
 #>
 
+<# UNBLOCK FILES #>
+
+Get-ChildItem -R | Unblock-File
+
+
 <# APP INFO #>
 
 # import Appx module if the powershell version is 7/core

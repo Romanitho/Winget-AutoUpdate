@@ -333,7 +333,7 @@ if (Test-Network) {
             else {
                 #For each app, notify and update
                 foreach ($app in $outdated) {
-                    if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown") {
+                    if (-not ($toSkip | ? { $app.Id -like $_ }) -and $($app.Version) -ne "Unknown") {
                         Update-App $app
                     }
                     #if current app version is unknown

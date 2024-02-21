@@ -323,7 +323,7 @@ if (Test-Network) {
                     elseif ($toSkip -contains $app.Id) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
                     }
-                    #if app with wiladcard is in "excluded list", skip it
+                    #if app with wildcard is in "excluded list", skip it
                     elseif ($toSkip | Where-Object { $app.Id -like $_ }) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
                     }

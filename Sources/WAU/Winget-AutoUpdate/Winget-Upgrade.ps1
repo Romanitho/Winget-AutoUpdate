@@ -292,14 +292,20 @@ if (Test-Network) {
             if ($UseWhiteList) {
                 #For each app, notify and update
                 foreach ($app in $outdated) {
-                    if (($toUpdate -contains $app.Id) -and $($app.Version) -ne "Unknown") {
-                        Update-App $app
-                    }
-                    #if current app version is unknown
-                    elseif ($($app.Version) -eq "Unknown") {
+                    #if current app version is unknown, skip it
+                    if ($($app.Version) -eq "Unknown") {
                         Write-ToLog "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
                     }
-                    #if app is in "excluded list"
+                    #if app is in "include list", update it
+                    elseif ($toUpdate -contains $app.Id) {
+                        Update-App $app
+                    }
+                    #if app with wildcard is in "include list", update it
+                    elseif ($toUpdate | Where-Object { $app.Id -like $_ }) {
+                        Write-ToLog "$($app.Name) is wildcard in the include list."
+                        Update-App $app
+                    }
+                    #else, skip it
                     else {
                         Write-ToLog "$($app.Name) : Skipped upgrade because it is not in the included app list" "Gray"
                     }
@@ -309,16 +315,21 @@ if (Test-Network) {
             else {
                 #For each app, notify and update
                 foreach ($app in $outdated) {
-                    if (-not ($toSkip -contains $app.Id) -and $($app.Version) -ne "Unknown") {
-                        Update-App $app
-                    }
-                    #if current app version is unknown
-                    elseif ($($app.Version) -eq "Unknown") {
+                    #if current app version is unknown, skip it
+                    if ($($app.Version) -eq "Unknown") {
                         Write-ToLog "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
                     }
-                    #if app is in "excluded list"
-                    else {
+                    #if app is in "excluded list", skip it
+                    elseif ($toSkip -contains $app.Id) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+                    }
+                    #if app with wildcard is in "excluded list", skip it
+                    elseif ($toSkip | Where-Object { $app.Id -like $_ }) {
+                        Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
+                    }
+                    # else, update it
+                    else {
+                        Update-App $app
                     }
                 }
             }

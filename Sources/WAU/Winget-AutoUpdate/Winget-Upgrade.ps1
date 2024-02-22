@@ -274,8 +274,8 @@ if (Test-Network) {
             foreach ($app in $outdated) {
                 #List available updates
                 $Log = "-> Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
-                $Log | Write-host
-                $Log | out-file -filepath $LogFile -Append
+                $Log | Write-Host
+                $Log | Out-File -FilePath $LogFile -Append
             }
 
             #Count good update installations

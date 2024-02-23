@@ -75,26 +75,28 @@ function Confirm-Exist ($AppID) {
 
 #Check if install modifications exist in "mods" directory
 function Test-ModsInstall ($AppID) {
-    if (Test-Path "$PSScriptRoot\mods\$AppID-preinstall.ps1") {
-        $ModsPreInstall = "$PSScriptRoot\mods\$AppID-preinstall.ps1"
+    #Check current location
+    if (Test-Path ".\mods\$AppID-preinstall.ps1") {
+        $ModsPreInstall = ".\mods\$AppID-preinstall.ps1"
     }
+    #Else, check in WAU mods
     elseif (($WAUInstallLocation) -and (Test-Path "$WAUInstallLocation\mods\$AppID-preinstall.ps1")) {
         $ModsPreInstall = "$WAUInstallLocation\mods\$AppID-preinstall.ps1"
     }
 
-    if (Test-Path "$PSScriptRoot\mods\$AppID-install.ps1") {
-        $ModsInstall = "$PSScriptRoot\mods\$AppID-install.ps1"
+    if (Test-Path ".\mods\$AppID-install.ps1") {
+        $ModsInstall = ".\mods\$AppID-install.ps1"
     }
     elseif (($WAUInstallLocation) -and (Test-Path "$WAUInstallLocation\mods\$AppID-install.ps1")) {
         $ModsInstall = "$WAUInstallLocation\mods\$AppID-install.ps1"
     }
 
-    if (Test-Path "$PSScriptRoot\mods\$AppID-installed-once.ps1") {
-        $ModsInstalledOnce = "$PSScriptRoot\mods\$AppID-installed-once.ps1"
+    if (Test-Path ".\mods\$AppID-installed-once.ps1") {
+        $ModsInstalledOnce = ".\mods\$AppID-installed-once.ps1"
     }
 
-    if (Test-Path "$PSScriptRoot\mods\$AppID-installed.ps1") {
-        $ModsInstalled = "$PSScriptRoot\mods\$AppID-installed.ps1"
+    if (Test-Path ".\mods\$AppID-installed.ps1") {
+        $ModsInstalled = ".\mods\$AppID-installed.ps1"
     }
     elseif (($WAUInstallLocation) -and (Test-Path "$WAUInstallLocation\mods\$AppID-installed.ps1")) {
         $ModsInstalled = "$WAUInstallLocation\mods\$AppID-installed.ps1"
@@ -105,22 +107,24 @@ function Test-ModsInstall ($AppID) {
 
 #Check if uninstall modifications exist in "mods" directory
 function Test-ModsUninstall ($AppID) {
-    if (Test-Path "$PSScriptRoot\mods\$AppID-preuninstall.ps1") {
-        $ModsPreUninstall = "$PSScriptRoot\mods\$AppID-preuninstall.ps1"
+    #Check current location
+    if (Test-Path ".\mods\$AppID-preuninstall.ps1") {
+        $ModsPreUninstall = ".\mods\$AppID-preuninstall.ps1"
     }
+    #Else, check in WAU mods
     elseif (($WAUInstallLocation) -and (Test-Path "$WAUInstallLocation\mods\$AppID-preuninstall.ps1")) {
         $ModsPreUninstall = "$WAUInstallLocation\mods\$AppID-preuninstall.ps1"
     }
 
-    if (Test-Path "$PSScriptRoot\mods\$AppID-uninstall.ps1") {
-        $ModsUninstall = "$PSScriptRoot\mods\$AppID-uninstall.ps1"
+    if (Test-Path ".\mods\$AppID-uninstall.ps1") {
+        $ModsUninstall = ".\mods\$AppID-uninstall.ps1"
     }
     elseif (($WAUInstallLocation) -and (Test-Path "$WAUInstallLocation\mods\$AppID-uninstall.ps1")) {
         $ModsUninstall = "$WAUInstallLocation\mods\$AppID-uninstall.ps1"
     }
 
-    if (Test-Path "$PSScriptRoot\mods\$AppID-uninstalled.ps1") {
-        $ModsUninstalled = "$PSScriptRoot\mods\$AppID-uninstalled.ps1"
+    if (Test-Path ".\mods\$AppID-uninstalled.ps1") {
+        $ModsUninstalled = ".\mods\$AppID-uninstalled.ps1"
     }
     elseif (($WAUInstallLocation) -and (Test-Path "$WAUInstallLocation\mods\$AppID-uninstalled.ps1")) {
         $ModsUninstalled = "$WAUInstallLocation\mods\$AppID-uninstalled.ps1"
@@ -168,8 +172,14 @@ function Install-App ($AppID, $AppArgs) {
             }
 
             #Add mods if deployed from Winget-Install
-            if ((Test-Path "$PSScriptRoot\mods\$AppID-preinstall.ps1") -or (Test-Path "$PSScriptRoot\mods\$AppID-upgrade.ps1") -or (Test-Path "$PSScriptRoot\mods\$AppID-install.ps1") -or (Test-Path "$PSScriptRoot\mods\$AppID-installed.ps1")) {
-                Add-WAUMods $AppID
+            if ((Test-Path ".\mods\$AppID-preinstall.ps1") -or (Test-Path ".\mods\$AppID-upgrade.ps1") -or (Test-Path ".\mods\$AppID-install.ps1") -or (Test-Path ".\mods\$AppID-installed.ps1")) {
+                #Check if WAU default install path exists
+                $Mods = "$WAUInstallLocation\mods"
+                if (Test-Path $Mods) {
+                    #Add mods
+                    Write-ToLog "-> Add modifications for $AppID to WAU 'mods'"
+                    Copy-Item ".\mods\$AppID-*" -Destination "$Mods" -Exclude "*installed-once*", "*uninstall*" -Force
+                }
             }
 
             #Add to WAU White List if set
@@ -221,7 +231,13 @@ function Uninstall-App ($AppID, $AppArgs) {
 
             #Remove mods if deployed from Winget-Install
             if ((Test-Path "$PSScriptRoot\mods\$AppID-preinstall.ps1") -or (Test-Path "$PSScriptRoot\mods\$AppID-upgrade.ps1") -or (Test-Path "$PSScriptRoot\mods\$AppID-install.ps1") -or (Test-Path "$PSScriptRoot\mods\$AppID-installed.ps1")) {
-                Remove-WAUMods $AppID
+                #Check if WAU default install path exists
+                $Mods = "$WAUInstallLocation\mods"
+                if (Test-Path "$Mods\$AppID*") {
+                    Write-ToLog "-> Remove $AppID modifications from WAU 'mods'"
+                    #Remove mods
+                    Remove-Item -Path "$Mods\$AppID-*" -Exclude "*uninstall*" -Force
+                }
             }
 
             #Remove from WAU White List if set
@@ -263,29 +279,6 @@ function Remove-WAUWhiteList ($AppID) {
         $file | Out-File $WhiteList
     }
 }
-
-#Function to Add Mods to WAU "mods"
-function Add-WAUMods ($AppID) {
-    #Check if WAU default install path exists
-    $Mods = "$WAUInstallLocation\mods"
-    if (Test-Path $Mods) {
-        #Add mods
-        Write-ToLog "-> Add modifications for $AppID to WAU 'mods'"
-        Copy-Item "$PSScriptRoot\mods\$AppID-*" -Destination "$Mods" -Exclude "*installed-once*", "*uninstall*" -Force
-    }
-}
-
-#Function to Remove Mods from WAU "mods"
-function Remove-WAUMods ($AppID) {
-    #Check if WAU default install path exists
-    $Mods = "$WAUInstallLocation\mods"
-    if (Test-Path "$Mods\$AppID*") {
-        Write-ToLog "-> Remove $AppID modifications from WAU 'mods'"
-        #Remove mods
-        Remove-Item -Path "$Mods\$AppID-*" -Exclude "*uninstall*" -Force
-    }
-}
-
 
 <# MAIN #>
 

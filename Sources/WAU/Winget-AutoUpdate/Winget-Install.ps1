@@ -230,7 +230,7 @@ function Uninstall-App ($AppID, $AppArgs) {
             }
 
             #Remove mods if deployed from Winget-Install
-            if ((Test-Path "$PSScriptRoot\mods\$AppID-preinstall.ps1") -or (Test-Path "$PSScriptRoot\mods\$AppID-upgrade.ps1") -or (Test-Path "$PSScriptRoot\mods\$AppID-install.ps1") -or (Test-Path "$PSScriptRoot\mods\$AppID-installed.ps1")) {
+            if ((Test-Path ".\mods\$AppID-preinstall.ps1") -or (Test-Path ".\mods\$AppID-upgrade.ps1") -or (Test-Path ".\mods\$AppID-install.ps1") -or (Test-Path ".\mods\$AppID-installed.ps1")) {
                 #Check if WAU default install path exists
                 $Mods = "$WAUInstallLocation\mods"
                 if (Test-Path "$Mods\$AppID*") {

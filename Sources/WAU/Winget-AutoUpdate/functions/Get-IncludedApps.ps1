@@ -10,12 +10,10 @@ function Get-IncludedApps {
 
             $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList").Property
 
+            $AppIDs = @()
+
             foreach ($ValueName in $ValueNames) {
-                $AppIDs = [Microsoft.Win32.Registry]::GetValue($Key, $ValueName, $false)
-                [PSCustomObject]@{
-                    Value = $ValueName
-                    Data  = $AppIDs.Trim()
-                }
+                $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList" -Name $ValueName)
             }
 
         }

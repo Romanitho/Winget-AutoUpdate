@@ -245,7 +245,8 @@ if (Test-Network) {
                     New-Item "$WorkingDir\logs\error.txt" -Value "Whitelist doesn't exist in GPO" -Force
                     Exit 1
                 }
-                $toUpdate = $toUpdate.Data
+                $toUpdate = $toUpdate
+                foreach ($app in $toUpdate) { Write-ToLog "Include app ${app}" }
             }
             else {
                 $BlackList = $toSkip.GetUpperBound(0)
@@ -254,7 +255,8 @@ if (Test-Network) {
                     New-Item "$WorkingDir\logs\error.txt" -Value "Blacklist doesn't exist in GPO" -Force
                     Exit 1
                 }
-                $toSkip = $toSkip.Data
+                $toSkip = $toSkip
+                foreach ($app in $toSkip) { Write-ToLog "Exclude app ${app}" }
             }
         }
 

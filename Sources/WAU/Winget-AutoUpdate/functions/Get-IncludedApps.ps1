@@ -13,7 +13,7 @@ function Get-IncludedApps {
             $AppIDs = @()
 
             foreach ($ValueName in $ValueNames) {
-                $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList" -Name $ValueName)
+                $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList" -Name $ValueName).Trim()
             }
 
         }

@@ -21,8 +21,22 @@ Function Update-WinGet {
         $WingetInfo = (Get-Item "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
         #If multiple versions, pick most recent one
         $WingetCmd = $WingetInfo[-1].FileName
-        #Get current Winget Version
-        $WingetInstalledVersion = [regex]::match((& $WingetCmd -v), '((\d+\.)(\d+\.)(\d+))').Groups[1].Value
+        #prepare startinfo for a new process
+        $psi = [System.Diagnostics.ProcessStartInfo]::new($WingetCmd, '-v');
+            $psi.CreateNoWindow = $true;
+            $psi.RedirectStandardOutput = $true;
+            $psi.RedirectStandardError = $true;
+            $psi.UseShellExecute = $false;
+        #prepare a new process and start it
+        $pro = [System.Diagnostics.Process]::new();
+            $pro.StartInfo = $psi;
+            $pro.Start() | Out-Null;
+            $stdOut = $pro.StandardOutput.ReadToEnd();
+            $ErrOut = $pro.StandardError.ReadToEnd();
+            $pro.WaitForExit();
+        
+        #Get current Winget Version from redirected Standard Output stream.
+        $WingetInstalledVersion = [regex]::match($stdOut, '((\d+\.)(\d+\.)(\d+))').Groups[1].Value;
     }
     catch {
         Write-ToLog "-> WinGet is not installed" "Red"

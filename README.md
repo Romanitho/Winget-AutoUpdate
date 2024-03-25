@@ -29,7 +29,7 @@ Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.tx
 - #### Or AllowList
 You can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: <https://github.com/Romanitho/Winget-AutoUpdate/issues/36>
 
-> The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels. (From v1.19.2-7)
+> The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels. (From v1.20.0)
 
 ### Notification Level
 You can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`.

@@ -44,18 +44,54 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $WAUWhiteList
 )
 
+#region own location
+    # apparently $PSScriptRoot is unreliable during intune deployments
+    if($null -eq $psISE)
+    {
+        # we are not running in ISE
+        $currentScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent;
+    }
+    else
+    {
+        # we are running in ISE
+        $currentScriptPath = Split-Path -Path $psISE.CurrentFile.FullPath -Parent;
+    }
+    #failsafe for ".\\.\.\" problems
+    $currentScriptPath = [System.IO.Path]::GetFullPath($currentScriptPath);
+    Set-Location -Path $currentScriptPath;
+    $currentDirectory =  Get-Location;
+#endregion
 
-<# FUNCTIONS #>
+#region expansion of subpaths
+    [psobject]$global:settings = get-content -Path "$currentDirectory\settings.json" | Out-String | ConvertFrom-Json;
+    #pay attention to order of entries, we are parsing it one-by-one
+    ($global:settings | gm -MemberType NoteProperty).Name | 
+        Sort-object |
+        ForEach-Object {
+            Get-Variable -Name $_ -ErrorAction SilentlyContinue | Remove-Variable;
+            [System.Environment]::SetEnvironmentVariable(
+                $_,
+                [System.Environment]::ExpandEnvironmentVariables($global:settings.$_),
+                [System.EnvironmentVariableTarget]::Process
+            )
+            Set-Variable -Name $_ -Value ([System.Environment]::GetEnvironmentVariable($_)) -Option Constant,AllScope;
+        }
+#endregion
 
-#Include external Functions
-. "$PSScriptRoot\functions\Install-Prerequisites.ps1"
-. "$PSScriptRoot\functions\Update-WinGet.ps1"
-. "$PSScriptRoot\functions\Update-StoreApps.ps1"
-. "$PSScriptRoot\functions\Add-ScopeMachine.ps1"
-. "$PSScriptRoot\functions\Get-WingetCmd.ps1"
-. "$PSScriptRoot\functions\Write-ToLog.ps1"
-. "$PSScriptRoot\functions\Confirm-Installation.ps1"
-
+#region loading all functions
+    #loading Write-ToLog function
+    [string]$logFunction = "Write-ToLog.ps1";
+    Get-ChildItem -Path $WAU_subfolder_functions -Depth 0 -File -Include $logFunction |
+        ForEach-Object {
+            . $_.FullName;
+        }
+    # from this moment we can use logger, and the rest of functions
+    Get-ChildItem -Path $WAU_subfolder_functions -Depth 0 -Filter "*.ps1" -File -Exclude  $logFunction |
+        ForEach-Object {
+            Write-ToLog "-> Loading function $($_.BaseName)" "White"
+            . $_.FullName;
+        }
+#endregion
 
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {

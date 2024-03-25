@@ -7,3 +7,4 @@ Microsoft.Teams
 Microsoft.Teams.Classic
 Mozilla.Firefox*
 TeamViewer.TeamViewer*
+Microsoft.RemoteDesktopClient

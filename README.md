@@ -38,7 +38,7 @@ You can choose which notification will be displayed: Full, Success only or none.
 You can easily translate toast notifications by creating your locale xml config file (and share it with us :) ).
 
 ### When does the script run?
-WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never). You can also add `-UpdatesAtLogon` parameter to run at user logon (recommanded).
+WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never). You can also add `-UpdatesAtLogon` parameter to run at user logon (recommended).
 
 ### Log location
 You can find logs in install location, in logs folder.<br>

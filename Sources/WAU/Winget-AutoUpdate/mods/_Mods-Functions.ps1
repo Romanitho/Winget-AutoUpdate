@@ -25,6 +25,12 @@ function Stop-ModsProc ($Proc) {
     }
     Return
 }
+function Stop-ModsSvc ($Svc) {
+  foreach ($service in $Svc) {
+    Stop-Service -Name $service -Force -ErrorAction SilentlyContinue | Out-Null
+  }
+  Return
+}
 
 function Wait-ModsProc ($Wait) {
     foreach ($process in $Wait) {

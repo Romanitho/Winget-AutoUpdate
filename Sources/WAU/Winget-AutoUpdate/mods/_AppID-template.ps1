@@ -10,6 +10,9 @@ $RunWait = $True
 #Beginning of Process Name to Stop - optional wildcard (*) after, without .exe, multiple: "proc1","proc2"
 $Proc = @("")
 
+#Beginning of Service Name to Stop - multiple: "service1.exe","service2.exe"
+$Svc = @("")
+
 #Beginning of Process Name to Wait for to End - optional wildcard (*) after, without .exe, multiple: "proc1","proc2"
 $Wait = @("")
 
@@ -88,6 +91,9 @@ if ($RunSystem) {
 }
 if ($Proc) {
     Stop-ModsProc $Proc
+}
+if ($Svc) {
+  Stop-ModsSvc $Svc
 }
 if ($Wait) {
     Wait-ModsProc $Wait

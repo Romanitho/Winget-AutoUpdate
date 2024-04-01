@@ -202,10 +202,10 @@ Function Write-CMTraceLog
             #Write back to the host if $Writebacktohost is true. 
             if(($WriteBackToHost)){
                 Switch ($PSCmdlet.GetVariableValue('InformationPreference')){
-                    'Continue' {$InformationPreference = 'Continue'; Write-Information -Message "INFORMATION: $Message";$InformationPreference = ''}
-                    'Inquire' {$InformationPreference = 'Inquire'; Write-Information -Message "INFORMATION: $Message";$InformationPreference = ''}
-                    'Stop' {$InformationPreference = 'Stop'; Write-Information -Message "INFORMATION: $Message";$InformationPreference = ''}
-                    'Suspend' {$InformationPreference = 'Suspend';Write-Information -Message "INFORMATION: $Message";$InformationPreference = ''}
+                    'Continue' {$InformationPreference = [System.Management.Automation.ActionPreference]::Continue; Write-Information "INFORMATION: $Message" -InformationAction Continue ; $InformationPreference = ''}
+                    'Inquire' {$InformationPreference = [System.Management.Automation.ActionPreference]::Inquire;   Write-Information "INFORMATION: $Message" -InformationAction Inquire;   $InformationPreference = ''}
+                    'Stop' {$InformationPreference = [System.Management.Automation.ActionPreference]::Stop;         Write-Information "INFORMATION: $Message" -InformationAction Stop;      $InformationPreference = ''}
+                    'Suspend' {$InformationPreference = [System.Management.Automation.ActionPreference]::Suspend;   Write-Information "INFORMATION: $Message" -InformationAction Suspend;   $InformationPreference = ''}
                 }
             }
         }

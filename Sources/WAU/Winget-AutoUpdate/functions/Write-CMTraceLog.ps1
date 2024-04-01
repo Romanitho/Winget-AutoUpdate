@@ -45,7 +45,7 @@ Function Write-CMTraceLog
 
         #Write back to the console or just to the log file. By default it will write back to the host.
         [parameter(Mandatory=$False)]
-        [switch]$WriteBackToHost = $True
+        [switch]$WriteBackToHost = $False
 
     )#Param
 

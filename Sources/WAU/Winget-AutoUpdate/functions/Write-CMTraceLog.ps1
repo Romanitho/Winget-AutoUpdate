@@ -1,5 +1,5 @@
 # Obtain UTC offset (think about moving it to the parent method)
-    $DateTime = New-Object -ComObject WbemScripting.SWbemDateTime;
+    $DateTime = New-Object -ComObject 'WbemScripting.SWbemDateTime';
     $DateTime.SetVarDate($(Get-Date));
     $UtcValue = $DateTime.Value;
     $global:CMTraceLog_UtcOffset = $UtcValue.Substring(21, $UtcValue.Length - 21);
@@ -8,7 +8,7 @@
 # Set context of process which writes a message
     $global:CMTraceLog_Context = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name;
 
-# set string templates for formating later
+# set string templates for formatting later
 [string]$global:logline_part1_template_nonerror = "<![LOG[{0}: {1}]LOG]!>";
 [string]$global:logline_part1_template_error    = "<![LOG[{0}: {1}`r`r`nCommand: {2}`nScriptName: {3}`nLine Number: {4}`nColumn Number: {5}`nLine: {6}]LOG]!>";
 [string]$global:logline_part2_template = "<time=`"{0}{1}`" date=`"{2}`" component=`"{3}`" context=`"{4}`" type=`"{5}`" thread=`"{6}`" file=`"{7}`">";
@@ -31,16 +31,16 @@ Function Write-CMTraceLog
     Param( 
 
         #Path to the log file 
-        [parameter(Mandatory=$False)]      
+        [parameter(Mandatory=$False)]
         [String]$Logfile = "$Script:WorkingDir\logs\updates.log",
          
-        #The information to log 
-        [parameter(Mandatory=$True)] 
+        #The information to log
+        [parameter(Mandatory=$True)]
         $Message,
  
         #The severity (Error, Warning, Verbose, Debug, Information)
         [parameter(Mandatory=$True)]
-        [ValidateSet('Warning','Error','Verbose','Debug', 'Information', IgnoreCase=$True)] 
+        [ValidateSet('Warning','Error','Verbose','Debug', 'Information', IgnoreCase=$True)]
         [String]$Type,
 
         #Write back to the console or just to the log file. By default it will write back to the host.
@@ -88,7 +88,7 @@ Function Write-CMTraceLog
             }
             else
             {
-                # we do not have an exception, we need to prepare out own cutom error to use later
+                # we do not have an exception, we need to prepare out own custom error to use later
                 [System.Exception]$Exception = $Message;
                 [String]$ErrorID = 'Custom Error';
                 [System.Management.Automation.ErrorCategory]$ErrorCategory = [Management.Automation.ErrorCategory]::WriteError;
@@ -100,7 +100,7 @@ Function Write-CMTraceLog
                 $Type.ToUpper(), 
                 $Message.exception.message, 
                 $Message.InvocationInfo.MyCommand,
-                $Message.InvocationInfo.Scriptname,
+                $Message.InvocationInfo.ScriptName,
                 $Message.InvocationInfo.ScriptLineNumber,
                 $Message.InvocationInfo.OffsetInLine,
                 $Message.InvocationInfo.Line
@@ -114,14 +114,14 @@ Function Write-CMTraceLog
 
     #region set the 2nd part of logged entry
         [string]$logline_part2 = [string]::Format(
-            $global:logline_part2_template, 
-            $time, 
-            $global:CMTraceLog_UtcOffset, 
-            $date, 
+            $global:logline_part2_template,
+            $time,
+            $global:CMTraceLog_UtcOffset,
+            $date,
             $Component,
-            $global:CMTraceLog_Context, 
-            $Severity, 
-            $ProcessID, 
+            $global:CMTraceLog_Context,
+            $Severity,
+            $ProcessID,
             $Source
             );
     #endregion set the 2nd part of logged entry
@@ -137,7 +137,8 @@ Function Write-CMTraceLog
     #region Warning
         2{
             #Write back to the host if $Writebacktohost is true.
-            if(($WriteBackToHost)){
+            if(($WriteBackToHost))
+            {
                 Switch($PSCmdlet.GetVariableValue('WarningPreference')){
                     'Continue' {$WarningPreference = 'Continue';Write-Warning -Message "$Message";$WarningPreference=''}
                     'Stop' {$WarningPreference = 'Stop';Write-Warning -Message "$Message";$WarningPreference=''}
@@ -151,10 +152,11 @@ Function Write-CMTraceLog
     #region Error
         3{
             #This if statement is to catch the two different types of errors that may come through. A normal terminating exception will have all the information that is needed, if it's a user generated error by using Write-Error,
-            #then the else statment will setup all the information we would like to log.
+            #then the else statement will setup all the information we would like to log.
 
             #Write back to the host if $Writebacktohost is true.
-            if(($WriteBackToHost)){                                        
+            if(($WriteBackToHost))
+            {
                 #Write back to Host
                 Switch($PSCmdlet.GetVariableValue('ErrorActionPreference'))
                 {
@@ -178,22 +180,21 @@ Function Write-CMTraceLog
                     'Inquire' {$VerbosePreference = 'Inquire'; Write-Verbose -Message "$Message";$VerbosePreference = ''}
                     'Stop' {$VerbosePreference = 'Stop'; Write-Verbose -Message "$Message";$VerbosePreference = ''}
                 }
-            }              
-       
+            }
         }
     #endregion Verbose
 
     #region Debug
         5{
-            #Write back to the host if $Writebacktohost is true.                             
-            if(($WriteBackToHost)){
+            #Write back to the host if $Writebacktohost is true.
+            if(($WriteBackToHost))
+            {
                 Switch ($PSCmdlet.GetVariableValue('DebugPreference')){
                     'Continue' {$DebugPreference = 'Continue'; Write-Debug -Message "$Message";$DebugPreference = ''}
                     'Inquire' {$DebugPreference = 'Inquire'; Write-Debug -Message "$Message";$DebugPreference = ''}
                     'Stop' {$DebugPreference = 'Stop'; Write-Debug -Message "$Message";$DebugPreference = ''}
                 }
-            } 
-                      
+            }
         }
     #endregion Debug
 
@@ -285,7 +286,7 @@ The write-cmtracelog function will then print the verbose message.
     Change Log
     ##########
     
-    v1.6 - 2024-04-01 - reorganized com handling triggered by UTC Offset calculation, reuced the paralellism by moving err/non-err strings generation to the front
+    v1.6 - 2024-04-01 - reorganized com handling triggered by UTC Offset calculation, reduced the parallelism by moving err/non-err strings generation to the front
 
     ##########
     

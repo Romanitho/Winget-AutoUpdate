@@ -96,9 +96,9 @@ Function Write-CMTraceLog
                 $Message = $ErrorRecord;
             }
             [string]$logline_part1 = [string]::Format(
-                $global:logline_part1_template_error, 
-                $Type.ToUpper(), 
-                $Message.exception.message, 
+                $global:logline_part1_template_error,
+                $Type.ToUpper(),
+                $Message.exception.message,
                 $Message.InvocationInfo.MyCommand,
                 $Message.InvocationInfo.ScriptName,
                 $Message.InvocationInfo.ScriptLineNumber,

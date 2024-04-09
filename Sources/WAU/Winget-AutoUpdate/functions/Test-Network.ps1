@@ -20,7 +20,7 @@ function Test-Network {
         }
         
         try {
-            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing
+            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome)
         } catch {
             $ncsiResponse = $false
         }

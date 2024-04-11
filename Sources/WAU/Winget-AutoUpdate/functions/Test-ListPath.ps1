@@ -21,6 +21,22 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
     # If path is URL
     if ($ListPath -like "http*") {
         $ExternalList = -join ($ListPath, "/", $ListType)
+
+        # Test if $ListPath contains the character "?" (testing for SAS token)
+        if ($Listpath -match "\?") {
+            # Split the URL into two strings at the "?" substring
+            $splitPath = $ListPath.Split("`?")
+
+            # Assign the first string (up to "?") to the variable $resourceURI
+            $resourceURI = $splitPath[0]
+
+            # Assign the second string (after "?" to the end) to the variable $sasToken
+            $sasToken = $splitPath[1]
+            
+            # Join the parts and add "/$ListType?" in between the parts
+            $ExternalList = -join ($resourceURI, "/$ListType`?", $sasToken)
+        }
+
         $wc = New-Object System.Net.WebClient
         try {
             $wc.OpenRead("$ExternalList").Close() | Out-Null

@@ -97,8 +97,12 @@ Use White List instead of Black List. This setting will not create the "excluded
 Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.<br>
 **PATH** must end with a Directory, not a File...<br>
 ...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!<br>
-...if the external Path is a Private Azure Container protected by a SAS token it should be like this (`resourceURI?sasToken`):<br>
-`https://storagesample.blob.core.windows.net/sample-container?v=2023-11-31&sr=b&sig=39Up9jzHkxhUIhFEjEh9594DIxe6cIRCgOVOICGSP%3A377&sp=rcw`
+
+If the external Path is a Private Azure Container protected by a SAS token (**resourceURI?sasToken**), every special character should be escaped at installation time.<br>
+It doesn't work to call Powershell in **CMD** to install **WAU** with the parameter:<br>
+`-ListPath https://storagesample.blob.core.windows.net/sample-container?v=2023-11-31&sr=b&sig=39Up9jzHkxhUIhFEjEh9594DIxe6cIRCgOVOICGSP%3A377&sp=rcw`<br>
+Instead you must escape **every** special character (notice the `%` escape too) like:<br>
+`-ListPath https://storagesample.blob.core.windows.net/sample-container^?v=2023-11-31^&sr=b^&sig=39Up9jzHkxhUIhFEjEh9594DIxe6cIRCgOVOICGSP%%3A377^&sp=rcw`
 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 

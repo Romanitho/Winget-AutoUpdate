@@ -129,7 +129,7 @@ param(
 
 function Install-WingetAutoUpdate {
 
-    Write-ToLog "Installing WAU..." "Yellow"
+    Write-ToLog "Installing WAU $WAUVersion..." "Yellow"
 
     try {
         #Copy files to location

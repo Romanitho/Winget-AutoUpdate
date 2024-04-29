@@ -12,8 +12,8 @@ Function Update-WinGet {
         $WinGetAvailableVersion = ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
     }
     catch {
-        #if fail set version to the latest version as of 2023-10-08
-        $WinGetAvailableVersion = "1.6.2771"
+        #if fail set version to the latest version as of 2024-04-29
+        $WinGetAvailableVersion = "1.7.11132"
     }
 
     try {

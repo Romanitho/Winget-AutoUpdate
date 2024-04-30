@@ -214,7 +214,7 @@ if (Test-Network) {
                 #If _WAU-mods.ps1 has ExitCode 1 - Re-run WAU
                 if ($ModsExitCode -eq 1) {
                     Write-ToLog "Re-run WAU"
-                    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
+                    Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
                     Exit
                 }
             }

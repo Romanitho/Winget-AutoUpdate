@@ -64,6 +64,28 @@ function Install-Prerequisites {
             }
         }
 
+        #Check if Microsoft.UI.Xaml.2.8 is installed
+        if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.8' -AllUsers)) {
+            try {
+                Write-ToLog "Microsoft.UI.Xaml.2.8 is not installed" "Red"
+                #Download
+                $UIXamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
+                $UIXamlFile = "$env:TEMP\Microsoft.UI.Xaml.2.8.x64.appx"
+                Write-ToLog "-> Downloading Microsoft.UI.Xaml.2.8..."
+                Invoke-RestMethod -Uri $UIXamlUrl -OutFile $UIXamlFile
+                #Install
+                Write-ToLog "-> Installing Microsoft.UI.Xaml.2.8..."
+                Add-AppxProvisionedPackage -Online -PackagePath $UIXamlFile -SkipLicense | Out-Null
+                Write-ToLog "-> Microsoft.UI.Xaml.2.8 installed successfully." "Green"
+            }
+            catch {
+                Write-ToLog "-> Failed to intall Microsoft.UI.Xaml.2.8..." "Red"
+            }
+            finally {
+                Remove-Item -Path $UIXamlFile -Force
+            }
+        }
+
         Write-ToLog "Prerequisites checked. OK`n" "Green"
 
     }

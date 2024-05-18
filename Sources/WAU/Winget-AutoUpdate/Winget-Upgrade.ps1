@@ -22,6 +22,17 @@ $Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
 
 #Check if running as system
 if ($IsSystem) {
+    # Check if Intune Management Extension Logs folder exists
+    if ((Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs" -ErrorAction SilentlyContinue)) {
+        # Check if updates.log and symlink WAU-updates.log exists, make symlink (doesn't work under ServiceUI)
+        if ((Test-Path -Path ('{0}\logs\updates.log' -f $WorkingDir) -ErrorAction SilentlyContinue) -and !(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ErrorAction SilentlyContinue)) {
+            $null = New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue
+        }
+        # Check if install.log and symlink WAU-install.log exists, make symlink (doesn't work under ServiceUI)
+        if ((Test-Path -Path ('{0}\logs\install.log' -f $WorkingDir) -ErrorAction SilentlyContinue) -and !(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ErrorAction SilentlyContinue)) {
+            $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
+        }
+    }
     #Check if running with session ID 0
     if ($SessionID -eq 0) {
         #Check if ServiceUI exists
@@ -345,13 +356,6 @@ if (Test-Network) {
 
         #Check if user context is activated during system run
         if ($IsSystem) {
-
-            #Adds SymLink if Intune managed
-            $IntuneLogPath = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs"
-            if ((Test-Path "$IntuneLogPath") -and !(Test-Path "$IntuneLogPath\WAU-updates.log")) {
-                Write-ToLog "Creating SymLink for log file (WAU-updates) in Intune Management Extension log folder" "Yellow"
-                New-Item -Path "$IntuneLogPath\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null
-            }
 
             #Run WAU in user context if feature is activated
             if ($WAUConfig.WAU_UserContext -eq 1) {

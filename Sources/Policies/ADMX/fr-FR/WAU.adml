@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <displayName>WinGet-AutoUpdate</displayName>
+  <description>Gestion GPO de WinGet-AutoUpdate</description>
+  <resources>
+    <stringTable>
+      <string id="WAU">Winget-AutoUpdate</string>
+      <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 ou ultérieure</string>
+      <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 ou ultérieure</string>
+      <string id="ActivateGPOManagement_Name">Activer la gestion GPO de WAU</string>
+      <string id="ActivateGPOManagement_Explain">Ce paramètre de politique est un commutateur de gestion GPO de Winget-AutoUpdate.</string>
+      <string id="BypassListForUsers_Name">Contourner la liste noire/blanche pour l'utilisateur</string>
+      <string id="BypassListForUsers_Explain">
+        Ce paramètre de politique spécifie s'il faut contourner la liste noire/blanche lorsque exécuté dans le contexte utilisateur ou non.
+
+        Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="DisableAutoUpdate_Name">Désactiver WAU AutoUpdate</string>
+      <string id="DisableAutoUpdate_Explain">
+        Ce paramètre de politique spécifie s'il faut désactiver WAU AutoUpdate ou non :
+        Par défaut, WAU AutoUpdate est activé.
+        Il ne remplacera pas les configurations, les icônes (si personnalisées), la liste d'applications exclues...
+
+        Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="DoNotRunOnMetered_Name">Exécuter WAU sur une connexion mesurée</string>
+      <string id="DoNotRunOnMetered_Explain">
+        Ce paramètre de politique spécifie s'il faut exécuter WAU sur une connexion mesurée ou non.
+
+        Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="UpdatePrerelease_Name">Mettre à jour WAU vers les versions PreRelease</string>
+      <string id="UpdatePrerelease_Explain">
+        Ce paramètre de politique spécifie s'il faut mettre à jour WAU vers les versions PreRelease ou non (via WAU AutoUpdate).
+
+        Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="BlackList_Name">Liste noire GPO des applications</string>
+      <string id="BlackList_Explain">
+        Fournir les IDs WinGet des applications que vous souhaitez exclure.
+
+        Si cette politique est désactivée ou non configurée, la liste noire GPO n'est pas utilisée.
+      </string>
+      <string id="WhiteList_Name">Liste blanche GPO des applications</string>
+      <string id="WhiteList_Explain">
+        Fournir les IDs WinGet des applications que vous souhaitez inclure.
+
+        Si cette politique est désactivée ou non configurée, la liste blanche GPO n'est pas utilisée.
+      </string>
+      <string id="UseWhiteList_Name">Utiliser la liste blanche au lieu de la liste noire</string>
+      <string id="UseWhiteList_Explain">
+        Ce paramètre de politique spécifie s'il faut utiliser une liste blanche ou non.
+
+        Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="ListPath_Name">Obtenir la liste noire/blanche depuis un chemin externe (URL/UNC/GPO/Local)</string>
+      <string id="ListPath_Explain">
+        Si cette politique est activée, vous pouvez définir un chemin (URL/UNC/GPO/Local) vers des listes externes autres que celles par défaut.
+        Si "Liste noire/blanche GPO des applications" est définie dans ce GPO, le chemin peut être : GPO
+
+        Si cette politique est désactivée ou non configurée, le chemin par défaut est utilisé (emplacement d'installation de WAU).
+      </string>
+      <string id="ModsPath_Name">Obtenir des mods depuis un chemin externe (URL/UNC/Local/AzureBlob)</string>
+      <string id="ModsPath_Explain">
+        Si cette politique est activée, vous pouvez définir un chemin (URL/UNC/Local/AzureBlob) vers des mods externes autres que ceux par défaut.
+
+        Si cette politique est désactivée ou non configurée, le chemin par défaut des mods est utilisé (emplacement d'installation de WAU).
+
+        Note : Lorsqu'il est défini sur 'AzureBlob', assurez-vous de configurer également 'Définir l'URL Azure Blob avec le jeton SAS'.
+      </string>
+      <string id="BlobURL_Name">Définir l'URL Azure Blob avec le jeton SAS</string>
+      <string id="BlobURL_Explain">
+        Si cette politique est activée, vous pouvez définir une URL de stockage Azure Blob avec un jeton SAS à utiliser avec la fonctionnalité 'Mods'. L'URL doit inclure le jeton SAS et avoir les permissions 'lecture' et 'liste'.
+
+        Si cette politique est désactivée ou non configurée, la valeur est vide et le stockage Azure Blob NE fonctionnera PAS.
+      </string>
+      <string id="NotificationLevel_Name">Niveau de notification</string>
+      <string id="NotificationLevel_Explain">
+        Si cette politique est activée, vous pouvez configurer le niveau de notification :
+        1. Complet (par défaut)
+        2. Succès uniquement
+        3. Aucun
+
+        Si cette politique n'est pas configurée ou désactivée, le niveau de notification : (1. Complet).
+      </string>
+      <string id="NotificationLevel_Full">1. Complet (par défaut)</string>
+      <string id="NotificationLevel_SuccessOnly">2. Succès uniquement</string>
+      <string id="NotificationLevel_None">3. Aucun</string>
+      <string id="UpdatesInterval_Name">Intervalle de mise à jour</string>
+      <string id="UpdatesInterval_Explain">
+        Si cette politique est activée, vous pouvez configurer l'intervalle de mise à jour :
+        1. Quotidien (par défaut)
+        2. Bi-quotidien
+        3. Hebdomadaire
+        4. Bi-hebdomadaire
+        5. Mensuel
+        6. Jamais (par exemple, en combinaison avec 'Mises à jour à la connexion')
+
+        Si cette politique n'est pas configurée ou désactivée, l'intervalle de mise à jour : (1. Quotidien).
+      </string>
+      <string id="UpdatesInterval_Daily">1. Quotidien (par défaut)</string>
+      <string id="UpdatesInterval_BiDaily">2. Bi-quotidien</string>
+      <string id="UpdatesInterval_Weekly">3. Hebdomadaire</string>
+      <string id="UpdatesInterval_BiWeekly">4. Bi-hebdomadaire</string>
+      <string id="UpdatesInterval_Monthly">5. Mensuel</string>
+      <string id="UpdatesInterval_Never">6. Jamais (par exemple, en combinaison avec 'Intervalle de mise à jour')</string>
+      <string id="UpdatesAtLogon_Name">Mises à jour à la connexion</string>
+      <string id="UpdatesAtLogon_Explain">
+        Ce paramètre de politique spécifie s'il faut configurer WAU pour s'exécuter à la connexion de l'utilisateur ou non.
+
+        Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="UpdatesAtTime_Name">Mises à jour à l'heure</string>
+      <string id="UpdatesAtTime_Explain">
+        Si cette politique est activée, vous pouvez configurer l'heure de la tâche planifiée de mise à jour :
+        De 01:00 à 24:00 (heure militaire/24 heures)
+
+        Si cette politique n'est pas configurée ou désactivée, l'heure de mise à jour : (06:00).
+      </string>
+      <string id="UpdatesAtTime01">01:00</string>
+      <string id="UpdatesAtTime02">02:00</string>
+      <string id="UpdatesAtTime03">03:00</string>
+      <string id="UpdatesAtTime04">04:00</string>
+      <string id="UpdatesAtTime05">05:00</string>
+      <string id="UpdatesAtTime06">06:00 (par défaut)</string>
+      <string id="UpdatesAtTime07">07:00</string>
+      <string id="UpdatesAtTime08">08:00</string>
+      <string id="UpdatesAtTime09">09:00</string>
+      <string id="UpdatesAtTime10">10:00</string>
+      <string id="UpdatesAtTime11">11:00</string>
+      <string id="UpdatesAtTime12">12:00</string>
+      <string id="UpdatesAtTime13">13:00</string>
+      <string id="UpdatesAtTime14">14:00</string>
+      <string id="UpdatesAtTime15">15:00</string>
+      <string id="UpdatesAtTime16">16:00</string>
+      <string id="UpdatesAtTime17">17:00</string>
+      <string id="UpdatesAtTime18">18:00</string>
+      <string id="UpdatesAtTime19">19:00</string>
+      <string id="UpdatesAtTime20">20:00</string>
+      <string id="UpdatesAtTime21">21:00</string>
+      <string id="UpdatesAtTime22">22:00</string>
+      <string id="UpdatesAtTime23">23:00</string>
+      <string id="UpdatesAtTime24">24:00</string>
+      <string id="UserContext_Name">Exécution dans le contexte utilisateur</string>
+      <string id="UserContext_Explain">
+        Ce paramètre de politique spécifie s'il faut activer l'exécution dans le contexte utilisateur ou non.
+
+        Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="DesktopShortcut_Name">Activer le raccourci sur le bureau</string>
+      <string id="DesktopShortcut_Explain">
+        Ce paramètre de politique spécifie s'il faut activer un raccourci sur le bureau ou non :
+        WAU - Vérifier les applications mises à jour
+
+        Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="StartMenuShortcut_Name">Activer les raccourcis dans le menu Démarrer</string>
+      <string id="StartMenuShortcut_Explain">
+        Ce paramètre de politique spécifie s'il faut activer les raccourcis dans le menu Démarrer ou non :
+        WAU - Vérifier les applications mises à jour
+        WAU - Ouvrir les journaux
+        WAU - Aide en ligne
+
+        Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="MaxLogFiles_Name">Journal : Nombre de fichiers journaux autorisés</string>
+      <string id="MaxLogFiles_Explain">
+        Si cette politique est activée, vous pouvez définir un nombre de fichiers journaux autorisés :
+        Définir MaxLogFiles à 0 ne supprime aucun ancien fichier journal archivé, 1 conserve l'original et le laisse simplement croître.
+        Le nombre par défaut est 3 (0-99)
+
+        Si cette politique est désactivée ou non configurée, le nombre par défaut est utilisé.
+      </string>
+      <string id="MaxLogSize_Name">Journal : Taille du fichier journal en octets avant rotation</string>
+      <string id="MaxLogSize_Explain">
+        Si cette politique est activée, vous pouvez définir la taille du fichier journal en octets avant rotation.
+        La taille par défaut est 1048576 = 1 Mo
+
+        Si cette politique est désactivée ou non configurée, la taille par défaut est utilisée.
+      </string>
+    </stringTable>
+    <presentationTable>
+      <presentation id="BlackList">
+        <listBox refId="BlackList">Liste noire :</listBox>
+      </presentation>
+      <presentation id="WhiteList">
+        <listBox refId="WhiteList">Liste blanche :</listBox>
+      </presentation>
+      <presentation id="ListPath">
+        <textBox refId="ListPath">
+          <label>Chemin (URL/UNC/GPO/Local) :</label>
+        </textBox>
+      </presentation>
+      <presentation id="ModsPath">
+        <textBox refId="ModsPath">
+          <label>Chemin (URL/UNC/Local/AzureBlob) :</label>
+        </textBox>
+      </presentation>
+      <presentation id="BlobURL">
+        <textBox refId="BlobURL">
+          <label>URL de stockage Azure avec jeton SAS :</label>
+        </textBox>
+      </presentation>
+      <presentation id="NotificationLevel">
+        <dropdownList refId="NotificationLevel"/>
+      </presentation>
+      <presentation id="UpdatesInterval">
+        <dropdownList refId="UpdatesInterval"/>
+      </presentation>
+      <presentation id="UpdatesAtTime">
+        <dropdownList refId="UpdatesAtTime"/>
+      </presentation>
+      <presentation id="MaxLogFiles">
+        <textBox refId="MaxLogFiles">
+          <label>Fichiers journaux autorisés :</label>
+        </textBox>
+      </presentation>
+      <presentation id="MaxLogSize">
+        <textBox refId="MaxLogSize">
+          <label>Taille du fichier journal :</label>
+        </textBox>
+      </presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>

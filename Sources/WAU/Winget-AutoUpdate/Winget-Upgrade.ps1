@@ -239,8 +239,7 @@ if (Test-Network) {
         #Fix and count the array if GPO List as ERROR handling!
         if ($GPOList) {
             if ($UseWhiteList) {
-                $WhiteList = $toUpdate.GetUpperBound(0)
-                if ($null -eq $WhiteList) {
+                if (-not $toUpdate) {
                     Write-ToLog "Critical: Whitelist doesn't exist in GPO, exiting..." "Red"
                     New-Item "$WorkingDir\logs\error.txt" -Value "Whitelist doesn't exist in GPO" -Force
                     Exit 1
@@ -248,8 +247,7 @@ if (Test-Network) {
                 foreach ($app in $toUpdate) { Write-ToLog "Include app ${app}" }
             }
             else {
-                $BlackList = $toSkip.GetUpperBound(0)
-                if ($null -eq $BlackList) {
+                if (-not $toSkip) {
                     Write-ToLog "Critical: Blacklist doesn't exist in GPO, exiting..." "Red"
                     New-Item "$WorkingDir\logs\error.txt" -Value "Blacklist doesn't exist in GPO" -Force
                     Exit 1

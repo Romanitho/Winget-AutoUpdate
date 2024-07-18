@@ -8,38 +8,58 @@ function Invoke-PostUpdateActions {
     #Update Winget if not up to date
     $null = Update-WinGet
 
-    #Create WAU Regkey if not present
-    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
-    if (!(test-path $regPath)) {
-        New-Item $regPath -Force
-        New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
-        New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force
-        New-ItemProperty $regPath -Name NoModify -Value 1 -Force
-        New-ItemProperty $regPath -Name NoRepair -Value 1 -Force
-        New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force
-        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force
-        New-ItemProperty $regPath -Name InstallLocation -Value $WorkingDir -Force
-        New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WorkingDir\WAU-Uninstall.ps1`"" -Force
-        New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WorkingDir\WAU-Uninstall.ps1`"" -Force
-        New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 0 -PropertyType DWord -Force
-
+    #Create WAU Regkeys if not present
+    $InstallRegPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+    if (!(test-path $InstallRegPath)) {
+        New-Item $InstallRegPath -Force
+        New-ItemProperty $InstallRegPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
+        New-ItemProperty $InstallRegPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force
+        New-ItemProperty $InstallRegPath -Name NoModify -Value 1 -Force
+        New-ItemProperty $InstallRegPath -Name NoRepair -Value 1 -Force
+        New-ItemProperty $InstallRegPath -Name Publisher -Value "Romanitho" -Force
+        New-ItemProperty $InstallRegPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force
+        New-ItemProperty $InstallRegPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WorkingDir\WAU-Uninstall.ps1`"" -Force
+        New-ItemProperty $InstallRegPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WorkingDir\WAU-Uninstall.ps1`"" -Force
         #log
-        Write-ToLog "-> $regPath created." "green"
+        Write-ToLog "-> $InstallRegPath created." "green"
+    }
+    #Migrate configuration if not already done
+    $ConfigRegPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
+    if (!(test-path $ConfigRegPath)) {
+        New-Item -Path $ConfigRegPath -Force
+        New-ItemProperty $ConfigRegPath -Name InstallLocation -Value $WorkingDir -Force
+        $Keys = Get-Item $InstallRegPath
+        foreach ($Key in $Keys.Property) {
+            if ($Key -like "WAU_*") {
+                Move-ItemProperty $InstallRegPath -Name $Key -Destination $ConfigRegPath
+            }
+            elseif ($Key -eq "DisplayVersion") {
+                Copy-ItemProperty $InstallRegPath -Name "DisplayVersion" -Destination $ConfigRegPath
+                Rename-ItemProperty $ConfigRegPath -Name "DisplayVersion" -NewName "ProductVersion"
+            }
+            elseif ($Key -eq "InstallLocation") {
+                Copy-ItemProperty $InstallRegPath -Name $Key -Destination $ConfigRegPath
+            }
+        }
+        #log
+        Write-ToLog "-> $ConfigRegPath created. Config migrated." "green"
+        #Reload config
+        $Script:WAUConfig = Get-WAUConfig
     }
     #Fix Notif where WAU_NotificationLevel is not set
-    $regNotif = Get-ItemProperty $regPath -Name WAU_NotificationLevel -ErrorAction SilentlyContinue
+    $regNotif = Get-ItemProperty $ConfigRegPath -Name WAU_NotificationLevel -ErrorAction SilentlyContinue
     if (!$regNotif) {
-        New-ItemProperty $regPath -Name WAU_NotificationLevel -Value Full -Force
+        New-ItemProperty $ConfigRegPath -Name WAU_NotificationLevel -Value Full -Force
 
         #log
         Write-ToLog "-> Notification level setting was missing. Fixed with 'Full' option."
     }
 
     #Set WAU_MaxLogFiles/WAU_MaxLogSize if not set
-    $MaxLogFiles = Get-ItemProperty $regPath -Name WAU_MaxLogFiles -ErrorAction SilentlyContinue
+    $MaxLogFiles = Get-ItemProperty $ConfigRegPath -Name WAU_MaxLogFiles -ErrorAction SilentlyContinue
     if (!$MaxLogFiles) {
-        New-ItemProperty $regPath -Name WAU_MaxLogFiles -Value 3 -PropertyType DWord -Force | Out-Null
-        New-ItemProperty $regPath -Name WAU_MaxLogSize -Value 1048576 -PropertyType DWord -Force | Out-Null
+        New-ItemProperty $ConfigRegPath -Name WAU_MaxLogFiles -Value 3 -PropertyType DWord -Force | Out-Null
+        New-ItemProperty $ConfigRegPath -Name WAU_MaxLogSize -Value 1048576 -PropertyType DWord -Force | Out-Null
 
         #log
         Write-ToLog "-> MaxLogFiles/MaxLogSize setting was missing. Fixed with 3/1048576 (in bytes, default is 1048576 = 1 MB)."
@@ -63,35 +83,6 @@ function Invoke-PostUpdateActions {
         Write-ToLog "-> Error: The Functions directory couldn't be verified as secured!" "red"
     }
 
-    #Convert about.xml if exists (old WAU versions) to reg
-    $WAUAboutPath = "$WorkingDir\config\about.xml"
-    if (test-path $WAUAboutPath) {
-        [xml]$About = Get-Content $WAUAboutPath -Encoding UTF8 -ErrorAction SilentlyContinue
-        New-ItemProperty $regPath -Name DisplayVersion -Value $About.app.version -Force
-
-        #Remove file once converted
-        Remove-Item $WAUAboutPath -Force -Confirm:$false
-
-        #log
-        Write-ToLog "-> $WAUAboutPath converted." "green"
-    }
-
-    #Convert config.xml if exists (previous WAU versions) to reg
-    $WAUConfigPath = "$WorkingDir\config\config.xml"
-    if (test-path $WAUConfigPath) {
-        [xml]$Config = Get-Content $WAUConfigPath -Encoding UTF8 -ErrorAction SilentlyContinue
-        if ($Config.app.WAUautoupdate -eq "False") { New-ItemProperty $regPath -Name WAU_DisableAutoUpdate -Value 1 -Force }
-        if ($Config.app.NotificationLevel) { New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $Config.app.NotificationLevel -Force }
-        if ($Config.app.UseWAUWhiteList -eq "True") { New-ItemProperty $regPath -Name WAU_UseWhiteList -Value 1 -PropertyType DWord -Force }
-        if ($Config.app.WAUprerelease -eq "True") { New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 1 -PropertyType DWord -Force }
-
-        #Remove file once converted
-        Remove-Item $WAUConfigPath -Force -Confirm:$false
-
-        #log
-        Write-ToLog "-> $WAUConfigPath converted." "green"
-    }
-
     #Remove old functions / files
     $FileNames = @(
         "$WorkingDir\functions\Start-Init.ps1",
@@ -112,13 +103,6 @@ function Invoke-PostUpdateActions {
         }
     }
 
-    #Remove old registry key
-    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "VersionMajor" -ErrorAction SilentlyContinue
-    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "VersionMinor" -ErrorAction SilentlyContinue
-    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "VersionMajor" -ErrorAction SilentlyContinue
-    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "VersionMinor" -ErrorAction SilentlyContinue
-    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "DisplayVersion" -ErrorAction SilentlyContinue
-
     #Activate WAU in user context if previously configured (as "Winget-AutoUpdate-UserContext" at root)
     $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath '\' -ErrorAction SilentlyContinue
     if ($UserContextTask) {
@@ -126,7 +110,7 @@ function Invoke-PostUpdateActions {
         $null = $UserContextTask | Unregister-ScheduledTask -Confirm:$False
 
         #Set it in registry as activated.
-        New-ItemProperty $regPath -Name WAU_UserContext -Value 1 -PropertyType DWord -Force | Out-Null
+        New-ItemProperty $ConfigRegPath -Name WAU_UserContext -Value 1 -PropertyType DWord -Force | Out-Null
         Write-ToLog "-> Old User Context task deleted and set to 'enabled' in registry."
     }
 
@@ -147,7 +131,7 @@ function Invoke-PostUpdateActions {
     ### End of post update actions ###
 
     #Reset WAU_UpdatePostActions Value
-    New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "WAU_PostUpdateActions" -Value 0 -Force | Out-Null
+    New-ItemProperty -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -Name "WAU_PostUpdateActions" -Value 0 -Force | Out-Null
 
     #Get updated WAU Config
     $Script:WAUConfig = Get-WAUConfig

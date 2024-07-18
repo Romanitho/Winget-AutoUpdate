@@ -47,9 +47,10 @@ function Update-WAU {
 
         #Set new version to registry
         New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "DisplayVersion" -Value $WAUAvailableVersion -Force | Out-Null
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -Name "ProductVersion" -Value $WAUAvailableVersion -Force | Out-Null
 
         #Set Post Update actions to 1
-        New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "WAU_PostUpdateActions" -Value 1 -Force | Out-Null
+        New-ItemProperty -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -Name "WAU_PostUpdateActions" -Value 1 -Force | Out-Null
 
         #Send success Notif
         Write-ToLog "WAU Update completed." "Green"

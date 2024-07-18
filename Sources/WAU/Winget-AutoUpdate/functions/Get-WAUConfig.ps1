@@ -3,7 +3,7 @@
 Function Get-WAUConfig {
 
     #Get WAU Configurations from install config
-    $WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -ErrorAction SilentlyContinue
+    $WAUConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
 
     #Check if GPO Management is enabled
     $ActivateGPOManagement = Get-ItemPropertyValue "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "WAU_ActivateGPOManagement" -ErrorAction SilentlyContinue

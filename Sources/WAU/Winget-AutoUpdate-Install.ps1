@@ -252,16 +252,19 @@ function Install-WingetAutoUpdate {
         # Configure Reg Key
         Write-ToLog "-> Setting Registry config"
         New-Item $regPath -Force | Out-Null
-        New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force | Out-Null
-        New-ItemProperty $regPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
-        New-ItemProperty $regPath -Name DisplayVersion -Value $WAUVersion -Force | Out-Null
+        New-Item $InstallregPath -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name DisplayIcon -Value "C:\Windows\System32\shell32.dll,-16739" -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name DisplayVersion -Value $WAUVersion -Force | Out-Null
+        New-ItemProperty $regPath -Name ProductVersion -Value $WAUVersion -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name InstallLocation -Value $WAUinstallPath -Force | Out-Null
         New-ItemProperty $regPath -Name InstallLocation -Value $WAUinstallPath -Force | Out-Null
-        New-ItemProperty $regPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
-        New-ItemProperty $regPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
-        New-ItemProperty $regPath -Name NoModify -Value 1 -Force | Out-Null
-        New-ItemProperty $regPath -Name NoRepair -Value 1 -Force | Out-Null
-        New-ItemProperty $regPath -Name Publisher -Value "Romanitho" -Force | Out-Null
-        New-ItemProperty $regPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name UninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name QuietUninstallString -Value "powershell.exe -noprofile -executionpolicy bypass -file `"$WAUinstallPath\WAU-Uninstall.ps1`"" -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name NoModify -Value 1 -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name NoRepair -Value 1 -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name Publisher -Value "Romanitho" -Force | Out-Null
+        New-ItemProperty $InstallregPath -Name URLInfoAbout -Value "https://github.com/Romanitho/Winget-AutoUpdate" -Force | Out-Null
         New-ItemProperty $regPath -Name WAU_NotificationLevel -Value $NotificationLevel -Force | Out-Null
         if ($WAUVersion -match "-") {
             New-ItemProperty $regPath -Name WAU_UpdatePrerelease -Value 1 -PropertyType DWord -Force | Out-Null
@@ -366,7 +369,7 @@ function Uninstall-WingetAutoUpdate {
     Write-ToLog "Uninstalling WAU started!" "Yellow"
 
     #Get registry install location
-    $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation -ErrorAction SilentlyContinue
+    $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\" -Name InstallLocation -ErrorAction SilentlyContinue
 
     #Check if installed location exists and delete
     if ($InstallLocation) {
@@ -389,6 +392,7 @@ function Uninstall-WingetAutoUpdate {
             }
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
             & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
+            & reg delete "HKLM\SOFTWARE\Romanitho\Winget-AutoUpdate" /f | Out-Null
 
             if ((Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
                 Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null
@@ -493,7 +497,8 @@ Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -Foreground
 Write-Host "`t________________________________________________________`n"
 
 #Define WAU registry key
-$Script:regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+$Script:regPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
+$Script:InstallregPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
 
 if (!$Uninstall) {
     Write-ToLog "  INSTALLING WAU" -LogColor "Cyan" -IsHeader

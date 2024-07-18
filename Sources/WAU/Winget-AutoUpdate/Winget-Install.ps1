@@ -311,7 +311,7 @@ $CurrentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Pri
 $Script:IsElevated = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 #Get WAU Installed location
-$WAURegKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\"
+$WAURegKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
 
 #LogPath initialisation

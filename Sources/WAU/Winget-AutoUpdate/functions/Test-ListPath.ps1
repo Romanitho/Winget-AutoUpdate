@@ -54,15 +54,9 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
         }
         catch {
             try {
-                $content = $wc.DownloadString("$ExternalList")
-                if ($null -ne $content -and $content -match "\w\.\w") {
-                    $wc.DownloadFile($ExternalList, $LocalList)
-                    return $true
-                }
-                else {
-                    $Script:ReachNoPath = $True
-                    return $False
-                }
+                $wc.DownloadFile($ExternalList, $LocalList)
+                $Script:AlwaysDownloaded = $True
+                return $true
             }
             catch {
                 $Script:ReachNoPath = $True
@@ -93,7 +87,7 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
         }
         else {
             $Script:ReachNoPath = $True
+            return $False
         }
-        return $False
     }
 }

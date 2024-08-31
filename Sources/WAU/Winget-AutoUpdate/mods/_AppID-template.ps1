@@ -35,7 +35,7 @@ $AllVersions = $False
 $Lnk = @("")
 
 #Registry _value_ (DWord/String) to add in existing registry Key (Key created if not existing). Example:
-#$AddKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+#$AddKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
 #$AddValue = "WAU_BypassListForUsers"
 #$AddTypeData = "1"
 #$AddType = "DWord"
@@ -46,7 +46,7 @@ $AddType = ""
 
 #Registry _value_ to delete in existing registry Key.
 #Value can be omitted for deleting entire Key!. Example:
-#$DelKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+#$DelKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
 #$DelValue = "WAU_BypassListForUsers"
 $DelKey = ""
 $DelValue = ""

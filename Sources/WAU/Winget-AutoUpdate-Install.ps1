@@ -361,7 +361,7 @@ function Uninstall-WingetAutoUpdate {
     Write-ToLog "Uninstalling WAU started!" "Yellow"
 
     #Get registry install location
-    $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation -ErrorAction SilentlyContinue
+    $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\" -Name InstallLocation -ErrorAction SilentlyContinue
 
     #Check if installed location exists and delete
     if ($InstallLocation) {
@@ -383,7 +383,7 @@ function Uninstall-WingetAutoUpdate {
                 Get-ChildItem -Path $InstallLocation -Exclude *.txt, mods, logs | Remove-Item -Recurse -Force
             }
             & reg delete "HKCR\AppUserModelId\Windows.SystemToast.Winget.Notification" /f | Out-Null
-            & reg delete "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" /f | Out-Null
+            & reg delete "HKLM\SOFTWARE\Romanitho\Winget-AutoUpdate" /f | Out-Null
 
             if ((Test-Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)")) {
                 Remove-Item -Path "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate (WAU)" -Recurse -Force | Out-Null
@@ -488,7 +488,7 @@ Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -Foreground
 Write-Host "`t________________________________________________________`n"
 
 #Define WAU registry key
-$Script:regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+$Script:regPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
 
 if (!$Uninstall) {
     Write-ToLog "  INSTALLING WAU" -LogColor "Cyan" -IsHeader

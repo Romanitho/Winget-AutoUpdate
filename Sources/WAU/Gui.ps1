@@ -300,7 +300,7 @@ function Get-WAUConfiguratorLatestVersion {
 
     #Get latest stable info
     $WAUConfiguratorURL = 'https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases/latest'
-    $WAUConfiguratorLatestVersion = (((Invoke-WebRequest $WAUConfiguratorURL -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")).Replace("-", ".")
+    $WAUConfiguratorLatestVersion = (((Invoke-WebRequest $WAUConfiguratorURL -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", ""))
 
     if ([version]$WAUConfiguratorVersion -lt [version]$WAUConfiguratorLatestVersion) {
 

@@ -9,7 +9,7 @@ function Invoke-PostUpdateActions {
     $null = Update-WinGet
 
     #Create WAU Regkey if not present
-    $regPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
+    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
     if (!(test-path $regPath)) {
         New-Item $regPath -Force
         New-ItemProperty $regPath -Name DisplayName -Value "Winget-AutoUpdate (WAU)" -Force
@@ -113,8 +113,8 @@ function Invoke-PostUpdateActions {
     }
 
     #Remove old registry key
-    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -Name "VersionMajor" -ErrorAction SilentlyContinue
-    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -Name "VersionMinor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "VersionMajor" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "VersionMinor" -ErrorAction SilentlyContinue
     Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "VersionMajor" -ErrorAction SilentlyContinue
     Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "VersionMinor" -ErrorAction SilentlyContinue
     Remove-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "DisplayVersion" -ErrorAction SilentlyContinue
@@ -143,24 +143,11 @@ function Invoke-PostUpdateActions {
         Write-ToLog "-> Policies task created."
     }
 
-    #Migrate registry to new location (MSI Prerequisites)
-    $sourcePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
-    $destinationPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
-    if (-not (Test-Path (Split-Path $destinationPath))) {
-        New-Item -Path (Split-Path $destinationPath) -ItemType Directory
-    }
-    try {
-        Move-Item -Path $sourcePath -Destination $destinationPath -Force
-        Write-ToLog "-> Migrated registry from $sourcePath to $destinationPath."
-    }
-    catch {
-        Write-ToLog "-> Failed tro migrate registry to new location"
-    }
 
     ### End of post update actions ###
 
     #Reset WAU_UpdatePostActions Value
-    New-ItemProperty -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -Name "WAU_PostUpdateActions" -Value 0 -Force | Out-Null
+    New-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "WAU_PostUpdateActions" -Value 0 -Force | Out-Null
 
     #Get updated WAU Config
     $Script:WAUConfig = Get-WAUConfig

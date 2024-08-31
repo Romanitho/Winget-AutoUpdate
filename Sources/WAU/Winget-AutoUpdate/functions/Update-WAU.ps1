@@ -20,7 +20,7 @@ function Update-WAU {
         New-Item $ZipFile -ItemType File -Force | Out-Null
 
         #Download the zip
-        Write-ToLog "Downloading the GitHub Repository version $WAUAvailableVersion" "Cyan"
+        Write-ToLog "Downloading the GitHub Repository Zip version $WAUAvailableVersion" "Cyan"
         Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUAvailableVersion)/WAU.zip" -OutFile $ZipFile
 
         #Extract Zip File
@@ -72,7 +72,7 @@ function Update-WAU {
         #Try WAU.msi (v2)
         try {
             #Download the msi
-            Write-ToLog "Downloading the GitHub Repository version $WAUAvailableVersion" "Cyan"
+            Write-ToLog "Downloading the GitHub Repository MSI version $WAUAvailableVersion" "Cyan"
             $MsiFile = "$env:temp\WAU.msi"
             Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUAvailableVersion)/WAU.msi" -OutFile $MsiFile
 

@@ -185,7 +185,13 @@ if (Test-Network) {
                         $Script:ReachNoPath = $False
                     }
                     if ($NewList) {
-                        Write-ToLog "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
+                        if ($AlwaysDownloaded) {
+                            Write-ToLog "List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
+                        }
+                        else {
+                            Write-ToLog "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
+                        }
+                        $Script:AlwaysDownloaded = $False
                     }
                     else {
                         if ($WAUConfig.WAU_UseWhiteList -and (Test-Path "$WorkingDir\included_apps.txt")) {

@@ -204,7 +204,7 @@ function Start-Installations {
     #Run Winget-Install script if box is checked
     if ($AppToInstall) {
         Start-PopUp "Installing applications..."
-        $WAUInstallPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\" -Name InstallLocation
+        $WAUInstallPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
 
         #Try with admin rights.
         try {
@@ -275,7 +275,7 @@ function Start-Uninstallations ($AppToUninstall) {
 }
 
 function Get-WAUInstallStatus {
-    $WAUVersion = Get-ItemProperty -Path HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\ -ErrorAction SilentlyContinue | Select-Object -ExpandProperty DisplayVersion -ErrorAction SilentlyContinue
+    $WAUVersion = Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\ -ErrorAction SilentlyContinue | Select-Object -ExpandProperty DisplayVersion -ErrorAction SilentlyContinue
     if ($WAUVersion -eq $WAUConfiguratorVersion) {
         $WAULabelText = "WAU is currently installed (v$WAUVersion)."
         $WAUStatus = "Green"
@@ -577,7 +577,7 @@ function Start-InstallGUI {
     $UninstallWAUButton.add_click(
         {
             #Uninstall WAU from registry command
-            $Arguments = Get-ItemPropertyValue "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -Name "UninstallString"
+            $Arguments = Get-ItemPropertyValue "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name "UninstallString"
             Start-Process "cmd.exe" -ArgumentList "/c $Arguments" -Wait -Verb RunAs
             $WAUInstallStatus = Get-WAUInstallStatus
             $WAUStatusLabel.Text = $WAUInstallStatus[0]
@@ -699,7 +699,7 @@ function Start-InstallGUI {
     $LogButton.add_click(
         {
             try {
-                $LogPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\" -Name InstallLocatifon
+                $LogPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocatifon
                 Start-Process "$LogPath\Logs"
             }
             catch {

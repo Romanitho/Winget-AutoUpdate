@@ -68,7 +68,7 @@ jobs:
       - name: Overwrite Version.txt file
         uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
         with:
-          path: Sources/WAU/Winget-AutoUpdate/Version.txt
+          path: Sources/Winget-AutoUpdate/Version.txt
           write-mode: overwrite
           contents: ${{ steps.versioning.outputs.version }}
 
@@ -88,8 +88,8 @@ jobs:
           echo "### Extract MSI ###"
           7z x MicrosoftDeploymentToolkit_x64.msi
 
-          echo "### Copy ServiceUI.exe to 'Sources/WAU/Winget-AutoUpdate' folder ###"
-          mv Modena_File206 Sources/WAU/Winget-AutoUpdate/ServiceUI.exe -v
+          echo "### Copy ServiceUI.exe to 'Sources/Winget-AutoUpdate' folder ###"
+          mv Modena_File206 Sources/Winget-AutoUpdate/ServiceUI.exe -v
 
           echo "### Go to Sources ###"
           cd Sources

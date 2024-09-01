@@ -7,18 +7,19 @@ function Test-Network {
 
     #Test connectivity during 30 min then timeout
     Write-ToLog "Checking internet connection..." "Yellow"
-    While ($timeout -lt 1800) {
 
-        try {
-            $ncsiHost = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbeHost
-            $ncsiPath = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbePath
-            $ncsiContent = Get-ItemPropertyValue -Path "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet" -Name ActiveWebProbeContent
-        } catch {
-            $ncsiHost = "www.msftconnecttest.com"
-            $ncsiPath = "connecttest.txt"
-            $ncsiContent = "Microsoft Connect Test"
-        }
-        
+    try {
+        $NlaRegKey = "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet"
+        $ncsiHost = Get-ItemPropertyValue    -Path $NlaRegKey -Name ActiveWebProbeHost
+        $ncsiPath = Get-ItemPropertyValue    -Path $NlaRegKey -Name ActiveWebProbePath
+        $ncsiContent = Get-ItemPropertyValue -Path $NlaRegKey -Name ActiveWebProbeContent
+    } catch {
+        $ncsiHost = "www.msftconnecttest.com"
+        $ncsiPath = "connecttest.txt"
+        $ncsiContent = "Microsoft Connect Test"
+    }
+    
+    While ($timeout -lt 1800) {
         try {
             $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome)
         } catch {

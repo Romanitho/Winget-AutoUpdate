@@ -1,3 +1,10 @@
+@@:: This prolog allows a PowerShell script to be embedded in a .CMD file.
+@@:: Any non-PowerShell content must be preceeded by "@@"
+@@setlocal
+@@set POWERSHELL_BAT_ARGS=%*
+@@if defined POWERSHELL_BAT_ARGS set POWERSHELL_BAT_ARGS=%POWERSHELL_BAT_ARGS:"=\"%
+@@PowerShell -NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command Invoke-Expression $('$args=@(^&{$args} %POWERSHELL_BAT_ARGS%);'+[String]::Join([char]10,$((Get-Content '%~f0') -notmatch '^^@@'))) & goto :EOF
+
 <#
 .SYNOPSIS
 Install and configure Winget-AutoUpdate
@@ -21,7 +28,7 @@ if ( $psversionTable.PSEdition -eq "core" ) {
     import-Module -name Appx -UseWIndowsPowershell -WarningAction:SilentlyContinue
 }
 
-$Script:WAUConfiguratorVersion = Get-Content "$PSScriptRoot\Winget-AutoUpdate\Version.txt"
+$Script:WAUConfiguratorVersion = Get-Content ".\Winget-AutoUpdate\Version.txt"
 
 
 <# FUNCTIONS #>
@@ -176,12 +183,12 @@ function Start-Installations {
         if ($WAUUseWhiteList) {
             $WAUParameters += "-UseWhiteList "
             if ($WAUListPath) {
-                Copy-Item $WAUListPath -Destination "$PSScriptRoot\included_apps.txt" -Force -ErrorAction SilentlyContinue
+                Copy-Item $WAUListPath -Destination ".\included_apps.txt" -Force -ErrorAction SilentlyContinue
             }
         }
         else {
             if ($WAUListPath) {
-                Copy-Item $WAUListPath -Destination "$PSScriptRoot\excluded_apps.txt" -Force -ErrorAction SilentlyContinue
+                Copy-Item $WAUListPath -Destination ".\excluded_apps.txt" -Force -ErrorAction SilentlyContinue
             }
         }
         if ($WAUDesktopShortcut) {
@@ -195,7 +202,7 @@ function Start-Installations {
         }
 
         #Install Winget-Autoupdate
-        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command ""& '$PSScriptRoot\Winget-AutoUpdate-Install.ps1' $WAUParameters""" -Wait -Verb RunAs
+        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command ""& '.\Winget-AutoUpdate-Install.ps1' $WAUParameters""" -Wait -Verb RunAs
     }
 
 
@@ -268,7 +275,7 @@ function Start-Uninstallations ($AppToUninstall) {
 
         #Run Winget-Install -Uninstall
         $AppsToUninstall = "'$($AppToUninstall -join "','")'"
-        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$PSScriptRoot\Winget-AutoUpdate\Winget-Install.ps1 -AppIDs $AppsToUninstall -Uninstall`"" -Wait -Verb RunAs
+        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `".\Winget-AutoUpdate\Winget-Install.ps1 -AppIDs $AppsToUninstall -Uninstall`"" -Wait -Verb RunAs
 
         Close-PopUp
     }

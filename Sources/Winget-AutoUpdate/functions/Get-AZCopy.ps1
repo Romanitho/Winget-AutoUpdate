@@ -25,9 +25,9 @@ Function Get-AZCopy ($WingetUpdatePath) {
         Invoke-WebRequest -Uri $AZCopyLink -UseBasicParsing -OutFile "$WingetUpdatePath\azcopyv10.zip"
         Write-ToLog  "Extracting AZCopy zip file"
 
-        Expand-archive -Path "$WingetUpdatePath\azcopyv10.zip" -Destinationpath "$WingetUpdatePath" -Force
+        Expand-Archive -Path "$WingetUpdatePath\azcopyv10.zip" -DestinationPath "$WingetUpdatePath" -Force
 
-        $AZCopyPathSearch = Resolve-Path -path "$WingetUpdatePath\azcopy_*"
+        $AZCopyPathSearch = Resolve-Path -Path "$WingetUpdatePath\azcopy_*"
 
         if ($AZCopyPathSearch -is [array]) {
             $AZCopyEXEPath = $AZCopyPathSearch[$AZCopyPathSearch.Length - 1]

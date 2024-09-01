@@ -1,6 +1,6 @@
 #Function to get the allow List apps
 
-function Get-IncludedApps {
+function Get-IncludedApp {
     $AppIDs = @()
 
     #whitelist in registry
@@ -30,9 +30,9 @@ function Get-IncludedApps {
                 $resp = Invoke-WebRequest -Uri $WAUURI -UseDefaultCredentials;
                 if ($resp.BaseResponse.StatusCode -eq [System.Net.HttpStatusCode]::OK) {
                     $resp.Content.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries) |
-                    ForEach-Object {
-                        $AppIds += $_
-                    }
+                        ForEach-Object {
+                            $AppIds += $_
+                        }
                     Write-ToLog "-> Successsfully loaded included apps list."
                 }
             }

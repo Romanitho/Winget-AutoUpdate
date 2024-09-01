@@ -344,14 +344,14 @@ function Install-WingetAutoUpdate {
         }
 
         Write-ToLog "-> WAU Installation succeeded!`n" "Green"
-        Start-sleep 1
+        Start-Sleep 1
 
         #Run Winget ?
         Start-WingetAutoUpdate
     }
     catch {
         Write-ToLog "-> WAU Installation failed! Error $_ - Try running me with admin rights.`n" "Red"
-        Start-sleep 1
+        Start-Sleep 1
         return $False
     }
 }
@@ -400,16 +400,16 @@ function Uninstall-WingetAutoUpdate {
             Get-ScheduledTask -TaskName "Winget-AutoUpdate-Policies" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
 
             Write-ToLog "Uninstallation succeeded!`n" "Green"
-            Start-sleep 1
+            Start-Sleep 1
         }
         catch {
             Write-ToLog "Uninstallation failed! Run as admin ?`n" "Red"
-            Start-sleep 1
+            Start-Sleep 1
         }
     }
     else {
         Write-ToLog "WAU is not installed!`n" "Red"
-        Start-sleep 1
+        Start-Sleep 1
     }
 }
 

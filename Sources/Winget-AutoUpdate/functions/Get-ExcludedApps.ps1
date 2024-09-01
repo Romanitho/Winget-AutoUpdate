@@ -1,6 +1,6 @@
 #Function to get the Block List apps
 
-function Get-ExcludedApps {
+function Get-ExcludedApp {
 
     $AppIDs = @()
 
@@ -31,9 +31,9 @@ function Get-ExcludedApps {
                 $resp = Invoke-WebRequest -Uri $WAUURI -UseDefaultCredentials;
                 if ($resp.BaseResponse.StatusCode -eq [System.Net.HttpStatusCode]::OK) {
                     $resp.Content.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries) |
-                    ForEach-Object {
-                        $AppIds += $_
-                    }
+                        ForEach-Object {
+                            $AppIds += $_
+                        }
                     Write-ToLog "-> Successsfully loaded excluded apps list."
                 }
             }

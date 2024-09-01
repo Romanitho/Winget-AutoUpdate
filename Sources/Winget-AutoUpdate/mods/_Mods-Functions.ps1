@@ -26,15 +26,15 @@ function Stop-ModsProc ($Proc) {
     Return
 }
 function Stop-ModsSvc ($Svc) {
-  foreach ($service in $Svc) {
-    Stop-Service -Name $service -Force -ErrorAction SilentlyContinue | Out-Null
-  }
-  Return
+    foreach ($service in $Svc) {
+        Stop-Service -Name $service -Force -ErrorAction SilentlyContinue | Out-Null
+    }
+    Return
 }
 
 function Wait-ModsProc ($Wait) {
     foreach ($process in $Wait) {
-        Get-Process $process -ErrorAction SilentlyContinue | Foreach-Object { $_.WaitForExit() }
+        Get-Process $process -ErrorAction SilentlyContinue | ForEach-Object { $_.WaitForExit() }
     }
     Return
 }
@@ -53,95 +53,76 @@ function Uninstall-WingetID ($WingetIDUninst) {
     Return
 }
 
-function Uninstall-ModsApp ($AppUninst, $AllVersions)
-{
-    foreach ($app in $AppUninst)
-    {
+function Uninstall-ModsApp ($AppUninst, $AllVersions) {
+    foreach ($app in $AppUninst) {
         # we start from scanning the x64 node in registry, if something was found, then we set x64=TRUE
         [bool]$app_was_x64 = Process-installedSoftware -app $app -x64 $true;
 
         # if nothing was found in x64 node, then we repeat that action in x86 node
-        if (!$app_was_x64)
-        {
+        if (!$app_was_x64) {
             Process-installedSoftware -app $app | Out-Null;
         }
     }
     Return
 }
 
-Function Process-installedSoftware()
-{
+Function Process-installedSoftware() {
     [OutputType([Bool])]
     Param(
-        [parameter(Mandatory=$true)] [string]$app,
-        [parameter(Mandatory=$false)][bool]  $x64  = $false
+        [parameter(Mandatory = $true)] [string]$app,
+        [parameter(Mandatory = $false)][bool]  $x64 = $false
     )
-    if($true -eq $x64)
-    {
+    if ($true -eq $x64) {
         [string]$path = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall";
     }
-    else
-    {
+    else {
         [string]$path = "HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall";
     }
 
     [bool]$app_was_found = $false;
     [Microsoft.Win32.RegistryKey[]]$InstalledSoftware = Get-ChildItem $path;
-    foreach ($obj in $InstalledSoftware)
-    {
-        if ($obj.GetValue('DisplayName') -like $App)
-        {
+    foreach ($obj in $InstalledSoftware) {
+        if ($obj.GetValue('DisplayName') -like $App) {
             $UninstallString = $obj.GetValue('UninstallString')
             $CleanedUninstallString = $UninstallString.Trim([char]0x0022)
-            if ($UninstallString -like "MsiExec.exe*")
-            {
-                $ProductCode = Select-String "{.*}" -inputobject $UninstallString
+            if ($UninstallString -like "MsiExec.exe*") {
+                $ProductCode = Select-String "{.*}" -InputObject $UninstallString
                 $ProductCode = $ProductCode.matches.groups[0].value
                 #MSI x64 Installer
                 $Exec = Start-Process "C:\Windows\System32\msiexec.exe" -ArgumentList "/x$ProductCode REBOOT=R /qn" -PassThru -Wait
                 #Stop Hard Reboot (if bad MSI!)
-                if ($Exec.ExitCode -eq 1641)
-                {
+                if ($Exec.ExitCode -eq 1641) {
                     Start-Process "C:\Windows\System32\shutdown.exe" -ArgumentList "/a"
                 }
             }
-            else
-            {
+            else {
                 $QuietUninstallString = $obj.GetValue('QuietUninstallString')
-                if ($QuietUninstallString)
-                {
-                    $QuietUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $QuietUninstallString
+                if ($QuietUninstallString) {
+                    $QuietUninstallString = Select-String "(\x22.*\x22) +(.*)" -InputObject $QuietUninstallString
                     $Command = $QuietUninstallString.matches.groups[1].value
                     $Parameter = $QuietUninstallString.matches.groups[2].value
                     #All EXE x64 Installers (already defined silent uninstall)
                     Start-Process $Command -ArgumentList $Parameter -Wait
                 }
-                else
-                {
-                    if ((Test-Path $CleanedUninstallString))
-                    {
+                else {
+                    if ((Test-Path $CleanedUninstallString)) {
                         $NullSoft = Select-String -Path $CleanedUninstallString -Pattern "Nullsoft"
                     }
-                    if ($NullSoft)
-                    {
+                    if ($NullSoft) {
                         #NSIS x64 Installer
                         Start-Process $UninstallString -ArgumentList "/S" -Wait
                     }
-                    else
-                    {
-                        if ((Test-Path $CleanedUninstallString))
-                        {
+                    else {
+                        if ((Test-Path $CleanedUninstallString)) {
                             $Inno = Select-String -Path $CleanedUninstallString -Pattern "Inno Setup"
                         }
-                        if ($Inno)
-                        {
+                        if ($Inno) {
                             #Inno x64 Installer
                             Start-Process $UninstallString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
                         }
-                        else
-                        {
+                        else {
                             Write-Host "$(if($true -eq $x64) {'x64'} else {'x86'}) Uninstaller unknown, trying the UninstallString from registry..."
-                            $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $UninstallString
+                            $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -InputObject $UninstallString
                             $Command = $NativeUninstallString.matches.groups[1].value
                             $Parameter = $NativeUninstallString.matches.groups[2].value
                             #All EXE x64 Installers (native defined uninstall)
@@ -151,8 +132,7 @@ Function Process-installedSoftware()
                 }
             }
             $app_was_found = $true
-            if (!$AllVersions)
-            {
+            if (!$AllVersions) {
                 break
             }
         }
@@ -218,7 +198,7 @@ function Copy-ModsFile ($CopyFile, $CopyTo) {
 
 function Edit-ModsFile ($File, $FindText, $ReplaceText) {
     if (Test-Path "$File") {
-        ((Get-Content -path $File -Raw) -replace "$FindText", "$ReplaceText") | Set-Content -Path $File -Force -ErrorAction SilentlyContinue | Out-Null
+        ((Get-Content -Path $File -Raw) -replace "$FindText", "$ReplaceText") | Set-Content -Path $File -Force -ErrorAction SilentlyContinue | Out-Null
     }
     Return
 }

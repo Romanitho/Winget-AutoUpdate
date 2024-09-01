@@ -1,6 +1,6 @@
 #Function to get the outdated app list, in formatted array
 
-function Get-WingetOutdatedApps {
+function Get-WingetOutdatedApp {
     class Software {
         [string]$Name
         [string]$Id

@@ -13,7 +13,8 @@ function Test-Network {
         $ncsiHost = Get-ItemPropertyValue    -Path $NlaRegKey -Name ActiveWebProbeHost
         $ncsiPath = Get-ItemPropertyValue    -Path $NlaRegKey -Name ActiveWebProbePath
         $ncsiContent = Get-ItemPropertyValue -Path $NlaRegKey -Name ActiveWebProbeContent
-    } catch {
+    }
+    catch {
         $ncsiHost = "www.msftconnecttest.com"
         $ncsiPath = "connecttest.txt"
         $ncsiContent = "Microsoft Connect Test"
@@ -22,7 +23,8 @@ function Test-Network {
     While ($timeout -lt 1800) {
         try {
             $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome)
-        } catch {
+        }
+        catch {
             $ncsiResponse = $false
         }
 

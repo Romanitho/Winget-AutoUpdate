@@ -76,7 +76,25 @@ function Update-WAU {
             $MsiFile = "$env:temp\WAU.msi"
             Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUAvailableVersion)/WAU.msi" -OutFile $MsiFile
 
-
+            #Migrate registry to save current WAU settings
+            Write-ToLog "Saving current config before updating with MSI"
+            $sourcePath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
+            $destinationPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
+            #Create the destination key if it doesn't exist
+            if (-not (Test-Path -Path $destinationPath)) {
+                New-Item -Path $destinationPath -ItemType Directory -Force
+                Write-ToLog "New registry key created."
+            }
+            #Retrieve the properties of the source key
+            $properties = Get-ItemProperty -Path $sourcePath
+            foreach ($property in $properties.PSObject.Properties) {
+                #Check if the value name starts with "WAU_"
+                if ($property.Name -like "WAU_*") {
+                    #Copy the value to the destination key
+                    Set-ItemProperty -Path $destinationPath -Name $property.Name -Value $property.Value
+                    Write-ToLog "$($property.Name) saved."
+                }
+            }
 
             #Update WAU and run
             Write-ToLog "Updating WAU..." "Yellow"

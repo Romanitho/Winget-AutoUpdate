@@ -12,8 +12,9 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
 
     # If path is URL
     if ($ExternalMods -like "http*") {
-        # enable TLS 1.2 and TLS 1.1 protocols
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12, [Net.SecurityProtocolType]::Tls11
+        # ADD TLS 1.2 and TLS 1.1 to list of currently used protocols
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls11
         #Get Index of $ExternalMods (or index page with href listing of all the Mods)
         try {
             $WebResponse = Invoke-WebRequest -Uri $ExternalMods -UseBasicParsing

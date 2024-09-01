@@ -93,7 +93,7 @@ if ($Proc) {
     Stop-ModsProc $Proc
 }
 if ($Svc) {
-  Stop-ModsSvc $Svc
+    Stop-ModsSvc $Svc
 }
 if ($Wait) {
     Wait-ModsProc $Wait

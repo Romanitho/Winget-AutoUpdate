@@ -33,7 +33,7 @@ Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -Foreground
 Write-Host "`t________________________________________________________`n`n"
 
 try {
-    Write-host "Uninstalling WAU..." -ForegroundColor Yellow
+    Write-Host "Uninstalling WAU..." -ForegroundColor Yellow
     #Get registry install location
     $InstallLocation = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
 
@@ -73,14 +73,14 @@ try {
             Remove-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -Force -ErrorAction SilentlyContinue | Out-Null
         }
 
-        Write-host "Uninstallation succeeded!" -ForegroundColor Green
+        Write-Host "Uninstallation succeeded!" -ForegroundColor Green
     }
     else {
-        Write-host "$InstallLocation not found! Uninstallation failed!" -ForegroundColor Red
+        Write-Host "$InstallLocation not found! Uninstallation failed!" -ForegroundColor Red
     }
 }
 catch {
-    Write-host "`nUninstallation failed! Run as admin ?" -ForegroundColor Red
+    Write-Host "`nUninstallation failed! Run as admin ?" -ForegroundColor Red
 }
 
-Start-sleep 2
+Start-Sleep 2

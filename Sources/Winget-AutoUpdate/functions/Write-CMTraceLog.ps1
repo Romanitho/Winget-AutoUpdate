@@ -1,50 +1,48 @@
 # Obtain UTC offset (think about moving it to the parent method)
-    $DateTime = New-Object -ComObject 'WbemScripting.SWbemDateTime';
-    $DateTime.SetVarDate($(Get-Date));
-    $UtcValue = $DateTime.Value;
-    $global:CMTraceLog_UtcOffset = $UtcValue.Substring(21, $UtcValue.Length - 21);
-    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($DateTime) | Out-Null;
+$DateTime = New-Object -ComObject 'WbemScripting.SWbemDateTime';
+$DateTime.SetVarDate($(Get-Date));
+$UtcValue = $DateTime.Value;
+$global:CMTraceLog_UtcOffset = $UtcValue.Substring(21, $UtcValue.Length - 21);
+[System.Runtime.InteropServices.Marshal]::ReleaseComObject($DateTime) | Out-Null;
 
 # Set context of process which writes a message
-    $global:CMTraceLog_Context = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name;
+$global:CMTraceLog_Context = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name;
 
 # set string templates for formatting later
 [string]$global:logline_part1_template_nonerror = "<![LOG[{0}: {1}]LOG]!>";
-[string]$global:logline_part1_template_error    = "<![LOG[{0}: {1}`r`r`nCommand: {2}`nScriptName: {3}`nLine Number: {4}`nColumn Number: {5}`nLine: {6}]LOG]!>";
+[string]$global:logline_part1_template_error = "<![LOG[{0}: {1}`r`r`nCommand: {2}`nScriptName: {3}`nLine Number: {4}`nColumn Number: {5}`nLine: {6}]LOG]!>";
 [string]$global:logline_part2_template = "<time=`"{0}{1}`" date=`"{2}`" component=`"{3}`" context=`"{4}`" type=`"{5}`" thread=`"{6}`" file=`"{7}`">";
 
 # (full help at the end of file)
 
-enum CMTraceLogSeverity
-{
-           Warning = 2
-             Error = 3
-           Verbose = 4
-             Debug = 5
-       Information = 6
+enum CMTraceLogSeverity {
+    Warning = 2
+    Error = 3
+    Verbose = 4
+    Debug = 5
+    Information = 6
 }
 
-Function Write-CMTraceLog
-{
+Function Write-CMTraceLog {
     # Define and validate parameters 
     [CmdletBinding()] 
     Param( 
 
         #Path to the log file 
-        [parameter(Mandatory=$False)]
+        [parameter(Mandatory = $False)]
         [String]$Logfile = "$Script:WorkingDir\logs\updates.log",
          
         #The information to log
-        [parameter(Mandatory=$True)]
+        [parameter(Mandatory = $True)]
         $Message,
  
         #The severity (Error, Warning, Verbose, Debug, Information)
-        [parameter(Mandatory=$True)]
-        [ValidateSet('Warning','Error','Verbose','Debug', 'Information', IgnoreCase=$True)]
+        [parameter(Mandatory = $True)]
+        [ValidateSet('Warning', 'Error', 'Verbose', 'Debug', 'Information', IgnoreCase = $True)]
         [String]$Type,
 
         #Write back to the console or just to the log file. By default it will write back to the host.
-        [parameter(Mandatory=$False)]
+        [parameter(Mandatory = $False)]
         [switch]$WriteBackToHost = $False
 
     )#Param
@@ -80,50 +78,46 @@ Function Write-CMTraceLog
     $severity = [int]([CMTraceLogSeverity]::$Type);
 
     #region set the 1st part of logged entry (templates for formatting)
-        if($Type -eq 'Error')
-        {
-            if($Message.exception.Message)
-            {
-                # cool! we have an exception, we can use it
-            }
-            else
-            {
-                # we do not have an exception, we need to prepare out own custom error to use later
-                [System.Exception]$Exception = $Message;
-                [String]$ErrorID = 'Custom Error';
-                [System.Management.Automation.ErrorCategory]$ErrorCategory = [Management.Automation.ErrorCategory]::WriteError;
-                $ErrorRecord = [System.Management.Automation.ErrorRecord]::new($Exception, $ErrorID, $ErrorCategory, $Message);
-                $Message = $ErrorRecord;
-            }
-            [string]$logline_part1 = [string]::Format(
-                $global:logline_part1_template_error,
-                $Type.ToUpper(),
-                $Message.exception.message,
-                $Message.InvocationInfo.MyCommand,
-                $Message.InvocationInfo.ScriptName,
-                $Message.InvocationInfo.ScriptLineNumber,
-                $Message.InvocationInfo.OffsetInLine,
-                $Message.InvocationInfo.Line
-            );
+    if ($Type -eq 'Error') {
+        if ($Message.exception.Message) {
+            # cool! we have an exception, we can use it
         }
-        else
-        {
-            [string]$logline_part1 = [string]::Format($global:logline_part1_template_nonerror, $Type.ToUpper(), $message);
+        else {
+            # we do not have an exception, we need to prepare out own custom error to use later
+            [System.Exception]$Exception = $Message;
+            [String]$ErrorID = 'Custom Error';
+            [System.Management.Automation.ErrorCategory]$ErrorCategory = [Management.Automation.ErrorCategory]::WriteError;
+            $ErrorRecord = [System.Management.Automation.ErrorRecord]::new($Exception, $ErrorID, $ErrorCategory, $Message);
+            $Message = $ErrorRecord;
         }
+        [string]$logline_part1 = [string]::Format(
+            $global:logline_part1_template_error,
+            $Type.ToUpper(),
+            $Message.exception.message,
+            $Message.InvocationInfo.MyCommand,
+            $Message.InvocationInfo.ScriptName,
+            $Message.InvocationInfo.ScriptLineNumber,
+            $Message.InvocationInfo.OffsetInLine,
+            $Message.InvocationInfo.Line
+        );
+    }
+    else {
+        [string]$logline_part1 = [string]::Format($global:logline_part1_template_nonerror, $Type.ToUpper(), $message);
+    }
     #endregion set the 1st part of logged entry (templates for formatting)
 
     #region set the 2nd part of logged entry
-        [string]$logline_part2 = [string]::Format(
-            $global:logline_part2_template,
-            $time,
-            $global:CMTraceLog_UtcOffset,
-            $date,
-            $Component,
-            $global:CMTraceLog_Context,
-            $Severity,
-            $ProcessID,
-            $Source
-            );
+    [string]$logline_part2 = [string]::Format(
+        $global:logline_part2_template,
+        $time,
+        $global:CMTraceLog_UtcOffset,
+        $date,
+        $Component,
+        $global:CMTraceLog_Context,
+        $Severity,
+        $ProcessID,
+        $Source
+    );
     #endregion set the 2nd part of logged entry
 
     #region Switch statement to write out to the log and/or back to the host.
@@ -132,85 +126,80 @@ Function Write-CMTraceLog
     $logline = $logline_part1 + $logline_part2;
     $logline | Out-File -Append -Encoding utf8 -FilePath $Logfile;
 
-    switch ($severity)
-    {
-    #region Warning
-        2{
+    switch ($severity) {
+        #region Warning
+        2 {
             #Write back to the host if $Writebacktohost is true.
-            if(($WriteBackToHost))
-            {
-                Switch($PSCmdlet.GetVariableValue('WarningPreference')){
-                    'Continue' {$WarningPreference = 'Continue';Write-Warning -Message "$Message";$WarningPreference=''}
-                    'Stop' {$WarningPreference = 'Stop';Write-Warning -Message "$Message";$WarningPreference=''}
-                    'Inquire' {$WarningPreference ='Inquire';Write-Warning -Message "$Message";$WarningPreference=''}
+            if (($WriteBackToHost)) {
+                Switch ($PSCmdlet.GetVariableValue('WarningPreference')) {
+                    'Continue' { $WarningPreference = 'Continue'; Write-Warning -Message "$Message"; $WarningPreference = '' }
+                    'Stop' { $WarningPreference = 'Stop'; Write-Warning -Message "$Message"; $WarningPreference = '' }
+                    'Inquire' { $WarningPreference = 'Inquire'; Write-Warning -Message "$Message"; $WarningPreference = '' }
                     'SilentlyContinue' {}
                 }
             }
         }
-    #endregion Warning
+        #endregion Warning
 
-    #region Error
-        3{
+        #region Error
+        3 {
             #This if statement is to catch the two different types of errors that may come through. A normal terminating exception will have all the information that is needed, if it's a user generated error by using Write-Error,
             #then the else statement will setup all the information we would like to log.
 
             #Write back to the host if $Writebacktohost is true.
-            if(($WriteBackToHost))
-            {
+            if (($WriteBackToHost)) {
                 #Write back to Host
-                Switch($PSCmdlet.GetVariableValue('ErrorActionPreference'))
-                {
-                    'Stop'{$ErrorActionPreference = 'Stop';$Host.Ui.WriteErrorLine("ERROR: $([String]$Message.Exception.Message)");Write-Error $Message -ErrorAction 'Stop';$ErrorActionPreference=''}
-                    'Inquire'{$ErrorActionPreference = 'Inquire';$Host.Ui.WriteErrorLine("ERROR: $([String]$Message.Exception.Message)");Write-Error $Message -ErrorAction 'Inquire';$ErrorActionPreference=''}
-                    'Continue'{$ErrorActionPreference = 'Continue';$Host.Ui.WriteErrorLine("ERROR: $([String]$Message.Exception.Message)");$ErrorActionPreference=''}
-                    'Suspend'{$ErrorActionPreference = 'Suspend';$Host.Ui.WriteErrorLine("ERROR: $([String]$Message.Exception.Message)");Write-Error $Message -ErrorAction 'Suspend';$ErrorActionPreference=''}
-                    'SilentlyContinue'{}
+                Switch ($PSCmdlet.GetVariableValue('ErrorActionPreference')) {
+                    'Stop' { $ErrorActionPreference = 'Stop'; $Host.Ui.WriteErrorLine("ERROR: $([String]$Message.Exception.Message)"); Write-Error $Message -ErrorAction 'Stop'; $ErrorActionPreference = '' }
+                    'Inquire' { $ErrorActionPreference = 'Inquire'; $Host.Ui.WriteErrorLine("ERROR: $([String]$Message.Exception.Message)"); Write-Error $Message -ErrorAction 'Inquire'; $ErrorActionPreference = '' }
+                    'Continue' { $ErrorActionPreference = 'Continue'; $Host.Ui.WriteErrorLine("ERROR: $([String]$Message.Exception.Message)"); $ErrorActionPreference = '' }
+                    'Suspend' { $ErrorActionPreference = 'Suspend'; $Host.Ui.WriteErrorLine("ERROR: $([String]$Message.Exception.Message)"); Write-Error $Message -ErrorAction 'Suspend'; $ErrorActionPreference = '' }
+                    'SilentlyContinue' {}
                 }
 
             }
         }
-    #endregion Error
+        #endregion Error
 
-    #region Verbose
-        4{
+        #region Verbose
+        4 {
             #Write back to the host if $Writebacktohost is true.
-            if(($WriteBackToHost)){
+            if (($WriteBackToHost)) {
                 Switch ($PSCmdlet.GetVariableValue('VerbosePreference')) {
-                    'Continue' {$VerbosePreference = 'Continue'; Write-Verbose -Message "$Message";$VerbosePreference = ''}
-                    'Inquire' {$VerbosePreference = 'Inquire'; Write-Verbose -Message "$Message";$VerbosePreference = ''}
-                    'Stop' {$VerbosePreference = 'Stop'; Write-Verbose -Message "$Message";$VerbosePreference = ''}
+                    'Continue' { $VerbosePreference = 'Continue'; Write-Verbose -Message "$Message"; $VerbosePreference = '' }
+                    'Inquire' { $VerbosePreference = 'Inquire'; Write-Verbose -Message "$Message"; $VerbosePreference = '' }
+                    'Stop' { $VerbosePreference = 'Stop'; Write-Verbose -Message "$Message"; $VerbosePreference = '' }
                 }
             }
         }
-    #endregion Verbose
+        #endregion Verbose
 
-    #region Debug
-        5{
+        #region Debug
+        5 {
             #Write back to the host if $Writebacktohost is true.
-            if(($WriteBackToHost))
-            {
-                Switch ($PSCmdlet.GetVariableValue('DebugPreference')){
-                    'Continue' {$DebugPreference = 'Continue'; Write-Debug -Message "$Message";$DebugPreference = ''}
-                    'Inquire' {$DebugPreference = 'Inquire'; Write-Debug -Message "$Message";$DebugPreference = ''}
-                    'Stop' {$DebugPreference = 'Stop'; Write-Debug -Message "$Message";$DebugPreference = ''}
+            if (($WriteBackToHost)) {
+                Switch ($PSCmdlet.GetVariableValue('DebugPreference')) {
+                    'Continue' { $DebugPreference = 'Continue'; Write-Debug -Message "$Message"; $DebugPreference = '' }
+                    'Inquire' { $DebugPreference = 'Inquire'; Write-Debug -Message "$Message"; $DebugPreference = '' }
+                    'Stop' { $DebugPreference = 'Stop'; Write-Debug -Message "$Message"; $DebugPreference = '' }
                 }
             }
         }
-    #endregion Debug
+        #endregion Debug
 
-    #region Information
-        6{
+        #region Information
+        6 {
             #Write back to the host if $Writebacktohost is true. 
-            if(($WriteBackToHost)){
-                Switch ($PSCmdlet.GetVariableValue('InformationPreference')){
-                    'Continue' {$InformationPreference = [System.Management.Automation.ActionPreference]::Continue; Write-Information "INFORMATION: $Message" -InformationAction Continue ; $InformationPreference = ''}
-                    'Inquire' {$InformationPreference = [System.Management.Automation.ActionPreference]::Inquire;   Write-Information "INFORMATION: $Message" -InformationAction Inquire;   $InformationPreference = ''}
-                    'Stop' {$InformationPreference = [System.Management.Automation.ActionPreference]::Stop;         Write-Information "INFORMATION: $Message" -InformationAction Stop;      $InformationPreference = ''}
-                    'Suspend' {$InformationPreference = [System.Management.Automation.ActionPreference]::Suspend;   Write-Information "INFORMATION: $Message" -InformationAction Suspend;   $InformationPreference = ''}
+            if (($WriteBackToHost)) {
+                Switch ($PSCmdlet.GetVariableValue('InformationPreference')) {
+                    'Continue' { $InformationPreference = [System.Management.Automation.ActionPreference]::Continue; Write-Information "INFORMATION: $Message" -InformationAction Continue ; $InformationPreference = '' }
+                    'Inquire' { $InformationPreference = [System.Management.Automation.ActionPreference]::Inquire; Write-Information "INFORMATION: $Message" -InformationAction Inquire; $InformationPreference = '' }
+                    'Stop' { $InformationPreference = [System.Management.Automation.ActionPreference]::Stop; Write-Information "INFORMATION: $Message" -InformationAction Stop; $InformationPreference = '' }
+                    'Suspend' { $InformationPreference = [System.Management.Automation.ActionPreference]::Suspend; Write-Information "INFORMATION: $Message" -InformationAction Suspend; $InformationPreference = '' }
                 }
             }
         }
-    #endregion Information
+        #endregion Information
 
     }
     #endregion Switch statement to write out to the log and/or back to the host.

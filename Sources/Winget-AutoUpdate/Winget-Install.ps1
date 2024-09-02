@@ -263,7 +263,7 @@ function Uninstall-App ($AppID, $AppArgs) {
 
 #Function to Add app to WAU white list
 function Add-WAUWhiteList ($AppID) {
-    #Check if WAU default intall path is defined
+    #Check if WAU default install path is defined
     if ($WAUInstallLocation) {
         $WhiteList = "$WAUInstallLocation\included_apps.txt"
         #Create included_apps.txt if it doesn't exist
@@ -281,7 +281,7 @@ function Add-WAUWhiteList ($AppID) {
 
 #Function to Remove app from WAU white list
 function Remove-WAUWhiteList ($AppID) {
-    #Check if WAU default intall path exists
+    #Check if WAU default install path exists
     $WhiteList = "$WAUInstallLocation\included_apps.txt"
     if (Test-Path $WhiteList) {
         Write-ToLog "-> Remove $AppID from WAU included_apps.txt"

@@ -1,4 +1,4 @@
-#Function to configure the prefered scope option as Machine
+#Function to configure the preferred scope option as Machine
 function Add-ScopeMachine {
 
     #Get Settings path for system or current user

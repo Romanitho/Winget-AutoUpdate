@@ -11,6 +11,7 @@ Get-ChildItem "$WorkingDir\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-O
 #Config console output encoding
 $null = cmd /c ''
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$Script:ProgressPreference = 'SilentlyContinue'
 
 #Log initialisation
 $LogFile = "$WorkingDir\logs\updates.log"
@@ -24,7 +25,7 @@ $Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
 if ($IsSystem) {
     #If log file doesn't exist, force create it
     if (!(Test-Path -Path $LogFile)) {
-        New-Item -Path $LogFile -ItemType File -Force | Out-Null
+        Write-ToLog "New log file created"
     }
     # Check if Intune Management Extension Logs folder exists
     if ((Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs" -ErrorAction SilentlyContinue)) {

@@ -16,11 +16,11 @@ This all-purpose mod will be overridden by any specific:
 <# MAIN #>
 if ($($app.Id) -eq "Microsoft.SQLServerManagementStudio") {
 	if ($ConfirmInstall -eq $false) {
-        try {
-		    Write-ToLog "...succesfully done something" "Green"
+		try {
+			Write-ToLog "...successfully done something" "Green"
 		}
 		catch {
-		    Write-ToLog "...failed to do something" "Red"
+			Write-ToLog "...failed to do something" "Red"
 		}
 	}
 }

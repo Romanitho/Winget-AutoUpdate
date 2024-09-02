@@ -32,7 +32,7 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
 
             # Assign the second string (after "?" to the end) to the variable $sasToken
             $sasToken = $splitPath[1]
-            
+
             # Join the parts and add "/$ListType?" in between the parts
             $ExternalList = -join ($resourceURI, "/$ListType`?", $sasToken)
         }

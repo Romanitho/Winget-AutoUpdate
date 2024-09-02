@@ -55,7 +55,7 @@ jobs:
 
       - name: Build project
         run: |
-          echo "### Get MDT from Microsoft ###"
+           echo "### Get MDT from Microsoft ###"
           wget https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi
 
           echo "### Extract MSI ###"
@@ -68,23 +68,18 @@ jobs:
           cd Sources
 
           echo "### Zip WAU ###"
-          cd WAU
-          zip -r ../../WAU.zip Winget-AutoUpdate
-          zip ../../WAU.zip Winget-AutoUpdate-Install.ps1
-          zip ../../WAU.zip excluded_apps.txt
-          cd ..
+          zip -r ../WAU.zip Winget-AutoUpdate
+          zip ../WAU.zip Winget-AutoUpdate-Install.ps1
 
           echo "### Zip WAU-Configurator ###"
-          zip -r ../WAU-Configurator.zip WAU
-          zip ../WAU-Configurator.zip "WAU Configurator.lnk"
+          zip -r ../WAU-Configurator.zip Winget-AutoUpdate
+          zip ../WAU-Configurator.zip "Winget-AutoUpdate-Install.ps1"
+          zip ../WAU-Configurator.zip "WAU Configurator.bat"
 
           echo "### Zip ADMX ###"
           cd Policies
           zip -r ../../WAU_ADMX.zip *
           cd ../..
-
-          echo "### Create install counter file ###"
-          echo "Install counter file." > WAU_InstallCounter
 
       - name: Create release
         uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0

@@ -272,7 +272,7 @@ function Add-WAUWhiteList ($AppID) {
         }
         Write-ToLog "-> Add $AppID to WAU included_apps.txt"
         #Add App to "included_apps.txt"
-        Add-Content -path $WhiteList -Value "`n$AppID" -Force
+        Add-Content -Path $WhiteList -Value "`n$AppID" -Force
         #Remove duplicate and blank lines
         $file = Get-Content $WhiteList | Select-Object -Unique | Where-Object { $_.trim() -ne "" } | Sort-Object
         $file | Out-File $WhiteList

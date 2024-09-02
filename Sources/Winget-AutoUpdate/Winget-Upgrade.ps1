@@ -295,10 +295,9 @@ if (Test-Network) {
         Write-ToLog "Checking application updates on Winget Repository..." "yellow"
         $outdated = Get-WingetOutdatedApps
 
-        #If something unusual happened
-        if ($outdated -like "An unusual*") {
+        #If something unusual happened or no update found
+        if ($outdated -like "No update found.*") {
             Write-ToLog "$outdated" "cyan"
-            $outdated = $False
         }
 
         #Run only if $outdated is populated!

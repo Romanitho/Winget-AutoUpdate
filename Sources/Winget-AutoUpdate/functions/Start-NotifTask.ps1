@@ -137,9 +137,6 @@ function Start-NotifTask {
 
             #Save XML to File
             $ToastTemplateLocation = "$($WAUConfig.InstallLocation)\config\"
-            if (!(Test-Path $ToastTemplateLocation)) {
-                New-Item -ItemType Directory -Force -Path $ToastTemplateLocation
-            }
             $ToastTemplate.Save("$ToastTemplateLocation\notif.xml")
 
             #Run Notify scheduled task to notify conneted users

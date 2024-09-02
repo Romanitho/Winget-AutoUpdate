@@ -34,7 +34,10 @@
     "msiexec",
     "VERYSILENT",
     "SUPPRESSMSGBOXES",
-    "subfolders"
+    "subfolders",
+    "explorerprocesses",
+    "SASURL",
+    "LASTEXITCODE"
   ],
   "ignorePaths": [
     ".github/*",

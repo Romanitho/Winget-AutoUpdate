@@ -11,8 +11,9 @@ Get-ChildItem "$WorkingDir\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-O
 #Config console output encoding
 $null = cmd /c ''
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$Script:ProgressPreference = 'SilentlyContinue'
 
-#Log initialisation
+#Log initialization
 $LogFile = "$WorkingDir\logs\updates.log"
 
 #Check if running account is system or interactive logon
@@ -24,7 +25,7 @@ $Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
 if ($IsSystem) {
     #If log file doesn't exist, force create it
     if (!(Test-Path -Path $LogFile)) {
-        New-Item -Path $LogFile -ItemType File -Force | Out-Null
+        Write-ToLog "New log file created"
     }
     # Check if Intune Management Extension Logs folder exists
     if ((Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs" -ErrorAction SilentlyContinue)) {
@@ -108,14 +109,14 @@ if ($IsSystem) {
     #LogRotation if System
     $LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
     if ($LogRotate -eq $False) {
-        Write-ToLog "An Exception occured during Log Rotation..."
+        Write-ToLog "An Exception occurred during Log Rotation..."
     }
 
     #Run post update actions if necessary if run as System
     if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {
         Invoke-PostUpdateActions
     }
-    #Run Scope Machine funtion if run as System
+    #Run Scope Machine function if run as System
     Add-ScopeMachine
 }
 
@@ -294,10 +295,9 @@ if (Test-Network) {
         Write-ToLog "Checking application updates on Winget Repository..." "yellow"
         $outdated = Get-WingetOutdatedApps
 
-        #If something unusual happened
-        if ($outdated -like "An unusual*") {
+        #If something unusual happened or no update found
+        if ($outdated -like "No update found.*") {
             Write-ToLog "$outdated" "cyan"
-            $outdated = $False
         }
 
         #Run only if $outdated is populated!
@@ -401,7 +401,7 @@ if (Test-Network) {
                     Write-ToLog "No explorer process found / Nobody interactively logged on..."
                 }
                 Else {
-                    #Get Winget system apps to excape them befor running user context
+                    #Get Winget system apps to escape them before running user context
                     Write-ToLog "User logged on, get a list of installed Winget apps in System context..."
                     Get-WingetSystemApps
 

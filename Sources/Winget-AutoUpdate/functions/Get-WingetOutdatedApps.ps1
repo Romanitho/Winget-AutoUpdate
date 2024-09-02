@@ -9,11 +9,11 @@ function Get-WingetOutdatedApps {
     }
 
     #Get list of available upgrades on winget format
-    $upgradeResult = & $Winget upgrade --source winget | Out-String
+    $upgradeResult = & $Winget upgrade --source winget | Where-Object { $_ -notlike "   *" } | Out-String
 
     #Start Conversion of winget format to an array. Check if "-----" exists (Winget Error Handling)
     if (!($upgradeResult -match "-----")) {
-        return "An unusual thing happened (maybe all apps are upgraded):`n$upgradeResult"
+        return "No update found. Winget upgrade output:`n$upgradeResult"
     }
 
     #Split winget output to lines

@@ -95,15 +95,13 @@ jobs:
           cd Sources
 
           echo "### Zip WAU ###"
-          cd WAU
-          zip -r ../../WAU.zip Winget-AutoUpdate
-          zip ../../WAU.zip Winget-AutoUpdate-Install.ps1
-          zip ../../WAU.zip excluded_apps.txt
-          cd ..
+          zip -r ../WAU.zip Winget-AutoUpdate
+          zip ../WAU.zip Winget-AutoUpdate-Install.ps1
 
           echo "### Zip WAU-Configurator ###"
-          zip -r ../WAU-Configurator.zip WAU
-          zip ../WAU-Configurator.zip "WAU Configurator.lnk"
+          zip -r ../WAU-Configurator.zip Winget-AutoUpdate
+          zip ../WAU-Configurator.zip "Winget-AutoUpdate-Install.ps1"
+          zip ../WAU-Configurator.zip "WAU Configurator.bat"
 
           echo "### Zip ADMX ###"
           cd Policies

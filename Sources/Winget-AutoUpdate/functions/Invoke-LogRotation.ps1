@@ -19,6 +19,7 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
 
                 # construct name of archived log file
                 $newLogFileName = $logFileNameWithoutExtension + (Get-Date -Format 'yyyyMMddHHmmss').ToString() + $logFileNameExtension
+                # rename old log file
                 Rename-Item -Path $LogFile -NewName $newLogFileName -Force -Confirm:$false
 
                 # create new file

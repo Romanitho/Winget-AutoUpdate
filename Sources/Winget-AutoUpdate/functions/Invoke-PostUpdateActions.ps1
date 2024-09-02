@@ -101,7 +101,9 @@ function Invoke-PostUpdateActions {
         "$WorkingDir\functions\Write-Log.ps1",
         "$WorkingDir\functions\Get-WinGetAvailableVersion.ps1",
         "$WorkingDir\functions\Invoke-ModsProtect.ps1",
-        "$WorkingDir\Version.txt"
+        "$WorkingDir\functions\Write-CMTraceLog.ps1",
+        "$WorkingDir\Version.txt",
+        "$WorkingDir\winget_system_apps.txt"
     )
     foreach ($FileName in $FileNames) {
         if (Test-Path $FileName) {

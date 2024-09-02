@@ -55,7 +55,7 @@ jobs:
 
       - name: Build project
         run: |
-           echo "### Get MDT from Microsoft ###"
+          echo "### Get MDT from Microsoft ###"
           wget https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi
 
           echo "### Extract MSI ###"

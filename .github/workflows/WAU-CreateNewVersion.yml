@@ -81,6 +81,9 @@ jobs:
           zip -r ../../WAU_ADMX.zip *
           cd ../..
 
+          echo "### Create install counter file ###"
+          echo "Install counter file." > WAU_InstallCounter
+
       - name: Create release
         uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
         with:

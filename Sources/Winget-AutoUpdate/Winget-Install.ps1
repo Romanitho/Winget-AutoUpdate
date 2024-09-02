@@ -314,7 +314,7 @@ $Script:IsElevated = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuilt
 $WAURegKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
 
-#LogPath initialisation
+#LogPath initialization
 if (!($LogPath)) {
     #If LogPath is not set, get WAU log path
     if ($WAUInstallLocation) {
@@ -326,7 +326,7 @@ if (!($LogPath)) {
     }
 }
 
-#Logs initialisation
+#Logs initialization
 if (!(Test-Path $LogPath)) {
     New-Item -ItemType Directory -Force -Path $LogPath | Out-Null
 }
@@ -372,7 +372,7 @@ if ($IsElevated -eq $True) {
     $null = Update-Winget
     #Reload Winget command
     $Script:Winget = Get-WingetCmd
-    #Run Scope Machine funtion
+    #Run Scope Machine function
     Add-ScopeMachine
 }
 else {

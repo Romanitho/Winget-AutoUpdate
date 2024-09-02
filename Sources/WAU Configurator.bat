@@ -92,7 +92,7 @@ function Get-WingetAppInfo ($SearchApp) {
     #Search for winget apps
     $AppResult = & $Winget search $SearchApp --accept-source-agreements --source winget | Out-String
 
-    #Start Convertion of winget format to an array. Check if "-----" exists
+    #Start Conversion of winget format to an array. Check if "-----" exists
     if (!($AppResult -match "-----")) {
         Start-PopUp "No application found!"
         Start-Sleep 2
@@ -111,7 +111,7 @@ function Get-WingetAppInfo ($SearchApp) {
 
     $fl = $fl - 1
 
-    #Get header titles [without remove seperator]
+    #Get header titles [without remove separator]
     $index = $lines[$fl] -split '(?<=\s)(?!\s)'
 
     # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
@@ -129,7 +129,7 @@ function Get-WingetAppInfo ($SearchApp) {
             $nameDeclination = $($line.Substring(0, $idStart) -replace '[\u4e00-\u9fa5]', '**').Length - $line.Substring(0, $idStart).Length
             $software.Name = $line.Substring(0, $idStart - $nameDeclination).TrimEnd()
             $software.Id = $line.Substring($idStart - $nameDeclination, $versionStart - $idStart).TrimEnd()
-            #add formated soft to list
+            #add formatted soft to list
             $searchList += $software
         }
     }

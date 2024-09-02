@@ -57,7 +57,7 @@ function Install-Prerequisites {
                 Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully." "Green"
             }
             catch {
-                Write-ToLog "-> Failed to intall Microsoft.VCLibs.140.00.UWPDesktop..." "Red"
+                Write-ToLog "-> Failed to install Microsoft.VCLibs.140.00.UWPDesktop..." "Red"
             }
             finally {
                 Remove-Item -Path $VCLibsFile -Force
@@ -79,7 +79,7 @@ function Install-Prerequisites {
                 Write-ToLog "-> Microsoft.UI.Xaml.2.8 installed successfully." "Green"
             }
             catch {
-                Write-ToLog "-> Failed to intall Microsoft.UI.Xaml.2.8..." "Red"
+                Write-ToLog "-> Failed to install Microsoft.UI.Xaml.2.8..." "Red"
             }
             finally {
                 Remove-Item -Path $UIXamlFile -Force

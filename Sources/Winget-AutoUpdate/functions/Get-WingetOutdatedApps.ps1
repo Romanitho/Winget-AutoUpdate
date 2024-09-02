@@ -11,7 +11,7 @@ function Get-WingetOutdatedApps {
     #Get list of available upgrades on winget format
     $upgradeResult = & $Winget upgrade --source winget | Out-String
 
-    #Start Convertion of winget format to an array. Check if "-----" exists (Winget Error Handling)
+    #Start Conversion of winget format to an array. Check if "-----" exists (Winget Error Handling)
     if (!($upgradeResult -match "-----")) {
         return "An unusual thing happened (maybe all apps are upgraded):`n$upgradeResult"
     }
@@ -28,7 +28,7 @@ function Get-WingetOutdatedApps {
     #Get header line
     $fl = $fl - 1
 
-    #Get header titles [without remove seperator]
+    #Get header titles [without remove separator]
     $index = $lines[$fl] -split '(?<=\s)(?!\s)'
 
     # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
@@ -44,7 +44,7 @@ function Get-WingetOutdatedApps {
             #Get header line
             $fl = $i - 1
 
-            #Get header titles [without remove seperator]
+            #Get header titles [without remove separator]
             $index = $lines[$fl] -split '(?<=\s)(?!\s)'
 
             # Line $fl has the header, we can find char where we find ID and Version [and manage non latin characters]
@@ -61,7 +61,7 @@ function Get-WingetOutdatedApps {
             $software.Id = $line.Substring($idStart - $nameDeclination, $versionStart - $idStart).TrimEnd()
             $software.Version = $line.Substring($versionStart - $nameDeclination, $availableStart - $versionStart).TrimEnd()
             $software.AvailableVersion = $line.Substring($availableStart - $nameDeclination).TrimEnd()
-            #add formated soft to list
+            #add formatted soft to list
             $upgradeList += $software
         }
     }

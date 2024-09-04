@@ -299,9 +299,8 @@ if (Test-Network) {
         if ($outdated -like "No update found.*") {
             Write-ToLog "$outdated" "cyan"
         }
-
         #Run only if $outdated is populated!
-        if ($outdated) {
+        else {
             #Log list of app to update
             foreach ($app in $outdated) {
                 #List available updates

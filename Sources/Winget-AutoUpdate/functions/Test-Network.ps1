@@ -22,7 +22,7 @@ function Test-Network {
 
     While ($timeout -lt 1800) {
         try {
-            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome)
+            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome); # DevSkim: ignore DS137138 Insecure URL
         }
         catch {
             $ncsiResponse = $false

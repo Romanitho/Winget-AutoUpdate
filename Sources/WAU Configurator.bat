@@ -28,13 +28,14 @@ if ( $psversionTable.PSEdition -eq "core" ) {
     import-Module -name Appx -UseWIndowsPowershell -WarningAction:SilentlyContinue
 }
 
-$Script:WAUConfiguratorVersion = Get-Content ".\Winget-AutoUpdate\Version.txt"
+$Script:WorkingDir = (Get-Location).Path
+$Script:WAUConfiguratorVersion = Get-Content "$WorkingDir\Winget-AutoUpdate\Version.txt"
 
 
 <# FUNCTIONS #>
 
-. ".\Winget-AutoUpdate\functions\Update-WinGet.ps1"
-. ".\Winget-AutoUpdate\functions\Get-WingetCmd.ps1"
+. "$WorkingDir\Winget-AutoUpdate\functions\Update-WinGet.ps1"
+. "$WorkingDir\Winget-AutoUpdate\functions\Get-WingetCmd.ps1"
 
 #Function to start or update popup
 Function Start-PopUp ($Message) {
@@ -183,12 +184,12 @@ function Start-Installations {
         if ($WAUUseWhiteList) {
             $WAUParameters += "-UseWhiteList "
             if ($WAUListPath) {
-                Copy-Item $WAUListPath -Destination ".\included_apps.txt" -Force -ErrorAction SilentlyContinue
+                Copy-Item $WAUListPath -Destination "$WorkingDir\included_apps.txt" -Force -ErrorAction SilentlyContinue
             }
         }
         else {
             if ($WAUListPath) {
-                Copy-Item $WAUListPath -Destination ".\excluded_apps.txt" -Force -ErrorAction SilentlyContinue
+                Copy-Item $WAUListPath -Destination "$WorkingDir\excluded_apps.txt" -Force -ErrorAction SilentlyContinue
             }
         }
         if ($WAUDesktopShortcut) {
@@ -202,7 +203,7 @@ function Start-Installations {
         }
 
         #Install Winget-Autoupdate
-        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command ""& '.\Winget-AutoUpdate-Install.ps1' $WAUParameters""" -Wait -Verb RunAs
+        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command ""& '$WorkingDir\Winget-AutoUpdate-Install.ps1' $WAUParameters""" -Wait -Verb RunAs
     }
 
 
@@ -275,7 +276,7 @@ function Start-Uninstallations ($AppToUninstall) {
 
         #Run Winget-Install -Uninstall
         $AppsToUninstall = "'$($AppToUninstall -join "','")'"
-        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `".\Winget-AutoUpdate\Winget-Install.ps1 -AppIDs $AppsToUninstall -Uninstall`"" -Wait -Verb RunAs
+        Start-Process "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -Command `"$WorkingDir\Winget-AutoUpdate\Winget-Install.ps1 -AppIDs $AppsToUninstall -Uninstall`"" -Wait -Verb RunAs
 
         Close-PopUp
     }

@@ -1,4 +1,5 @@
 Google.Chrome*
+LibreWolf.LibreWolf
 Microsoft.Edge*
 Microsoft.Office
 Microsoft.OneDrive

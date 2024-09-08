@@ -1,3 +1,4 @@
+Brave.Brave*
 Google.Chrome*
 LibreWolf.LibreWolf
 Microsoft.Edge*

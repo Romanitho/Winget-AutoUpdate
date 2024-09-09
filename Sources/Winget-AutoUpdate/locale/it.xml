@@ -14,7 +14,7 @@
 		</output>
 		<output id="2">
 			<!--{App} will be updated-->
-			<title>{0}verrà aggiornato!</title>
+			<title>{0} verrà aggiornato!</title>
 			<!--{v1.0} to {v2.0}-->
 			<message>Da {0} a {1}</message>
 		</output>
@@ -44,19 +44,19 @@
 		</output>
 		<output id="8">
 			<!--Check for updated apps already running-->
-			<message>Check for updated apps already running...</message>
+			<message>Controllo delle app aggiornate già avviato...</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Manual check for updated apps completed...</message>
+			<message>Controllo manuale delle app aggiornate completato...</message>
 		</output>
 		<output id="10">
 			<!--See changelog-->
-			<message>See changelog</message>
+			<message>Vedi changelog</message>
 		</output>
 		<output id="11">
 			<!--Open log file-->
-			<message>Open log file</message>
+			<message>Apri file di log</message>
 		</output>
 	</outputs>
 </local>

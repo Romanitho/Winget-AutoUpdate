@@ -16,29 +16,32 @@ This project uses the Winget tool to daily update apps (with system context) and
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 
 ## Installation
-Just [download latest release (WAU-Configurator.zip)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest/download/WAU-Configurator.zip), unzip, run "WAU Configurator":
+Just download latest release (WAU.msi)]:
 
-![WAU Configurator Screenshot](https://github.com/Romanitho/Winget-AutoUpdate/assets/96626929/e3c3a331-1c49-40c5-8f70-e39cf9fc7fd1)
+![1](https://github.com/user-attachments/assets/8a3a656d-f825-4cea-b971-5f775a6c7ba8)
+![2](https://github.com/user-attachments/assets/46913e03-8604-43f5-8bca-129d1e714e45)
+
+
 
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
 - #### BlockList
 You can exclude apps from update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update):
-Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
-- #### Or AllowList
-You can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and run the `Winget-AutoUpdate-Install.ps1` with `-UseWhiteList` parameter. Related post: <https://github.com/Romanitho/Winget-AutoUpdate/issues/36>
+Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.txt'. (File must be placed in the same folder as WAU.msi).
+- #### AllowList
+You can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and place it in the same folder as WAU.msi during install.
 
-> The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels. (From v1.20.0)
+> The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
 
 ### Notification Level
-You can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`.
+You can choose which notification will be displayed: `Full`, `Success only` or `None`.
 
 ### Notification language
 You can easily translate toast notifications by creating your locale xml config file (and share it with us :) ).
 
 ### When does the script run?
-WAU runs everyday at 6AM. You can now configure the frequency with `-UpdatesInterval` option (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never). You can also add `-UpdatesAtLogon` parameter to run at user logon (recommended).
+WAU runs ,by default, at logon. You can configure the frequency with options (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never).
 
 ### Log location
 You can find logs in install location, in logs folder.<br>
@@ -62,38 +65,32 @@ To force WAU to run on metered connections anyway, run new installation with `-R
 WAU runs with system and user contexts. This way, even apps installed on User's scope are updated. Shorcuts for manually run can also be installed.
 
 ### Default install location
-By default, scripts and components will be placed in ProgramData location (inside a Winget-AutoUpdate folder). You can change this with script argument (Not Recommended).
+By default, scripts and components will be placed in "Program Files" location (inside a Winget-AutoUpdate folder).
 
 ## Update WAU
 ### Manual Update
 Same process as new installation.
 
 ### Automatic Update
-By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, icons (if personalised), excluded_apps list,...
-To disable WAU AutoUpdate, run the `Winget-AutoUpdate-Install.ps1` with `-DisableWAUAutoUpdate` parameter.
-
-## Uninstall WAU
-Simply uninstall it from your programs:
-
-![image](https://user-images.githubusercontent.com/96626929/170879336-ef034956-4778-41f0-b8fd-d307b77b70a9.png)
+By default, WAU AutoUpdate is enabled. It will not overwrite the configurations, excluded_apps list,...
 
 ## Advanced installation
 **Mainly for admins or advanced user installation.**<br>
-You can run the `Winget-AutoUpdate-Install.ps1` script with parameters :
+You can run the `WAU.msi` script with parameters :
 
-**-Silent**<br>
+**/qn**<br>
 Install Winget-AutoUpdate and prerequisites silently.
 
-**-DoNotUpdate**<br>
-Do not run Winget-AutoUpdate after installation. By default, Winget-AutoUpdate is run just after installation.
+**RUN_WAU**<br>
+Default value NO. Set `RUN_WAU=YES` to run WAU just after installation.
 
-**-DisableWAUAutoUpdate**<br>
-Disable Winget-AutoUpdate update checking. By default, WAU auto updates if new version is available on Github.
+**DISABLEWAUAUTOUPDATE**<br>
+Default value 0. Set `DISABLEWAUAUTOUPDATE=1` to disable Winget-AutoUpdate self update checking. By default, WAU auto updates if new version is available on Github.
 
-**-UseWhiteList**<br>
-Use White List instead of Black List. This setting will not create the "excluded_apps.txt" but "included_apps.txt".
+**USEWHITELIST**<br>
+Set `USEWHITELIST=1` to force WAU to use WhiteList. During installation, if a whitelist is provided, this setting is automatically set to 1.
 
-**-ListPath**<br>
+**LISTPATH**<br>
 Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.<br>
 **PATH** must end with a Directory, not a File...<br>
 ...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!<br>
@@ -106,7 +103,7 @@ Instead you must escape **every** special character (notice the `%` escape too) 
 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
-**-ModsPath**<br>
+**-MODSPATH**<br>
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):
 ```
@@ -125,58 +122,51 @@ Validated on **IIS/Apache**.
 
 For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with an appropriate Azure Blob Storage URL including the SAS token. See **-AzureBlobURL** for more information.
 
-**-AzureBlobURL**<br>
+**AZUREBLOBURL**<br>
 Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder.
 
-**-InstallUserContext**<br>
-Install WAU with system and **user** context executions.<br>
+**USERCONTEXT**<br>
+Default value 0. Set `USERCONTEXT=1` to install WAU with system and **user** context executions.<br>
 Applications installed in system context will be ignored under user context.
 
-**-BypassListForUsers**<br>
-Bypass Black/White list when run in user context.
+**BYPASSLISTFORUSERS**<br>
+Default value 0. Set `BYPASSLISTFORUSERS=1` to bypass Black/White list when run in user context.
 
-**-NoClean**<br>
-Keep critical files when installing/uninstalling. This setting will keep "excluded_apps.txt", "included_apps.txt", "mods" and "logs" as they were.
+**DESKTOPSHORTCUT**<br>
+Set `DESKTOPSHORTCUT=1` to create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate`
 
-**-DesktopShortcut**<br>
-Create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate`
+**STARTMENUSHORTCUT**<br>
+Set `STARTMENUSHORTCUT=1` to create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate` and open Logs.
 
-**-StartMenuShortcut**<br>
-Create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate`, open Logs and Web Help.
-
-**-NotificationLevel**<br>
+**NOTIFICATIONLEVEL**<br>
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
 
-**-UpdatesAtLogon**<br>
-Set WAU to run at user logon.
+**UPDATESATLOGON**<br>
+Default value 0. Set `UPDATESATLOGON=1` to configure WAU to run at user logon.
 
-**-UpdatesInterval**<br>
-Specify the update frequency: Daily (Default), BiDaily, Weekly, BiWeekly, Monthly or Never. Can be set to 'Never' in combination with '-UpdatesAtLogon' for instance.
+**UPDATESINTERVAL**<br>
+Default value Never. Specify the update frequency: Daily, BiDaily, Weekly, BiWeekly, Monthly or Never.
 
-**-UpdatesAtTime**<br>
-Specify the time of the update interval execution time. Default 6AM.
+**UPDATESATTIME**<br>
+Default value 6AM. Specify the time of the update interval execution time.
 
-**-RunOnMetered**<br>
-Force WAU to run on metered connections. May add cellular data costs on shared connexion from smartphone for example.
+**DONOTRUNONMETERED**<br>
+Default value 1. Set `DONOTRUNONMETERED=0` to force WAU to run on metered connections. May add cellular data costs on shared connexion from smartphone for example.
 
-**-MaxLogFiles**<br>
+**MAXLOGFILES**<br>
 Specify number of allowed log files.<br>
 Default is 3 out of 0-99:<br>
 Setting MaxLogFiles to 0 don't delete any old archived log files.<br>
 Setting it to 1 keeps the original one and just let it grow.
 
-**-MaxLogSize**<br>
+**MAXLOGSIZE**<br>
 Specify the size of the log file in bytes before rotating.<br>
 Default is 1048576 = 1 MB (ca. 7500 lines)
 
-**-WAUinstallPath**<br>
-Specify Winget-AutoUpdate installation location. Default: `C:\ProgramData\Winget-AutoUpdate` (Recommended to leave default).
+**INSTALLDIR**<br>
+Specify Winget-AutoUpdate installation location. Default: `C:\Program Files\Winget-AutoUpdate` (Recommended to leave default).
 
-**-Uninstall**<br>
-Remove scheduled tasks and scripts.
 
-## Intune/SCCM use
-See <https://github.com/Romanitho/Winget-AutoUpdate/discussions/88>
 
 ## Custom script (Mods for WAU)
 **Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.<br>

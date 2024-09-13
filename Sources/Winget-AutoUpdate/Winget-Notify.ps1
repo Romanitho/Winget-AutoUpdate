@@ -1,7 +1,7 @@
 #Send Notify Script
 
 #get xml notif config
-$WAUinstalledPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\" -Name InstallLocation
+$WAUinstalledPath = Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\" -Name InstallLocation
 [xml]$NotifConf = Get-Content "$WAUinstalledPath\config\notif.xml" -Encoding UTF8 -ErrorAction SilentlyContinue
 if (!($NotifConf)) {
     break

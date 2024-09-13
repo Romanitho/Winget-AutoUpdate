@@ -16,7 +16,7 @@ This project uses the Winget tool to daily update apps (with system context) and
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
 
 ## Installation
-Just download latest release (WAU.msi)]:
+Just download latest release [WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest/download/WAU.msi):
 
 ![1](https://github.com/user-attachments/assets/8a3a656d-f825-4cea-b971-5f775a6c7ba8)
 ![2](https://github.com/user-attachments/assets/46913e03-8604-43f5-8bca-129d1e714e45)

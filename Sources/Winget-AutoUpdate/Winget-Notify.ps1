@@ -16,7 +16,7 @@ $ToastXml = [Windows.Data.Xml.Dom.XmlDocument]::New()
 $ToastXml.LoadXml($NotifConf.OuterXml)
 
 #Specify Launcher App ID
-$LauncherID = "Windows.SystemToast.Winget.Notification"
+$LauncherID = "Windows.SystemToast.WAU.Notification"
 
 #Prepare and Create Toast
 $ToastMessage = [Windows.UI.Notifications.ToastNotification]::New($ToastXML)

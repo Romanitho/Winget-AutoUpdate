@@ -137,7 +137,7 @@ if (Test-Network) {
         if ($IsSystem) {
 
             #Get Current Version
-            $WAUCurrentVersion = $WAUConfig.DisplayVersion
+            $WAUCurrentVersion = $WAUConfig.ProductVersion
             Write-ToLog "WAU current version: $WAUCurrentVersion"
 
             #Check if WAU update feature is enabled or not if run as System

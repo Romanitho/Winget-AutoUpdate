@@ -26,7 +26,7 @@ jobs:
       - name: Perform a Pester test for WAU run
         shell: powershell
         run: |
-          $command = New-PesterContainer -Path C:\ProgramData\Winget-AutoUpdate\user-run.ps1
+          $command = New-PesterContainer -Path "C:\Program Files\Winget-AutoUpdate\user-run.ps1"
           Invoke-Pester -PassThru -Container $command -ErrorAction Continue
       #- name: Read WAU Log
       #  id: package

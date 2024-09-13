@@ -79,13 +79,13 @@ jobs:
           if ("${{ env.ReleaseType }}" -eq "Release") {
             $MsiVersion  = $NextAutoSemver.Split("-")[0]
             $NextSemver  = $NextAutoSemver.Split("-")[0]
-            $ReleaseName = $NextSemver
+            $ReleaseName = "WAU " + $NextSemver
             $Prerelease  = 0
           }
           else {
             $MsiVersion  = $NextAutoSemver.Split("-")[0]
             $NextSemver  = $NextAutoSemver.Replace("-0","-n")
-            $ReleaseName = $NextSemver + " [Nightly Build]"
+            $ReleaseName = "WAU " + $NextSemver + " [Nightly Build]"
             $Prerelease  = 1
           }
           echo "MSI version: $MsiVersion"

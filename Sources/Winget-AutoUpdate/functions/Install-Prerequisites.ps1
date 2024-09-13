@@ -29,7 +29,7 @@ function Install-Prerequisites {
                 Write-ToLog "-> Downloading $SourceURL..."
                 Invoke-WebRequest $SourceURL -UseBasicParsing -OutFile $Installer
                 Write-ToLog "-> Installing VC_redist.$OSArch.exe..."
-                Start-Process -FilePath $Installer -Args "/passive /norestart" -Wait
+                Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
                 Start-Sleep 3
                 Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully." "Green"
             }
@@ -127,11 +127,11 @@ function Install-Prerequisites {
                 #If multiple versions, pick most recent one
                 $WingetCmd = $WingetInfo[-1].FileName
                 & $WingetCmd source reset --force
-                Write-ToLog "-> WinGet sources reset.`n" "green"
+                Write-ToLog "-> WinGet sources reset." "green"
                 $return = "success"
             }
             catch {
-                Write-ToLog "-> Failed to install WinGet MSIXBundle for App Installer...`n" "red"
+                Write-ToLog "-> Failed to install WinGet MSIXBundle for App Installer..." "red"
                 #Force Store Apps to update
                 Update-StoreApps
                 $return = "fail"
@@ -141,15 +141,15 @@ function Install-Prerequisites {
             Remove-Item -Path $WingetInstaller -Force -ErrorAction SilentlyContinue
         }
         else {
-            Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion`n" "Green"
+            Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "Green"
         }
 
-        Write-ToLog "Prerequisites checked. OK`n" "Green"
+        Write-ToLog "Prerequisites checked. OK" "Green"
 
     }
     catch {
 
-        Write-ToLog "Prerequisites checked failed`n" "Red"
+        Write-ToLog "Prerequisites checked failed" "Red"
 
     }
 

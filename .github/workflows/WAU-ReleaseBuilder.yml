@@ -4,7 +4,7 @@ name: WAU - Release builder
 on:
   # To trigger nightly release (Auto)
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "0 0 * * *"
   # To trigger stable release
   workflow_dispatch:
     inputs:

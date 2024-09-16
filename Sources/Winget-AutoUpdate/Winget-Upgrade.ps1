@@ -31,11 +31,13 @@ if ($IsSystem) {
     if ((Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs" -ErrorAction SilentlyContinue)) {
         # Check if symlink WAU-updates.log exists, make symlink (doesn't work under ServiceUI)
         if (!(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ErrorAction SilentlyContinue)) {
-            $symLink = New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue
+            $null = New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue
+            Write-ToLog "SymLink for 'update' log file created in Intune Management Extension log folder"
         }
         # Check if install.log and symlink WAU-install.log exists, make symlink (doesn't work under ServiceUI)
         if ((Test-Path -Path ('{0}\logs\install.log' -f $WorkingDir) -ErrorAction SilentlyContinue) -and !(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ErrorAction SilentlyContinue)) {
-            $symLink = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
+            $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
+            Write-ToLog "SymLink for 'install' log file created in Intune Management Extension log folder"
         }
     }
     #Check if running with session ID 0
@@ -46,9 +48,6 @@ if ($IsSystem) {
             #Check if any connected user
             $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
             if ($explorerprocesses.Count -gt 0) {
-                if ($symLink) {
-                    $null = (New-Item "$WorkingDir\logs\symlink.txt" -Value $symLink -Force)
-                }
                 #Rerun WAU in system context with ServiceUI
                 Start-Process "ServiceUI.exe" -ArgumentList "-process:explorer.exe $env:windir\System32\conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File winget-upgrade.ps1" -WorkingDirectory $WorkingDir
                 Wait-Process "ServiceUI" -ErrorAction SilentlyContinue
@@ -56,24 +55,14 @@ if ($IsSystem) {
             }
             else {
                 Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
-                if ($symLink) {
-                    Write-ToLog "SymLink for log file created in Intune Management Extension log folder"
-                }
             }
         }
         else {
             Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context - No ServiceUI)" -IsHeader
-            if ($symLink) {
-                Write-ToLog "SymLink for log file created in Intune Management Extension log folder"
-            }
         }
     }
     else {
         Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context - Connected user)" -IsHeader
-        if (Test-Path "$WorkingDir\logs\symlink.txt") {
-            Write-ToLog "SymLink for log file created in Intune Management Extension log folder"
-            Remove-Item "$WorkingDir\logs\symlink.txt" -Force
-        }
     }
 }
 else {

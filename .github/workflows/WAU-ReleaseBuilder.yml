@@ -1,0 +1,156 @@
+---
+name: WAU - Release builder
+
+on:
+  # To trigger nightly release (Auto)
+  schedule:
+    - cron: "0 0 * * *"
+  # To trigger stable release
+  workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        default: "Minor"
+        description: Select next release type
+        options:
+          - Patch
+          - Minor
+          - Major
+        required: true
+      pre-release:
+        type: boolean
+        description: Set as Pre-release version
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: "true"
+          fetch-depth: 0
+
+      - name: Manually OR Scheduled. If Scheduled, check if release is necessary
+        run: |
+          if ("${{ github.event_name }}" -eq "schedule") {
+            echo "Latest tag:"
+            git log --tags --pretty="%ci - %h - %s %d" -n 1
+            $LATEST_TAG_DATE = git log --tags -n 1 --pretty="%ct"
+            echo $LATEST_TAG_DATE
+
+            echo "Latest merge:"
+            git log --merges --pretty="%ci - %h - %s %d" -n 1
+            $LATEST_MERGE_DATE = git log --merges -n 1 --pretty="%ct"
+            echo $LATEST_MERGE_DATE
+
+            if ( $LATEST_MERGE_DATE -gt $LATEST_TAG_DATE ) {
+              echo "Scheduled request. Latest tag is older than latest merge. Nightly prerelease will be created."
+              echo "ReleaseType=Prerelease" >> $env:GITHUB_ENV
+            }
+            else {
+              echo "Scheduled request. Latest tag is not older than latest merge. No new Nightly release needed."
+              echo "ReleaseType=No" >> $env:GITHUB_ENV
+            }
+          }
+          else {
+              echo "Manual request. Release will be created."
+              echo "ReleaseType=Release" >> $env:GITHUB_ENV
+          }
+
+      - name: Auto Increment Semver Action
+        uses: MCKanpolat/auto-semver-action@5003b8d37f4b03d95f15303ea10242cbf7c13141 # 2
+        if: env.ReleaseType != 'No'
+        id: versioning
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          incrementPerCommit: false
+          releaseType: Pre${{ github.event.inputs.version || 'patch'}} # Using Prepatch by default
+
+      - name: Format Semver (and msi version)
+        if: env.ReleaseType != 'No'
+        # Remove "-0" for stable release and replace by "-n" for Nightlies
+        run: |
+          $NextAutoSemver = "${{ steps.versioning.outputs.version }}"
+          if ("${{ env.ReleaseType }}" -eq "Release") {
+            $MsiVersion  = $NextAutoSemver.Split("-")[0]
+            $NextSemver  = $NextAutoSemver.Split("-")[0]
+            $ReleaseName = "WAU " + $NextSemver
+            $Prerelease  = 0
+          }
+          else {
+            $MsiVersion  = $NextAutoSemver.Split("-")[0]
+            $NextSemver  = $NextAutoSemver.Replace("-0","-n")
+            $ReleaseName = "WAU " + $NextSemver + " [Nightly Build]"
+            $Prerelease  = 1
+          }
+          echo "MSI version: $MsiVersion"
+          echo "Semver created: $NextSemver"
+          echo "Prerelease: $Prerelease"
+          echo "Release name: $ReleaseName"
+          echo "MsiVersion=$MsiVersion" >> $env:GITHUB_ENV
+          echo "NextSemVer=$NextSemVer" >> $env:GITHUB_ENV
+          echo "Prerelease=$Prerelease" >> $env:GITHUB_ENV
+          echo "ReleaseName=$ReleaseName" >> $env:GITHUB_ENV
+
+      - name: Build project
+        if: env.ReleaseType != 'No'
+        shell: powershell
+        run: |
+          echo "### Get MDT from Microsoft ###"
+          wget https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi -UseBasicParsing -OutFile .\MicrosoftDeploymentToolkit_x64.msi
+          Start-Process .\MicrosoftDeploymentToolkit_x64.msi -ArgumentList "/quiet /norestart" -Wait
+
+          echo "### Copy ServiceUI.exe x64 to 'Sources\Winget-AutoUpdate' folder ###"
+          Copy-Item -Path "C:\Program Files\Microsoft Deployment Toolkit\Templates\Distribution\Tools\x64\ServiceUI.exe" -Destination ".\Sources\Winget-AutoUpdate\ServiceUI.exe" -Force
+          Get-Item .\Sources\Winget-AutoUpdate\*
+
+          echo "### Install WiX ###"
+          dotnet new console
+          dotnet tool install --global wix --version 5.0.1
+          wix extension add WixToolset.UI.wixext/5.0.1 -g
+          wix extension add WixToolset.Util.wixext/5.0.1 -g
+
+          echo "### Create WAU msi ###"
+          cd .\Sources\Wix\
+          wix build -src build.wxs -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext -out ..\..\WAU.msi -arch x64 -d Version=${{ env.MsiVersion }} -d NextSemVer=${{ env.NextSemVer }} -d Comment="${{ env.ReleaseName }}" -d PreRelease=${{ env.PreRelease }}
+          cd ..\..
+          Get-Item .\WAU.msi
+
+          echo "### Get MSI file SHA ###"
+          $MsiSHA = (Get-FileHash .\WAU.msi).hash
+          echo " - WAU.msi SHA256: $MsiSHA"
+          echo "MSI_SHA=$MsiSHA" >> $env:GITHUB_ENV
+
+          echo "### Zip ADMX ###"
+          Compress-Archive -Path .\Sources\Policies\ADMX -DestinationPath .\WAU_ADMX.zip -Force
+          Get-Item .\*.zip
+
+          echo "### Get ADMX zip SHA ###"
+          $ADMXSHA = (Get-FileHash .\WAU_ADMX.zip).hash
+          echo " - WAU_ADMX.zip SHA256: $ADMXSHA"
+          echo "ADMX_SHA=$ADMXSHA" >> $env:GITHUB_ENV
+
+          echo "### Create install counter file ###"
+          echo "Install counter file." > WAU_InstallCounter
+
+      - name: Create release
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
+        if: env.ReleaseType != 'No'
+        with:
+          tag: v${{ env.NextSemVer }}
+          prerelease: ${{ github.event.inputs.pre-release || true }}
+          generateReleaseNotes: true
+          name: ${{ env.ReleaseName }}
+          artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
+          body: |
+            |Files|Hash (SHA256)|Downloads|
+            |---|---|---|
+            |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ env.NextSemVer }}/WAU.msi) (x64)|${{ env.MSI_SHA }}|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ env.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
+            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ env.NextSemVer }}/WAU_ADMX.zip)|${{ env.ADMX_SHA }}|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ env.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
+
+            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ env.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>

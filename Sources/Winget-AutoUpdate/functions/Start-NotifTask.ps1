@@ -155,7 +155,7 @@ function Start-NotifTask {
             $ToastXml.LoadXml($ToastTemplate.OuterXml)
 
             #Specify Launcher App ID
-            $LauncherID = "Windows.SystemToast.Winget.Notification"
+            $LauncherID = "Windows.SystemToast.WAU.Notification"
 
             #Prepare and Create Toast
             $ToastMessage = [Windows.UI.Notifications.ToastNotification]::New($ToastXml)

@@ -2,7 +2,7 @@
 
 function Update-WAU {
 
-    $OnClickAction = "https://github.com/Romanitho/Winget-AutoUpdate/releases"
+    $OnClickAction = "https://github.com/Romanitho/$GitHub_Repo/releases"
     $Button1Text = $NotifLocale.local.outputs.output[10].message
 
     #Send available update notification
@@ -21,7 +21,7 @@ function Update-WAU {
 
         #Download the zip
         Write-ToLog "Downloading the GitHub Repository Zip version $WAUAvailableVersion" "Cyan"
-        Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUAvailableVersion)/WAU.zip" -OutFile $ZipFile
+        Invoke-RestMethod -Uri "https://github.com/Romanitho/$GitHub_Repo/releases/download/v$($WAUAvailableVersion)/WAU.zip" -OutFile $ZipFile
 
         #Extract Zip File
         Write-ToLog "Unzipping the WAU Update package" "Cyan"
@@ -74,7 +74,7 @@ function Update-WAU {
             #Download the msi
             Write-ToLog "Downloading the GitHub Repository MSI version $WAUAvailableVersion" "Cyan"
             $MsiFile = "$env:temp\WAU.msi"
-            Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUAvailableVersion)/WAU.msi" -OutFile $MsiFile
+            Invoke-RestMethod -Uri "https://github.com/Romanitho/$GitHub_Repo/releases/download/v$($WAUAvailableVersion)/WAU.msi" -OutFile $MsiFile
 
             #Migrate registry to save current WAU settings
             Write-ToLog "Saving current config before updating with MSI"

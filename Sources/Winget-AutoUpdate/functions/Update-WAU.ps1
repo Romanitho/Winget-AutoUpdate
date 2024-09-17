@@ -89,23 +89,32 @@ function Update-WAU {
             $properties = Get-ItemProperty -Path $sourcePath
             foreach ($property in $properties.PSObject.Properties) {
                 #Check if the value name starts with "WAU_"
-                if ($property.Name -like "WAU_*") {
+                if ($property.Name -like "WAU_*" -and $property.Name -notlike "WAU_PostUpdateActions*") {
                     #Copy the value to the destination key
                     Set-ItemProperty -Path $destinationPath -Name $property.Name -Value $property.Value
                     Write-ToLog "$($property.Name) saved."
                 }
             }
 
+            #Stop ServiceUI
+            $ServiceUI = Get-Process -ProcessName serviceui -ErrorAction SilentlyContinue
+            if ($ServiceUI) {
+                try {
+                    Write-ToLog "Stopping ServiceUI"
+                    $ServiceUI | Stop-Process
+                }
+                catch {
+                    Write-ToLog "Failed to stop ServiceUI"
+                }
+            }
+
+            #Uninstall WAU v1
+            Write-ToLog "Uninstalling WAU v1"
+            Start-Process powershell -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\WAU-Uninstall.ps1`"" -Wait
+
             #Update WAU and run
             Write-ToLog "Updating WAU..." "Yellow"
             Start-Process msiexec.exe -ArgumentList "/i $MsiFile /qn /L*v ""$WorkingDir\logs\WAU-Installer.log"" RUN_WAU=YES"
-
-            #Send success Notif
-            Write-ToLog "WAU Update completed. Rerunning WAU..." "Green"
-            $Title = $NotifLocale.local.outputs.output[3].title -f "Winget-AutoUpdate"
-            $Message = $NotifLocale.local.outputs.output[3].message -f $WAUAvailableVersion
-            $MessageType = "success"
-            Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
 
             Exit 0
         }

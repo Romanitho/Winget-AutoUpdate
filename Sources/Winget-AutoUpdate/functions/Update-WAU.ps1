@@ -89,7 +89,7 @@ function Update-WAU {
             $properties = Get-ItemProperty -Path $sourcePath
             foreach ($property in $properties.PSObject.Properties) {
                 #Check if the value name starts with "WAU_"
-                if ($property.Name -like "WAU_*") {
+                if ($property.Name -like "WAU_*" -and $property.Name -notlike "WAU_PostUpdateActions*") {
                     #Copy the value to the destination key
                     Set-ItemProperty -Path $destinationPath -Name $property.Name -Value $property.Value
                     Write-ToLog "$($property.Name) saved."

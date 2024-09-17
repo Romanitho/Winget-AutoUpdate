@@ -98,7 +98,7 @@ function Update-WAU {
 
             #Update WAU and run
             Write-ToLog "Updating WAU..." "Yellow"
-            Start-Process msiexec.exe -ArgumentList "/i $MsiFile /qn /L*v ""$WorkingDir\logs\WAU-Installer.log"" RUN_WAU=YES" -Wait
+            Start-Process msiexec.exe -ArgumentList "/i $MsiFile /qn /L*v ""$WorkingDir\logs\WAU-Installer.log"" RUN_WAU=YES"
 
             #Send success Notif
             Write-ToLog "WAU Update completed. Rerunning WAU..." "Green"

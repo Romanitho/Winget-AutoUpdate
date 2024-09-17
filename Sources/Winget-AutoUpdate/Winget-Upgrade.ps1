@@ -13,6 +13,9 @@ $null = cmd /c ''
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $Script:ProgressPreference = 'SilentlyContinue'
 
+#Set GitHub Repo
+$Script:GitHub_Repo = "Winget-AutoUpdate"
+
 #Log initialization
 $LogFile = "$WorkingDir\logs\updates.log"
 

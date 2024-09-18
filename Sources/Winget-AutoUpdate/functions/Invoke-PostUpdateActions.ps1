@@ -156,7 +156,7 @@ function Invoke-PostUpdateActions {
 
     #Add 1 to counter file
     try {
-        Invoke-RestMethod -Uri "https://github.com/Romanitho/$GitHub_Repo/releases/download/v$($WAUConfig.DisplayVersion)/WAU_InstallCounter" | Out-Null
+        Invoke-RestMethod -Uri "https://github.com/Romanitho/$($GitHub_Repo)/releases/download/v$($WAUConfig.DisplayVersion)/WAU_InstallCounter" | Out-Null
     }
     catch {
         Write-ToLog "-> Not able to report installation." "Yellow"

@@ -10,12 +10,12 @@ function Get-WAUAvailableVersion {
 
         try {
             #Get latest pre-release info
-            $WAUurl = "https://api.github.com/repos/Romanitho/$GitHub_Repo/releases"
+            $WAUurl = "https://api.github.com/repos/Romanitho/$($GitHub_Repo)/releases"
             $WAUAvailableVersion = ((Invoke-WebRequest $WAUurl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
         }
         catch {
-            $url = "https://github.com/Romanitho/$GitHub_Repo/releases"
-            $link = ((Invoke-WebRequest $url -UseBasicParsing).Links.href -match "/$GitHub_Repo/releases/tag/v*")[0]
+            $url = "https://github.com/Romanitho/$($GitHub_Repo)/releases"
+            $link = ((Invoke-WebRequest $url -UseBasicParsing).Links.href -match "/$($GitHub_Repo)/releases/tag/v*")[0]
             $WAUAvailableVersion = $link.Trim().Split("v")[-1]
         }
 
@@ -24,12 +24,12 @@ function Get-WAUAvailableVersion {
 
         try {
             #Get latest stable info
-            $WAUurl = "https://api.github.com/repos/Romanitho/$GitHub_Repo/releases/latest"
+            $WAUurl = "https://api.github.com/repos/Romanitho/$($GitHub_Repo)/releases/latest"
             $WAUAvailableVersion = ((Invoke-WebRequest $WAUurl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
         }
         catch {
-            $url = "https://github.com/Romanitho/$GitHub_Repo/releases/latest"
-            $link = ((Invoke-WebRequest $url -UseBasicParsing).Links.href -match "/$GitHub_Repo/releases/tag/v*")[0]
+            $url = "https://github.com/Romanitho/$($GitHub_Repo)/releases/latest"
+            $link = ((Invoke-WebRequest $url -UseBasicParsing).Links.href -match "/$($GitHub_Repo)/releases/tag/v*")[0]
             $WAUAvailableVersion = $link.Trim().Split("v")[-1]
         }
 

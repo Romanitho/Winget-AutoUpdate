@@ -149,7 +149,7 @@ jobs:
           prerelease: ${{ github.event.inputs.pre-release || true }}
           generateReleaseNotes: true
           name: ${{ env.ReleaseName }}
-          artifacts: "WAU.msi,WAU_ADMX.zip,WAU.msi,WAU_InstallCounter"
+          artifacts: "WAU.msi,WAU_ADMX.zip,WAU.zip,WAU_InstallCounter"
           body: |
             |Files|Hash (SHA256)|Downloads|
             |---|---|---|

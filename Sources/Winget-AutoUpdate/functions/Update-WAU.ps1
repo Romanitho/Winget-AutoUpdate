@@ -1,6 +1,6 @@
 function Update-WAU {
 
-    $OnClickAction = "https://github.com/Romanitho/Winget-AutoUpdate/releases"
+    $OnClickAction = "https://github.com/Romanitho/$($GitHub_Repo)/releases"
     $Button1Text = $NotifLocale.local.outputs.output[10].message
 
     #Send available update notification

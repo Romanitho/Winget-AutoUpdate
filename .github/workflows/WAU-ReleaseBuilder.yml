@@ -139,7 +139,7 @@ jobs:
           echo "Install counter file." > WAU_InstallCounter
 
           echo "### Download the latest v1 WAU.zip (as v2 updater)"
-          wget https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v1.21.7/WAU.zip -UseBasicParsing -OutFile .\WAU.zip
+          wget https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v1.21.8/WAU.zip -UseBasicParsing -OutFile .\WAU.zip
 
       - name: Create release
         uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0

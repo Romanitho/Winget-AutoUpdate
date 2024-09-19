@@ -54,7 +54,7 @@ function Update-WAU {
 
         #Uninstall WAU v1
         Write-ToLog "Uninstalling WAU v1"
-        Start-Process powershell -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\WAU-Uninstall.ps1`"" -Wait
+        Start-Process powershell -ArgumentList "-WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\WAU-Uninstall.ps1`" -NoClean" -Wait
 
         #Update WAU and run
         Write-ToLog "Updating WAU..." "Yellow"

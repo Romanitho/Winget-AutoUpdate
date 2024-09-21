@@ -108,7 +108,7 @@ function Install-WingetAutoUpdate {
 
         #Add 1 to counter file
         try {
-            Invoke-RestMethod -Uri "https://github.com/Romanitho/WAU-MSI/releases/download/v$($WAUconfig.ProductVersion)/WAU_InstallCounter" | Out-Null
+            Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUconfig.ProductVersion)/WAU_InstallCounter" | Out-Null
             Write-Host "-> Reported installation."
         }
         catch {

@@ -335,7 +335,6 @@ if (Test-Network) {
                     }
                     #if app is in "include list", update it
                     elseif ($toUpdate -contains $app.Id) {
-                        #if app is in "excluded list", skip it
                         if ($MinortoSkip -contains $app.Id) {
                             $minorVersionCurrent = [version]::Parse($app.Version).Minor
                             $minorVersionAvailable = [version]::Parse($app.AvailableVersion).Minor
@@ -387,7 +386,16 @@ if (Test-Network) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
                     }
                     #if app is in "excluded list", skip it
-                    elseif ($MajortoSkip -contains $app.Id) {
+                    elseif ($MinortoSkip -contains $app.Id) {
+                        $minorVersionCurrent = [version]::Parse($app.Version).Minor
+                        $minorVersionAvailable = [version]::Parse($app.AvailableVersion).Minor
+                        if ($minorVersionCurrent -ne $minorVersionAvailable) {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is a Minor update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Minor Update list" "Gray"
+                        }
+                        else {
+                            Update-App $app
+                        }
+                    } elseif ($MajortoSkip -contains $app.Id) {
                         $majorVersionCurrent = [version]::Parse($app.Version).Major
                         $majorVersionAvailable = [version]::Parse($app.AvailableVersion).Major
                         if ($majorVersionCurrent -ne $majorVersionAvailable) {

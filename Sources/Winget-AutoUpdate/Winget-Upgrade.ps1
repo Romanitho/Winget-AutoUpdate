@@ -275,6 +275,7 @@ if (Test-Network) {
         }
 
         $MajortoSkip = Get-ExcludedMajorUpdateApps
+        $MinortoSkip = Get-ExcludedPatchUpdateApps
 
         #Fix and count the array if GPO List as ERROR handling!
         if ($GPOList) {
@@ -335,7 +336,16 @@ if (Test-Network) {
                     #if app is in "include list", update it
                     elseif ($toUpdate -contains $app.Id) {
                         #if app is in "excluded list", skip it
-                        if ($MajortoSkip -contains $app.Id) {
+                        if ($MinortoSkip -contains $app.Id) {
+                            $minorVersionCurrent = [version]::Parse($app.Version).Minor
+                            $minorVersionAvailable = [version]::Parse($app.AvailableVersion).Minor
+                            if ($minorVersionCurrent -ne $minorVersionAvailable) {
+                                Write-ToLog "$($app.Name) : Skipped upgrade because it is a Minor update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Minor Update list" "Gray"
+                            }
+                            else {
+                                Update-App $app
+                            }
+                        } elseif ($MajortoSkip -contains $app.Id) {
                             $majorVersionCurrent = [version]::Parse($app.Version).Major
                             $majorVersionAvailable = [version]::Parse($app.AvailableVersion).Major
                             if ($majorVersionCurrent -ne $majorVersionAvailable) {
@@ -344,9 +354,10 @@ if (Test-Network) {
                             else {
                                 Update-App $app
                             }
-                        } else {
-                            Update-App $app
                         }
+                        else {
+                            Update-App $app
+                        } 
                     }
                     #if app with wildcard is in "include list", update it
                     elseif ($toUpdate | Where-Object { $app.Id -like $_ }) {

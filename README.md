@@ -31,9 +31,16 @@ You can update only pre-selected apps. To do so, create an "included_apps.txt" w
 
 > The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels. (From v1.20.0)
 
-### Allow only minor updates and no major updates
+### Allow only small updates for specific apps
+#### Allow only minor & patch updates and no major updates
 You can exclude apps from updating to a new major release (for instance, apps you have to test/validate first before using the new major updated version):
-Add (or remove) the apps' ID you want to disable major autoupdate to 'only_minor.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
+Add (or remove) the apps' ID you want to disable major autoupdate to 'only_minor_updates.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
+
+> The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
+
+#### Allow only patch updates and no major/minor updates
+You can exclude apps from updating to a new major/minor release (for instance, apps you have to test/validate first before using the new minor updated version, but you want to get patch updates for security reasons for example):
+Add (or remove) the apps' ID you want to disable major and minor autoupdate to 'only_patch_updates.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
 
 > The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
 

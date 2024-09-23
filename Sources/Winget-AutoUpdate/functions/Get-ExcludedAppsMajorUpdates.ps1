@@ -4,10 +4,10 @@ function Get-ExcludedMajorUpdateApps {
 
     $AppIDs = @()
 
-    #blacklist in registry
+    #blacklist major updates in registry
     if ($GPOList) {
 
-        Write-ToLog "-> Excluded apps from GPO is activated"
+        Write-ToLog "-> Excluded major update apps from GPO is activated"
         if (Test-Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\MajorUpdateBlackList") {
             $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\MajorUpdateBlackList").Property
             foreach ($ValueName in $ValueNames) {
@@ -17,7 +17,7 @@ function Get-ExcludedMajorUpdateApps {
         }
 
     }
-    #blacklist pulled from URI
+    #blacklist major updates pulled from URI
     elseif ($URIList) {
 
         $RegPath = "$WAU_GPORoot";
@@ -40,17 +40,17 @@ function Get-ExcludedMajorUpdateApps {
         }
 
     }
-    #blacklist pulled from local file
-    elseif (Test-Path "$WorkingDir\only_minor.txt") {
+    #blacklist major updates pulled from local file
+    elseif (Test-Path "$WorkingDir\only_minor_updates.txt") {
 
-        $AppIDs = (Get-Content -Path "$WorkingDir\only_minor.txt").Trim()
+        $AppIDs = (Get-Content -Path "$WorkingDir\only_minor_updates.txt").Trim()
         Write-ToLog "-> Successsfully loaded local excluded major update apps list."
 
     }
-    #blacklist pulled from default file
-    elseif (Test-Path "$WorkingDir\config\default_only_minor.txt") {
+    #blacklist major updates pulled from default file
+    elseif (Test-Path "$WorkingDir\config\default_only_minor_updates.txt") {
 
-        $AppIDs = (Get-Content -Path "$WorkingDir\config\default_only_minor.txt").Trim()
+        $AppIDs = (Get-Content -Path "$WorkingDir\config\default_only_minor_updates.txt").Trim()
         Write-ToLog "-> Successsfully loaded default excluded major update apps list."
 
     }

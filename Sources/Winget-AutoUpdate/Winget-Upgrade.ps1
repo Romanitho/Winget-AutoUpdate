@@ -34,11 +34,13 @@ if ($IsSystem) {
     if ((Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs" -ErrorAction SilentlyContinue)) {
         # Check if symlink WAU-updates.log exists, make symlink (doesn't work under ServiceUI)
         if (!(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ErrorAction SilentlyContinue)) {
-            $symLink = New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue
+            $null = New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue
+            Write-ToLog "SymLink for 'update' log file created in Intune Management Extension log folder"
         }
         # Check if install.log and symlink WAU-install.log exists, make symlink (doesn't work under ServiceUI)
         if ((Test-Path -Path ('{0}\logs\install.log' -f $WorkingDir) -ErrorAction SilentlyContinue) -and !(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ErrorAction SilentlyContinue)) {
-            $symLink = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
+            $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
+            Write-ToLog "SymLink for 'install' log file created in Intune Management Extension log folder"
         }
     }
     #Check if running with session ID 0
@@ -49,33 +51,21 @@ if ($IsSystem) {
             #Check if any connected user
             $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
             if ($explorerprocesses.Count -gt 0) {
-                if ($symLink) {
-                    $null = (New-Item "$WorkingDir\logs\symlink.txt" -Value $symLink -Force)
-                }
                 #Rerun WAU in system context with ServiceUI
-                & $WorkingDir\ServiceUI.exe -process:explorer.exe $env:windir\System32\wscript.exe \`"$WorkingDir\Invisible.vbs\`" \`"powershell.exe -NoProfile -ExecutionPolicy Bypass -File \`"\`"$WorkingDir\winget-upgrade.ps1\`"\`"\`"
+                Start-Process "ServiceUI.exe" -ArgumentList "-process:explorer.exe $env:windir\System32\conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File winget-upgrade.ps1" -WorkingDirectory $WorkingDir
+                Wait-Process "ServiceUI" -ErrorAction SilentlyContinue
                 Exit 0
             }
             else {
                 Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
-                if ($symLink) {
-                    Write-ToLog "SymLink for log file created in Intune Management Extension log folder"
-                }
             }
         }
         else {
             Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context - No ServiceUI)" -IsHeader
-            if ($symLink) {
-                Write-ToLog "SymLink for log file created in Intune Management Extension log folder"
-            }
         }
     }
     else {
         Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context - Connected user)" -IsHeader
-        if (Test-Path "$WorkingDir\logs\symlink.txt") {
-            Write-ToLog "SymLink for log file created in Intune Management Extension log folder"
-            Remove-Item "$WorkingDir\logs\symlink.txt" -Force
-        }
     }
 }
 else {
@@ -129,19 +119,23 @@ Write-ToLog "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notificati
 
 #Check network connectivity
 if (Test-Network) {
+
+    #Check prerequisites
+    if ($IsSystem) {
+        Install-Prerequisites
+    }
+
     #Check if Winget is installed and get Winget cmd
     $Script:Winget = Get-WingetCmd
 
     if ($Winget) {
 
-        #Log Winget installed version
-        $WingetVer = & $Winget --version
-        Write-ToLog "Winget Version: $WingetVer"
-
-        #Get Current Version
-        $WAUCurrentVersion = $WAUConfig.DisplayVersion
-        Write-ToLog "WAU current version: $WAUCurrentVersion"
         if ($IsSystem) {
+
+            #Get Current Version
+            $WAUCurrentVersion = $WAUConfig.ProductVersion
+            Write-ToLog "WAU current version: $WAUCurrentVersion"
+
             #Check if WAU update feature is enabled or not if run as System
             $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
             #If yes then check WAU update if run as System
@@ -378,40 +372,23 @@ if (Test-Network) {
         }
 
         #Check if user context is activated during system run
-        if ($IsSystem) {
+        if ($IsSystem -and ($WAUConfig.WAU_UserContext -eq 1)) {
 
-            #Run WAU in user context if feature is activated
-            if ($WAUConfig.WAU_UserContext -eq 1) {
+            $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
 
-                #Create User context task if not existing
-                $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
-                if (!$UserContextTask) {
-                    #Create the scheduled task in User context
-                    $taskAction = New-ScheduledTaskAction -Execute "wscript.exe" -Argument "`"$($WAUConfig.InstallLocation)\Invisible.vbs`" `"powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"`"`"$($WAUConfig.InstallLocation)\winget-upgrade.ps1`"`""
-                    $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
-                    $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-                    $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-                    Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
-                    Write-ToLog "-> User Context task created."
+            $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+            If ($explorerprocesses.Count -eq 0) {
+                Write-ToLog "No explorer process found / Nobody interactively logged on..."
+            }
+            Else {
+                #Get Winget system apps to escape them before running user context
+                Write-ToLog "User logged on, get a list of installed Winget apps in System context..."
+                Get-WingetSystemApps
 
-                    #Load it
-                    $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
-                }
-
-                $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
-                If ($explorerprocesses.Count -eq 0) {
-                    Write-ToLog "No explorer process found / Nobody interactively logged on..."
-                }
-                Else {
-                    #Get Winget system apps to escape them before running user context
-                    Write-ToLog "User logged on, get a list of installed Winget apps in System context..."
-                    Get-WingetSystemApps
-
-                    #Run user context scheduled task
-                    Write-ToLog "Starting WAU in User context..."
-                    $null = $UserContextTask | Start-ScheduledTask -ErrorAction SilentlyContinue
-                    Exit 0
-                }
+                #Run user context scheduled task
+                Write-ToLog "Starting WAU in User context..."
+                $null = $UserContextTask | Start-ScheduledTask -ErrorAction SilentlyContinue
+                Exit 0
             }
         }
     }

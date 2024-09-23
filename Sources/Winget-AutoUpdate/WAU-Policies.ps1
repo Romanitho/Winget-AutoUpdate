@@ -14,7 +14,7 @@ Daily update settings from policies
 $ActivateGPOManagement = Get-ItemPropertyValue "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "WAU_ActivateGPOManagement" -ErrorAction SilentlyContinue
 if ($ActivateGPOManagement -eq 1) {
     #Add (or update) tag to activate WAU-Policies Management
-    New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name WAU_RunGPOManagement -Value 1 -Force | Out-Null
+    New-ItemProperty "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -Name WAU_RunGPOManagement -Value 1 -Force | Out-Null
 }
 
 #Get WAU settings
@@ -32,7 +32,7 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
         Add-Content -Path $GPOLogFile -Value "GPO Management Enabled. Policies updated."
     }
     else {
-        New-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate" -Name WAU_RunGPOManagement -Value 0 -Force | Out-Null
+        New-ItemProperty "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -Name WAU_RunGPOManagement -Value 0 -Force | Out-Null
         $WAUConfig.WAU_RunGPOManagement = 0
         Add-Content -Path $GPOLogFile -Value "GPO Management Disabled. Policies removed."
     }

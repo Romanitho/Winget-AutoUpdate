@@ -274,6 +274,8 @@ if (Test-Network) {
             $toSkip = Get-ExcludedApps
         }
 
+        $MajortoSkip = Get-ExcludedMajorUpdateApps
+
         #Fix and count the array if GPO List as ERROR handling!
         if ($GPOList) {
             if ($UseWhiteList) {
@@ -332,7 +334,19 @@ if (Test-Network) {
                     }
                     #if app is in "include list", update it
                     elseif ($toUpdate -contains $app.Id) {
-                        Update-App $app
+                        #if app is in "excluded list", skip it
+                        if ($MajortoSkip -contains $app.Id) {
+                            $majorVersionCurrent = [version]::Parse($app.Version).Major
+                            $majorVersionAvailable = [version]::Parse($app.AvailableVersion).Major
+                            if ($majorVersionCurrent -ne $majorVersionAvailable) {
+                                Write-ToLog "$($app.Name) : Skipped upgrade because it is a Major update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Major Update list" "Gray"
+                            }
+                            else {
+                                Update-App $app
+                            }
+                        } else {
+                            Update-App $app
+                        }
                     }
                     #if app with wildcard is in "include list", update it
                     elseif ($toUpdate | Where-Object { $app.Id -like $_ }) {
@@ -360,6 +374,17 @@ if (Test-Network) {
                     #if app with wildcard is in "excluded list", skip it
                     elseif ($toSkip | Where-Object { $app.Id -like $_ }) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
+                    }
+                    #if app is in "excluded list", skip it
+                    elseif ($MajortoSkip -contains $app.Id) {
+                        $majorVersionCurrent = [version]::Parse($app.Version).Major
+                        $majorVersionAvailable = [version]::Parse($app.AvailableVersion).Major
+                        if ($majorVersionCurrent -ne $majorVersionAvailable) {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is a Major update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Major Update list" "Gray"
+                        }
+                        else {
+                            Update-App $app
+                        }
                     }
                     # else, update it
                     else {

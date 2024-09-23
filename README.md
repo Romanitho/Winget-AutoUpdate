@@ -31,6 +31,12 @@ You can update only pre-selected apps. To do so, create an "included_apps.txt" w
 
 > The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels. (From v1.20.0)
 
+### Allow only minor updates and no major updates
+You can exclude apps from updating to a new major release (for instance, apps you have to test/validate first before using the new major updated version):
+Add (or remove) the apps' ID you want to disable major autoupdate to 'only_minor.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
+
+> The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
+
 ### Notification Level
 You can choose which notification will be displayed: Full, Success only or none. Use `-NotificationLevel` parameter when you run `Winget-AutoUpdate-Install.ps1`.
 

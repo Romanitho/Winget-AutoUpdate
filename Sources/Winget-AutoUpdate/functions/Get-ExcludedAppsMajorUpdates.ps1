@@ -41,16 +41,16 @@ function Get-ExcludedMajorUpdateApps {
 
     }
     #blacklist major updates pulled from local file
-    elseif (Test-Path "$WorkingDir\only_minor_updates.txt") {
+    elseif (Test-Path "$WorkingDir\excluded_major_updates_apps.txt") {
 
-        $AppIDs = (Get-Content -Path "$WorkingDir\only_minor_updates.txt").Trim()
+        $AppIDs = (Get-Content -Path "$WorkingDir\excluded_major_updates_apps.txt").Trim()
         Write-ToLog "-> Successsfully loaded local excluded major update apps list."
 
     }
     #blacklist major updates pulled from default file
-    elseif (Test-Path "$WorkingDir\config\default_only_minor_updates.txt") {
+    elseif (Test-Path "$WorkingDir\config\default_excluded_major_updates_apps.txt") {
 
-        $AppIDs = (Get-Content -Path "$WorkingDir\config\default_only_minor_updates.txt").Trim()
+        $AppIDs = (Get-Content -Path "$WorkingDir\config\default_excluded_major_updates_apps.txt").Trim()
         Write-ToLog "-> Successsfully loaded default excluded major update apps list."
 
     }

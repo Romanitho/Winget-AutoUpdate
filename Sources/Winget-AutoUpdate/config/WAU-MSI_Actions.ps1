@@ -15,6 +15,20 @@ Write-Output "Uninstall:    $Uninstall"
 
 <# FUNCTIONS #>
 
+function Add-ACLRule {
+    param (
+        [System.Security.AccessControl.DirectorySecurity]$acl,
+        [string]$sid,
+        [string]$access,
+        [string]$inheritance = "ContainerInherit,ObjectInherit",
+        [string]$propagation = "None",
+        [string]$type = "Allow"
+    )
+    $userSID = New-Object System.Security.Principal.SecurityIdentifier($sid)
+    $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($userSID, $access, $inheritance, $propagation, $type)
+    $acl.SetAccessRule($rule)
+}
+
 function Install-WingetAutoUpdate {
 
     Write-Host "### Post install actions ###"
@@ -106,7 +120,42 @@ function Install-WingetAutoUpdate {
             Copy-Item -Path $AppListPath -Destination $InstallPath
         }
 
-        #Add 1 to counter file
+        #Secure folders if not installed to ProgramFiles
+        if ($InstallPath -notlike "$env:ProgramFiles*") {
+
+            Write-Output "-> Securing functions and mods folders"
+            $directories = @("$InstallPath\functions", "$InstallPath\mods")
+
+            foreach ($directory in $directories) {
+                try {
+                    #Get dir
+                    $dirPath = Get-Item -Path $directory
+                    #Get ACL
+                    $acl = Get-Acl -Path $dirPath.FullName
+                    #Disable inheritance
+                    $acl.SetAccessRuleProtection($True, $True)
+                    #Remove any existing rules
+                    $acl.Access | ForEach-Object { $acl.RemoveAccessRule($_) }
+
+                    # Add new ACL rules
+                    Add-ACLRule -acl $acl -sid "S-1-5-18" -access "FullControl"         # SYSTEM Full
+                    Add-ACLRule -acl $acl -sid "S-1-5-32-544" -access "FullControl"     # Administrators Full
+                    Add-ACLRule -acl $acl -sid "S-1-5-32-545" -access "ReadAndExecute"  # Local Users ReadAndExecute
+                    Add-ACLRule -acl $acl -sid "S-1-5-11" -access "ReadAndExecute"      # Authenticated Users ReadAndExecute
+
+                    # Save the updated ACL to the directory
+                    Set-Acl -Path $dirPath.FullName -AclObject $acl
+
+                    Write-Host "Permissions for '$directory' have been updated successfully."
+                }
+                catch {
+                    Write-Host "Error setting ACL for '$directory' : $($_.Exception.Message)"
+                }
+            }
+
+        }
+
+        #Add 1 to Github counter file
         try {
             Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUconfig.ProductVersion)/WAU_InstallCounter" | Out-Null
             Write-Host "-> Reported installation."

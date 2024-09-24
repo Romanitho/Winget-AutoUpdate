@@ -139,7 +139,7 @@ Set `STARTMENUSHORTCUT=1` to create shortcuts for user interaction in the Start 
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
 
 **UPDATESATLOGON**<br>
-Default value 0. Set `UPDATESATLOGON=1` to configure WAU to run at user logon.
+Default value 1. Set `UPDATESATLOGON=0` to disable WAU from running at user logon.
 
 **UPDATESINTERVAL**<br>
 Default value Never. Specify the update frequency: Daily, BiDaily, Weekly, BiWeekly, Monthly or Never.

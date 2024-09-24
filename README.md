@@ -203,7 +203,7 @@ In an enterprise environment it's crucial that different groups can have differe
 **WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).<br>
 With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.<br>
 They will be detected/evaluated on a daily basis.<br>
-The **GPO ADMX/ADML** validated with: [Windows 10 - Validate ADMX for Ingestion](https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)<br>
+The **GPO ADMX/ADML** validated with: [Windows 10 - Validate ADMX for Ingestion](https://web.archive.org/web/20231108145017/https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)<br>
 Read more in the `README.md` under the directory **Policies**.
 
 ![image](https://user-images.githubusercontent.com/102996177/213920242-7ff8e2b4-d926-4407-b860-1e5922e29c3e.png)

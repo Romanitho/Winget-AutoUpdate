@@ -125,8 +125,8 @@ function Install-WingetAutoUpdate {
         #Copy Mods to install folder
         $ModsFolder = Join-Path $CurrentDir "Mods"
         if (Test-Path $ModsFolder) {
-            Write-Output "-> Copying $ModsFolder to $InstallPath\mods"
-            Copy-Item -Path $ModsFolder -Destination "$InstallPath\mods" -Recurse
+            Write-Output "-> Copying $ModsFolder to $InstallPath"
+            Copy-Item -Path $ModsFolder -Destination "$InstallPath" -Recurse
         }
 
         #Secure folders if not installed to ProgramFiles

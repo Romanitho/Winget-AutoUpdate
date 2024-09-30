@@ -251,7 +251,7 @@
         <SetProperty Id="MAXLOGSIZE_VALUE" After="AppSearch" Value="#[MAXLOGSIZE]" Condition="MAXLOGSIZE" />
         <SetProperty Action="SetUPDATEPRERELEASE_0" Id="UPDATEPRERELEASE" After="AppSearch" Value="0" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE &lt;&gt; &quot;#1&quot;)" />
         <SetProperty Action="SetUPDATEPRERELEASE_1" Id="UPDATEPRERELEASE" After="AppSearch" Value="1" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE = &quot;#1&quot;)" />
-        <SetProperty Id="CA_PowerShell_Install" Before="CA_PowerShell_Install" Sequence="execute" Value="&quot;[%SystemDrive]\Windows\Sysnative\WindowsPowerShell\v1.0\powershell.exe&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot;" />
+        <SetProperty Id="CA_PowerShell_Install" Before="CA_PowerShell_Install" Sequence="execute" Value="&quot;[%SystemDrive]\Windows\Sysnative\WindowsPowerShell\v1.0\powershell.exe&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot; -CurrentDir &quot;[CURRENTDIRECTORY]&quot;" />
         <SetProperty Id="CA_PowerShell_Uninstall" Before="CA_PowerShell_Uninstall" Sequence="execute" Value="&quot;[%SystemDrive]\Windows\Sysnative\WindowsPowerShell\v1.0\powershell.exe&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot; -Upgrade &quot;#[UPGRADINGPRODUCTCODE]&quot; -Uninstall" />
 
         <!-- Custom Actions -->

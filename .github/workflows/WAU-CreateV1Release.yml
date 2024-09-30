@@ -1,0 +1,81 @@
+---
+name: WAU - Create New v1 Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: Specify a custom version (1.x.x)
+        required: true
+      pre-release:
+        type: boolean
+        description: Set as Pre-release version
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Create Release Asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: "true"
+
+      - name: Overwrite Version.txt file
+        uses: DamianReeves/write-file-action@6929a9a6d1807689191dcc8bbe62b54d70a32b42 # v1.3
+        with:
+          path: Sources/Winget-AutoUpdate/Version.txt
+          write-mode: overwrite
+          contents: "${{ github.event.inputs.version }}"
+
+      - name: Commit & Push
+        uses: actions-js/push@5a7cbd780d82c0c937b5977586e641b2fd94acc5 # v1.5
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: v1
+          force: true
+          message: "Changed version to ${{ github.event.inputs.version }}"
+
+      - name: Build project
+        run: |
+          echo "### Get MDT from Microsoft ###"
+          wget https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi
+
+          echo "### Extract MSI ###"
+          7z x MicrosoftDeploymentToolkit_x64.msi
+
+          echo "### Copy ServiceUI.exe to 'Sources/Winget-AutoUpdate' folder ###"
+          mv Modena_File206 Sources/Winget-AutoUpdate/ServiceUI.exe -v
+
+          echo "### Go to Sources ###"
+          cd Sources
+
+          echo "### Zip WAU ###"
+          zip -r ../WAU.zip Winget-AutoUpdate
+          zip ../WAU.zip Winget-AutoUpdate-Install.ps1
+
+          echo "### Zip WAU-Configurator ###"
+          zip -r ../WAU-Configurator.zip Winget-AutoUpdate
+          zip ../WAU-Configurator.zip "Winget-AutoUpdate-Install.ps1"
+          zip ../WAU-Configurator.zip "WAU Configurator.bat"
+
+          echo "### Zip ADMX ###"
+          cd Policies
+          zip -r ../../WAU_ADMX.zip *
+          cd ../..
+
+          echo "### Create install counter file ###"
+          echo "Install counter file." > WAU_InstallCounter
+
+      - name: Create release
+        uses: ncipollo/release-action@2c591bcc8ecdcd2db72b97d6147f871fcd833ba5 # v1.14.0
+        with:
+          tag: "v${{ github.event.inputs.version }}"
+          prerelease: ${{ github.event.inputs.pre-release }}
+          generateReleaseNotes: true
+          name: "WAU ${{ github.event.inputs.version }}"
+          artifacts: "WAU-Configurator.zip,WAU.zip,WAU_ADMX.zip,WAU_InstallCounter"

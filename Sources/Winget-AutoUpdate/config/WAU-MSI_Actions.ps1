@@ -2,6 +2,7 @@
 param(
     [Parameter(Mandatory = $false)] [string] $AppListPath,
     [Parameter(Mandatory = $false)] [string] $InstallPath,
+    [Parameter(Mandatory = $false)] [string] $CurrentDir,
     [Parameter(Mandatory = $false)] [string] $Upgrade,
     [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false
 )
@@ -9,6 +10,7 @@ param(
 #For troubleshooting
 Write-Output "AppListPath:  $AppListPath"
 Write-Output "InstallPath:  $InstallPath"
+Write-Output "CurrentDir:   $CurrentDir"
 Write-Output "Upgrade:      $Upgrade"
 Write-Output "Uninstall:    $Uninstall"
 
@@ -120,6 +122,13 @@ function Install-WingetAutoUpdate {
             Copy-Item -Path $AppListPath -Destination $InstallPath
         }
 
+        #Copy Mods to install folder
+        $ModsFolder = Join-Path $CurrentDir "Mods"
+        if (Test-Path $ModsFolder) {
+            Write-Output "-> Copying $ModsFolder to $InstallPath\mods"
+            Copy-Item -Path $ModsFolder -Destination "$InstallPath\mods" -Recurse
+        }
+
         #Secure folders if not installed to ProgramFiles
         if ($InstallPath -notlike "$env:ProgramFiles*") {
 
@@ -157,7 +166,7 @@ function Install-WingetAutoUpdate {
 
         #Add 1 to Github counter file
         try {
-            Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUconfig.ProductVersion)/WAU_InstallCounter" | Out-Null
+            Invoke-WebRequest -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUconfig.ProductVersion)/WAU_InstallCounter" -UseBasicParsing | Out-Null
             Write-Host "-> Reported installation."
         }
         catch {

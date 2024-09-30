@@ -30,8 +30,8 @@ function Update-WAU {
             Write-ToLog "New registry key created."
         }
         #Create missing default values
-        Set-ItemProperty -Path $destinationPath -Name "WAU_DoNotRunOnMetered" -Value 1 -Type Dword
-        Write-ToLog "WAU_DoNotRunOnMetered created. Value: 1"
+        Set-ItemProperty -Path $destinationPath -Name "WAU_DoNotRunOnMetered" -Value 0 -Type Dword
+        Write-ToLog "WAU_DoNotRunOnMetered created. Value: 0"
         Set-ItemProperty -Path $destinationPath -Name "WAU_UpdatesAtLogon" -Value 0 -Type Dword
         Write-ToLog "WAU_UpdatesAtLogon created. Value 0"
         #Retrieve the properties of the source key

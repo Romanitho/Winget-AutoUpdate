@@ -26,7 +26,7 @@ function Write-ToLog {
 
     #If header requested
     if ($IsHeader) {
-        $Log = "#" * 65 + "`n#`t$(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern) - $LogMsg`n" + "#" * 65
+        $Log = "#" * 65 + "`n#    $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern) - $LogMsg`n" + "#" * 65
     }
     else {
         $Log = "$(Get-Date -UFormat "%T") - $LogMsg"

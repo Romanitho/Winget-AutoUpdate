@@ -31,9 +31,9 @@ function Update-WAU {
         }
         #Create missing default values
         Set-ItemProperty -Path $destinationPath -Name "WAU_DoNotRunOnMetered" -Value 1 -Type Dword
-        Write-ToLog "$($property.Name) created."
+        Write-ToLog "WAU_DoNotRunOnMetered created."
         Set-ItemProperty -Path $destinationPath -Name "WAU_UpdatesAtLogon" -Value 0 -Type Dword
-        Write-ToLog "$($property.Name) created."
+        Write-ToLog "WAU_UpdatesAtLogon created."
         #Retrieve the properties of the source key
         $properties = Get-ItemProperty -Path $sourcePath
         foreach ($property in $properties.PSObject.Properties) {
@@ -41,7 +41,7 @@ function Update-WAU {
             if ($property.Name -like "WAU_*" -and $property.Name -notlike "WAU_PostUpdateActions*") {
                 #Copy the value to the destination key
                 Set-ItemProperty -Path $destinationPath -Name $property.Name -Value $property.Value
-                Write-ToLog "$($property.Name) saved. Value: $property.Value"
+                Write-ToLog "$($property.Name) saved. Value: $($property.Value)"
             }
         }
 

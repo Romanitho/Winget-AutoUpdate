@@ -192,7 +192,7 @@ function Uninstall-WingetAutoUpdate {
     Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
     Get-ScheduledTask -TaskName "Winget-AutoUpdate-Policies" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
 
-    #If upgrade, keep app list. Else, remove.
+    #If upgrade, keep app list and mods. Else, remove.
     if ($Upgrade -like "#{*}") {
         Write-Output "-> Upgrade detected. Keeping *.txt app lists"
     }
@@ -202,6 +202,7 @@ function Uninstall-WingetAutoUpdate {
             Write-Output "-> Removing items: $AppLists"
             Remove-Item $AppLists -Force
         }
+        Remove-Item "$InstallPath\mods" -Recurse -Force
     }
 
     $ConfFolder = Get-Item (Join-Path "$InstallPath" "config") -ErrorAction SilentlyContinue

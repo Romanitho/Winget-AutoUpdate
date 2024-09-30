@@ -11,9 +11,14 @@ function Update-WAU {
 
     #Run WAU update
     try {
-        #Download the msi
         Write-ToLog "Downloading the GitHub Repository version $WAUAvailableVersion" "Cyan"
-        $MsiFile = "$env:temp\WAU.msi"
+
+        #Create an unpredictable temp folder for security reasons
+        $MsiFolder = "$env:temp\WAU_$(Get-Date -Format yyyyMMddHHmmss)"
+        New-Item -ItemType Directory -Path $MsiFolder
+
+        #Download the msi
+        $MsiFile = Join-Path $MsiFolder "WAU.msi"
         Invoke-RestMethod -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUAvailableVersion)/WAU.msi" -OutFile $MsiFile
 
         #Update WAU
@@ -26,6 +31,9 @@ function Update-WAU {
         $Message = $NotifLocale.local.outputs.output[3].message -f $WAUAvailableVersion
         $MessageType = "success"
         Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Button1Action $OnClickAction -Button1Text $Button1Text
+
+        #Remove temp folder and content
+        Remove-Item $MsiFolder -Recurse -Force
 
         exit 0
     }

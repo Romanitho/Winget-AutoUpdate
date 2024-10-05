@@ -187,7 +187,7 @@
                 <Control Id="NotifLevelComboBox" Type="ComboBox" X="98" Y="58" Width="70" Height="16" Property="NOTIFICATIONLEVEL_VALUE" ComboList="yes" Sorted="yes">
                     <ComboBox Property="NOTIFICATIONLEVEL_VALUE">
                         <ListItem Value="Full" Text="Full" />
-                        <ListItem Value="SuccessOnly" Text="Succes only" />
+                        <ListItem Value="SuccessOnly" Text="Success only" />
                         <ListItem Value="None" Text="None" />
                     </ComboBox>
                 </Control>

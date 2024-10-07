@@ -194,7 +194,7 @@ function Uninstall-WingetAutoUpdate {
 
     #If upgrade, keep app list and mods. Else, remove.
     if ($Upgrade -like "#{*}") {
-        Write-Output "-> Upgrade detected. Keeping *.txt app lists"
+        Write-Output "-> Upgrade detected. Keeping *.txt and mods app lists"
     }
     else {
         $AppLists = Get-Item (Join-Path "$InstallPath" "*_apps.txt")

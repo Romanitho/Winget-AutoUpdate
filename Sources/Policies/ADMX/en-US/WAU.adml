@@ -45,8 +45,8 @@ If "Application GPO Blacklist/Whitelist" is set in this GPO the Path can be: GPO
 
 If this policy is disabled or not configured, the default ListPath is used (WAU InstallLocation).</string>
       <string id="ModsPath_Name">Get Mods from external Path (URL/UNC/Local/AzureBlob)</string>
-      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local/AzureBlob) Path to external mods other than the default. 
-      
+      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local/AzureBlob) Path to external mods other than the default.
+
 If this policy is disabled or not configured, the default ModsPath is used (WAU InstallLocation).
 
 Note: When set to 'AzureBlob', ensure you also configure 'Set Azure Blob URL with SAS token'.</string>
@@ -117,12 +117,12 @@ If this policy is not configured or disabled, Updates at Time: (06:00 AM).</stri
       <string id="UserContext_Explain">This policy setting specifies whether to enable User context execution or not.
 
 If this policy is disabled or not configured, the default is No.</string>
-      <string id="DesktopShortcut_Name">Enable Deskop Shortcut</string>
+      <string id="DesktopShortcut_Name">Enable Deskop Shortcut [DEPRECATED]</string>
       <string id="DesktopShortcut_Explain">This policy setting specifies whether to enable a Desktop Shortcut or not:
 WAU - Check for updated Apps
 
 If this policy is disabled or not configured, the default is No.</string>
-      <string id="StartMenuShortcut_Name">Enable Start Menu Shortcuts</string>
+      <string id="StartMenuShortcut_Name">Enable Start Menu Shortcuts [DEPRECATED]</string>
       <string id="StartMenuShortcut_Explain">This policy setting specifies whether to enable the Start Menu Shortcuts or not:
 WAU - Check for updated Apps
 WAU - Open logs
@@ -157,7 +157,7 @@ If this policy is disabled or not configured, the default size is used.</string>
         <textBox refId="ModsPath">
           <label>(URL/UNC/Local/AzureBlob) Path:</label>
         </textBox>
-      </presentation>  
+      </presentation>
       <presentation id="BlobURL">
             <textBox refId="BlobURL">
                   <label>Azure Storage URL with SAS token:</label>

@@ -147,14 +147,14 @@
 
         Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
       </string>
-      <string id="DesktopShortcut_Name">Activer le raccourci sur le bureau</string>
+      <string id="DesktopShortcut_Name">Activer le raccourci sur le bureau [DÉPRÉCIÉ]</string>
       <string id="DesktopShortcut_Explain">
         Ce paramètre de politique spécifie s'il faut activer un raccourci sur le bureau ou non :
         WAU - Vérifier les applications mises à jour
 
         Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
       </string>
-      <string id="StartMenuShortcut_Name">Activer les raccourcis dans le menu Démarrer</string>
+      <string id="StartMenuShortcut_Name">Activer les raccourcis dans le menu Démarrer [DÉPRÉCIÉ]</string>
       <string id="StartMenuShortcut_Explain">
         Ce paramètre de politique spécifie s'il faut activer les raccourcis dans le menu Démarrer ou non :
         WAU - Vérifier les applications mises à jour

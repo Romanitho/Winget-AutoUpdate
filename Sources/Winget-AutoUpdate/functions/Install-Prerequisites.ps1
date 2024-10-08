@@ -27,15 +27,13 @@ function Install-Prerequisites {
                 $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
                 $Installer = "$env:TEMP\VC_redist.$OSArch.exe"
                 Write-ToLog "-> Downloading $SourceURL..."
-                Invoke-WebRequest $SourceURL -UseBasicParsing -OutFile $Installer
+                Invoke-WebRequest $SourceURL -OutFile $Installer -UseBasicParsing
                 Write-ToLog "-> Installing VC_redist.$OSArch.exe..."
                 Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
-                Start-Sleep 3
                 Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully." "Green"
             }
             catch {
                 Write-ToLog "-> MS Visual C++ 2015-2022 installation failed." "Red"
-                Start-Sleep 3
             }
             finally {
                 Remove-Item $Installer -ErrorAction Ignore
@@ -50,7 +48,7 @@ function Install-Prerequisites {
                 $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
                 $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
                 Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
-                Invoke-RestMethod -Uri $VCLibsUrl -OutFile $VCLibsFile
+                Invoke-WebRequest -Uri $VCLibsUrl -OutFile $VCLibsFile -UseBasicParsing
                 #Install
                 Write-ToLog "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
                 Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
@@ -72,7 +70,7 @@ function Install-Prerequisites {
                 $UIXamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
                 $UIXamlFile = "$env:TEMP\Microsoft.UI.Xaml.2.8.x64.appx"
                 Write-ToLog "-> Downloading Microsoft.UI.Xaml.2.8..."
-                Invoke-RestMethod -Uri $UIXamlUrl -OutFile $UIXamlFile
+                Invoke-WebRequest -Uri $UIXamlUrl -OutFile $UIXamlFile -UseBasicParsing
                 #Install
                 Write-ToLog "-> Installing Microsoft.UI.Xaml.2.8..."
                 Add-AppxProvisionedPackage -Online -PackagePath $UIXamlFile -SkipLicense | Out-Null
@@ -115,7 +113,7 @@ function Install-Prerequisites {
                 Write-ToLog "-> Downloading WinGet MSIXBundle for App Installer..."
                 $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
                 $WingetInstaller = "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-                Invoke-RestMethod -Uri $WinGetURL -OutFile $WingetInstaller
+                Invoke-WebRequest -Uri $WinGetURL -OutFile $WingetInstaller -UseBasicParsing
 
                 #Install
                 Write-ToLog "-> Installing WinGet MSIXBundle for App Installer..."
@@ -128,13 +126,11 @@ function Install-Prerequisites {
                 $WingetCmd = $WingetInfo[-1].FileName
                 & $WingetCmd source reset --force
                 Write-ToLog "-> WinGet sources reset." "green"
-                $return = "success"
             }
             catch {
                 Write-ToLog "-> Failed to install WinGet MSIXBundle for App Installer..." "red"
                 #Force Store Apps to update
                 Update-StoreApps
-                $return = "fail"
             }
 
             #Remove WinGet MSIXBundle

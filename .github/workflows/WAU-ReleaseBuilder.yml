@@ -151,10 +151,6 @@ jobs:
           name: ${{ env.ReleaseName }}
           artifacts: "WAU.msi,WAU_ADMX.zip,WAU.zip,WAU_InstallCounter"
           body: |
-            ## ⚠️ Breaking changes ⚠️
-            - Registry key for configurations moved to HKLM\SOFTWARE\Romanitho\Winget-AutoUpdate, which can affect administrators.
-            - WAU.msi will update in the current install folder. It is recommanded to uninstall WAU v1 and reinstall WAU v2 in default install folder (ProgramFiles).
-
             ## Files
             |Files|Hash (SHA256)|Downloads|
             |---|---|---|

@@ -43,7 +43,7 @@ WAU runs ,by default, at logon. You can configure the frequency with options (Da
 ### Log location
 You can find logs in install location, in logs folder.<br>
 If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**<br>
-If you are deploying winget Apps with [Winget-Install](https://github.com/Romanitho/Winget-Install) a **SymLink** (WAU-install.log) is also created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
+If you are deploying winget Apps with [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) a **SymLink** (WAU-install.log) is also created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
 
 ### "Unknown" App version
 As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255), Winget cannot detect the current version of some installed apps. We decided to skip managing these apps with WAU to avoid retries each time WAU runs:
@@ -107,7 +107,7 @@ The following command will install WAU through winget itself in the newest versi
 winget install Romanitho.Winget-AutoUpdate
 ```
 
-You can use [Winget-Install](https://github.com/Romanitho/Winget-Install) to deploy the package for example in Intune: 
+You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune: 
 ```
 "%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file winget-install.ps1 -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
 ```
@@ -197,7 +197,7 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 > Example:<br>
 If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
-You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature.<br>
+You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-AutoUpdate?tab=readme-ov-file#custom-script-mods-for-wau), as it's a related feature.<br>
 Read more in the `README.md` under the directory **mods**.
 
 Share your mods with the community:<br>

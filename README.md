@@ -146,7 +146,7 @@ Default value 1. Set `UPDATESATLOGON=0` to disable WAU from running at user logo
 Default value Never. Specify the update frequency: Daily, BiDaily, Weekly, BiWeekly, Monthly or Never.
 
 **UPDATESATTIME**<br>
-Default value 6AM. Specify the time of the update interval execution time.
+Default value 6AM (06:00:00). Specify the time of the update interval execution time. Example `UPDATESATTIME="11:00:00"`
 
 **DONOTRUNONMETERED**<br>
 Default value 1. Set `DONOTRUNONMETERED=0` to force WAU to run on metered connections. May add cellular data costs on shared connexion from smartphone for example.

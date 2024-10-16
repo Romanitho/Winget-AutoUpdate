@@ -80,7 +80,7 @@
             <RegistrySearch Id="SearchDoNotRunOnMetered" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_DoNotRunOnMetered"  />
         </Property>
         <Property Id="UPDATESATTIME" Secure="yes" />
-        <Property Id="UPDATESATTIME_VALUE" Value="06am">
+        <Property Id="UPDATESATTIME_VALUE" Value="06:00:00">
             <RegistrySearch Id="SearchUpdatesAtTime" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatesAtTime"  />
         </Property>
         <Property Id="BYPASSLISTFORUSERS" Secure="yes" />

@@ -19,8 +19,6 @@ Just download latest release [WAU.msi](https://github.com/Romanitho/Winget-AutoU
 ![2](https://github.com/user-attachments/assets/46913e03-8604-43f5-8bca-129d1e714e45)
 
 
-
-
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
 - #### BlockList
@@ -30,6 +28,9 @@ Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.tx
 You can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and place it in the same folder as WAU.msi during install.
 
 > The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
+
+List and Mods folder content will be copied to WAU install location:  
+![image](https://github.com/user-attachments/assets/f0ec4047-d66c-4277-a39c-763fd7516ad8)
 
 ### Notification Level
 You can choose which notification will be displayed: `Full`, `Success only` or `None`.
@@ -157,7 +158,7 @@ Default value 1. Set `UPDATESATLOGON=0` to disable WAU from running at user logo
 Default value Never. Specify the update frequency: Daily, BiDaily, Weekly, BiWeekly, Monthly or Never.
 
 **UPDATESATTIME**<br>
-Default value 6AM. Specify the time of the update interval execution time.
+Default value 6AM (06:00:00). Specify the time of the update interval execution time. Example `UPDATESATTIME="11:00:00"`
 
 **DONOTRUNONMETERED**<br>
 Default value 1. Set `DONOTRUNONMETERED=0` to force WAU to run on metered connections. May add cellular data costs on shared connexion from smartphone for example.

@@ -107,6 +107,10 @@
         <Property Id="STARTMENUSHORTCUT_VALUE" Value="#0">
             <RegistrySearch Id="SearchStartMenuShortcut" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_StartMenuShortcut"  />
         </Property>
+        <Property Id="APPINSTALLERSHORTCUT" Secure="yes" />
+        <Property Id="APPINSTALLERSHORTCUT_VALUE" Value="#0">
+            <RegistrySearch Id="SearchAppInstallerShortcut" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_AppInstallerShortcut"  />
+        </Property>
 
         <!-- UI Config -->
         <UI Id="WixUI_InstallDir">
@@ -163,6 +167,10 @@
                 <Control Id="FolderLabel" Type="Text" X="20" Y="60" Width="290" Height="30" NoPrefix="yes" Text="!(loc.InstallDirDlgFolderLabel)" />
                 <Control Id="Folder" Type="PathEdit" X="20" Y="100" Width="320" Height="18" Property="WIXUI_INSTALLDIR" Indirect="yes" />
                 <Control Id="ChangeFolder" Type="PushButton" X="20" Y="120" Width="56" Height="17" Text="!(loc.InstallDirDlgChange)" />
+                <Control Id="WAUAppInstallerShortcut" Type="CheckBox" Width="155" Height="17" X="20" Y="160" Text="Install WAU App Installer shortcut" Property="APPINSTALLERSHORTCUT_CHECKED" CheckBoxValue="1">
+                    <Publish Property="APPINSTALLERSHORTCUT" Value="1" Order="1" Condition="APPINSTALLERSHORTCUT_CHECKED" />
+                    <Publish Property="APPINSTALLERSHORTCUT" Value="0" Order="2" Condition="NOT APPINSTALLERSHORTCUT_CHECKED" />
+                </Control>
                 <Control Id="WAUDesktopShortcut" Type="CheckBox" Width="155" Height="17" X="20" Y="180" Text="Install Desktop shortcut" Property="DESKTOPSHORTCUT_CHECKED" CheckBoxValue="1">
                     <Publish Property="DESKTOPSHORTCUT" Value="1" Order="1" Condition="DESKTOPSHORTCUT_CHECKED" />
                     <Publish Property="DESKTOPSHORTCUT" Value="0" Order="2" Condition="NOT DESKTOPSHORTCUT_CHECKED" />
@@ -220,6 +228,9 @@
         <UIRef Id="WixUI_Common" />
 
         <!-- Set properties -->
+        <SetProperty Id="APPINSTALLERSHORTCUT_CHECKED" After="AppSearch" Value="1" Condition="APPINSTALLERSHORTCUT_VALUE = &quot;#1&quot;" />
+        <SetProperty Action="SetAPPINSTALLERSHORTCUT_0" Id="APPINSTALLERSHORTCUT" After="AppSearch" Value="0" Condition="(NOT APPINSTALLERSHORTCUT) AND (APPINSTALLERSHORTCUT_VALUE &lt;&gt; &quot;#1&quot;)" />
+        <SetProperty Action="SetAPPINSTALLERSHORTCUTSHORTCUT_1" Id="APPINSTALLERSHORTCUT" After="AppSearch" Value="1" Condition="(NOT APPINSTALLERSHORTCUT) AND (APPINSTALLERSHORTCUT_VALUE = &quot;#1&quot;)" />
         <SetProperty Id="DESKTOPSHORTCUT_CHECKED" After="AppSearch" Value="1" Condition="DESKTOPSHORTCUT_VALUE = &quot;#1&quot;" />
         <SetProperty Action="SetDESKTOPSHORTCUT_0" Id="DESKTOPSHORTCUT" After="AppSearch" Value="0" Condition="(NOT DESKTOPSHORTCUT) AND (DESKTOPSHORTCUT_VALUE &lt;&gt; &quot;#1&quot;)" />
         <SetProperty Action="SetDESKTOPSHORTCUT_1" Id="DESKTOPSHORTCUT" After="AppSearch" Value="1" Condition="(NOT DESKTOPSHORTCUT) AND (DESKTOPSHORTCUT_VALUE = &quot;#1&quot;)" />
@@ -268,6 +279,7 @@
         <Feature Id="WAU" Title="Winget-AutoUpdate" Level="1">
             <ComponentGroupRef Id="CompFiles" />
             <ComponentRef Id="CompReg" />
+            <ComponentRef Id="AppInstallerShortcut" />
             <ComponentRef Id="DesktopShortcut" />
             <ComponentRef Id="StartMenuShortcut" />
         </Feature>
@@ -336,6 +348,9 @@
 					<RegistryKey Key="AppUserModelId\Windows.SystemToast.WAU.Notification" Root="HKCR">
 						<RegistryValue Name="IconUri" Type="expandable" Value="%SystemRoot%\system32\@WindowsUpdateToastIcon.png" />
 					</RegistryKey>
+                    <RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
+						<RegistryValue Name="WAU_AppInstallerShortcut" Type="integer" Value="[APPINSTALLERSHORTCUT]" />
+					</RegistryKey>
 					<RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
 						<RegistryValue Name="WAU_DesktopShortcut" Type="integer" Value="[DESKTOPSHORTCUT]" />
 					</RegistryKey>
@@ -344,6 +359,14 @@
 					</RegistryKey>
 				</Component>
 			</Directory>
+		</StandardDirectory>
+		<StandardDirectory Id="AppInstallerFolder">
+			<Component Id="AppInstallerShortcut" Condition="APPINSTALLERSHORTCUT = 1">
+				<RegistryKey Root="HKCU" Key="SOFTWARE\[Manufacturer]\[ProductName]">
+					<RegistryValue Name="WAU_AppInstallerShortcut" Type="integer" Value="[APPINSTALLERSHORTCUT]" KeyPath="yes" />
+				</RegistryKey>
+				<Shortcut Id="AppInstallerShortcut" Name="Run WAU" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]WAU-Installer-GUI.ps1&quot;" Icon="icon.ico" />
+			</Component>
 		</StandardDirectory>
 		<StandardDirectory Id="DesktopFolder">
 			<Component Id="DesktopShortcut" Condition="DESKTOPSHORTCUT = 1">

@@ -18,6 +18,12 @@ Just download latest release [WAU.msi](https://github.com/Romanitho/Winget-AutoU
 ![1](https://github.com/user-attachments/assets/8a3a656d-f825-4cea-b971-5f775a6c7ba8)
 ![2](https://github.com/user-attachments/assets/46913e03-8604-43f5-8bca-129d1e714e45)
 
+### Use winget to install WAU
+The following command will install WAU through winget itself in the newest version available. 
+
+```
+winget install Romanitho.Winget-AutoUpdate
+```
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
@@ -44,7 +50,7 @@ WAU runs ,by default, at logon. You can configure the frequency with options (Da
 ### Log location
 You can find logs in install location, in logs folder.<br>
 If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**<br>
-If you are deploying winget Apps with [Winget-Install](https://github.com/Romanitho/Winget-Install) a **SymLink** (WAU-install.log) is also created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
+If you are deploying winget Apps with [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) a **SymLink** (WAU-install.log) is also created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
 
 ### "Unknown" App version
 As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255), Winget cannot detect the current version of some installed apps. We decided to skip managing these apps with WAU to avoid retries each time WAU runs:
@@ -100,6 +106,7 @@ Instead you must escape **every** special character (notice the `%` escape too) 
 `-ListPath https://storagesample.blob.core.windows.net/sample-container^?v=2023-11-31^&sr=b^&sig=39Up9jzHkxhUIhFEjEh9594DIxe6cIRCgOVOICGSP%%3A377^&sp=rcw`
 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
+
 
 **MODSPATH**<br>
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
@@ -164,7 +171,11 @@ Default is 1048576 = 1 MB (ca. 7500 lines)
 **INSTALLDIR**<br>
 Specify Winget-AutoUpdate installation location. Default: `C:\Program Files\Winget-AutoUpdate` (Recommended to leave default).
 
-
+### Deploy with Intune
+You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune: 
+```
+"%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
+```
 
 ## Custom script (Mods for WAU)
 **Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.<br>
@@ -186,7 +197,7 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 > Example:<br>
 If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
-You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-Install#custom-mods), as it's a related feature.<br>
+You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-AutoUpdate?tab=readme-ov-file#custom-script-mods-for-wau), as it's a related feature.<br>
 Read more in the `README.md` under the directory **mods**.
 
 Share your mods with the community:<br>

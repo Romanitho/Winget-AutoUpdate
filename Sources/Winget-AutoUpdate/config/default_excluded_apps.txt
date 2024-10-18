@@ -7,3 +7,4 @@ Microsoft.Teams*
 Mozilla.Firefox*
 Opera.Opera*
 TeamViewer.TeamViewer*
+Romanitho.Winget-AutoUpdate

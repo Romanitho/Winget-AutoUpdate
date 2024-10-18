@@ -268,6 +268,9 @@ if (Test-Network) {
             $toSkip = Get-ExcludedApps
         }
 
+        $MajortoSkip = Get-ExcludedMajorUpdateApps
+        $MinortoSkip = Get-ExcludedPatchUpdateApps
+
         #Fix and count the array if GPO List as ERROR handling!
         if ($GPOList) {
             if ($UseWhiteList) {
@@ -326,12 +329,72 @@ if (Test-Network) {
                     }
                     #if app is in "include list", update it
                     elseif ($toUpdate -contains $app.Id) {
-                        Update-App $app
+                        if ($MinortoSkip -contains $app.Id) {
+                            # Handle missing minor version by setting it to 0
+                            $currentVersion = [version]::Parse($app.Version)
+                            $availableVersion = [version]::Parse($app.AvailableVersion)
+                            
+                            # Set minor to 0 if missing
+                            $minorVersionCurrent = if ($null -eq $currentVersion.Minor) { 0 } else { $currentVersion.Minor }
+                            $minorVersionAvailable = if ($null -eq $availableVersion.Minor) { 0 } else { $availableVersion.Minor }
+                            
+                            if ($currentVersion.Major -ne $availableVersion.Major) {
+                                Write-ToLog "$($app.Name) : Skipped upgrade because it is a Major update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Minor Update list" "Gray"
+                            } elseif ($minorVersionCurrent -ne $minorVersionAvailable) {
+                                Write-ToLog "$($app.Name) : Skipped upgrade because it is a Minor update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Minor Update list" "Gray"
+                            }
+                            else {
+                                Update-App $app
+                            }
+                        } elseif ($MajortoSkip -contains $app.Id) {
+                            $majorVersionCurrent = [version]::Parse($app.Version).Major
+                            $majorVersionAvailable = [version]::Parse($app.AvailableVersion).Major
+                            
+                            if ($majorVersionCurrent -ne $majorVersionAvailable) {
+                                Write-ToLog "$($app.Name) : Skipped upgrade because it is a Major update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Major Update list" "Gray"
+                            }
+                            else {
+                                Update-App $app
+                            }
+                        }
+                        else {
+                            Update-App $app
+                        }
                     }
                     #if app with wildcard is in "include list", update it
                     elseif ($toUpdate | Where-Object { $app.Id -like $_ }) {
                         Write-ToLog "$($app.Name) is wildcard in the include list."
-                        Update-App $app
+                        if ($MinortoSkip -contains $app.Id) {
+                            # Handle missing minor version by setting it to 0
+                            $currentVersion = [version]::Parse($app.Version)
+                            $availableVersion = [version]::Parse($app.AvailableVersion)
+                            
+                            # Set minor to 0 if missing
+                            $minorVersionCurrent = if ($null -eq $currentVersion.Minor) { 0 } else { $currentVersion.Minor }
+                            $minorVersionAvailable = if ($null -eq $availableVersion.Minor) { 0 } else { $availableVersion.Minor }
+                            
+                            if ($currentVersion.Major -ne $availableVersion.Major) {
+                                Write-ToLog "$($app.Name) : Skipped upgrade because it is a Major update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Minor Update list" "Gray"
+                            } elseif ($minorVersionCurrent -ne $minorVersionAvailable) {
+                                Write-ToLog "$($app.Name) : Skipped upgrade because it is a Minor update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Minor Update list" "Gray"
+                            }
+                            else {
+                                Update-App $app
+                            }
+                        } elseif ($MajortoSkip -contains $app.Id) {
+                            $majorVersionCurrent = [version]::Parse($app.Version).Major
+                            $majorVersionAvailable = [version]::Parse($app.AvailableVersion).Major
+                            
+                            if ($majorVersionCurrent -ne $majorVersionAvailable) {
+                                Write-ToLog "$($app.Name) : Skipped upgrade because it is a Major update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Major Update list" "Gray"
+                            }
+                            else {
+                                Update-App $app
+                            }
+                        }
+                        else {
+                            Update-App $app
+                        }
                     }
                     #else, skip it
                     else {
@@ -355,12 +418,41 @@ if (Test-Network) {
                     elseif ($toSkip | Where-Object { $app.Id -like $_ }) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
                     }
+                    #if app is in "excluded list", skip it
+                    elseif ($MinortoSkip -contains $app.Id) {
+                        $currentVersion = [version]::Parse($app.Version)
+                        $availableVersion = [version]::Parse($app.AvailableVersion)
+                        
+                        # Set minor to 0 if missing
+                        $minorVersionCurrent = if ($null -eq $currentVersion.Minor) { 0 } else { $currentVersion.Minor }
+                        $minorVersionAvailable = if ($null -eq $availableVersion.Minor) { 0 } else { $availableVersion.Minor }
+                        
+                        if ($currentVersion.Major -ne $availableVersion.Major) {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is a Major update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Minor Update list" "Gray"
+                        } elseif ($minorVersionCurrent -ne $minorVersionAvailable) {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is a Minor update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Minor Update list" "Gray"
+                        }
+                        else {
+                            Update-App $app
+                        }
+                    } elseif ($MajortoSkip -contains $app.Id) {
+                        $majorVersionCurrent = [version]::Parse($app.Version).Major
+                        $majorVersionAvailable = [version]::Parse($app.AvailableVersion).Major
+                        
+                        if ($majorVersionCurrent -ne $majorVersionAvailable) {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is a Major update (Current: $($app.Version), Available: $($app.AvailableVersion)) and excluded in Major Update list" "Gray"
+                        }
+                        else {
+                            Update-App $app
+                        }
+                    }
                     # else, update it
                     else {
                         Update-App $app
                     }
                 }
             }
+
 
             if ($InstallOK -gt 0) {
                 Write-ToLog "$InstallOK apps updated ! No more update." "Green"

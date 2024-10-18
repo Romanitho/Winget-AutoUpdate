@@ -32,6 +32,15 @@ You can update only pre-selected apps. To do so, create an "included_apps.txt" w
 List and Mods folder content will be copied to WAU install location:  
 ![image](https://github.com/user-attachments/assets/f0ec4047-d66c-4277-a39c-763fd7516ad8)
 
+### Allow only small updates for specific apps
+#### Allow only minor & patch updates and no major updates
+You can exclude apps from updating to a new major release (for instance, apps you have to test/validate first before using the new major updated version):
+Add (or remove) the apps' ID you want to disable major autoupdate to 'excluded_major_updates_apps.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
+
+#### Allow only patch updates and no major/minor updates
+You can exclude apps from updating to a new major/minor release (for instance, apps you have to test/validate first before using the new minor updated version, but you want to get patch updates for security reasons for example):
+Add (or remove) the apps' ID you want to disable major and minor autoupdate to 'excluded_minor_updates_apps.txt'. (File must be placed in WAU's installation folder, or re-run install.bat).
+
 ### Notification Level
 You can choose which notification will be displayed: `Full`, `Success only` or `None`.
 

@@ -360,12 +360,12 @@
 				</Component>
 			</Directory>
 		</StandardDirectory>
-		<StandardDirectory Id="AppInstallerFolder">
+		<StandardDirectory Id="DesktopFolder">
 			<Component Id="AppInstallerShortcut" Condition="APPINSTALLERSHORTCUT = 1">
 				<RegistryKey Root="HKCU" Key="SOFTWARE\[Manufacturer]\[ProductName]">
 					<RegistryValue Name="WAU_AppInstallerShortcut" Type="integer" Value="[APPINSTALLERSHORTCUT]" KeyPath="yes" />
 				</RegistryKey>
-				<Shortcut Id="AppInstallerShortcut" Name="Run WAU" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]WAU-Installer-GUI.ps1&quot;" Icon="icon.ico" />
+				<Shortcut Id="AppInstallerShortcut" Name="WAU App Installer" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]WAU-Installer-GUI.ps1&quot;" Icon="icon.ico" />
 			</Component>
 		</StandardDirectory>
 		<StandardDirectory Id="DesktopFolder">

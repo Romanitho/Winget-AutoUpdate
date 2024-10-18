@@ -18,6 +18,12 @@ Just download latest release [WAU.msi](https://github.com/Romanitho/Winget-AutoU
 ![1](https://github.com/user-attachments/assets/8a3a656d-f825-4cea-b971-5f775a6c7ba8)
 ![2](https://github.com/user-attachments/assets/46913e03-8604-43f5-8bca-129d1e714e45)
 
+### Use winget to install WAU
+The following command will install WAU through winget itself in the newest version available. 
+
+```
+winget install Romanitho.Winget-AutoUpdate
+```
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate
@@ -101,17 +107,6 @@ Instead you must escape **every** special character (notice the `%` escape too) 
 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
-### Use winget to install WAU
-The following command will install WAU through winget itself in the newest version available. 
-
-```
-winget install Romanitho.Winget-AutoUpdate
-```
-
-You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune: 
-```
-"%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file winget-install.ps1 -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
-```
 
 **MODSPATH**<br>
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
@@ -176,7 +171,11 @@ Default is 1048576 = 1 MB (ca. 7500 lines)
 **INSTALLDIR**<br>
 Specify Winget-AutoUpdate installation location. Default: `C:\Program Files\Winget-AutoUpdate` (Recommended to leave default).
 
-
+### Deploy with Intune
+You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune: 
+```
+"%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
+```
 
 ## Custom script (Mods for WAU)
 **Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.<br>

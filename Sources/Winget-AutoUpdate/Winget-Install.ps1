@@ -368,6 +368,7 @@ else {
 if ($Winget) {
     #Put apps in an array
     $AppIDsArray = $AppIDs -split ","
+    Write-Host ""
 
     #Run install or uninstall for all apps
     foreach ($App_Full in $AppIDsArray) {

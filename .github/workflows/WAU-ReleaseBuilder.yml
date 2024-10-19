@@ -85,7 +85,7 @@ jobs:
           else {
             $MsiVersion  = $NextAutoSemver.Split("-")[0]
             $NextSemver  = $NextAutoSemver.Replace("-0","-n")
-            $ReleaseName = "WAU 2.0 (" + $NextSemver + ") [Nightly Build]"
+            $ReleaseName = "WAU " + $NextSemver + " [Nightly Build]"
             $Prerelease  = 1
           }
           echo "MSI version: $MsiVersion"

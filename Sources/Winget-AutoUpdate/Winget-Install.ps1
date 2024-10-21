@@ -86,15 +86,15 @@ function Test-ModsInstall ($AppID) {
         $ModsPreInstall = ".\mods\$AppID-preinstall.ps1"
     }
     #Else, check in WAU mods
-    elseif (Test-Path "$WAUInstallLocation\mods\$AppID-preinstall.ps1") {
-        $ModsPreInstall = "$WAUInstallLocation\mods\$AppID-preinstall.ps1"
+    elseif (Test-Path "$WAUModsLocatio\$AppID-preinstall.ps1") {
+        $ModsPreInstall = "$WAUModsLocatio\$AppID-preinstall.ps1"
     }
 
     if (Test-Path ".\mods\$AppID-install.ps1") {
         $ModsInstall = ".\mods\$AppID-install.ps1"
     }
-    elseif (Test-Path "$WAUInstallLocation\mods\$AppID-install.ps1") {
-        $ModsInstall = "$WAUInstallLocation\mods\$AppID-install.ps1"
+    elseif (Test-Path "$WAUModsLocatio\$AppID-install.ps1") {
+        $ModsInstall = "$WAUModsLocatio\$AppID-install.ps1"
     }
 
     if (Test-Path ".\mods\$AppID-installed-once.ps1") {
@@ -104,8 +104,8 @@ function Test-ModsInstall ($AppID) {
     if (Test-Path ".\mods\$AppID-installed.ps1") {
         $ModsInstalled = ".\mods\$AppID-installed.ps1"
     }
-    elseif (Test-Path "$WAUInstallLocation\mods\$AppID-installed.ps1") {
-        $ModsInstalled = "$WAUInstallLocation\mods\$AppID-installed.ps1"
+    elseif (Test-Path "$WAUModsLocatio\$AppID-installed.ps1") {
+        $ModsInstalled = "$WAUModsLocatio\$AppID-installed.ps1"
     }
 
     return $ModsPreInstall, $ModsInstall, $ModsInstalledOnce, $ModsInstalled
@@ -118,22 +118,22 @@ function Test-ModsUninstall ($AppID) {
         $ModsPreUninstall = ".\mods\$AppID-preuninstall.ps1"
     }
     #Else, check in WAU mods
-    elseif (Test-Path "$WAUInstallLocation\mods\$AppID-preuninstall.ps1") {
-        $ModsPreUninstall = "$WAUInstallLocation\mods\$AppID-preuninstall.ps1"
+    elseif (Test-Path "$WAUModsLocatio\$AppID-preuninstall.ps1") {
+        $ModsPreUninstall = "$WAUModsLocatio\$AppID-preuninstall.ps1"
     }
 
     if (Test-Path ".\mods\$AppID-uninstall.ps1") {
         $ModsUninstall = ".\mods\$AppID-uninstall.ps1"
     }
-    elseif (Test-Path "$WAUInstallLocation\mods\$AppID-uninstall.ps1") {
-        $ModsUninstall = "$WAUInstallLocation\mods\$AppID-uninstall.ps1"
+    elseif (Test-Path "$WAUModsLocatio\$AppID-uninstall.ps1") {
+        $ModsUninstall = "$WAUModsLocatio\$AppID-uninstall.ps1"
     }
 
     if (Test-Path ".\mods\$AppID-uninstalled.ps1") {
         $ModsUninstalled = ".\mods\$AppID-uninstalled.ps1"
     }
-    elseif (Test-Path "$WAUInstallLocation\mods\$AppID-uninstalled.ps1") {
-        $ModsUninstalled = "$WAUInstallLocation\mods\$AppID-uninstalled.ps1"
+    elseif (Test-Path "$WAUModsLocatio\$AppID-uninstalled.ps1") {
+        $ModsUninstalled = "$WAUModsLocatio\$AppID-uninstalled.ps1"
     }
 
     return $ModsPreUninstall, $ModsUninstall, $ModsUninstalled
@@ -180,7 +180,7 @@ function Install-App ($AppID, $AppArgs) {
             #Add mods if deployed from Winget-Install
             if (Test-Path ".\mods\$AppID-*") {
                 #Check if WAU default install path exists
-                $Mods = "$WAUInstallLocation\mods"
+                $Mods = "$WAUModsLocatio"
                 if (Test-Path $Mods) {
                     #Add mods
                     Write-ToLog "-> Add modifications for $AppID to WAU 'mods'"
@@ -238,7 +238,7 @@ function Uninstall-App ($AppID, $AppArgs) {
             #Remove mods if deployed from Winget-Install
             if (Test-Path ".\mods\$AppID-*") {
                 #Check if WAU default install path exists
-                $Mods = "$WAUInstallLocation\mods"
+                $Mods = "$WAUModsLocatio"
                 if (Test-Path "$Mods\$AppID*") {
                     Write-ToLog "-> Remove $AppID modifications from WAU 'mods'"
                     #Remove mods
@@ -312,6 +312,7 @@ $Script:IsElevated = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuilt
 #Get WAU Installed location
 $WAURegKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
+$Script:WAUModsLocation = $WAUInstallLocation + "mods"
 
 #LogPath initialization
 if (!($LogPath)) {

@@ -88,14 +88,12 @@ function Get-ExcludedApps {
                     if ($null -ne $softwareId) {
                         # Add the extracted software ID to the list
                         $AppIds += $softwareId
+                        Write-ToLog "Excluding $softwareId from WAU updates, as this app is pinned in winget"
                     }
                 }
             }
-
-        # Output the result for debugging
-        Write-Host "Extracted App IDs: $($AppIds -join ', ')"
         }
-
-        return $AppIDs | Where-Object { $_.length -gt 0 }
     }
+    
+    return $AppIDs | Where-Object { $_.length -gt 0 }
 }

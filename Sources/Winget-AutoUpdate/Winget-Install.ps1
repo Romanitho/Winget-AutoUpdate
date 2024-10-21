@@ -56,7 +56,6 @@ param(
 
 #Include external Functions
 . "$PSScriptRoot\functions\Install-Prerequisites.ps1"
-. "$PSScriptRoot\functions\Update-WinGet.ps1"
 . "$PSScriptRoot\functions\Update-StoreApps.ps1"
 . "$PSScriptRoot\functions\Add-ScopeMachine.ps1"
 . "$PSScriptRoot\functions\Get-WingetCmd.ps1"
@@ -311,7 +310,7 @@ $CurrentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Pri
 $Script:IsElevated = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
 #Get WAU Installed location
-$WAURegKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate\"
+$WAURegKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
 
 #LogPath initialization
@@ -339,20 +338,6 @@ else {
     $Script:LogFile = "$LogPath\install_$env:UserName.log"
 }
 
-#Header (not logged)
-Write-Host "`n "
-Write-Host "`t        888       888        d8888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888   o   888       d88888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888  d8b  888      d88P888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888 d888b 888     d88P 888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888d88888b888    d88P  888  888     888" -ForegroundColor Magenta
-Write-Host "`t        88888P Y88888   d88P   888  888     888" -ForegroundColor Cyan
-Write-Host "`t        8888P   Y8888  d88P    888  888     888" -ForegroundColor Magenta
-Write-Host "`t        888P     Y888 d88P     888   Y8888888P`n" -ForegroundColor Magenta
-Write-Host "`t                    Winget-AutoUpdate`n" -ForegroundColor Cyan
-Write-Host "`t     https://github.com/Romanitho/Winget-AutoUpdate`n" -ForegroundColor Magenta
-Write-Host "`t________________________________________________________`n`n"
-
 #Log Header
 if ($Uninstall) {
     Write-ToLog -LogMsg "NEW UNINSTALL REQUEST" -LogColor "Magenta" -IsHeader
@@ -361,27 +346,32 @@ else {
     Write-ToLog -LogMsg "NEW INSTALL REQUEST" -LogColor "Magenta" -IsHeader
 }
 
-#Get Winget command
-$Script:Winget = Get-WingetCmd
-
 if ($IsElevated -eq $True) {
     Write-ToLog "Running with admin rights.`n"
+
     #Check/install prerequisites
     Install-Prerequisites
-    #Install/Update Winget
-    $null = Update-Winget
+
     #Reload Winget command
     $Script:Winget = Get-WingetCmd
+
     #Run Scope Machine function
     Add-ScopeMachine
 }
 else {
     Write-ToLog "Running without admin rights.`n"
+
+    #Get Winget command
+    $Script:Winget = Get-WingetCmd
 }
 
 if ($Winget) {
+    #Put apps in an array
+    $AppIDsArray = $AppIDs -split ","
+    Write-Host ""
+
     #Run install or uninstall for all apps
-    foreach ($App_Full in $AppIDs) {
+    foreach ($App_Full in $AppIDsArray) {
         #Split AppID and Custom arguments
         $AppID, $AppArgs = ($App_Full.Trim().Split(" ", 2))
 

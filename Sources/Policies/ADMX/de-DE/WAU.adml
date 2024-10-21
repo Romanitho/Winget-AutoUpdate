@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <displayName>WinGet-AutoUpdate</displayName>
+  <description>WinGet-AutoUpdate GPO-Verwaltung</description>
+  <resources>
+    <stringTable>
+      <string id="WAU">Winget-AutoUpdate</string>
+      <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate Version 1.16.0 oder höher</string>
+      <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate Version 1.16.5 oder höher</string>
+      <string id="SUPPORTED_WAU_2_1_0">Winget-AutoUpdate Version 2.1.0 oder höher</string>
+      <string id="ActivateGPOManagement_Name">Aktivieren der WAU GPO-Verwaltung</string>
+      <string id="ActivateGPOManagement_Explain">Diese Richtlinie ist ein übergeordneter Schalter für die GPO-Verwaltung von Winget-AutoUpdate.</string>
+      <string id="BypassListForUsers_Name">Umgehen der Black-/Whitelist für Benutzer</string>
+      <string id="BypassListForUsers_Explain">Diese Richtlinie legt fest, ob die Black-/Whitelist im Benutzerkontext umgangen wird oder nicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, ist die Standardeinstellung Nein.</string>
+      <string id="DisableAutoUpdate_Name">Deaktivieren von WAU AutoUpdate</string>
+      <string id="DisableAutoUpdate_Explain">Diese Richtlinie legt fest, ob WAU AutoUpdate deaktiviert wird oder nicht:
+Standardmäßig ist WAU AutoUpdate aktiviert.
+Es werden keine Konfigurationen, Symbole (falls personalisiert), Ausnahmelisten... überschrieben.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, ist die Standardeinstellung Nein.</string>
+      <string id="DoNotRunOnMetered_Name">WAU bei getakteter Verbindung ausführen</string>
+      <string id="DoNotRunOnMetered_Explain">Diese Richtlinie legt fest, ob WAU bei einer getakteten Verbindung ausgeführt wird oder nicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, ist die Standardeinstellung Nein.</string>
+      <string id="UpdatePrerelease_Name">WAU auf PreRelease-Versionen aktualisieren</string>
+      <string id="UpdatePrerelease_Explain">Diese Richtlinie legt fest, ob WAU auf PreRelease-Versionen aktualisiert wird oder nicht (über WAU AutoUpdate).
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, ist die Standardeinstellung Nein.</string>
+      <string id="BlackList_Name">Anwendung GPO Blacklist</string>
+      <string id="BlackList_Explain">Geben Sie die WinGet-IDs der Anwendungen an, die Sie ausschließen möchten.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, ist die Standardeinstellung Nein.</string>
+      <string id="MajorUpdateBlackList_Name">Anwendung GPO Blacklist für Major Updates</string>
+      <string id="MajorUpdateBlackList_Explain">Geben Sie die WinGet-IDs der Anwendungen an, die Sie von Major Updates ausschließen möchten - z.B. 1.3.0 auf 2.0.0.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, ist die Standardeinstellung Nein.</string>
+      <string id="MinorUpdateBlackList_Name">Anwendung GPO Blacklist für Minor Updates</string>
+      <string id="MinorUpdateBlackList_Explain">Geben Sie die WinGet-IDs der Anwendungen an, die Sie von Minor Updates ausschließen möchten - z.B. 1.3.0 auf 1.4.0.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird die GPO Blacklist nicht verwendet.</string>
+      <string id="WhiteList_Name">Anwendung GPO Whitelist</string>
+      <string id="WhiteList_Explain">Geben Sie die WinGet-IDs der Anwendungen an, die Sie einbeziehen möchten.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird die GPO Whitelist nicht verwendet.</string>
+      <string id="UseWhiteList_Name">Whitelist anstelle der Blacklist verwenden</string>
+      <string id="UseWhiteList_Explain">Diese Richtlinie legt fest, ob eine Whitelist verwendet wird oder nicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, ist die Standardeinstellung Nein.</string>
+      <string id="ListPath_Name">Holen Sie die Black-/Whitelist aus einem externen Pfad (URL/UNC/GPO/Lokal)</string>
+      <string id="ListPath_Explain">Wenn diese Richtlinie aktiviert ist, können Sie einen (URL/UNC/GPO/Lokal) Pfad zu externen Listen angeben, der vom Standard abweicht.
+Wenn die "Anwendung GPO Blacklist/Whitelist" in dieser GPO festgelegt ist, kann der Pfad: GPO sein.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird der Standard-Pfad verwendet (WAU InstallLocation).</string>
+      <string id="ModsPath_Name">Mods aus einem externen Pfad abrufen (URL/UNC/Lokal/AzureBlob)</string>
+      <string id="ModsPath_Explain">Wenn diese Richtlinie aktiviert ist, können Sie einen (URL/UNC/Lokal/AzureBlob) Pfad zu externen Mods angeben, der vom Standard abweicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird der Standard-ModsPath verwendet (WAU InstallLocation).
+
+Hinweis: Wenn auf 'AzureBlob' eingestellt, stellen Sie sicher, dass Sie auch 'Azure Blob URL mit SAS-Token festlegen' konfigurieren.</string>
+      <string id="BlobURL_Name">Azure Blob URL mit SAS-Token festlegen</string>
+      <string id="BlobURL_Explain">Wenn diese Richtlinie aktiviert ist, können Sie eine Azure Storage Blob-URL mit SAS-Token für die Verwendung mit der 'Mods'-Funktion festlegen. Die URL muss das SAS-Token enthalten und über 'read' und 'list'-Berechtigungen verfügen.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, bleibt der Wert leer und Azure Blob Storage funktioniert NICHT.</string>
+      <string id="NotificationLevel_Name">Benachrichtigungsstufe</string>
+      <string id="NotificationLevel_Explain">Wenn diese Richtlinie aktiviert ist, können Sie die Benachrichtigungsstufe konfigurieren:
+1. Voll (Standard)
+2. Nur Erfolg
+3. Keine
+
+Wenn diese Richtlinie nicht konfiguriert oder deaktiviert ist, ist die Benachrichtigungsstufe: (1. Voll).</string>
+      <string id="NotificationLevel_Full">1. Voll (Standard)</string>
+      <string id="NotificationLevel_SuccessOnly">2. Nur Erfolg</string>
+      <string id="NotificationLevel_None">3. Keine</string>
+      <string id="UpdatesInterval_Name">Aktualisierungsintervall</string>
+      <string id="UpdatesInterval_Explain">Wenn diese Richtlinie aktiviert ist, können Sie das Aktualisierungsintervall konfigurieren:
+1. Täglich (Standard)
+2. Zweitägig
+3. Wöchentlich
+4. Zweiwöchentlich
+5. Monatlich
+6. Nie (z.B. in Kombination mit 'Aktualisierungen beim Anmelden')
+
+Wenn diese Richtlinie nicht konfiguriert oder deaktiviert ist, beträgt das Aktualisierungsintervall: (1. Täglich).</string>
+      <string id="UpdatesInterval_Daily">1. Täglich (Standard)</string>
+      <string id="UpdatesInterval_BiDaily">2. Zweitägig</string>
+      <string id="UpdatesInterval_Weekly">3. Wöchentlich</string>
+      <string id="UpdatesInterval_BiWeekly">4. Zweiwöchentlich</string>
+      <string id="UpdatesInterval_Monthly">5. Monatlich</string>
+      <string id="UpdatesInterval_Never">6. Nie (z.B. in Kombination mit 'Updates beim Anmelden')</string>
+      <string id="UpdatesAtLogon_Name">Aktualisierungen beim Anmelden</string>
+      <string id="UpdatesAtLogon_Explain">Diese Richtlinie legt fest, ob WAU beim Benutzeranmelden ausgeführt wird oder nicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, ist die Standardeinstellung Nein.</string>
+      <string id="UpdatesAtTime_Name">Aktualisierungen zu einer festgelegten Zeit</string>
+      <string id="UpdatesAtTime_Explain">Wenn diese Richtlinie aktiviert ist, können Sie die geplante Aufgabe für die Update-Zeit konfigurieren:
+Von 01:00 bis 24:00 (Militär-/24-Stunden-Zeit)
+
+Wenn diese Richtlinie nicht konfiguriert oder deaktiviert ist, beträgt die Update-Zeit: (06:00 Uhr).</string>
+      <string id="UpdatesAtTime01">01:00 Uhr</string>
+      <string id="UpdatesAtTime02">02:00 Uhr</string>
+      <string id="UpdatesAtTime03">03:00 Uhr</string>
+      <string id="UpdatesAtTime04">04:00 Uhr</string>
+      <string id="UpdatesAtTime05">05:00 Uhr</string>
+      <string id="UpdatesAtTime06">06:00 Uhr (Standard)</string>
+      <string id="UpdatesAtTime07">07:00 Uhr</string>
+      <string id="UpdatesAtTime08">08:00 Uhr</string>
+      <string id="UpdatesAtTime09">09:00 Uhr</string>
+      <string id="UpdatesAtTime10">10:00 Uhr</string>
+      <string id="UpdatesAtTime11">11:00 Uhr</string>
+      <string id="UpdatesAtTime12">12:00 Uhr</string>
+      <string id="UpdatesAtTime13">13:00 Uhr</string>
+      <string id="UpdatesAtTime14">14:00 Uhr</string>
+      <string id="UpdatesAtTime15">15:00 Uhr</string>
+      <string id="UpdatesAtTime16">16:00 Uhr</string>
+      <string id="UpdatesAtTime17">17:00 Uhr</string>
+      <string id="UpdatesAtTime18">18:00 Uhr</string>
+      <string id="UpdatesAtTime19">19:00 Uhr</string>
+      <string id="UpdatesAtTime20">20:00 Uhr</string>
+      <string id="UpdatesAtTime21">21:00 Uhr</string>
+      <string id="UpdatesAtTime22">22:00 Uhr</string>
+      <string id="UpdatesAtTime23">23:00 Uhr</string>
+      <string id="UpdatesAtTime24">24:00 Uhr</string>
+    </stringTable>
+  </resources>
+</policyDefinitionResources>

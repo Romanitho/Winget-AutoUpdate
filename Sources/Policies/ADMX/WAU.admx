@@ -69,6 +69,20 @@
         <list id="BlackList" key="Software\Policies\Romanitho\Winget-AutoUpdate\BlackList" valuePrefix=""/>
       </elements>
     </policy>
+    <policy name="MajorUpdateBlackList_Enable" class="Machine" displayName="$(string.MajorUpdateBlackList_Name)" explainText="$(string.MajorUpdateBlackList_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.MajorUpdateBlackList)">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_1_0"/>
+      <elements>
+        <list id="MajorUpdateBlackList" key="Software\Policies\Romanitho\Winget-AutoUpdate\MajorUpdateBlackList" valuePrefix=""/>
+      </elements>
+    </policy>
+    <policy name="MinorUpdateBlackList_Enable" class="Machine" displayName="$(string.MinorUpdateBlackList_Name)" explainText="$(string.MinorUpdateBlackList_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.MinorUpdateBlackList)">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_1_0"/>
+      <elements>
+        <list id="MinorUpdateBlackList" key="Software\Policies\Romanitho\Winget-AutoUpdate\MinorUpdateBlackList" valuePrefix=""/>
+      </elements>
+    </policy>
     <policy name="WhiteList_Enable" class="Machine" displayName="$(string.WhiteList_Name)" explainText="$(string.WhiteList_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.WhiteList)">
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0"/>

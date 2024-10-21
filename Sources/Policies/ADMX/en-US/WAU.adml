@@ -7,6 +7,7 @@
       <string id="WAU">Winget-AutoUpdate</string>
       <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 or later</string>
       <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 or later</string>
+      <string id="SUPPORTED_WAU_2_1_0">Winget-AutoUpdate version 2.1.0 or later</string>
       <string id="ActivateGPOManagement_Name">Activate WAU GPO Management</string>
       <string id="ActivateGPOManagement_Explain">This policy setting is an overriding toggle for GPO Management of Winget-AutoUpdate.</string>
       <string id="BypassListForUsers_Name">Bypass Black/White list for User</string>
@@ -29,6 +30,14 @@ If this policy is disabled or not configured, the default is No.</string>
 If this policy is disabled or not configured, the default is No.</string>
       <string id="BlackList_Name">Application GPO Blacklist</string>
       <string id="BlackList_Explain">Provide the WinGet IDs of applications you want to exclude.
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="MajorUpdateBlackList_Name">Application GPO Major Update Blacklist</string>
+      <string id="MajorUpdateBlackList_Explain">Provide the WinGet IDs of applications you want to exclude from Major Updates - f.e. 1.3.0 to 2.0.0.
+
+If this policy is disabled or not configured, the default is No.</string>
+      <string id="MinorUpdateBlackList_Name">Application GPO Minor Update Blacklist</string>
+      <string id="MinorUpdateBlackList_Explain">Provide the WinGet IDs of applications you want to exclude from Minor Updates - f.e. 1.3.0 to 1.4.0.
 
 If this policy is disabled or not configured, GPO Blacklist is not used.</string>
       <string id="WhiteList_Name">Application GPO Whitelist</string>

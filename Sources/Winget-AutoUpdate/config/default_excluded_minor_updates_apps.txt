@@ -1,1 +1,1 @@
-Google.AndroidStudio
+Microsoft.Edge*

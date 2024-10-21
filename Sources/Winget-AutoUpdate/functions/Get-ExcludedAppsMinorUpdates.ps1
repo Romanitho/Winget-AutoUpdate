@@ -1,23 +1,23 @@
 #Function to get the Block List apps
 
-function Get-ExcludedPatchUpdateApps {
+function Get-ExcludedMinorUpdateApps {
 
     $AppIDs = @()
 
-    #blacklist patch updates in registry
+    #blacklist Minor updates in registry
     if ($GPOList) {
 
-        Write-ToLog "-> Excluded patch update apps from GPO is activated"
-        if (Test-Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\PatchUpdateBlackList") {
-            $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\PatchUpdateBlackList").Property
+        Write-ToLog "-> Excluded Minor update apps from GPO is activated"
+        if (Test-Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\MinorUpdateBlackList") {
+            $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\MinorUpdateBlackList").Property
             foreach ($ValueName in $ValueNames) {
-                $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\PatchUpdateBlackList" -Name $ValueName).Trim()
+                $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\MinorUpdateBlackList" -Name $ValueName).Trim()
             }
-            Write-ToLog "-> Successsfully loaded patch update excluded apps list."
+            Write-ToLog "-> Successsfully loaded Minor update excluded apps list."
         }
 
     }
-    #blacklist patch updates pulled from URI
+    #blacklist Minor updates pulled from URI
     elseif ($URIList) {
 
         $RegPath = "$WAU_GPORoot";
@@ -40,18 +40,18 @@ function Get-ExcludedPatchUpdateApps {
         }
 
     }
-    #blacklist patch updates pulled from local file
+    #blacklist Minor updates pulled from local file
     elseif (Test-Path "$WorkingDir\excluded_minor_updates_apps.txt") {
 
         $AppIDs = (Get-Content -Path "$WorkingDir\excluded_minor_updates_apps.txt").Trim()
-        Write-ToLog "-> Successsfully loaded local excluded patch update apps list."
+        Write-ToLog "-> Successsfully loaded local excluded Minor update apps list."
 
     }
-    #blacklist patch updates pulled from default file
+    #blacklist Minor updates pulled from default file
     elseif (Test-Path "$WorkingDir\config\default_excluded_minor_updates_apps.txt") {
 
         $AppIDs = (Get-Content -Path "$WorkingDir\config\default_excluded_minor_updates_apps.txt").Trim()
-        Write-ToLog "-> Successsfully loaded default excluded patch update apps list."
+        Write-ToLog "-> Successsfully loaded default excluded Minor update apps list."
 
     }
 

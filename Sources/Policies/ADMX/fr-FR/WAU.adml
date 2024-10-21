@@ -7,6 +7,7 @@
       <string id="WAU">Winget-AutoUpdate</string>
       <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 ou ultérieure</string>
       <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 ou ultérieure</string>
+      <string id="SUPPORTED_WAU_2_1_0">Winget-AutoUpdate version 2.1.0 ou ultérieure</string>
       <string id="ActivateGPOManagement_Name">Activer la gestion GPO de WAU</string>
       <string id="ActivateGPOManagement_Explain">Ce paramètre de politique est un commutateur de gestion GPO de Winget-AutoUpdate.</string>
       <string id="BypassListForUsers_Name">Contourner la liste noire/blanche pour l'utilisateur</string>
@@ -38,6 +39,18 @@
       <string id="BlackList_Name">Liste noire GPO des applications</string>
       <string id="BlackList_Explain">
         Fournir les IDs WinGet des applications que vous souhaitez exclure.
+
+        Si cette politique est désactivée ou non configurée, la liste noire GPO n'est pas utilisée.
+      </string>
+      <string id="MajorUpdateBlackList_Name">Liste noire GPO des applications</string>
+      <string id="MajorUpdateBlackList_Explain">
+        Fournissez les identifiants WinGet des applications que vous souhaitez exclure des mises à jour majeures - par ex. de 1.3.0 à 2.0.0.
+
+        Si cette politique est désactivée ou non configurée, la liste noire GPO n'est pas utilisée.
+      </string>
+      <string id="MinorUpdateBlackList_Name">Liste noire GPO des applications</string>
+      <string id="MinorUpdateBlackList_Explain">
+        Fournissez les identifiants WinGet des applications que vous souhaitez exclure des mises à jour mineures - par ex. de 1.3.0 à 1.4.0.
 
         Si cette politique est désactivée ou non configurée, la liste noire GPO n'est pas utilisée.
       </string>

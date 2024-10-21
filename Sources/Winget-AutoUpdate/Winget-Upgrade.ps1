@@ -269,7 +269,7 @@ if (Test-Network) {
         }
 
         $MajortoSkip = Get-ExcludedMajorUpdateApps
-        $MinortoSkip = Get-ExcludedPatchUpdateApps
+        $MinortoSkip = Get-ExcludedMinorUpdateApps
 
         #Fix and count the array if GPO List as ERROR handling!
         if ($GPOList) {

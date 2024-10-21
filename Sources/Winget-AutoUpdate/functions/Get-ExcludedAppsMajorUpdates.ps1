@@ -34,7 +34,7 @@ function Get-ExcludedMajorUpdateApps {
                     ForEach-Object {
                         $AppIds += $_
                     }
-                    Write-ToLog "-> Successsfully loaded excluded apps list."
+                    Write-ToLog "-> Successsfully loaded excluded major update apps list."
                 }
             }
         }

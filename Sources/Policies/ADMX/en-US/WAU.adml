@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="5.0" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
   <displayName>WinGet-AutoUpdate</displayName>
   <description>WinGet-AutoUpdate GPO Management</description>
   <resources >
@@ -32,11 +32,11 @@ If this policy is disabled or not configured, the default is No.</string>
       <string id="BlackList_Explain">Provide the WinGet IDs of applications you want to exclude.
 
 If this policy is disabled or not configured, GPO Blacklist is not used.</string>
-      <string id="MajorUpdateBlackList_Name">Application GPO Blacklist</string>
+      <string id="MajorUpdateBlackList_Name">Application GPO Blacklist for Major Updates</string>
       <string id="MajorUpdateBlackList_Explain">Provide the WinGet IDs of applications you want to exclude from Major updates - f.e. 1.3.0 to 2.0.0
 
 If this policy is disabled or not configured, GPO Blacklist is not used.</string>
-      <string id="MinorUpdateBlackList_Name">Application GPO Blacklist</string>
+      <string id="MinorUpdateBlackList_Name">Application GPO Blacklist for Minor Updates</string>
       <string id="MinorUpdateBlackList_Explain">Provide the WinGet IDs of applications you want to exclude from Minor updates - f.e. 1.3.0 to 1.4.0
 
 If this policy is disabled or not configured, GPO Blacklist is not used.</string>
@@ -153,6 +153,12 @@ If this policy is disabled or not configured, the default size is used.</string>
     <presentationTable>
       <presentation id="BlackList">
         <listBox refId="BlackList">BlackList:</listBox>
+      </presentation>
+      <presentation id="MajorUpdateBlackList">
+            <listBox refId="MajorUpdateBlackList">BlackList Major Updates:</listBox>
+      </presentation>
+      <presentation id="MinorUpdateBlackList">
+            <listBox refId="MinorUpdateBlackList">BlackList Minor Updates:</listBox>
       </presentation>
       <presentation id="WhiteList">
         <listBox refId="WhiteList">WhiteList:</listBox>

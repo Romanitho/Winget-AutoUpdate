@@ -13,7 +13,7 @@ function Get-ExcludedApps {
             foreach ($ValueName in $ValueNames) {
                 $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList" -Name $ValueName).Trim()
             }
-            Write-ToLog "-> Successsfully loaded excluded apps list."
+            Write-ToLog "-> Successsfully loaded excluded apps list from Registry/GPO."
         }
 
     }

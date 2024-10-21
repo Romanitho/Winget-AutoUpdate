@@ -13,7 +13,7 @@ function Get-ExcludedMinorUpdateApps {
             foreach ($ValueName in $ValueNames) {
                 $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\MinorUpdateBlackList" -Name $ValueName).Trim()
             }
-            Write-ToLog "-> Successsfully loaded Minor update excluded apps list."
+            Write-ToLog "-> Successsfully loaded Minor update excluded apps list from Registry/GPO."
         }
 
     }

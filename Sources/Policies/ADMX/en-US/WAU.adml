@@ -31,13 +31,13 @@ If this policy is disabled or not configured, the default is No.</string>
       <string id="BlackList_Name">Application GPO Blacklist</string>
       <string id="BlackList_Explain">Provide the WinGet IDs of applications you want to exclude.
 
-If this policy is disabled or not configured, the default is No.</string>
-      <string id="MajorUpdateBlackList_Name">Application GPO Major Update Blacklist</string>
-      <string id="MajorUpdateBlackList_Explain">Provide the WinGet IDs of applications you want to exclude from Major Updates - f.e. 1.3.0 to 2.0.0.
+If this policy is disabled or not configured, GPO Blacklist is not used.</string>
+      <string id="MajorUpdateBlackList_Name">Application GPO Blacklist</string>
+      <string id="MajorUpdateBlackList_Explain">Provide the WinGet IDs of applications you want to exclude from Major updates - f.e. 1.3.0 to 2.0.0
 
-If this policy is disabled or not configured, the default is No.</string>
-      <string id="MinorUpdateBlackList_Name">Application GPO Minor Update Blacklist</string>
-      <string id="MinorUpdateBlackList_Explain">Provide the WinGet IDs of applications you want to exclude from Minor Updates - f.e. 1.3.0 to 1.4.0.
+If this policy is disabled or not configured, GPO Blacklist is not used.</string>
+      <string id="MinorUpdateBlackList_Name">Application GPO Blacklist</string>
+      <string id="MinorUpdateBlackList_Explain">Provide the WinGet IDs of applications you want to exclude from Minor updates - f.e. 1.3.0 to 1.4.0
 
 If this policy is disabled or not configured, GPO Blacklist is not used.</string>
       <string id="WhiteList_Name">Application GPO Whitelist</string>

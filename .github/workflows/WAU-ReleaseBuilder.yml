@@ -154,7 +154,7 @@ jobs:
             ## Files
             |Files|Hash (SHA256)|Downloads|
             |---|---|---|
-            |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ env.NextSemVer }}/WAU.msi) (x64)|${{ env.MSI_SHA }}|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ env.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
-            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ env.NextSemVer }}/WAU_ADMX.zip)|${{ env.ADMX_SHA }}|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ env.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
+            |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ env.NextSemVer }}/WAU.msi) (x64)|`${{ env.MSI_SHA }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ env.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
+            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ env.NextSemVer }}/WAU_ADMX.zip)|`${{ env.ADMX_SHA }}`|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ env.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
 
             <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ env.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>

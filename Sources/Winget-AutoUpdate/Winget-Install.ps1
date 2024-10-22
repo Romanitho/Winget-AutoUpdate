@@ -312,7 +312,7 @@ $Script:IsElevated = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuilt
 #Get WAU Installed location
 $WAURegKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
-$Script:WAUModsLocation = $WAUInstallLocation + "mods"
+$Script:WAUModsLocation = Join-Path -Path $WAUInstallLocation -ChildPath "mods"
 
 #LogPath initialization
 if (!($LogPath)) {

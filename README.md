@@ -108,6 +108,9 @@ Instead you must escape **every** special character (notice the `%` escape too) 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
 
+**EXCLUDEPINNEDAPPS**<br>
+Default value 0. Set `EXCLUDEPINNEDAPPS=1` to enable including pinned winget apps to Blacklist. If you are using a whitelist, this option will be ignored. [More details.](https://tbd)
+
 **MODSPATH**<br>
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):

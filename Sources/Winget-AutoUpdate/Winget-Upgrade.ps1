@@ -349,14 +349,17 @@ if (Test-Network) {
                     }
                     #if app is in "excluded list", skip it
                     elseif ($toSkip.AppID -contains $app.Id) {
-                        if ($toSkip.PinnedVersion) {
-                            $regexPattern = $toSkip.PinnedVersion -replace '\.', '\.' -replace '\*', '.*'
-                            $regexPattern = "^$regexPattern$"
+                        $matchingToSkip = $toSkip | Where-Object { $_.AppID -contains $app.Id }
+                        if ($matchingToSkip.PinnedVersion) {
+                            $regexPattern = $matchingToSkip.PinnedVersion -replace '\.', '\.' -replace '\*', '.*'
+                            $regexPattern = "^$regexPattern$".Trim()
                             if ($app.AvailableVersion -match $regexPattern) {
                                 Update-App $app
                             }
                         }
-                        Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+                        else {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+                        }
                     }
                     #if app with wildcard is in "excluded list", skip it
                     elseif ($toSkip.AppID | Where-Object { $app.Id -like $_ }) {

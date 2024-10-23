@@ -3,11 +3,12 @@
   <policyNamespaces>
     <target prefix="WAU" namespace="Romanitho.Policies.WAU"/>
   </policyNamespaces>
-  <resources minRequiredRevision="4.8" fallbackCulture="en-us"/>
+  <resources minRequiredRevision="4.9" fallbackCulture="en-us"/>
   <supportedOn>
     <definitions>
       <definition name="SUPPORTED_WAU_1_16_0" displayName="$(string.SUPPORTED_WAU_1_16_0)"/>
       <definition name="SUPPORTED_WAU_1_16_5" displayName="$(string.SUPPORTED_WAU_1_16_5)"/>
+      <definition name="SUPPORTED_WAU_2_0_3" displayName="$(string.SUPPORTED_WAU_2_0_3)"/>
     </definitions>
   </supportedOn>
   <categories><category displayName="$(string.WAU)" name="WAU"/></categories>
@@ -79,6 +80,16 @@
   	<policy name="UseWhiteList_Enable" class="Machine" displayName="$(string.UseWhiteList_Name)" explainText="$(string.UseWhiteList_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UseWhiteList">
       <parentCategory ref="WAU"/>
       <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0"/>
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+    <policy name="ExcludePinnedApps" class="Machine" displayName="$(string.ExcludePinnedApps_Name)" explainText="$(string.ExcludePinnedApps_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_ExcludePinnedApps">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_0_3"/>
       <enabledValue>
         <decimal value="1" />
       </enabledValue>

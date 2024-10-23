@@ -109,7 +109,7 @@ If `-ListPath` is set to **GPO** the Black/White List can be managed from within
 
 
 **EXCLUDEPINNEDAPPS**<br>
-Default value 0. Set `EXCLUDEPINNEDAPPS=1` to enable including pinned winget apps to Blacklist. If you are using a whitelist, this option will be ignored. [More details.](https://tbd)
+Default value 0. Set `EXCLUDEPINNEDAPPS=1` to enable including pinned winget apps to Blacklist. If you are using a whitelist, this option will be ignored. [More details.](https://learn.microsoft.com/en-us/windows/package-manager/winget/pinning)
 
 **MODSPATH**<br>
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>

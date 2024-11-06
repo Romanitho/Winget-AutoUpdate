@@ -25,7 +25,7 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
 
     #Log init
     $GPOLogFile = "$($WAUConfig.InstallLocation)\logs\LatestAppliedSettings.txt"
-    Set-Content -Path $GPOLogFile -Value "###  POLICY CYCLE - $(Get-Date)  ###`n"
+    Set-Content -Path $GPOLogFile -Value "###  POLICY CYCLE - $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern)  ###`n"
 
     #Reset WAU_RunGPOManagement if not GPO managed anymore (This is used to run this job one last time and reset initial settings)
     if ($($WAUConfig.WAU_ActivateGPOManagement -eq 1)) {

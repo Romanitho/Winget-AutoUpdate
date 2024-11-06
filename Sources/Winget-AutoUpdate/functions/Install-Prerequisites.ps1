@@ -4,7 +4,7 @@ function Install-Prerequisites {
 
         Write-ToLog "Checking prerequisites..." "Yellow"
 
-        #Check if Visual C++ 2019 or 2022 installed
+        #Check if Visual C++ 2022 is installed
         $Visual2022 = "Microsoft Visual C++ 2015-2022 Redistributable*"
         $VisualMinVer = "14.40.0.0"
         $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.GetValue("DisplayName") -like $Visual2022 -and $_.GetValue("DisplayVersion") -gt $VisualMinVer }

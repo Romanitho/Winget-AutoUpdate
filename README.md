@@ -15,8 +15,12 @@ This project uses the Winget tool to daily update apps (with system context) and
 ## Installation
 Just download latest release [WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest):
 
-![1](https://github.com/user-attachments/assets/8a3a656d-f825-4cea-b971-5f775a6c7ba8)
-![2](https://github.com/user-attachments/assets/46913e03-8604-43f5-8bca-129d1e714e45)
+![image](https://github.com/user-attachments/assets/e6b090ff-9c40-46e1-a04b-9b7437f3e2e7)
+![image](https://github.com/user-attachments/assets/2e4af91b-e319-401b-99cd-3c199e21016b)
+![image](https://github.com/user-attachments/assets/1b70d77c-4220-4b62-bded-eb1e890e7485)
+
+
+
 
 ### Use winget to install WAU
 The following command will install WAU through winget itself in the newest version available. 

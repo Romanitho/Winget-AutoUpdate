@@ -105,10 +105,6 @@ if ($IsSystem) {
         Write-ToLog "An Exception occurred during Log Rotation..."
     }
 
-    #Run post update actions if necessary if run as System
-    if (!($WAUConfig.WAU_PostUpdateActions -eq 0)) {
-        Invoke-PostUpdateActions
-    }
     #Run Scope Machine function if run as System
     Add-ScopeMachine
 }

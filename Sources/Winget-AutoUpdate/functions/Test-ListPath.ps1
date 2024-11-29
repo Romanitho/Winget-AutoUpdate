@@ -41,7 +41,7 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
         try {
             $wc.OpenRead("$ExternalList").Close() | Out-Null
             $dateExternal = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
-            if ($dateExternal -gt $dateLocal) {
+            if ($dateExternal -and $dateExternal -gt $dateLocal) {
                 try {
                     $wc.DownloadFile($ExternalList, $LocalList)
                 }
@@ -54,6 +54,7 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
         }
         catch {
             try {
+                $wc.OpenRead("$ExternalList").Close() | Out-Null
                 $wc.DownloadFile($ExternalList, $LocalList)
                 $Script:AlwaysDownloaded = $True
                 return $true

@@ -280,7 +280,7 @@ if (Test-Network) {
                     New-Item "$WorkingDir\logs\error.txt" -Value "Blacklist doesn't exist in GPO" -Force
                     Exit 1
                 }
-                foreach ($app in $toSkip) { Write-ToLog "Exclude app ${app}" }
+                foreach ($app in $toSkip) { Write-ToLog "Exclude app $($app.AppID) $($app.PinnedVersion)" }
             }
         }
 
@@ -344,11 +344,21 @@ if (Test-Network) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
                     }
                     #if app is in "excluded list", skip it
-                    elseif ($toSkip -contains $app.Id) {
-                        Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+                    elseif ($toSkip.AppID -contains $app.Id) {
+                        $matchingToSkip = $toSkip | Where-Object { $_.AppID -contains $app.Id }
+                        if ($matchingToSkip.PinnedVersion) {
+                            $regexPattern = $matchingToSkip.PinnedVersion -replace '\.', '\.' -replace '\*', '.*'
+                            $regexPattern = "^$regexPattern$".Trim()
+                            if ($app.AvailableVersion -match $regexPattern) {
+                                Update-App $app
+                            }
+                        }
+                        else {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+                        }
                     }
                     #if app with wildcard is in "excluded list", skip it
-                    elseif ($toSkip | Where-Object { $app.Id -like $_ }) {
+                    elseif ($toSkip.AppID | Where-Object { $app.Id -like $_ }) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
                     }
                     # else, update it

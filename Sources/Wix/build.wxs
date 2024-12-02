@@ -52,6 +52,9 @@
         <Property Id="USEWHITELIST" Value="0">
             <RegistrySearch Id="SearchUseWhiteList" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UseWhiteList"  />
         </Property>
+        <Property Id="EXCLUDEPINNEDAPPS" Value="0">
+            <RegistrySearch Id="SearchExcludePinnedApps" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_ExcludePinnedApps"  />
+        </Property>
         <Property Id="BLACKLIST_PATH">
             <DirectorySearch Id="CheckBlacklistDir" Path="[CURRENTDIRECTORY]">
                 <FileSearch Id="CheckBlacklistFile" Name="excluded_apps.txt" />
@@ -252,6 +255,8 @@
         <SetProperty Action="SetLIST_PATHWhiteList" Id="B_W_LIST_PATH" After="SetLIST_PATHBlackList" Value="[WHITELIST_PATH]" Condition="WHITELIST_PATH" />
         <SetProperty Action="SetUSEWHITELIST_0" Id="USEWHITELIST" After="SetLIST_PATHWhiteList" Value="0" Condition="BLACKLIST_PATH OR USEWHITELIST = &quot;#0&quot;" />
         <SetProperty Action="SetUSEWHITELIST_1" Id="USEWHITELIST" After="SetUSEWHITELIST_0" Value="1" Condition="WHITELIST_PATH OR USEWHITELIST = &quot;#1&quot;" />
+        <SetProperty Action="SetEXCLUDEPINNEDAPPS_0" Id="EXCLUDEPINNEDAPPS" After="AppSearch" Value="0" Condition="EXCLUDEPINNEDAPPS" />
+        <SetProperty Action="SetEXCLUDEPINNEDAPPS_1" Id="EXCLUDEPINNEDAPPS" After="AppSearch" Value="1" Condition="BLACKLIST_PATH OR USEWHITELIST = &quot;#0&quot;" />
         <SetProperty Id="LISTPATH_VALUE" After="AppSearch" Value="[LISTPATH]" Condition="LISTPATH" />
         <SetProperty Id="MODSPATH_VALUE" After="AppSearch" Value="[MODSPATH]" Condition="MODSPATH" />
         <SetProperty Id="AZUREBLOBURL_VALUE" After="AppSearch" Value="[AZUREBLOBURL]" Condition="AZUREBLOBURL" />
@@ -314,6 +319,9 @@
 					</RegistryKey>
 					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UseWhiteList" Type="integer" Value="[USEWHITELIST]" />
+					</RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+						<RegistryValue Name="WAU_ExcludePinnedApps" Type="integer" Value="[EXCLUDEPINNEDAPPS]" />
 					</RegistryKey>
 					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_ListPath" Type="string" Value="[LISTPATH_VALUE]" />

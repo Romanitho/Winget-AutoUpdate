@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.9" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+  <displayName>WinGet-AutoUpdate</displayName>
+  <description>WinGet-AutoUpdate GPO Verwaltung</description>
+  <resources >
+    <stringTable >
+      <string id="WAU">Winget-AutoUpdate</string>
+      <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate Version 1.16.0 oder neuer</string>
+      <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate Version 1.16.5 oder neuer</string>
+      <string id="SUPPORTED_WAU_2_0_3">Winget-AutoUpdate Version 2.0.3 oder neuer</string>
+      <string id="ActivateGPOManagement_Name">Aktiviere die WAU GPO Verwaltung</string>
+      <string id="ActivateGPOManagement_Explain">Diese Richtlinieneinstellung ist ein übergeordneter Schalter für die GPO-Verwaltung von Winget-AutoUpdate.</string>
+      <string id="BypassListForUsers_Name">Umgehung der Blacklist/Whitelist für Benutzer</string>
+      <string id="BypassListForUsers_Explain">Diese Richtlinieneinstellung gibt an, ob die Blacklist/Whitelist bei Ausführung im Benutzerkontext umgangen werden soll oder nicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, lautet die Standardeinstellung Nein..</string>
+      <string id="DisableAutoUpdate_Name">Deaktiviere WAU AutoUpdate</string>
+      <string id="DisableAutoUpdate_Explain">Diese Richtlinieneinstellung gibt an, ob WAU AutoUpdate deaktiviert werden soll oder nicht:
+Standardmäßig ist WAU AutoUpdate aktiviert.
+Die Konfigurationen, Symbole (sofern personalisiert), die Liste ausgeschlossener Apps usw. werden dabei nicht überschrieben.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, lautet die Standardeinstellung Nein..</string>
+      <string id="DoNotRunOnMetered_Name">Starte WAU unter getakteten Verbindungen</string>
+      <string id="DoNotRunOnMetered_Explain">Diese Richtlinieneinstellung gibt an, ob WAU bei getakteter Verbindung ausgeführt werden soll oder nicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, lautet die Standardeinstellung Nein..</string>
+      <string id="UpdatePrerelease_Name">WAU auf PreRelease-Versionen aktualisieren</string>
+      <string id="UpdatePrerelease_Explain">Diese Richtlinieneinstellung gibt an, ob WAU auf PreRelease-Versionen aktualisiert werden soll oder nicht (über WAU AutoUpdate).
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, lautet die Standardeinstellung Nein..</string>
+      <string id="BlackList_Name">Applikation GPO Blacklist</string>
+      <string id="BlackList_Explain">Geben Sie die WinGet-IDs der Anwendungen an, die Sie ausschließen möchten.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird die GPO-Blacklist nicht verwendet.</string>
+      <string id="WhiteList_Name">Applikation GPO Whitelist</string>
+      <string id="WhiteList_Explain">Geben Sie die WinGet-IDs der Anwendungen an, die Sie einschließen möchten.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird die GPO-Whitelist nicht verwendet.</string>
+      <string id="UseWhiteList_Name">Verwenden Sie WhiteList statt BlackList</string>
+      <string id="UseWhiteList_Explain">Diese Richtlinieneinstellung gibt an, ob eine Whitelist verwendet werden soll oder nicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, lautet die Standardeinstellung Nein..</string>
+      <string id="ExcludePinnedApps_Name">Angeheftete Apps von Updates ausschließen</string>
+      <string id="ExcludePinnedApps_Explain">Aktivieren Sie diese Richtlinie, um angeheftete Winget-Apps in die Blacklist aufzunehmen. Wenn Sie eine Whitelist verwenden, wird diese Option ignoriert. Weitere Details: https://learn.microsoft.com/en-us/windows/package-manager/winget/pinning
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird das Ausschließen angehefteter Apps nicht verwendet.</string>
+      <string id="ListPath_Name">Black/White List von externem Pfad abrufen (URL/UNC/GPO/Lokal)</string>
+      <string id="ListPath_Explain">Wenn diese Richtlinie aktiviert ist, können Sie einen (URL/UNC/GPO/Lokalen) Pfad zu externen Listen festlegen, der vom Standard abweicht.
+
+Wenn in dieser GPO „Anwendungs-GPO-Blacklist/Whitelist“ festgelegt ist, kann der Pfad lauten: GPO
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird der Standard-ListPath verwendet (WAU InstallLocation).</string>
+      <string id="ModsPath_Name">Mods von externem Pfad abrufen (URL/UNC/Lokal/AzureBlob)</string>
+      <string id="ModsPath_Explain">Wenn diese Richtlinie aktiviert ist, können Sie einen (URL/UNC/Lokal/AzureBlob)-Pfad zu externen Mods festlegen, der vom Standardpfad abweicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird der standardmäßige ModsPath verwendet (WAU InstallLocation).
+
+Hinweis: Wenn „AzureBlob“ festgelegt ist, stellen Sie sicher, dass Sie auch „Azure Blob-URL mit SAS-Token festlegen“ konfigurieren.</string>
+      <string id="BlobURL_Name">Festlegen der Azure Blob-URL mit SAS-Token</string>
+      <string id="BlobURL_Explain">Wenn diese Richtlinie aktiviert ist, können Sie eine Azure Storage Blob-URL mit SAS-Token zur Verwendung mit der Funktion „Mods“ festlegen. Die URL muss das SAS-Token enthalten und über die Berechtigungen „Lesen“ und „Auflisten“ verfügen.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, ist der Wert leer und Azure Blob Storage funktioniert NICHT.</string>
+      <string id="NotificationLevel_Name">Benachrichtigungsebene</string>
+      <string id="NotificationLevel_Explain">Wenn diese Richtlinie aktiviert ist, können Sie die Benachrichtigungsebene konfigurieren:
+1. Vollständig (Standard)
+2. Nur Erfolg
+3. Keine
+
+Wenn diese Richtlinie nicht konfiguriert oder deaktiviert ist, Benachrichtigungsebene: (1. Vollständig).</string>
+      <string id="NotificationLevel_Full">1. Vollständig (Standard)</string>
+      <string id="NotificationLevel_SuccessOnly">2. Nur Erfolg</string>
+      <string id="NotificationLevel_None">3. Keine</string>
+      <string id="UpdatesInterval_Name">Update Intervall</string>
+      <string id="UpdatesInterval_Explain">Wenn diese Richtlinie aktiviert ist, können Sie das Aktualisierungsintervall konfigurieren:
+1. Täglich (Standard)
+2. Zweitägig
+3. Wöchentlich
+4. Zweiwöchentlich
+5. Monatlich
+6. Nie (z. B. in Kombination mit „Aktualisierungen bei Anmeldung“)
+
+Wenn diese Richtlinie nicht konfiguriert oder deaktiviert ist, Aktualisierungsintervall: (1. Täglich).</string>
+      <string id="UpdatesInterval_Daily">1. Täglich (Standard)</string>
+      <string id="UpdatesInterval_BiDaily">2. Zweitägig</string>
+      <string id="UpdatesInterval_Weekly">3. Wöchentlich</string>
+      <string id="UpdatesInterval_BiWeekly">4. Zweiwöchentlich</string>
+      <string id="UpdatesInterval_Monthly">5. Monatlich</string>
+      <string id="UpdatesInterval_Never">6. Nie (z. B. in Kombination mit „Aktualisierungen bei Anmeldung“)</string>
+      <string id="UpdatesAtLogon_Name">Update bei Anmeldung</string>
+      <string id="UpdatesAtLogon_Explain">Diese Policy stellt ein, ob WAU bei Benutzeranmeldungen gestartetet werden soll oder nicht.
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, lautet die Standardeinstellung Nein..</string>
+      <string id="UpdatesAtTime_Name">Uhrzeit für automatische Aktualisierungen</string>
+      <string id="UpdatesAtTime_Explain">Wenn diese Richtlinie aktiviert ist, können Sie die Aktualisierungszeit für geplante Aufgaben konfigurieren:
+Von 01:00 bis 24:00 (Militär/24-Stunden-Zeit)
+
+Wenn diese Richtlinie nicht konfiguriert oder deaktiviert ist, erfolgt die Aktualisierung zur folgenden Uhrzeit: (06:00 Uhr).</string>
+      <string id="UpdatesAtTime01">01:00</string>
+      <string id="UpdatesAtTime02">02:00</string>
+      <string id="UpdatesAtTime03">03:00</string>
+      <string id="UpdatesAtTime04">04:00</string>
+      <string id="UpdatesAtTime05">05:00</string>
+      <string id="UpdatesAtTime06">06:00 (Standard)</string>
+      <string id="UpdatesAtTime07">07:00</string>
+      <string id="UpdatesAtTime08">08:00</string>
+      <string id="UpdatesAtTime09">09:00</string>
+      <string id="UpdatesAtTime10">10:00</string>
+      <string id="UpdatesAtTime11">11:00</string>
+      <string id="UpdatesAtTime12">12:00</string>
+      <string id="UpdatesAtTime13">13:00</string>
+      <string id="UpdatesAtTime14">14:00</string>
+      <string id="UpdatesAtTime15">15:00</string>
+      <string id="UpdatesAtTime16">16:00</string>
+      <string id="UpdatesAtTime17">17:00</string>
+      <string id="UpdatesAtTime18">18:00</string>
+      <string id="UpdatesAtTime19">19:00</string>
+      <string id="UpdatesAtTime20">20:00</string>
+      <string id="UpdatesAtTime21">21:00</string>
+      <string id="UpdatesAtTime22">22:00</string>
+      <string id="UpdatesAtTime23">23:00</string>
+      <string id="UpdatesAtTime24">24:00</string>
+      <string id="UserContext_Name">Benutzer Kontext Ausführung</string>
+      <string id="UserContext_Explain">Diese Policy definiert, ob eine Benutzerkontextausführung stattfinden soll oder nicht - Updates von Apps die im Benutzerkontext und nicht systemweit installiert sind
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, lautet die Standardeinstellung Nein..</string>
+      <string id="DesktopShortcut_Name">Aktiviere Deskop Shortcut [VERALTET]</string>
+      <string id="DesktopShortcut_Explain">This policy setting specifies whether to enable a Desktop Shortcut or not:
+WAU - Check for updated Apps
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, lautet die Standardeinstellung Nein..</string>
+      <string id="StartMenuShortcut_Name">Aktiviere Start MenÜ Shortcuts [VERALTET]</string>
+      <string id="StartMenuShortcut_Explain">This policy setting specifies whether to enable the Start Menu Shortcuts or not:
+WAU - Check for updated Apps
+WAU - Open logs
+WAU - Web Help
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, lautet die Standardeinstellung Nein.</string>
+      <string id="MaxLogFiles_Name">Log: Anzahl der erlaubten Logdateien</string>
+      <string id="MaxLogFiles_Explain">Wenn diese Richtlinie aktiviert ist, können Sie eine Anzahl zulässiger Protokolldateien festlegen:
+Wenn Sie MaxLogFiles auf 0 setzen, werden keine alten archivierten Protokolldateien gelöscht, bei 1 bleibt die ursprüngliche erhalten und wird einfach erweitert.
+Die Standardzahl ist 3 (0-99).
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird die Standardzahl verwendet.</string>
+      <string id="MaxLogSize_Name">Log: Größe der Logdatei in Bytes vor der Rotation</string>
+      <string id="MaxLogSize_Explain">Wenn diese Richtlinie aktiviert ist, können Sie die Größe der Protokolldatei in Bytes vor der Rotation festlegen.
+Die Standardgröße ist 1048576 = 1 MB
+
+Wenn diese Richtlinie deaktiviert oder nicht konfiguriert ist, wird die Standardgröße verwendet.</string>
+    </stringTable>
+    <presentationTable>
+      <presentation id="BlackList">
+        <listBox refId="BlackList">BlackList:</listBox>
+      </presentation>
+      <presentation id="WhiteList">
+        <listBox refId="WhiteList">WhiteList:</listBox>
+      </presentation>
+      <presentation id="ListPath">
+        <textBox refId="ListPath">
+          <label>(URL/UNC/GPO/Local) Pfad:</label>
+        </textBox>
+      </presentation>
+      <presentation id="ModsPath">
+        <textBox refId="ModsPath">
+          <label>(URL/UNC/Local/AzureBlob) Pfad:</label>
+        </textBox>
+      </presentation>
+      <presentation id="BlobURL">
+        <textBox refId="BlobURL">
+          <label>Azure Storage URL mit SAS token:</label>
+        </textBox>
+      </presentation>
+      <presentation id="NotificationLevel">
+        <dropdownList refId="NotificationLevel"/>
+      </presentation>
+      <presentation id="UpdatesInterval">
+        <dropdownList refId="UpdatesInterval"/>
+      </presentation>
+      <presentation id="UpdatesAtTime">
+        <dropdownList refId="UpdatesAtTime"/>
+      </presentation>
+      <presentation id="MaxLogFiles">
+        <textBox refId="MaxLogFiles">
+          <label>Erlaubte Protokolldateien:</label>
+        </textBox>
+      </presentation>
+      <presentation id="MaxLogSize">
+        <textBox refId="MaxLogSize">
+          <label>Größe der Protokolldatei:</label>
+        </textBox>
+      </presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>

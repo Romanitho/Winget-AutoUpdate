@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.9" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
   <displayName>WinGet-AutoUpdate</displayName>
   <description>Gestion GPO de WinGet-AutoUpdate</description>
   <resources>
@@ -7,6 +7,7 @@
       <string id="WAU">Winget-AutoUpdate</string>
       <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 ou ultérieure</string>
       <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 ou ultérieure</string>
+      <string id="SUPPORTED_WAU_2_0_3">Winget-AutoUpdate version 2.0.3 ou ultérieure</string>
       <string id="ActivateGPOManagement_Name">Activer la gestion GPO de WAU</string>
       <string id="ActivateGPOManagement_Explain">Ce paramètre de politique est un commutateur de gestion GPO de Winget-AutoUpdate.</string>
       <string id="BypassListForUsers_Name">Contourner la liste noire/blanche pour l'utilisateur</string>
@@ -52,6 +53,12 @@
         Ce paramètre de politique spécifie s'il faut utiliser une liste blanche ou non.
 
         Si cette politique est désactivée ou non configurée, la valeur par défaut est Non.
+      </string>
+      <string id="ExcludePinnedApps_Name">Exclure les applications épinglées des mises à jour</string>
+      <string id="ExcludePinnedApps_Explain">
+        Activez cette stratégie pour inclure les applications winget épinglées dans la liste noire. Si vous utilisez une liste blanche, cette option sera ignorée. Plus de détails: https://learn.microsoft.com/en-us/windows/package-manager/winget/pinning
+
+        Si cette stratégie est désactivée ou non configurée, l'exclusion des applications épinglées n'est pas utilisée.
       </string>
       <string id="ListPath_Name">Obtenir la liste noire/blanche depuis un chemin externe (URL/UNC/GPO/Local)</string>
       <string id="ListPath_Explain">

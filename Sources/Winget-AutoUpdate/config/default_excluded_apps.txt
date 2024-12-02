@@ -1,3 +1,4 @@
+Brave.Brave*
 Google.Chrome*
 Microsoft.Edge*
 Microsoft.Office

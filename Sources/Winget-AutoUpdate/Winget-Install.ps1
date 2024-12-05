@@ -314,29 +314,30 @@ $WAURegKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
 $Script:WAUModsLocation = Join-Path -Path $WAUInstallLocation -ChildPath "mods"
 
-#LogPath initialization
-if (!($LogPath)) {
-    #If LogPath is not set, get WAU log path
-    if ($WAUInstallLocation) {
-        $LogPath = "$WAUInstallLocation\Logs"
+#Log file & LogPath initialization
+if ($IsElevated) {
+    if (!($LogPath)) {
+        #If LogPath is not set, get WAU log path
+        if ($WAUInstallLocation) {
+            $LogPath = "$WAUInstallLocation\Logs"
+        }
+        else {
+            #Else, set a default one
+            $LogPath = "$env:ProgramData\Winget-AutoUpdate\Logs"
+        }
     }
-    else {
-        #Else, set a default one
-        $LogPath = "$env:ProgramData\Winget-AutoUpdate\Logs"
+    $Script:LogFile = "$LogPath\install.log"
+}
+else {
+    if (!($LogPath)) {
+        $LogPath = "C:\Users\$env:UserName\AppData\Roaming\Winget-AutoUpdate\Logs"
     }
+    $Script:LogFile = "$LogPath\install_$env:UserName.log"
 }
 
 #Logs initialization
 if (!(Test-Path $LogPath)) {
     New-Item -ItemType Directory -Force -Path $LogPath | Out-Null
-}
-
-#Log file
-if ($IsElevated) {
-    $Script:LogFile = "$LogPath\install.log"
-}
-else {
-    $Script:LogFile = "$LogPath\install_$env:UserName.log"
 }
 
 #Log Header

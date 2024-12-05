@@ -42,6 +42,28 @@ if ($IsSystem) {
             $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
             Write-ToLog "SymLink for 'install' log file created in Intune Management Extension log folder"
         }
+        # Check if user install.log and symlink WAU-install-username.log exists, make symlink (doesn't work under ServiceUI)
+        # Get all user directories from C:\Users (excluding default/system profiles)
+        $UserDirs = Get-ChildItem -Path "C:\Users" -Directory | Where-Object {
+            ($_ -notmatch "Default") -and ($_ -notmatch "Public") -and ($_ -notmatch "All Users") -and ($_ -notmatch "Default User")
+        }
+        foreach ($UserDir in $UserDirs) {
+            # Define user-specific log path and log file
+            $UserLogPath = "$($UserDir.FullName)\AppData\Roaming\Winget-AutoUpdate\Logs"
+            $UserLogFile = "$UserLogPath\install_$($UserDir.Name).log"
+        
+            # Check if the user's log file exists
+            if (Test-Path -Path $UserLogFile -ErrorAction SilentlyContinue) {
+                # Define the Symlink target
+                $UserLogLink = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-user_$($UserDir.Name).log"
+        
+                # Create Symlink if it doesn't already exist
+                if (!(Test-Path -Path $UserLogLink -ErrorAction SilentlyContinue)) {
+                    New-Item -Path $UserLogLink -ItemType SymbolicLink -Value $UserLogFile -Force -ErrorAction SilentlyContinue | Out-Null
+                    Write-ToLog "Created Symlink for user log: $UserLogLink -> $UserLogFile"
+                }
+            }
+        }
     }
     #Check if running with session ID 0
     if ($SessionID -eq 0) {

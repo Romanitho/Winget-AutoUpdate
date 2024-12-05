@@ -139,25 +139,6 @@ function Install-Prerequisites {
         else {
             Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "Green"
         }
-        if (Test-Path "$WorkingDir\logs") {
-            $NewAcl = Get-Acl -Path "$WorkingDir\logs"
-            $identity = New-Object System.Security.Principal.SecurityIdentifier "S-1-1-0"  # S-1-1-0 stands for "Everyone"
-            $hasModifyPermission = $NewAcl.Access | Where-Object {
-                $_.IdentityReference -eq $identity -and $_.FileSystemRights -match "Modify" -and $_.AccessControlType -eq "Allow"
-            }
-        
-            if (-not $hasModifyPermission) {
-                Write-ToLog "-> Adjusting log folder ($WorkingDir\logs) permissions to allow Modify access for Everyone" "Green"
-        
-                $fileSystemRights = "Modify"
-                $type = "Allow"
-                $fileSystemAccessRuleArgumentList = $identity, $fileSystemRights, $type
-                $fileSystemAccessRule = New-Object -TypeName System.Security.AccessControl.FileSystemAccessRule -ArgumentList $fileSystemAccessRuleArgumentList
-                $NewAcl.SetAccessRule($fileSystemAccessRule)
-                Set-Acl -Path "$WorkingDir\logs" -AclObject $NewAcl
-            }
-        }
-
         Write-ToLog "Prerequisites checked. OK" "Green"
 
     }

@@ -16,9 +16,12 @@ foreach ($file in $wingetFiles) {
     Set-AuthenticodeSignature -FilePath $file.FullName -Certificate $cert -TimestampServer "http://timestamp.digicert.com"
 }
 Start-Sleep 3
-
+$release = [int] ( Import-Clixml -Path .\release.xml ) 
+$release += 1 
+$release | Export-Clixml -Path .\release.xml
 $OutputFile = ".\WAU.msi"
-$BuildVersion = "2.1.1"
+$BuildVersion = "2.1.1.$release"
+
 $Comment = "Custom Build for CLM"
 wix build .\build.wxs -d Version="$BuildVersion" -d Comment="$Comment" -d PreRelease="False" -d NextSemVer="False" -o $OutputFile -arch x64 -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext
 
@@ -26,4 +29,5 @@ wix build .\build.wxs -d Version="$BuildVersion" -d Comment="$Comment" -d PreRel
 Set-AuthenticodeSignature -FilePath $OutputFile -Certificate $cert -TimestampServer "http://timestamp.digicert.com"
 
 Copy-Item $OutputFile "\\$($env:TestComputer)\temp\WAU_TEST" -Verbose 
+
 

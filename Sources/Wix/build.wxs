@@ -263,7 +263,7 @@
         <SetProperty Action="SetUPDATEPRERELEASE_0" Id="UPDATEPRERELEASE" After="AppSearch" Value="0" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE &lt;&gt; &quot;#1&quot;)" />
         <SetProperty Action="SetUPDATEPRERELEASE_1" Id="UPDATEPRERELEASE" After="AppSearch" Value="1" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE = &quot;#1&quot;)" />
         <SetProperty Id="CA_PowerShell_Install" Before="CA_PowerShell_Install" Sequence="execute" Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass  &quot;C:\Program` Files\Winget-AutoUpdate\config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;C:\Program` Files\Winget-AutoUpdate\\&quot; -CurrentDir &quot;[CURRENTDIRECTORY]&quot;" />
-        <SetProperty Id="CA_PowerShell_Uninstall" Before="CA_PowerShell_Uninstall" Sequence="execute" Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot; -Upgrade &quot;#[UPGRADINGPRODUCTCODE]&quot; -Uninstall" />
+        <SetProperty Id="CA_PowerShell_Uninstall" Before="CA_PowerShell_Uninstall" Sequence="execute" Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass &quot;C:\Program` Files\Winget-AutoUpdate\config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;C:\Program` Files\Winget-AutoUpdate\\&quot; -Uninstall" />
 
         <!-- Custom Actions -->
         <CustomAction Id="StartWAU" Impersonate="yes" ExeCommand="conhost.exe --headless schtasks /run /tn WAU\Winget-AutoUpdate" Directory="INSTALLDIR" Return="ignore" />

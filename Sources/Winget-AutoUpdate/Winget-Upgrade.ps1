@@ -150,53 +150,56 @@ if ($true -eq $IsSystem) {
 }
 #endregion Run Scope Machine function if run as System
 
-#Get Notif Locale function
-$LocaleDisplayName = Get-NotifLocale
-Write-ToLog "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan"
+#region Get Notif Locale function
+    [string]$LocaleDisplayName = Get-NotifLocale;
+    Write-ToLog "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan";
+#endregion 
 
 #Check network connectivity
 if (Test-Network) {
 
     #Check prerequisites
-    if ($IsSystem) {
-        Install-Prerequisites
+    if ($true -eq $IsSystem) {
+        Install-Prerequisites;
     }
 
     #Check if Winget is installed and get Winget cmd
-    $Script:Winget = Get-WingetCmd
+    [string]$Script:Winget = Get-WingetCmd;
+    Write-ToLog "Selected winget instance: $($Script:Winget)";
 
-    if ($Winget) {
+    if ($Script:Winget) {
 
-        if ($IsSystem) {
+        if ($true -eq $IsSystem) {
 
             #Get Current Version
-            $WAUCurrentVersion = $WAUConfig.ProductVersion
-            Write-ToLog "WAU current version: $WAUCurrentVersion"
+            $WAUCurrentVersion = $WAUConfig.ProductVersion;
+            Write-ToLog "WAU current version: $WAUCurrentVersion";
 
             #Check if WAU update feature is enabled or not if run as System
-            $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
+            $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate;
             #If yes then check WAU update if run as System
             if ($WAUDisableAutoUpdate -eq 1) {
-                Write-ToLog "WAU AutoUpdate is Disabled." "Gray"
+                Write-ToLog "WAU AutoUpdate is Disabled." "Gray";
             }
             else {
-                Write-ToLog "WAU AutoUpdate is Enabled." "Green"
+                Write-ToLog "WAU AutoUpdate is Enabled." "Green";
                 #Get Available Version
-                $Script:WAUAvailableVersion = Get-WAUAvailableVersion
+                $Script:WAUAvailableVersion = Get-WAUAvailableVersion;
                 #Compare
                 if ([version]$WAUAvailableVersion.replace("-n", "") -gt [version]$WAUCurrentVersion.replace("-n", "")) {
                     #If new version is available, update it
-                    Write-ToLog "WAU Available version: $WAUAvailableVersion" "Yellow"
-                    Update-WAU
+                    Write-ToLog "WAU Available version: $WAUAvailableVersion" "Yellow";
+                    Update-WAU;
                 }
                 else {
-                    Write-ToLog "WAU is up to date." "Green"
+                    Write-ToLog "WAU is up to date." "Green";
                 }
             }
 
             #Delete previous list_/winget_error (if they exist) if run as System
-            if (Test-Path "$WorkingDir\logs\error.txt") {
-                Remove-Item "$WorkingDir\logs\error.txt" -Force
+            [string]$fp4 = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'error.txt');
+            if (Test-Path $fp4) {
+                Remove-Item $fp4 -Force;
             }
 
             #Get External ListPath if run as System

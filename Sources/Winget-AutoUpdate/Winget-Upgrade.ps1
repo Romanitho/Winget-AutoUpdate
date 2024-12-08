@@ -115,7 +115,7 @@ else {
     Write-ToLog -LogMsg "CHECK FOR APP UPDATES (User context)" -IsHeader
 }
 
-#region Log running context and more...
+#region Log running context
 if ($true -eq $IsSystem) {
 
     # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
@@ -141,11 +141,14 @@ if ($true -eq $IsSystem) {
     if ($false -eq $LogRotate) {
         Write-ToLog "An Exception occurred during Log Rotation..."
     }
-
-    #Run Scope Machine function if run as System
-    Add-ScopeMachine
 }
-#endregion Log running context and more...
+#endregion Log running context
+
+#region Run Scope Machine function if run as System
+if ($true -eq $IsSystem) {
+    Add-ScopeMachine;
+}
+#endregion Run Scope Machine function if run as System
 
 #Get Notif Locale function
 $LocaleDisplayName = Get-NotifLocale

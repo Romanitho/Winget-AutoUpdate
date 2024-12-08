@@ -1,6 +1,6 @@
 #region LOAD FUNCTIONS
     # Get the Working Dir
-    $Script:WorkingDir = $PSScriptRoot;
+    [string]$Script:WorkingDir = $PSScriptRoot;
 
     # Get Functions
     Get-ChildItem -Path "$($Script:WorkingDir)\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-Object { . $_.FullName; }
@@ -9,15 +9,15 @@
 <# MAIN #>
 
 # Config console output encoding
-$null = cmd /c ''
+$null = cmd /c '';
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8;
-$Script:ProgressPreference = 'SilentlyContinue'
+$Script:ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue;
 
 # Set GitHub Repo
-$Script:GitHub_Repo = "Winget-AutoUpdate";
+[string]$Script:GitHub_Repo = "Winget-AutoUpdate";
 
 # Log initialization
-$LogFile = "$WorkingDir\logs\updates.log";
+[string]$LogFile = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'updates.log');
 
 #region Get settings and Domain/Local Policies (GPO) if activated.
     Write-ToLog "Reading WAUConfig";
@@ -30,15 +30,15 @@ $LogFile = "$WorkingDir\logs\updates.log";
 
 #region Winget Source Custom
     # Default name of winget repository used within this script
-    $DefaultWingetRepoName = 'winget';
+    [string]$DefaultWingetRepoName = 'winget';
 
     # Defining custom repository for winget tool (only if GPO management is active)
     if($Script:WAUConfig.WAU_ActivateGPOManagement) {
         if($null -eq $Script:WAUConfig.WAU_WingetSourceCustom) {
-            $Script:WingetSourceCustom = $DefaultWingetRepoName;
+            [string]$Script:WingetSourceCustom = $DefaultWingetRepoName;
         } 
         else {
-            $Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
+            [string]$Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
         }
         Write-ToLog "Selecting winget repository named '$($Script:WingetSourceCustom)'";
     }
@@ -46,18 +46,18 @@ $LogFile = "$WorkingDir\logs\updates.log";
 
 #region Checking execution context
     # Check if running account is system or interactive logon System(default) otherwise User
-    $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem;
+    [bool]$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem;
     
     # Check for current session ID (O = system without ServiceUI)
-    $Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId;
+    [Int32]$Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId;
 #endregion
 
 # Preparation to run in current context
-if ($IsSystem) {
+if ($true -eq $IsSystem) {
 
     #If log file doesn't exist, force create it
     if (!(Test-Path -Path $LogFile)) {
-        Write-ToLog "New log file created"
+        Write-ToLog "New log file created";
     }
 
     # paths
@@ -68,6 +68,7 @@ if ($IsSystem) {
 
     # Check if Intune Management Extension Logs folder exists
     if (Test-Path -Path $IntuneLogsDir -PathType Container -ErrorAction SilentlyContinue) {
+
         # Check if symlink WAU-updates.log exists, make symlink (doesn't work under ServiceUI)
         if (!(Test-Path -Path $fp0 -ErrorAction SilentlyContinue)) {
             New-Item -Path $fp0 -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null;
@@ -84,17 +85,19 @@ if ($IsSystem) {
     #Check if running with session ID 0
     if ($SessionID -eq 0) {
         #Check if ServiceUI exists
-        $ServiceUI = Test-Path "$WorkingDir\ServiceUI.exe"
-        if ($ServiceUI) {
+        [string]$fp3 = [System.IO.Path]::Combine($Script:WorkingDir, 'ServiceUI.exe');
+        [bool]$ServiceUI = Test-Path $fp3 -PathType Leaf;
+        if ($true -eq $ServiceUI) {
             #Check if any connected user
             $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue);
             if ($explorerprocesses.Count -gt 0) {
-                #Rerun WAU in system context with ServiceUI
-                Start-Process "ServiceUI.exe" `
+                Write-ToLog "Rerun WAU in system context with ServiceUI";
+                Start-Process `
+                    -FilePath $fp3 `
                     -ArgumentList "-process:explorer.exe $env:windir\System32\conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File winget-upgrade.ps1" `
                     -WorkingDirectory $WorkingDir;
-                Wait-Process "ServiceUI" -ErrorAction SilentlyContinue
-                Exit 0
+                Wait-Process "ServiceUI" -ErrorAction SilentlyContinue;
+                Exit 0;
             }
             else {
                 Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
@@ -112,36 +115,37 @@ else {
     Write-ToLog -LogMsg "CHECK FOR APP UPDATES (User context)" -IsHeader
 }
 
-#Log running context and more...
-if ($IsSystem) {
+#region Log running context and more...
+if ($true -eq $IsSystem) {
 
     # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
     $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles
     if ($null -eq $MaxLogFiles) {
-        [int32] $MaxLogFiles = 3
+        [int32]$MaxLogFiles = 3;
     }
     else {
-        [int32] $MaxLogFiles = $MaxLogFiles
+        [int32]$MaxLogFiles = $MaxLogFiles;
     }
 
     # Maximum size of log file.
-    $MaxLogSize = $WAUConfig.WAU_MaxLogSize
+    $MaxLogSize = $WAUConfig.WAU_MaxLogSize;
     if (!$MaxLogSize) {
-        [int64] $MaxLogSize = 1048576 # in bytes, default is 1048576 = 1 MB
+        [int64]$MaxLogSize = [int64]1MB; # in bytes, default is 1 MB = 1048576
     }
     else {
-        [int64] $MaxLogSize = $MaxLogSize
+        [int64]$MaxLogSize = $MaxLogSize;
     }
 
     #LogRotation if System
-    $LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
-    if ($LogRotate -eq $False) {
+    [bool]$LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize;
+    if ($false -eq $LogRotate) {
         Write-ToLog "An Exception occurred during Log Rotation..."
     }
 
     #Run Scope Machine function if run as System
     Add-ScopeMachine
 }
+#endregion Log running context and more...
 
 #Get Notif Locale function
 $LocaleDisplayName = Get-NotifLocale

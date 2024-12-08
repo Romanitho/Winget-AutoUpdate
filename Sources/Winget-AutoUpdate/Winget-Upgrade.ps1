@@ -329,8 +329,8 @@ if (Test-Network) {
         }
 
         #Get outdated Winget packages
-        Write-ToLog "Checking application updates on Winget Repository..." "yellow"
-        $outdated = Get-WingetOutdatedApps
+        Write-ToLog "Checking application updates on Winget Repository named '$($Script:WingetSourceCustom)' .." "yellow"
+        $outdated = Get-WingetOutdatedApps -src $Script:WingetSourceCustom;
 
         #If something unusual happened or no update found
         if ($outdated -like "No update found.*") {

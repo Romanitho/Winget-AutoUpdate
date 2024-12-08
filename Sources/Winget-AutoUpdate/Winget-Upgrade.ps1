@@ -1,58 +1,98 @@
-<# LOAD FUNCTIONS #>
+#region LOAD FUNCTIONS
+    # Get the Working Dir
+    $Script:WorkingDir = $PSScriptRoot;
 
-#Get the Working Dir
-$Script:WorkingDir = $PSScriptRoot
-#Get Functions
-Get-ChildItem "$WorkingDir\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-Object { . $_.FullName }
-
+    # Get Functions
+    Get-ChildItem -Path "$($Script:WorkingDir)\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-Object { . $_.FullName; }
+#endregion LOAD FUNCTIONS
 
 <# MAIN #>
 
-#Config console output encoding
+# Config console output encoding
 $null = cmd /c ''
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;
 $Script:ProgressPreference = 'SilentlyContinue'
 
-#Set GitHub Repo
-$Script:GitHub_Repo = "Winget-AutoUpdate"
+# Set GitHub Repo
+$Script:GitHub_Repo = "Winget-AutoUpdate";
 
-#Log initialization
-$LogFile = "$WorkingDir\logs\updates.log"
+# Log initialization
+$LogFile = "$WorkingDir\logs\updates.log";
 
-#Check if running account is system or interactive logon
-$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
-#Check for current session ID (O = system without ServiceUI)
-$Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
+#region Get settings and Domain/Local Policies (GPO) if activated.
+    Write-ToLog "Reading WAUConfig";
+    $Script:WAUConfig = Get-WAUConfig;
 
-#Check if running as system
+    if ($WAUConfig.WAU_ActivateGPOManagement -eq 1) {
+        Write-ToLog "WAU Policies management Enabled.";
+    }
+#endregion Get settings and Domain/Local Policies (GPO) if activated.
+
+#region Winget Source Custom
+    # Default name of winget repository used within this script
+    $DefaultWingetRepoName = 'winget';
+
+    # Defining custom repository for winget tool (only if GPO management is active)
+    if($Script:WAUConfig.WAU_ActivateGPOManagement) {
+        if($null -eq $Script:WAUConfig.WAU_WingetSourceCustom) {
+            $Script:WingetSourceCustom = $DefaultWingetRepoName;
+        } 
+        else {
+            $Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
+        }
+        Write-ToLog "Selecting winget repository named '$($Script:WingetSourceCustom)'";
+    }
+#endregion Winget Source Custom
+
+#region Checking execution context
+    # Check if running account is system or interactive logon System(default) otherwise User
+    $Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem;
+    
+    # Check for current session ID (O = system without ServiceUI)
+    $Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId;
+#endregion
+
+# Preparation to run in current context
 if ($IsSystem) {
+
     #If log file doesn't exist, force create it
     if (!(Test-Path -Path $LogFile)) {
         Write-ToLog "New log file created"
     }
+
+    # paths
+    [string]$IntuneLogsDir = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs";
+    [string]$fp0 = [System.IO.Path]::Combine($IntuneLogsDir, 'WAU-updates.log');
+    [string]$fp1 = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'install.log');
+    [string]$fp2 = [System.IO.Path]::Combine($IntuneLogsDir, 'WAU-install.log');
+
     # Check if Intune Management Extension Logs folder exists
-    if ((Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs" -ErrorAction SilentlyContinue)) {
+    if (Test-Path -Path $IntuneLogsDir -PathType Container -ErrorAction SilentlyContinue) {
         # Check if symlink WAU-updates.log exists, make symlink (doesn't work under ServiceUI)
-        if (!(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ErrorAction SilentlyContinue)) {
-            $null = New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-updates.log" -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue
-            Write-ToLog "SymLink for 'update' log file created in Intune Management Extension log folder"
+        if (!(Test-Path -Path $fp0 -ErrorAction SilentlyContinue)) {
+            New-Item -Path $fp0 -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null;
+            Write-ToLog "SymLink for 'update' log file created in in $($IntuneLogsDir) folder";
         }
+
         # Check if install.log and symlink WAU-install.log exists, make symlink (doesn't work under ServiceUI)
-        if ((Test-Path -Path ('{0}\logs\install.log' -f $WorkingDir) -ErrorAction SilentlyContinue) -and !(Test-Path -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ErrorAction SilentlyContinue)) {
-            $null = (New-Item -Path "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-install.log" -ItemType SymbolicLink -Value ('{0}\logs\install.log' -f $WorkingDir) -Force -Confirm:$False -ErrorAction SilentlyContinue)
-            Write-ToLog "SymLink for 'install' log file created in Intune Management Extension log folder"
+        if ( (Test-Path -Path $fp1 -ErrorAction SilentlyContinue) -and !(Test-Path -Path $fp2 -ErrorAction SilentlyContinue) ) {
+            New-Item -Path $fp2 -ItemType SymbolicLink -Value $fp1 -Force -Confirm:$False -ErrorAction SilentlyContinue | Out-Null;
+            Write-ToLog "SymLink for 'install' log file created in $($IntuneLogsDir) folder"
         }
     }
+    
     #Check if running with session ID 0
     if ($SessionID -eq 0) {
         #Check if ServiceUI exists
         $ServiceUI = Test-Path "$WorkingDir\ServiceUI.exe"
         if ($ServiceUI) {
             #Check if any connected user
-            $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+            $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue);
             if ($explorerprocesses.Count -gt 0) {
                 #Rerun WAU in system context with ServiceUI
-                Start-Process "ServiceUI.exe" -ArgumentList "-process:explorer.exe $env:windir\System32\conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File winget-upgrade.ps1" -WorkingDirectory $WorkingDir
+                Start-Process "ServiceUI.exe" `
+                    -ArgumentList "-process:explorer.exe $env:windir\System32\conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File winget-upgrade.ps1" `
+                    -WorkingDirectory $WorkingDir;
                 Wait-Process "ServiceUI" -ErrorAction SilentlyContinue
                 Exit 0
             }
@@ -70,12 +110,6 @@ if ($IsSystem) {
 }
 else {
     Write-ToLog -LogMsg "CHECK FOR APP UPDATES (User context)" -IsHeader
-}
-
-#Get settings and Domain/Local Policies (GPO) if activated.
-$Script:WAUConfig = Get-WAUConfig
-if ($($WAUConfig.WAU_ActivateGPOManagement -eq 1)) {
-    Write-ToLog "WAU Policies management Enabled."
 }
 
 #Log running context and more...

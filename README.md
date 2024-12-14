@@ -25,7 +25,7 @@ Just download latest release [WAU.msi](https://github.com/Romanitho/Winget-AutoU
 ### Use winget to install WAU
 The following command will install WAU through winget itself in the newest version available. 
 
-```
+```batch
 winget install Romanitho.Winget-AutoUpdate
 ```
 
@@ -115,7 +115,7 @@ If `-ListPath` is set to **GPO** the Black/White List can be managed from within
 ### MODSPATH
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):
-```
+```html
 <ul>
 <li><a  href="Adobe.Acrobat.Reader.32-bit-installed.ps1">Adobe.Acrobat.Reader.32-bit-installed.ps1</a></li>
 <li><a  href="Adobe.Acrobat.Reader.64-bit-override.txt">Adobe.Acrobat.Reader.64-bit-override.txt</a></li>
@@ -177,7 +177,7 @@ Specify Winget-AutoUpdate installation location. Default: `C:\Program Files\Wing
 
 ### Deploy with Intune
 You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune: 
-```
+```batch
 "%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
 ```
 

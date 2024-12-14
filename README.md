@@ -3,7 +3,7 @@
 ![image](https://github.com/Romanitho/Winget-AutoUpdate/assets/96626929/0e738c7a-cbe4-4010-94f6-1e9165bc0d49)
 
 [![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/Romanitho/Winget-AutoUpdate?label=Latest%20Stable%20Release&style=for-the-badge)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest)
-
+[![GitHub release (latest SemVer)](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/total?style=for-the-badge)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest)
 </div>
 
 ---

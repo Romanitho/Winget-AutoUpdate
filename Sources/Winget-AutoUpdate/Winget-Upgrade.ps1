@@ -423,7 +423,7 @@ if (Test-Network) {
             Else {
                 #Get Winget system apps to escape them before running user context
                 Write-ToLog "User logged on, get a list of installed Winget apps in System context..."
-                Get-WingetSystemApps
+                Get-WingetSystemApps -src $Script:WingetSourceCustom;
 
                 #Run user context scheduled task
                 Write-ToLog "Starting WAU in User context..."

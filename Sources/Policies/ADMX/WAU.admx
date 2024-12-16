@@ -8,9 +8,15 @@
     <definitions>
       <definition name="SUPPORTED_WAU_1_16_0" displayName="$(string.SUPPORTED_WAU_1_16_0)"/>
       <definition name="SUPPORTED_WAU_1_16_5" displayName="$(string.SUPPORTED_WAU_1_16_5)"/>
+	  <definition name="SUPPORTED_WAU_EXPERIMENTAL" displayName="$(string.SUPPORTED_WAU_EXPERIMENTAL)"/>
     </definitions>
   </supportedOn>
-  <categories><category displayName="$(string.WAU)" name="WAU"/></categories>
+  <categories>
+  <category displayName="$(string.WAU)" name="WAU"/>
+    <category name="Experimental" displayName="$(string.WAUEX)">
+      <parentCategory ref="WAU" />
+    </category>
+  </categories>
   <policies>
   	<policy name="ActivateGPOManagement_Enable" class="Machine" displayName="$(string.ActivateGPOManagement_Name)" explainText="$(string.ActivateGPOManagement_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_ActivateGPOManagement">
       <parentCategory ref="WAU"/>
@@ -348,6 +354,13 @@
       <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0"/>
       <elements>
         <text id="MaxLogSize" valueName="WAU_MaxLogSize" />
+      </elements>
+    </policy>
+  	<policy name="WingetSourceCustom_Enable" class="Machine" displayName="$(string.WingetSourceCustom_Name)" explainText="$(string.WingetSourceCustom_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.WingetSourceCustom)" >
+      <parentCategory ref="Experimental"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_EXPERIMENTAL"/>
+      <elements>
+        <text id="WingetSourceCustom" valueName="WAU_WingetSourceCustom" />
       </elements>
     </policy>
   </policies>

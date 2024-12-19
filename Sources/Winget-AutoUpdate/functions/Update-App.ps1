@@ -17,7 +17,7 @@ Function Update-App ($app) {
     Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
 
     #Check if mods exist for preinstall/override/upgrade/install/installed/notinstalled
-    $ModsPreInstall, $ModsOverride, $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled = Test-Mods $($app.Id)
+    $ModsPreInstall, $ModsOverride, $ModsCustom $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled = Test-Mods $($app.Id)
 
     #Winget upgrade
     Write-ToLog "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"
@@ -32,6 +32,10 @@ Function Update-App ($app) {
     if ($ModsOverride) {
         Write-ToLog "-> Running (overriding default): Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride"
         & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+    }
+    elseif ($ModsCustom) {
+         Write-ToLog "-> Running (customizing default): Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom"
+         & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
     }
     else {
         Write-ToLog "-> Running: Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h"
@@ -64,6 +68,10 @@ Function Update-App ($app) {
             if ($ModsOverride) {
                 Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride"
                 & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+            }
+            elseif ($ModsCustom) {
+                 Write-ToLog "-> Running (customizing default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom"
+                 & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
             }
             else {
                 Write-ToLog "-> Running: Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force"

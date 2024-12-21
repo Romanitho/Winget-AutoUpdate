@@ -35,7 +35,7 @@ Function Update-App ($app) {
     }
     elseif ($ModsCustom) {
          Write-ToLog "-> Running (customizing default): Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom"
-         & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+         & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
     }
     else {
         Write-ToLog "-> Running: Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h"
@@ -71,7 +71,7 @@ Function Update-App ($app) {
             }
             elseif ($ModsCustom) {
                  Write-ToLog "-> Running (customizing default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom"
-                 & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+                 & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
             }
             else {
                 Write-ToLog "-> Running: Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force"

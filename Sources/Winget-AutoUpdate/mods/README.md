@@ -29,6 +29,6 @@ Another finess is the **AppID** followed by the `-override` or `-custom` suffix 
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
 > Example:  
->  **ShareX.ShareX-custom.txt** with the content `/TASKS=!CreateDesktopIcon`
+>  **ShareX.ShareX-custom.txt** with the content `/MERGETASKS=!CreateDesktopIcon`
 
 This will use the **content** of the text file as a native **winget --override** respectively **winget --custom** parameter in **WAU upgrading**.

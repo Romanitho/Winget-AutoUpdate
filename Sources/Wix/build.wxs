@@ -284,24 +284,6 @@
                     -InstallPath &apos;[INSTALLDIR]\&apos; 
                     -CurrentDir &apos;[CURRENTDIRECTORY]&apos; 
                 &amp;#125; &quot; " 
-        />
--->
-        <SetProperty 
-        Id="CA_PowerShell_Install" 
-        Before="CA_PowerShell_Install" 
-        Sequence="execute" 
-        Value="&quot;[POWERSHELLEXE]&quot; 
-            -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command 
-                &quot;&amp; &#123;  write-host &apos;hello world&apos; &#125; &quot; "
-        />
-
-
-        <SetProperty 
-        Id="CA_PowerShell_Uninstall" 
-        Before="CA_PowerShell_Uninstall" 
-        Sequence="execute" 
-        Value="&quot;[POWERSHELLEXE]&quot; 
-            -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command 
             &quot;&amp; {{ 
                 &amp;
                 &apos;[INSTALLDIR]\config\WAU-MSI_Actions.ps1&apos; 
@@ -309,6 +291,21 @@
                 -InstallPath &apos;[INSTALLDIR]\&apos; 
                 -Uninstall 
                 }}&quot; " 
+        />
+-->
+        <SetProperty 
+        Id="CA_PowerShell_Install" 
+        Before="CA_PowerShell_Install" 
+        Sequence="execute" 
+        Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; [\{] write-output &apos;test [INSTALLDIR]&apos; [\}] &quot;"
+        />
+
+
+        <SetProperty 
+        Id="CA_PowerShell_Uninstall" 
+        Before="CA_PowerShell_Uninstall" 
+        Sequence="execute" 
+        Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; [\{] write-output &apos;test [INSTALLDIR]&apos; [\}] &quot;"
         />
 
         <!-- Custom Actions -->

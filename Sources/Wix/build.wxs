@@ -298,7 +298,7 @@
         Before="CA_PowerShell_Install" 
         Sequence="execute" 
         Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; [\{] 
-        &amp; &apos;[INSTALLDIR]\config\WAU-MSI_Actions.ps1&apos; &apos;[B_W_LIST_PATH]&apos; -InstallPath &apos;[INSTALLDIR]\&apos; -CurrentDir &apos;[CURRENTDIRECTORY]&apos;  
+        &amp; &apos;[INSTALLDIR]\config\WAU-MSI_Actions.ps1&apos; &apos;[B_W_LIST_PATH]&apos; -InstallPath &apos;[INSTALLDIR]&apos; -CurrentDir &apos;[CURRENTDIRECTORY]&apos;  
         [\}] &quot;"
         />
 
@@ -308,7 +308,7 @@
         Before="CA_PowerShell_Uninstall" 
         Sequence="execute" 
         Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; [\{] 
-        &amp; &apos;[INSTALLDIR]\config\WAU-MSI_Actions.ps1&apos; &apos;[B_W_LIST_PATH]&apos; -InstallPath &apos;[INSTALLDIR]\&apos; -Uninstall 
+        &amp; &apos;[INSTALLDIR]\config\WAU-MSI_Actions.ps1&apos; &apos;[B_W_LIST_PATH]&apos; -InstallPath &apos;[INSTALLDIR]&apos; -Uninstall 
         [\}] &quot;"
         />
 

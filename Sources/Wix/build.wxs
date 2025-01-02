@@ -111,6 +111,10 @@
         <Property Id="APPINSTALLERSHORTCUT_VALUE" Value="#0">
             <RegistrySearch Id="SearchAppInstallerShortcut" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_AppInstallerShortcut"  />
         </Property>
+        <!-- Install path with backicks for powershell CLM -->
+
+        <!-- Create EscapedInstallPath using installdir and replacing the spaces with backtick escaped version -->
+        <!-- <Property Id="EscapedInstallPath" Value="[INSTALLDIR].replace(/ /g, ' `')"></Property> --> 
 
         <!-- UI Config -->
         <UI Id="WixUI_InstallDir">
@@ -262,8 +266,50 @@
         <SetProperty Id="MAXLOGSIZE_VALUE" After="AppSearch" Value="#[MAXLOGSIZE]" Condition="MAXLOGSIZE" />
         <SetProperty Action="SetUPDATEPRERELEASE_0" Id="UPDATEPRERELEASE" After="AppSearch" Value="0" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE &lt;&gt; &quot;#1&quot;)" />
         <SetProperty Action="SetUPDATEPRERELEASE_1" Id="UPDATEPRERELEASE" After="AppSearch" Value="1" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE = &quot;#1&quot;)" />
-        <SetProperty Id="CA_PowerShell_Install" Before="CA_PowerShell_Install" Sequence="execute" Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass  &quot;C:\Program` Files\Winget-AutoUpdate\config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;C:\Program` Files\Winget-AutoUpdate\\&quot; -CurrentDir &quot;[CURRENTDIRECTORY]&quot;" />
-        <SetProperty Id="CA_PowerShell_Uninstall" Before="CA_PowerShell_Uninstall" Sequence="execute" Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass &quot;C:\Program` Files\Winget-AutoUpdate\config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;C:\Program` Files\Winget-AutoUpdate\\&quot; -Uninstall" />
+
+        <!-- <SetProperty Id="EscapedInstallPath" Before="CA_PowerShell_Install" Sequence="execute" Value="[INSTALLDIR].replace(/ /g, '` ')"/> -->
+
+
+<!--
+        <SetProperty 
+        Id="CA_PowerShell_Install" 
+        Before="CA_PowerShell_Install" 
+        Sequence="execute" 
+        Value="&quot;[POWERSHELLEXE]&quot; 
+            -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command 
+                &quot;&amp; &amp;#123;  
+                    &amp; 
+                    &apos;[INSTALLDIR]\config\WAU-MSI_Actions.ps1&apos; 
+                    &apos;[B_W_LIST_PATH]&apos; 
+                    -InstallPath &apos;[INSTALLDIR]\&apos; 
+                    -CurrentDir &apos;[CURRENTDIRECTORY]&apos; 
+                &amp;#125; &quot; " 
+        />
+-->
+        <SetProperty 
+        Id="CA_PowerShell_Install" 
+        Before="CA_PowerShell_Install" 
+        Sequence="execute" 
+        Value="&quot;[POWERSHELLEXE]&quot; 
+            -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command 
+                &quot;&amp; &#123;  write-host &apos;hello world&apos; &#125; &quot; "
+        />
+
+
+        <SetProperty 
+        Id="CA_PowerShell_Uninstall" 
+        Before="CA_PowerShell_Uninstall" 
+        Sequence="execute" 
+        Value="&quot;[POWERSHELLEXE]&quot; 
+            -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command 
+            &quot;&amp; {{ 
+                &amp;
+                &apos;[INSTALLDIR]\config\WAU-MSI_Actions.ps1&apos; 
+                &apos;[B_W_LIST_PATH]&apos; 
+                -InstallPath &apos;[INSTALLDIR]\&apos; 
+                -Uninstall 
+                }}&quot; " 
+        />
 
         <!-- Custom Actions -->
         <CustomAction Id="StartWAU" Impersonate="yes" ExeCommand="conhost.exe --headless schtasks /run /tn WAU\Winget-AutoUpdate" Directory="INSTALLDIR" Return="ignore" />

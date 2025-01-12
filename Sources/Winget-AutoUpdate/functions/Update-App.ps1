@@ -17,7 +17,7 @@ Function Update-App ($app) {
     Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
 
     #Check if mods exist for preinstall/override/upgrade/install/installed/notinstalled
-    $ModsPreInstall, $ModsOverride, $ModsCustom $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled = Test-Mods $($app.Id)
+    $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled = Test-Mods $($app.Id)
 
     #Winget upgrade
     Write-ToLog "##########   WINGET UPGRADE PROCESS STARTS FOR APPLICATION ID '$($App.Id)'   ##########" "Gray"

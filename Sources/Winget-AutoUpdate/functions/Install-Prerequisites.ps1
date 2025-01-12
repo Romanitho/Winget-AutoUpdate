@@ -139,7 +139,6 @@ function Install-Prerequisites {
         else {
             Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "Green"
         }
-
         Write-ToLog "Prerequisites checked. OK" "Green"
 
     }

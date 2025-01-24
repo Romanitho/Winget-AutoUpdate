@@ -5,8 +5,10 @@
   <resources>
     <stringTable>
       <string id="WAU">Winget-AutoUpdate</string>
+      <string id="WAUEX">Expérimental</string>
       <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 ou ultérieure</string>
       <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 ou ultérieure</string>
+      <string id="SUPPORTED_WAU_EXPERIMENTAL">Winget-AutoUpdate Expérimental, sujet à changements, ne pas utiliser en PROD</string>
       <string id="ActivateGPOManagement_Name">Activer la gestion GPO de WAU</string>
       <string id="ActivateGPOManagement_Explain">Ce paramètre de politique est un commutateur de gestion GPO de Winget-AutoUpdate.</string>
       <string id="BypassListForUsers_Name">Contourner la liste noire/blanche pour l'utilisateur</string>
@@ -178,6 +180,14 @@
 
         Si cette politique est désactivée ou non configurée, la taille par défaut est utilisée.
       </string>
+      <string id="WingetSourceCustom_Name">Utiliser un dépôt Winget personnalisé</string>
+      <string id="WingetSourceCustom_Explain">
+        Ce paramètre de politique spécifie s'il faut utiliser l'outil winget avec un dépôt personnalisé ou non :
+
+        Si cette politique est activée, WAU essayera d'utiliser un dépôt personnalisé au lieu de celui intégré par défaut appelé winget.
+
+        Si cette politique est désactivée ou non configurée, le dépôt par défaut intégré est toujours utilisé.
+      </string>
     </stringTable>
     <presentationTable>
       <presentation id="BlackList">
@@ -218,6 +228,11 @@
       <presentation id="MaxLogSize">
         <textBox refId="MaxLogSize">
           <label>Taille du fichier journal :</label>
+        </textBox>
+      </presentation>
+      <presentation id="WingetSourceCustom">
+        <textBox refId="WingetSourceCustom">
+          <label>Nom du dépôt winget personnalisé :</label>
         </textBox>
       </presentation>
     </presentationTable>

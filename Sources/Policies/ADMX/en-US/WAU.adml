@@ -5,10 +5,10 @@
   <resources >
     <stringTable >
       <string id="WAU">Winget-AutoUpdate</string>
-	  <string id="WAUEX">Experimental</string>
+      <string id="WAUEX">Experimental</string>
       <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 or later</string>
       <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 or later</string>
-	  <string id="SUPPORTED_WAU_EXPERIMENTAL">Winget-AutoUpdate Experimental, subject to change, do not use on PROD</string>
+	<string id="SUPPORTED_WAU_EXPERIMENTAL">Winget-AutoUpdate Experimental, subject to change, do not use on PROD</string>
       <string id="ActivateGPOManagement_Name">Activate WAU GPO Management</string>
       <string id="ActivateGPOManagement_Explain">This policy setting is an overriding toggle for GPO Management of Winget-AutoUpdate.</string>
       <string id="BypassListForUsers_Name">Bypass Black/White list for User</string>

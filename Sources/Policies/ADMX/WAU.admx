@@ -8,11 +8,11 @@
     <definitions>
       <definition name="SUPPORTED_WAU_1_16_0" displayName="$(string.SUPPORTED_WAU_1_16_0)"/>
       <definition name="SUPPORTED_WAU_1_16_5" displayName="$(string.SUPPORTED_WAU_1_16_5)"/>
-	  <definition name="SUPPORTED_WAU_EXPERIMENTAL" displayName="$(string.SUPPORTED_WAU_EXPERIMENTAL)"/>
+	    <definition name="SUPPORTED_WAU_EXPERIMENTAL" displayName="$(string.SUPPORTED_WAU_EXPERIMENTAL)"/>
     </definitions>
   </supportedOn>
   <categories>
-  <category displayName="$(string.WAU)" name="WAU"/>
+    <category displayName="$(string.WAU)" name="WAU"/>
     <category name="Experimental" displayName="$(string.WAUEX)">
       <parentCategory ref="WAU" />
     </category>

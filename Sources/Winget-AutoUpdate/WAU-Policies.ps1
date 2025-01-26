@@ -8,7 +8,6 @@ Daily update settings from policies
 
 #Import functions
 . "$PSScriptRoot\functions\Get-WAUConfig.ps1"
-. "$PSScriptRoot\functions\Add-Shortcut.ps1"
 
 #Check if GPO Management is enabled
 $ActivateGPOManagement = Get-ItemPropertyValue "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -Name "WAU_ActivateGPOManagement" -ErrorAction SilentlyContinue

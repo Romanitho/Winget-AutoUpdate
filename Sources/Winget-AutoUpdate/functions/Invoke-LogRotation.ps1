@@ -1,10 +1,15 @@
 #Function to rotate the logs
 
-function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
+function Invoke-LogRotation {
+    [OutputType([Bool])]
+    param(
+        [string]$LogFile, 
+        [Int32]$MaxLogFiles, 
+        [Int64]$MaxLogSize
+    )
 
     # if MaxLogFiles is 1 just keep the original one and let it grow
     if (-not($MaxLogFiles -eq 1)) {
-
         try {
             # get current size of log file
             $currentSize = (Get-Item $LogFile).Length
@@ -47,15 +52,12 @@ function Invoke-LogRotation ($LogFile, $MaxLogFiles, $MaxLogSize) {
                 #Log Header
                 Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
                 Write-ToLog -LogMsg "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
-
-                Return $True
             }
+            # end of try block
+            Return $true;
         }
-
         catch {
-            Return $False
+            Return $false;
         }
-
     }
-
 }

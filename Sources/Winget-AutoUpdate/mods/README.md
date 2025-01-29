@@ -24,8 +24,11 @@ A script **Template** for an all-purpose mod (`_WAU-notinstalled-template.ps1`) 
 Name it `_WAU-notinstalled.ps1` for activation
 
 ### Winget native parameters:
-Another finess is the **AppID** followed by the `-override` suffix as a **text file** (**.txt**).
+Another finess is the **AppID** followed by the `-override` or `-custom` suffix as a **text file** (**.txt**).
 > Example:  
 >  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
-This will use the **content** of the text file as a native **winget --override** parameter in **WAU upgrading**.
+> Example:  
+>  **ShareX.ShareX-custom.txt** with the content `/MERGETASKS=!CreateDesktopIcon`
+
+This will use the **content** of the text file as a native **winget --override** respectively **winget --custom** parameter in **WAU upgrading**.

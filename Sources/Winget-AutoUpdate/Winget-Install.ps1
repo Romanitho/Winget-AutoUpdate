@@ -54,13 +54,21 @@ param(
 
 <# FUNCTIONS #>
 
-#Include external Functions
-. "$PSScriptRoot\functions\Install-Prerequisites.ps1"
-. "$PSScriptRoot\functions\Update-StoreApps.ps1"
-. "$PSScriptRoot\functions\Add-ScopeMachine.ps1"
-. "$PSScriptRoot\functions\Get-WingetCmd.ps1"
-. "$PSScriptRoot\functions\Write-ToLog.ps1"
-. "$PSScriptRoot\functions\Confirm-Installation.ps1"
+#Include external Functions (check first if this script is a symlink or a real file)
+$scriptItem = Get-Item -LiteralPath $MyInvocation.MyCommand.Definition
+$realPath = if ($scriptItem.LinkType) {
+    $targetPath = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($scriptItem.Directory.FullName, $scriptItem.Target))
+    Split-Path -Parent $targetPath
+} else {
+    $scriptItem.DirectoryName
+}
+
+. "$realPath\functions\Install-Prerequisites.ps1"
+. "$realPath\functions\Update-StoreApps.ps1"
+. "$realPath\functions\Add-ScopeMachine.ps1"
+. "$realPath\functions\Get-WingetCmd.ps1"
+. "$realPath\functions\Write-ToLog.ps1"
+. "$realPath\functions\Confirm-Installation.ps1"
 
 
 #Check if App exists in Winget Repository
@@ -314,29 +322,30 @@ $WAURegKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
 $Script:WAUModsLocation = Join-Path -Path $WAUInstallLocation -ChildPath "mods"
 
-#LogPath initialization
-if (!($LogPath)) {
-    #If LogPath is not set, get WAU log path
-    if ($WAUInstallLocation) {
-        $LogPath = "$WAUInstallLocation\Logs"
+#Log file & LogPath initialization
+if ($IsElevated) {
+    if (!($LogPath)) {
+        #If LogPath is not set, get WAU log path
+        if ($WAUInstallLocation) {
+            $LogPath = "$WAUInstallLocation\Logs"
+        }
+        else {
+            #Else, set a default one
+            $LogPath = "$env:ProgramData\Winget-AutoUpdate\Logs"
+        }
     }
-    else {
-        #Else, set a default one
-        $LogPath = "$env:ProgramData\Winget-AutoUpdate\Logs"
+    $Script:LogFile = "$LogPath\install.log"
+}
+else {
+    if (!($LogPath)) {
+        $LogPath = "C:\Users\$env:UserName\AppData\Roaming\Winget-AutoUpdate\Logs"
     }
+    $Script:LogFile = "$LogPath\install_$env:UserName.log"
 }
 
 #Logs initialization
 if (!(Test-Path $LogPath)) {
     New-Item -ItemType Directory -Force -Path $LogPath | Out-Null
-}
-
-#Log file
-if ($IsElevated) {
-    $Script:LogFile = "$LogPath\install.log"
-}
-else {
-    $Script:LogFile = "$LogPath\install_$env:UserName.log"
 }
 
 #Log Header

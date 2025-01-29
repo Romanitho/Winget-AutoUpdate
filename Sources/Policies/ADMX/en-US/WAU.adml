@@ -1,94 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
-<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" schemaVersion="1.0" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" schemaVersion="1.0"
+  xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
   <displayName>WinGet-AutoUpdate</displayName>
   <description>WinGet-AutoUpdate GPO Management</description>
-  <resources >
-    <stringTable >
+  <resources>
+    <stringTable>
       <string id="WAU">Winget-AutoUpdate</string>
+      <string id="WAUEX">Experimental</string>
       <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 or later</string>
       <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 or later</string>
+      <string id="SUPPORTED_WAU_EXPERIMENTAL">Winget-AutoUpdate Experimental, subject to change, do
+        not use on PROD</string>
       <string id="ActivateGPOManagement_Name">Activate WAU GPO Management</string>
-      <string id="ActivateGPOManagement_Explain">This policy setting is an overriding toggle for GPO Management of Winget-AutoUpdate.</string>
+      <string id="ActivateGPOManagement_Explain">This policy setting is an overriding
+        toggle for GPO Management of Winget-AutoUpdate.</string>
       <string id="BypassListForUsers_Name">Bypass Black/White list for User</string>
-      <string id="BypassListForUsers_Explain">This policy setting specifies whether to Bypass Black/White list when run in user context or not.
+      <string id="BypassListForUsers_Explain">This policy setting specifies whether to
+        Bypass Black/White list when run in user context or not.
 
-If this policy is disabled or not configured, the default is No.</string>
+        If this policy is disabled or not configured, the default is No.</string>
       <string id="DisableAutoUpdate_Name">Disable WAU AutoUpdate</string>
-      <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to Disable WAU AutoUpdate or not:
-By default, WAU AutoUpdate is enabled.
-It will not overwrite the configurations, icons (if personalised), excluded_apps list...
+      <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to
+        Disable WAU AutoUpdate or not:
+        By default, WAU AutoUpdate is enabled.
+        It will not overwrite the configurations, icons (if personalised),
+        excluded_apps list...
 
-If this policy is disabled or not configured, the default is No.</string>
+        If this policy is disabled or not configured, the default is No.</string>
       <string id="DoNotRunOnMetered_Name">Run WAU on metered connection</string>
-      <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to Run WAU on metered connection or not.
+      <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to
+        Run WAU on metered connection or not.
 
-If this policy is disabled or not configured, the default is No.</string>
+        If this policy is disabled or not configured, the default is No.</string>
       <string id="UpdatePrerelease_Name">Update WAU to PreRelease versions</string>
-      <string id="UpdatePrerelease_Explain">This policy setting specifies whether to update WAU to PreRelease versions or not (via WAU AutoUpdate).
+      <string id="UpdatePrerelease_Explain">This policy setting specifies whether to
+        update WAU to PreRelease versions or not (via WAU AutoUpdate).
 
-If this policy is disabled or not configured, the default is No.</string>
+        If this policy is disabled or not configured, the default is No.</string>
       <string id="BlackList_Name">Application GPO Blacklist</string>
-      <string id="BlackList_Explain">Provide the WinGet IDs of applications you want to exclude.
+      <string id="BlackList_Explain">Provide the WinGet IDs of applications you want to
+        exclude.
 
-If this policy is disabled or not configured, GPO Blacklist is not used.</string>
+        If this policy is disabled or not configured, GPO Blacklist is not used.</string>
       <string id="WhiteList_Name">Application GPO Whitelist</string>
-      <string id="WhiteList_Explain">Provide the WinGet IDs of applications you want to include.
+      <string id="WhiteList_Explain">Provide the WinGet IDs of applications you want to
+        include.
 
-If this policy is disabled or not configured, GPO Whitelist is not used.</string>
+        If this policy is disabled or not configured, GPO Whitelist is not used.</string>
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
-      <string id="UseWhiteList_Explain">This policy setting specifies whether to use a Whitelist or not.
+      <string id="UseWhiteList_Explain">This policy setting specifies whether to use a
+        Whitelist or not.
 
-If this policy is disabled or not configured, the default is No.</string>
-      <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/GPO/Local)</string>
-      <string id="ListPath_Explain">If this policy is enabled, you can set a (URL/UNC/GPO/Local) Path to external lists other than the default.
-If "Application GPO Blacklist/Whitelist" is set in this GPO the Path can be: GPO
+        If this policy is disabled or not configured, the default is No.</string>
+      <string id="ListPath_Name">Get Black/White List from external Path
+        (URL/UNC/GPO/Local)</string>
+      <string id="ListPath_Explain">If this policy is enabled, you can set a
+        (URL/UNC/GPO/Local) Path to external lists other than the default.
+        If "Application GPO Blacklist/Whitelist" is set in this GPO the Path can be:
+        GPO
 
-If this policy is disabled or not configured, the default ListPath is used (WAU InstallLocation).</string>
+        If this policy is disabled or not configured, the default ListPath is used
+        (WAU InstallLocation).</string>
       <string id="ModsPath_Name">Get Mods from external Path (URL/UNC/Local/AzureBlob)</string>
-      <string id="ModsPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local/AzureBlob) Path to external mods other than the default.
+      <string id="ModsPath_Explain">If this policy is enabled, you can set a
+        (URL/UNC/Local/AzureBlob) Path to external mods other than the default.
 
-If this policy is disabled or not configured, the default ModsPath is used (WAU InstallLocation).
+        If this policy is disabled or not configured, the default ModsPath is used
+        (WAU InstallLocation).
 
-Note: When set to 'AzureBlob', ensure you also configure 'Set Azure Blob URL with SAS token'.</string>
+        Note: When set to 'AzureBlob', ensure you also configure 'Set Azure Blob URL
+        with SAS token'.</string>
       <string id="BlobURL_Name">Set Azure Blob URL with SAS Token</string>
-      <string id="BlobURL_Explain">If this policy is enabled, you can set an Azure Storage Blob URL with SAS token for use with the 'Mods' feature. The URL must include the SAS token and have 'read' and 'list' permissions.
+      <string id="BlobURL_Explain">If this policy is enabled, you can set an Azure
+        Storage Blob URL with SAS token for use with the 'Mods' feature. The URL
+        must include the SAS token and have 'read' and 'list' permissions.
 
-If this policy is disabled or not configured, the value is blank and Azure Blob storage will NOT work.</string>
+        If this policy is disabled or not configured, the value is blank and Azure
+        Blob storage will NOT work.</string>
       <string id="NotificationLevel_Name">Notification Level</string>
-      <string id="NotificationLevel_Explain">If this policy is enabled, you can configure the Notification Level:
-1. Full (Default)
-2. SuccessOnly
-3. None
+      <string id="NotificationLevel_Explain">If this policy is enabled, you can
+        configure the Notification Level:
+        1. Full (Default)
+        2. SuccessOnly
+        3. None
 
-If this policy is not configured or disabled, Notification Level: (1. Full).</string>
+        If this policy is not configured or disabled, Notification Level: (1. Full).</string>
       <string id="NotificationLevel_Full">1. Full (Default)</string>
       <string id="NotificationLevel_SuccessOnly">2. SuccessOnly</string>
       <string id="NotificationLevel_None">3. None</string>
       <string id="UpdatesInterval_Name">Updates Interval</string>
-      <string id="UpdatesInterval_Explain">If this policy is enabled, you can configure the Updates Interval:
-1. Daily (Default)
-2. BiDaily
-3. Weekly
-4. BiWeekly
-5. Monthly
-6. Never (e.g. in combination with 'Updates at Logon')
+      <string id="UpdatesInterval_Explain">If this policy is enabled, you can configure
+        the Updates Interval:
+        1. Daily (Default)
+        2. BiDaily
+        3. Weekly
+        4. BiWeekly
+        5. Monthly
+        6. Never (e.g. in combination with 'Updates at Logon')
 
-If this policy is not configured or disabled, Updates Interval: (1. Daily).</string>
+        If this policy is not configured or disabled, Updates Interval: (1. Daily).</string>
       <string id="UpdatesInterval_Daily">1. Daily (Default)</string>
       <string id="UpdatesInterval_BiDaily">2. BiDaily</string>
       <string id="UpdatesInterval_Weekly">3. Weekly</string>
       <string id="UpdatesInterval_BiWeekly">4. BiWeekly</string>
       <string id="UpdatesInterval_Monthly">5. Monthly</string>
-      <string id="UpdatesInterval_Never">6. Never (e.g. in combination with 'Updates Interval')</string>
+      <string id="UpdatesInterval_Never">6. Never (e.g. in combination with 'Updates
+        Interval')</string>
       <string id="UpdatesAtLogon_Name">Updates at Logon</string>
-      <string id="UpdatesAtLogon_Explain">This policy setting specifies whether to set WAU to run at user logon or not.
+      <string id="UpdatesAtLogon_Explain">This policy setting specifies whether to set
+        WAU to run at user logon or not.
 
-If this policy is disabled or not configured, the default is No.</string>
+        If this policy is disabled or not configured, the default is No.</string>
       <string id="UpdatesAtTime_Name">Updates at Time</string>
-      <string id="UpdatesAtTime_Explain">If this policy is enabled, you can configure the Sheduled Task Update time:
-From 01:00 to 24:00 (Military/24 Hour Time)
+      <string id="UpdatesAtTime_Explain">If this policy is enabled, you can configure
+        the Sheduled Task Update time:
+        From 01:00 to 24:00 (Military/24 Hour Time)
 
-If this policy is not configured or disabled, Updates at Time: (06:00 AM).</string>
+        If this policy is not configured or disabled, Updates at Time: (06:00 AM).</string>
       <string id="UpdatesAtTime01">01:00 AM</string>
       <string id="UpdatesAtTime02">02:00</string>
       <string id="UpdatesAtTime03">03:00</string>
@@ -114,32 +143,48 @@ If this policy is not configured or disabled, Updates at Time: (06:00 AM).</stri
       <string id="UpdatesAtTime23">23:00</string>
       <string id="UpdatesAtTime24">24:00</string>
       <string id="UserContext_Name">User context execution</string>
-      <string id="UserContext_Explain">This policy setting specifies whether to enable User context execution or not.
+      <string id="UserContext_Explain">This policy setting specifies whether to enable
+        User context execution or not.
 
-If this policy is disabled or not configured, the default is No.</string>
+        If this policy is disabled or not configured, the default is No.</string>
       <string id="DesktopShortcut_Name">Enable Deskop Shortcut [DEPRECATED]</string>
-      <string id="DesktopShortcut_Explain">This policy setting specifies whether to enable a Desktop Shortcut or not:
-WAU - Check for updated Apps
+      <string id="DesktopShortcut_Explain">This policy setting specifies whether to
+        enable a Desktop Shortcut or not:
+        WAU - Check for updated Apps
 
-If this policy is disabled or not configured, the default is No.</string>
+        If this policy is disabled or not configured, the default is No.</string>
       <string id="StartMenuShortcut_Name">Enable Start Menu Shortcuts [DEPRECATED]</string>
-      <string id="StartMenuShortcut_Explain">This policy setting specifies whether to enable the Start Menu Shortcuts or not:
-WAU - Check for updated Apps
-WAU - Open logs
-WAU - Web Help
+      <string id="StartMenuShortcut_Explain">This policy setting specifies whether to
+        enable the Start Menu Shortcuts or not:
+        WAU - Check for updated Apps
+        WAU - Open logs
+        WAU - Web Help
 
-If this policy is disabled or not configured, the default is No.</string>
+        If this policy is disabled or not configured, the default is No.</string>
       <string id="MaxLogFiles_Name">Log: Number of allowed log files</string>
-      <string id="MaxLogFiles_Explain">If this policy is enabled, you can set a number of allowed log files:
-Setting MaxLogFiles to 0 don't delete any old archived log files, 1 keeps the original one and just let it grow.
-Default number is 3 (0-99)
+      <string id="MaxLogFiles_Explain">If this policy is enabled, you can set a number
+        of allowed log files:
+        Setting MaxLogFiles to 0 don't delete any old archived log files, 1 keeps
+        the original one and just let it grow.
+        Default number is 3 (0-99)
 
-If this policy is disabled or not configured, the default number is used.</string>
+        If this policy is disabled or not configured, the default number is used.</string>
       <string id="MaxLogSize_Name">Log: Size of the log file in bytes before rotating</string>
-      <string id="MaxLogSize_Explain">If this policy is enabled, you can set the size of the log file in bytes before rotating.
-Default size is 1048576 = 1 MB
+      <string id="MaxLogSize_Explain">If this policy is enabled, you can set the size of
+        the log file in bytes before rotating.
+        Default size is 1048576 = 1 MB
 
-If this policy is disabled or not configured, the default size is used.</string>
+        If this policy is disabled or not configured, the default size is used.</string>
+      <string id="WingetSourceCustom_Name">Use custom Winget Source repository</string>
+      <string id="WingetSourceCustom_Explain">This policy setting specifies whether to
+        use winget tool with custom repository or not:
+        (WAU - Check for updated Apps)
+
+        If this policy is enabled, WAU will TRY to use a custom repo instead of the
+        built-in/default one called winget.
+
+        If this policy is disabled or not configured, the default is always the
+        built-in winget.</string>
     </stringTable>
     <presentationTable>
       <presentation id="BlackList">
@@ -159,18 +204,18 @@ If this policy is disabled or not configured, the default size is used.</string>
         </textBox>
       </presentation>
       <presentation id="BlobURL">
-            <textBox refId="BlobURL">
-                  <label>Azure Storage URL with SAS token:</label>
-            </textBox>
+        <textBox refId="BlobURL">
+          <label>Azure Storage URL with SAS token:</label>
+        </textBox>
       </presentation>
       <presentation id="NotificationLevel">
-        <dropdownList refId="NotificationLevel"/>
+        <dropdownList refId="NotificationLevel" />
       </presentation>
       <presentation id="UpdatesInterval">
-        <dropdownList refId="UpdatesInterval"/>
+        <dropdownList refId="UpdatesInterval" />
       </presentation>
       <presentation id="UpdatesAtTime">
-        <dropdownList refId="UpdatesAtTime"/>
+        <dropdownList refId="UpdatesAtTime" />
       </presentation>
       <presentation id="MaxLogFiles">
         <textBox refId="MaxLogFiles">
@@ -180,6 +225,11 @@ If this policy is disabled or not configured, the default size is used.</string>
       <presentation id="MaxLogSize">
         <textBox refId="MaxLogSize">
           <label>Size of the log file:</label>
+        </textBox>
+      </presentation>
+      <presentation id="WingetSourceCustom">
+        <textBox refId="WingetSourceCustom">
+          <label>Name of custom winget source:</label>
         </textBox>
       </presentation>
     </presentationTable>

@@ -186,7 +186,7 @@ You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob
 This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM and before any upgrades takes place**.<br>
 If **ExitCode** is **1** from `_WAU-mods.ps1` then **Re-run WAU**.
 
-Likewise `_WAU-mods-postrun.ps1` can be used to do things at the end of the **WAU** process.
+Likewise `_WAU-mods-postsys.ps1` can be used to do things at the end of the **SYSTEM context WAU** process.
 
 ## Custom scripts (Mods feature for Apps)
 The Mods feature allows you to run additional scripts when upgrading or installing an app.

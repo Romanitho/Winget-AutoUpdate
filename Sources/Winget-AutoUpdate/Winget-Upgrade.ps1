@@ -31,6 +31,8 @@ $Script:ProgressPreference = [System.Management.Automation.ActionPreference]::Si
 #region Winget Source Custom
     # Default name of winget repository used within this script
     [string]$DefaultWingetRepoName = 'winget';
+    # Set default value for WingetSourceCustom
+    [string]$Script:WingetSourceCustom = $DefaultWingetRepoName;
 
     # Defining custom repository for winget tool (only if GPO management is active)
     if($Script:WAUConfig.WAU_ActivateGPOManagement) {

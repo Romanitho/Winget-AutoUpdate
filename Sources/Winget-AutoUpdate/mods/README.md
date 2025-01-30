@@ -2,6 +2,9 @@
 Custom script should be placed here.  
 A script **Template** `_WAU-mods-template.ps1` is included to get you started.  
 Rename it to `_WAU-mods.ps1` if you want to activate/run it via `Winget-Upgrade.ps1`.
+
+...likewise `_WAU-mods-postrun.ps1` can be used to do things at the end of the **WAU** process.
+
 ### AppID Pre/During/Post install/uninstall:
 Custom scripts should be placed here.  
 A script **Template** and **Mods Functions** are included as an **example** to get you started...  

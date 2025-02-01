@@ -183,8 +183,11 @@ You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob
 
 ## Custom script (Mods for WAU)
 **Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.<br>
-This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM**.<br>
+This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM and before any upgrades takes place**.<br>
 If **ExitCode** is **1** from `_WAU-mods.ps1` then **Re-run WAU**.
+
+Likewise `_WAU-mods-postsys.ps1` can be used to do things at the end of the **SYSTEM context WAU** process.
+
 ## Custom scripts (Mods feature for Apps)
 The Mods feature allows you to run additional scripts when upgrading or installing an app.
 Just put the scripts in question with the **AppID** followed by the `-preinstall`, `-upgrade`, `-install`, `-installed` or `-notinstalled` suffix in the **mods** folder.
@@ -208,11 +211,14 @@ Share your mods with the community:<br>
 <https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods>
 
 ### Winget native parameters
-Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
+Another finess is the **AppID** followed by the `-override` or `-custom` suffix as a **text file** (**.txt**) that you can place under the **mods** folder.
 > Example:<br>
 **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
-This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).
+> Example:  
+>  **ShareX.ShareX-custom.txt** with the content `/MERGETASKS=!CreateDesktopIcon`
+
+This will use the **content** of the text file as a native **winget --override** respectively **winget --custom** parameter when upgrading.
 
 ## GPO Management
 In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.<br>

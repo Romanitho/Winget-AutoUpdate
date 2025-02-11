@@ -3,6 +3,7 @@ function Install-Prerequisites {
 	try {
 
 		Write-ToLog "Checking prerequisites..." "Yellow"
+		$ProgressPreference = "SilentlyContinue"
 
 		if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
 			$OSArch = "arm64"
@@ -14,10 +15,10 @@ function Install-Prerequisites {
 			$OSArch = "x86"
 		}
 
-		$ProgressPreference = "SilentlyContinue"
+		$InstalledVersion = "0.0"
+
 		$Path = "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe"
 		$Item = Get-Item -Path $Path
-		$InstalledVersion = "0.0"
 
 		if ($Item) {
 			$Info = $Item.VersionInfo |
@@ -25,17 +26,16 @@ function Install-Prerequisites {
 			Select-Object -First 1
 			$Cmd = $Info.FileName
 			$InstalledVersion = (& $Cmd -v | Select-String -Pattern '[\d\.]+').Matches.Value
+			$InstalledVersion = [System.Version]::Parse($InstalledVersion)
 		}
 
-		$urlBase = "microsoft/winget-cli/releases"
-
-		$AvailableVersion = (((Invoke-WebRequest -Uri "https://api.github.com/repos/$urlBase/latest" |
-					ConvertFrom-Json).tag_name) | Select-String '[\d\.]+').Matches.Value
-
-		# $AvailableVersion = [System.Version]::Parse($AvailableVersion)
-		# $InstalledVersion = [System.Version]::Parse($InstalledVersion)
-
 		if ($InstalledVersion -eq "0.0") {
+
+			$urlBase = "microsoft/winget-cli/releases"
+
+			$AvailableVersion = (((Invoke-WebRequest -Uri "https://api.github.com/repos/$urlBase/latest" |
+						ConvertFrom-Json).tag_name) | Select-String '[\d\.]+').Matches.Value
+			# $AvailableVersion = [System.Version]::Parse($AvailableVersion)
 
 			$url = "https://github.com/$urlBase/download/v$AvailableVersion"
 			$urlDependencies = "$url/DesktopAppInstaller_Dependencies"

@@ -265,6 +265,9 @@ Si cette stratégie n'est pas configurée ou est désactivée, le jour par défa
       <presentation id="UpdatesInterval">
         <dropdownList refId="UpdatesInterval" />
       </presentation>
+      <presentation id="DayofWeek">
+        <dropdownList refId="DayofWeek"/>
+      </presentation>
       <presentation id="UpdatesAtTime">
         <dropdownList refId="UpdatesAtTime" />
       </presentation>

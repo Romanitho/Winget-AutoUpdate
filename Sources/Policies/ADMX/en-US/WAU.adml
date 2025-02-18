@@ -107,6 +107,24 @@
       <string id="UpdatesInterval_Monthly">5. Monthly</string>
       <string id="UpdatesInterval_Never">6. Never (e.g. in combination with 'Updates
         Interval')</string>
+      <string id="DayofWeek_Name">Updates Day of Week (e.g. in combination with 'Updates Interval Weekly')</string>
+      <string id="DayofWeek_Explain">If this policy is enabled, you can configure the day of the week updates are run:
+1. Monday (Default)
+2. Tuesday
+3. Wednesday
+4. Thursday
+5. Friday
+6. Saturday
+7. Sunday
+
+If this policy is not configured or disabled, the default day is Monday.</string>
+      <string id="DayofWeek_Monday">1. Monday (Default)</string>
+      <string id="DayofWeek_Tuesday">2. Tuesday</string>
+      <string id="DayofWeek_Wednesday">3. Wednesday</string>
+      <string id="DayofWeek_Thursday">4. Thursday</string>
+      <string id="DayofWeek_Friday">5. Friday</string>
+      <string id="DayofWeek_Saturday">6. Saturday</string>
+      <string id="DayofWeek_Sunday">7. Sunday</string>
       <string id="UpdatesAtLogon_Name">Updates at Logon</string>
       <string id="UpdatesAtLogon_Explain">This policy setting specifies whether to set
         WAU to run at user logon or not.
@@ -213,6 +231,9 @@
       </presentation>
       <presentation id="UpdatesInterval">
         <dropdownList refId="UpdatesInterval" />
+      </presentation>
+      <presentation id="DayofWeek">
+        <dropdownList refId="DayofWeek"/>
       </presentation>
       <presentation id="UpdatesAtTime">
         <dropdownList refId="UpdatesAtTime" />

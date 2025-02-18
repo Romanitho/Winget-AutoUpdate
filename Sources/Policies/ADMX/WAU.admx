@@ -420,5 +420,48 @@
         <text id="WingetSourceCustom" valueName="WAU_WingetSourceCustom" />
       </elements>
     </policy>
+    <policy name="DayofWeek_Enable" class="Machine" displayName="$(string.DayofWeek_Name)" explainText="$(string.DayofWeek_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.DayofWeek)">
+      <parentCategory ref="WAU"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0"/>
+      <elements>
+        <enum id="DayofWeek" valueName="WAU_DayofWeek">
+          <item displayName="$(string.DayofWeek_Monday)">
+            <value>
+              <string>Monday</string>
+            </value>
+          </item>
+          <item displayName="$(string.DayofWeek_Tuesday)">
+            <value>
+              <string>Tuesday</string>
+            </value>
+          </item>
+          <item displayName="$(string.DayofWeek_Wednesday)">
+            <value>
+              <string>Wednesday</string>
+            </value>
+          </item>
+          <item displayName="$(string.DayofWeek_Thursday)">
+            <value>
+              <string>Thursday</string>
+            </value>
+          </item>
+          <item displayName="$(string.DayofWeek_Friday)">
+            <value>
+              <string>Friday</string>
+            </value>
+          </item>
+          <item displayName="$(string.DayofWeek_Saturday)">
+            <value>
+              <string>Saturday</string>
+            </value>
+          </item>
+          <item displayName="$(string.DayofWeek_Sunday)">
+            <value>
+              <string>Sunday</string>
+            </value>
+          </item>
+        </enum>
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>

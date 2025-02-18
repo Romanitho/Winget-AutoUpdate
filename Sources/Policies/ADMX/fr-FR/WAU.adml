@@ -126,6 +126,24 @@
       <string id="UpdatesInterval_Monthly">5. Mensuel</string>
       <string id="UpdatesInterval_Never">6. Jamais (par exemple, en combinaison avec 'Intervalle de
         mise à jour')</string>
+      <string id="DayofWeek_Name">Jour des mises à jour (par exemple, en combinaison avec 'Intervalle des mises à jour hebdomadaire')</string>
+      <string id="DayofWeek_Explain">Si cette stratégie est activée, vous pouvez configurer le jour de la semaine où les mises à jour sont effectuées :
+1. Lundi (Par défaut)
+2. Mardi
+3. Mercredi
+4. Jeudi
+5. Vendredi
+6. Samedi
+7. Dimanche
+
+Si cette stratégie n'est pas configurée ou est désactivée, le jour par défaut est le lundi.</string>
+      <string id="DayofWeek_Monday">1. Lundi (Par défaut)</string>
+      <string id="DayofWeek_Tuesday">2. Mardi</string>
+      <string id="DayofWeek_Wednesday">3. Mercredi</string>
+      <string id="DayofWeek_Thursday">4. Jeudi</string>
+      <string id="DayofWeek_Friday">5. Vendredi</string>
+      <string id="DayofWeek_Saturday">6. Samedi</string>
+      <string id="DayofWeek_Sunday">7. Dimanche</string>
       <string id="UpdatesAtLogon_Name">Mises à jour à la connexion</string>
       <string id="UpdatesAtLogon_Explain">
         Ce paramètre de politique spécifie s'il faut configurer WAU pour s'exécuter à la connexion

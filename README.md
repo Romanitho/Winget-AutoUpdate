@@ -6,8 +6,6 @@
 [![GitHub release (latest SemVer)](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/total?style=for-the-badge)](https://github.com/Romanitho/Winget-AutoUpdate/releases/latest)
 </h1>
 
----
-
 This project uses the Winget tool to daily update apps (with system context) and notify users when updates are available and installed.
 
 ![image](https://user-images.githubusercontent.com/96626929/150645599-9460def4-0818-4fe9-819c-dd7081ff8447.png)
@@ -234,7 +232,7 @@ Feel free to give us any suggestions or optimizations in code and support us by 
 ---
 <div align="center">
 
-## WAU - GitHub
+### WAU - GitHub
 
 [![GitHub release (release name instead of tag name)](https://img.shields.io/github/v/release/Romanitho/Winget-AutoUpdate?display_name=release&include_prereleases&label=Latest%20Release&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/)
 

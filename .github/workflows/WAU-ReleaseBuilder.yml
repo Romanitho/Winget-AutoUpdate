@@ -34,6 +34,8 @@ jobs:
         with:
           lfs: "true"
           fetch-depth: 0
+          # Checkout develop for scheduled builds, main for manual releases
+          ref: ${{ github.event_name == 'schedule' && 'develop' || 'main' }}
 
       - name: Manually OR Scheduled. If Scheduled, check if release is necessary
         run: |

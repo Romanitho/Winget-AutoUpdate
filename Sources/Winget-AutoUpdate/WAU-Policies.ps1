@@ -59,13 +59,17 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
     }
     elseif ($WAUConfig.WAU_UpdatesInterval -eq "BiWeekly") {
         if ($WAUConfig.WAU_DayofWeek) {
-        $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek $WAUConfig.WAU_DayofWeek -WeeksInterval 2
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek $WAUConfig.WAU_DayofWeek -WeeksInterval 2
         } else {
             $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2
         }
     }
     elseif ($WAUConfig.WAU_UpdatesInterval -eq "Monthly") {
-        $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
+        if ($WAUConfig.WAU_DayofWeek) {
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek $WAUConfig.WAU_DayofWeek -WeeksInterval 4
+        } else {
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
+        }
     }
     #If trigger(s) set
     if ($taskTriggers) {

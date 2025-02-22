@@ -11,7 +11,7 @@ Thank you for your interest in contributing to this project! Here are some guide
 
 ## Protection of the `main` Branch
 
-To ensure the quality and stability of the production code, the `main` branch is protected and locked to prevent direct modifications. All changes must go through a pull request to the `develop` branch. 
+To ensure the quality and stability of the production code, the `main` branch is protected and locked to prevent direct modifications. All changes must go through a pull request to the `develop` branch.
 
 Contributors should follow these steps:
 - Create a new branch from `develop` for their feature or bugfix.

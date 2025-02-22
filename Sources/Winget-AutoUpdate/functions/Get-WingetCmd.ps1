@@ -1,6 +1,7 @@
 #Function to get the winget command regarding execution context (User, System...)
 
-Function Get-WingetCmd {
+Function Get-WingetCmd
+{
     [OutputType([String])]
     $WingetCmd = [string]::Empty;
 
@@ -11,15 +12,18 @@ Function Get-WingetCmd {
     #default winget path (in user context)
     [string]$pu = "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe";
 
-    try {
+    try
+    {
         #Get Admin Context Winget Location
-        $WingetInfo = (Get-Item -Path $ps).VersionInfo | Sort-Object -Property FileVersionRaw -Descending | Select-Object -First 1;
+        $WingetInfo = (Get-Item -Path $ps -ErrorAction Stop).VersionInfo | Sort-Object -Property FileVersionRaw -Descending | Select-Object -First 1;
         #If multiple versions, pick most recent one
         $WingetCmd = $WingetInfo.FileName;
     }
-    catch {
+    catch
+    {
         #Get User context Winget Location
-        if (Test-Path -Path $pu -PathType Leaf) {
+        if (Test-Path -Path $pu -PathType Leaf)
+        {
             $WingetCmd = $pu;
         }
     }

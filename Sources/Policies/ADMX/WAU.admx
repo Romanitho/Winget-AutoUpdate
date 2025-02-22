@@ -422,7 +422,7 @@
     </policy>
     <policy name="DayofWeek_Enable" class="Machine" displayName="$(string.DayofWeek_Name)" explainText="$(string.DayofWeek_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"  presentation="$(presentation.DayofWeek)">
       <parentCategory ref="WAU"/>
-      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0"/>
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_5"/>
       <elements>
         <enum id="DayofWeek" valueName="WAU_DayofWeek">
           <item displayName="$(string.DayofWeek_Monday)">

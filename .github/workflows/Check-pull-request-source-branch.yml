@@ -1,0 +1,20 @@
+name: Check pull request source branch
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+
+jobs:
+  check-branches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check branches
+        run: |
+          if [ "${{ github.head_ref }}" != "develop" ] && [ "${{ github.base_ref }}" == "main" ]; then
+            echo "Error: Pull requests to the main branch are only allowed from the develop branch. Please submit your pull request to the develop branch."
+            exit 1
+          fi

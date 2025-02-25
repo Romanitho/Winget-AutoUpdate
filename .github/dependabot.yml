@@ -6,3 +6,4 @@ updates:
     schedule:
       interval: weekly
       time: "06:00"
+    target-branch: "develop"

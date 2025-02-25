@@ -12,14 +12,12 @@ Function Get-WingetCmd
     #default winget path (in user context)
     [string]$pu = "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe";
 
-    try
-    {
-        #Get Admin Context Winget Location
-        $WingetInfo = (Get-Item -Path $ps -ErrorAction Stop).VersionInfo | Sort-Object -Property FileVersionRaw -Descending | Select-Object -First 1;
-        #If multiple versions, pick most recent one
-        $WingetCmd = $WingetInfo.FileName;
-    }
-    catch
+    #Get Admin Context Winget Location
+    $WingetInfo = (Get-Item -Path $ps -ErrorAction Stop).VersionInfo | Sort-Object -Property FileVersionRaw -Descending | Select-Object -First 1;
+    #If multiple versions, pick most recent one
+    $WingetCmd = $WingetInfo.FileName;
+
+    if ([String]::IsNullOrEmpty($WingetCmd))
     {
         #Get User context Winget Location
         if (Test-Path -Path $pu -PathType Leaf)
@@ -27,5 +25,6 @@ Function Get-WingetCmd
             $WingetCmd = $pu;
         }
     }
+
     return $WingetCmd;
 }

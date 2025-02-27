@@ -2,6 +2,10 @@
 
 function Test-Network {
 
+    param(
+        $WAUConfig
+    )
+
     #Init
     $timeout = 0
 
@@ -20,9 +24,19 @@ function Test-Network {
         $ncsiContent = "Microsoft Connect Test"
     }
 
+
+    $UserAgentSplat = @{ UserAgent = [Microsoft.PowerShell.Commands.PSUserAgent]::Chrome }
+    if(Get-Member -InputObject $WAUConfig -Name NetworkTestUserAgentCustom) {
+        if(![string]::IsNullOrEmpty($WAUConfig.NetworkTestUserAgentCustom)) {
+            $UserAgentSplat.UserAgent = $WAUConfig.NetworkTestUserAgentCustom
+        } else {
+            $UserAgentSplat.Remove("UserAgent");
+        }
+    }    
+
     While ($timeout -lt 1800) {
         try {
-            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome); # DevSkim: ignore DS137138 Insecure URL
+            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing @UserAgentSplat; # DevSkim: ignore DS137138 Insecure URL
         }
         catch {
             $ncsiResponse = $false

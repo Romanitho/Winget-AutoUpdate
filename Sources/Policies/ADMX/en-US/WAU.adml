@@ -185,6 +185,14 @@
 
         If this policy is disabled or not configured, the default is always the
         built-in winget.</string>
+      <string id="NetworkTestUserAgentCustom_Name">Use custom user agent for network connection test</string>
+      <string id="NetworkTestUserAgentCustom_Explain">This policy setting specifies whether to
+        use a custom user agent string when performing active network tests or not:
+
+        If this policy is enabled, and a value is set WAU will use the set value as the user agent.
+        If this policy is enabled, and a value is not set WAU will use the default PowerShell user agent.
+
+        If this policy is disabled or not configured, the default is to use a Chrome user agent.</string>
     </stringTable>
     <presentationTable>
       <presentation id="BlackList">
@@ -230,6 +238,11 @@
       <presentation id="WingetSourceCustom">
         <textBox refId="WingetSourceCustom">
           <label>Name of custom winget source:</label>
+        </textBox>
+      </presentation>
+      <presentation id="NetworkTestUserAgentCustom">
+        <textBox refId="NetworkTestUserAgentCustom">
+          <label>Value of custom user agent:</label>
         </textBox>
       </presentation>
     </presentationTable>

@@ -178,7 +178,7 @@ if ($true -eq $IsSystem) {
 #endregion 
 
 #Check network connectivity
-if (Test-Network) {
+if (Test-Network $WAUConfig) {
 
     #Check prerequisites
     if ($true -eq $IsSystem) {

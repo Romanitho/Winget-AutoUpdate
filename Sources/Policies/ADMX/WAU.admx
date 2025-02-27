@@ -420,5 +420,16 @@
         <text id="WingetSourceCustom" valueName="WAU_WingetSourceCustom" />
       </elements>
     </policy>
+    <policy name="NetworkTestUserAgentCustom_Enable" class="Machine"
+      displayName="$(string.NetworkTestUserAgentCustom_Name)"
+      explainText="$(string.NetworkTestUserAgentCustom_Explain)"
+      key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.NetworkTestUserAgentCustom)">
+      <parentCategory ref="Experimental" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_EXPERIMENTAL" />
+      <elements>
+        <text id="NetworkTestUserAgentCustom" valueName="WAU_NetworkTestUserAgentCustom" />
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>

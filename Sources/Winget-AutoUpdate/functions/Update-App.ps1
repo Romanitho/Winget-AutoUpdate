@@ -56,7 +56,7 @@ Function Update-App ($app) {
         $PendingReboot = Test-PendingReboot
         if ($PendingReboot -eq $true) {
             Write-ToLog "-> A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n-> ...an install for $($app.Name) is NOT executed!" "Red"
-            break
+            continue
         }
 
         #If app failed to upgrade, run Install command (2 tries max - some apps get uninstalled after single "Install" command.)

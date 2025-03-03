@@ -518,6 +518,14 @@ if (Test-Network)
             Write-ToLog "No new update." "Green"
         }
 
+        #Test if _WAU-mods-postsys.ps1 exists: Mods for WAU (postsys) - if Network is active/any Winget is installed/running as SYSTEM _after_ SYSTEM updates
+        if ($true -eq $IsSystem) {
+            if (Test-Path "$Mods\_WAU-mods-postsys.ps1") {
+                Write-ToLog "Running Mods (postsys) for WAU..." "Yellow"
+                & "$Mods\_WAU-mods-postsys.ps1"
+            }
+        }
+
         #Check if user context is activated during system run
         if ($IsSystem -and ($WAUConfig.WAU_UserContext -eq 1))
         {

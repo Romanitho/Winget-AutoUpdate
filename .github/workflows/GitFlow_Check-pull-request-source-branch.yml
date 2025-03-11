@@ -34,15 +34,21 @@ jobs:
       - name: Check branch pattern
         id: branch_check
         run: |
-          echo "Checking PR from ${{ github.head_ref }} to ${{ github.base_ref }}"
+          echo "Checking PR from '${{ github.head_ref }}' to '${{ github.base_ref }}'"
+
+          # Sanitize inputs
+          HEAD_REF="${{ github.head_ref }}"
+          BASE_REF="${{ github.base_ref }}"
+          MAIN_BRANCH="${{ env.MAIN_BRANCH }}"
+          VALID_PATTERN="${{ env.VALID_PATTERNS }}"
 
           # If the base branch is main and the head branch does not match our patterns
-          if [[ "${{ github.base_ref }}" == "${{ env.MAIN_BRANCH }}" ]]; then
-            if [[ ! "${{ github.head_ref }}" =~ ${{ env.VALID_PATTERNS }} ]]; then
+          if [[ "${BASE_REF}" == "${MAIN_BRANCH}" ]]; then
+            if [[ ! "${HEAD_REF}" =~ ${VALID_PATTERN} ]]; then
               echo "::error::❌ Invalid branch! PRs to main must come from hotfix/* branches. Please target the develop branch instead."
               exit 1
             else
-              echo "::notice::✅ Branch pattern is valid: ${{ github.head_ref }} → ${{ env.MAIN_BRANCH }}"
+              echo "::notice::✅ Branch pattern is valid: '${HEAD_REF}' → '${MAIN_BRANCH}'"
             fi
           else
             echo "::notice::✅ Not targeting main branch, no pattern restrictions apply."
@@ -59,6 +65,10 @@ jobs:
             const issue_number = context.payload.pull_request.number;
             const label = "${{ env.LABEL_NAME }}";
             const messageIdentifier = "${{ env.ERROR_MESSAGE_IDENTIFIER }}";
+
+            // Escape special characters in the message identifier for safer comparisons
+            const escapedMessageIdentifier = messageIdentifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
             const message = `❌ **${messageIdentifier}**
 
             According to our GitFlow workflow:
@@ -71,15 +81,17 @@ jobs:
 
             // First step: Always apply the label
             console.log("Adding invalid-branch label to PR");
-            await github.rest.issues.addLabels({
-              owner,
-              repo,
-              issue_number,
-              labels: [label]
-            }).catch(e => {
+            try {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number,
+                labels: [label]
+              });
+            } catch (e) {
               // In case label already exists or other error
               console.log(`Note: Could not add label: ${e.message}`);
-            });
+            }
 
             // Second step: Add comment if it doesn't exist
             const { data: comments } = await github.rest.issues.listComments({
@@ -88,7 +100,12 @@ jobs:
               issue_number
             });
 
-            if (!comments.some(comment => comment.body.includes(messageIdentifier))) {
+            // Use regex test instead of includes for safer comparison
+            const commentExists = comments.some(comment =>
+              comment.body && new RegExp(escapedMessageIdentifier).test(comment.body)
+            );
+
+            if (!commentExists) {
               console.log("Adding comment to PR");
               await github.rest.issues.createComment({
                 owner,
@@ -111,6 +128,10 @@ jobs:
             const issue_number = context.payload.pull_request.number;
             const label = "${{ env.LABEL_NAME }}";
             const messageIdentifier = "${{ env.ERROR_MESSAGE_IDENTIFIER }}";
+
+            // Escape special characters in the message identifier
+            const escapedMessageIdentifier = messageIdentifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const messageRegex = new RegExp(escapedMessageIdentifier);
 
             try {
               // Check if the label is present and remove it
@@ -141,8 +162,8 @@ jobs:
 
               // Find and delete any invalid branch comment
               for (const comment of comments) {
-                // Use the new message identifier
-                if (comment.body.includes(messageIdentifier)) {
+                // Use regex test instead of includes for safer comparison
+                if (comment.body && messageRegex.test(comment.body)) {
                   console.log(`Deleting comment ID: ${comment.id}`);
                   await github.rest.issues.deleteComment({
                     owner,

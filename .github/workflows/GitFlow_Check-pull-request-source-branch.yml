@@ -1,0 +1,183 @@
+# This workflow enforces GitFlow branch patterns by:
+# - Ensuring only hotfix/* branches can target main (release branches are handled automatically)
+# - Adding labels and comments to non-compliant PRs
+# - Automatically cleaning up when PRs are updated to comply
+
+name: GitFlow | Check PR Branch Pattern
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+
+# Add explicit permissions
+permissions:
+  pull-requests: write
+  issues: write
+  contents: read
+
+env:
+  MAIN_BRANCH: "main"
+  DEVELOP_BRANCH: "develop"
+  VALID_PATTERNS: "^(release|hotfix)/"
+  LABEL_NAME: "invalid-branch"
+  ERROR_MESSAGE_IDENTIFIER: "Invalid Branch Pattern for main Branch"
+
+jobs:
+  check_branch:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Use GitHub Script for branch pattern validation (safer than shell)
+      - name: Check branch pattern
+        id: branch_check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          result-encoding: string
+          script: |
+            // Get branch information from context
+            const headRef = context.payload.pull_request.head.ref;
+            const baseRef = context.payload.pull_request.base.ref;
+            const mainBranch = process.env.MAIN_BRANCH;
+            const validPattern = new RegExp(process.env.VALID_PATTERNS);
+
+            console.log(`Checking PR from '${headRef}' to '${baseRef}'`);
+
+            // Perform the validation in JavaScript instead of shell
+            if (baseRef === mainBranch) {
+              if (!validPattern.test(headRef)) {
+                console.log(`::error::❌ Invalid branch! PRs to main must come from hotfix/* or release/* branches. Please target the develop branch instead.`);
+                return 'invalid';
+              } else {
+                console.log(`::notice::✅ Branch pattern is valid: '${headRef}' → '${mainBranch}'`);
+                return 'valid';
+              }
+            } else {
+              console.log(`::notice::✅ Not targeting main branch, no pattern restrictions apply.`);
+              return 'not-main';
+            }
+
+      # Step 2: If the branch pattern is invalid, add a label and comment to the PR
+      - name: Handle invalid branch (label + comment)
+        if: steps.branch_check.outputs.result == 'invalid'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const label = process.env.LABEL_NAME;
+            const messageIdentifier = process.env.ERROR_MESSAGE_IDENTIFIER;
+
+            // Escape special characters in the message identifier for safer comparisons
+            const escapedMessageIdentifier = messageIdentifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+            const message = `❌ **${messageIdentifier}**
+
+            According to our GitFlow workflow:
+            - Pull requests to the \`main\` branch are only allowed from \`hotfix/*\` branches
+            - Regular feature development and other changes should target the \`develop\` branch
+
+            📝 **Action required:** Please update your PR to target the \`develop\` branch instead.
+
+            For more details about our contribution workflow, please refer to our [CONTRIBUTING.md](https://github.com/${owner}/${repo}/blob/main/CONTRIBUTING.md) guide.`;
+
+            // First step: Always apply the label
+            console.log("Adding invalid-branch label to PR");
+            try {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number,
+                labels: [label]
+              });
+            } catch (e) {
+              // In case label already exists or other error
+              console.log(`Note: Could not add label: ${e.message}`);
+            }
+
+            // Second step: Add comment if it doesn't exist
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number
+            });
+
+            // Use regex test instead of includes for safer comparison
+            const commentExists = comments.some(comment =>
+              comment.body && new RegExp(escapedMessageIdentifier).test(comment.body)
+            );
+
+            if (!commentExists) {
+              console.log("Adding comment to PR");
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body: message
+              });
+            } else {
+              console.log("Comment already exists, skipping");
+            }
+
+      # Step 3: If the branch pattern is corrected, remove label and comment
+      - name: Clean up if branch is corrected
+        if: steps.branch_check.outputs.result == 'valid' || steps.branch_check.outputs.result == 'not-main'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const label = process.env.LABEL_NAME;
+            const messageIdentifier = process.env.ERROR_MESSAGE_IDENTIFIER;
+
+            // Escape special characters in the message identifier
+            const escapedMessageIdentifier = messageIdentifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const messageRegex = new RegExp(escapedMessageIdentifier);
+
+            try {
+              // Check if the label is present and remove it
+              const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+                owner,
+                repo,
+                issue_number
+              });
+
+              if (labels.some(l => l.name === label)) {
+                console.log("Removing invalid-branch label from PR");
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number,
+                  name: label
+                });
+              } else {
+                console.log("No label to remove");
+              }
+
+              // Check existing comments and remove any invalid branch comments
+              const { data: comments } = await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number
+              });
+
+              // Find and delete any invalid branch comment
+              for (const comment of comments) {
+                // Use regex test instead of includes for safer comparison
+                if (comment.body && messageRegex.test(comment.body)) {
+                  console.log(`Deleting comment ID: ${comment.id}`);
+                  await github.rest.issues.deleteComment({
+                    owner,
+                    repo,
+                    comment_id: comment.id
+                  });
+                }
+              }
+            } catch (error) {
+              console.log(`Error in cleanup: ${error}`);
+            }

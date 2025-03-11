@@ -10,8 +10,6 @@ on:
   # Automated nightly builds at midnight
   schedule:
     - cron: "0 0 * * *"
-  # Allow manual triggering for testing
-  workflow_dispatch:
 
 permissions:
   contents: write

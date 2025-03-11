@@ -21,7 +21,7 @@ This workflow ensures that the `main` branch remains stable and production-ready
 
 ## Use Gitflow as much as possible
 
-![04 Hotfix branches](https://github.com/user-attachments/assets/b743d35e-0bac-4667-b825-737e786b354d)
+![Hotfix_branches](https://github.com/user-attachments/assets/d1b2efe3-3c2e-47c1-8e39-66bf93c34efa)
 
 ### GitFlow Process
 

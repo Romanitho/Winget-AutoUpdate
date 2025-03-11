@@ -364,7 +364,7 @@ if (Test-Network) {
             foreach ($app in $outdated) {
                 #List available updates
                 $Log = "-> Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
-                $Log | Write-Output
+                $Log | Write-Host
                 $Log | Out-File -FilePath $LogFile -Append
             }
 

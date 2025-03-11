@@ -1,0 +1,71 @@
+# This workflow implements the GitFlow release creation process:
+# - Creates a new release branch from develop
+# - Increments version according to semantic versioning
+# - Creates a pull request targeting main branch
+# - This enables final testing before the actual release is created
+
+name: GitFlow | Create Release Branch and PR
+
+on:
+  # Manual trigger with version selection
+  workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        default: "Minor"
+        description: Select next release type
+        options:
+          - Patch  # For bug fixes (x.y.Z)
+          - Minor  # For new features (x.Y.z)
+          - Major  # For breaking changes (X.y.z)
+        required: true
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Calculate the next version number based on the selected increment type
+      - name: Auto Increment Semver Action
+        uses: MCKanpolat/auto-semver-action@5003b8d37f4b03d95f15303ea10242cbf7c13141 # 2
+        id: versioning
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          incrementPerCommit: false
+          releaseType: ${{ github.event.inputs.version }}
+
+      # Step 2: Checkout the develop branch which contains all approved features
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+        with:
+          ref: develop  # Always create releases from develop branch
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 3: Create a new release branch following GitFlow naming convention
+      - name: Create release branch
+        run: |
+          # Configure Git with GitHub Actions identity
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+          # Create a new branch with the pattern release/X.Y.Z
+          git checkout -b release/${{ steps.versioning.outputs.version }}
+
+          # Push the branch to remote repository
+          git push origin release/${{ steps.versioning.outputs.version }}
+          echo "Release Branch: release/${{ steps.versioning.outputs.version }}"
+
+      # Step 4: Create a pull request from release branch to main
+      - name: Create Pull Request with GitHub CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Use GitHub CLI to create a properly formatted Pull Request
+          gh pr create \
+            --base main \
+            --head release/${{ steps.versioning.outputs.version }} \
+            --title "Release ${{ steps.versioning.outputs.version }}" \
+            --label "release" \
+            --body "# Release ${{ steps.versioning.outputs.version }}
+
+            This PR is automatically created to perform the final tests and validations before the release is created."

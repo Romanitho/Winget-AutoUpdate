@@ -1,0 +1,62 @@
+<local>
+	<outputs>
+		<output id="0">
+			<!--Check network connection-->
+			<title>Pārbaudiet tīkla savienojumu.</title>
+			<!--Unable to check for software updates at this time!-->
+			<message>Pašlaik nevar pārbaudīt, vai ir atjauninājumi!</message>
+		</output>
+		<output id="1">
+			<!--No internet connection-->
+			<title>Nav interneta savienojuma.</title>
+			<!--Updates could not be verified-->
+			<message>Nevarēja pārbaudīt atjauninājumus.</message>
+		</output>
+		<output id="2">
+			<!--{App} will be updated-->
+			<title>Tiks atjaunināts {0}!</title>
+			<!--{v1.0} to {v2.0}-->
+			<message>{0} uz {1}</message>
+		</output>
+		<output id="3">
+			<!--{App} updated-->
+			<title>{0} atjaunināts.</title>
+			<!--Installed version: {v1.0}-->
+			<message>Uzstādītā versija: {0}</message>
+		</output>
+		<output id="4">
+			<!--{App} could not be updated-->
+			<title>Nevarēja atjaunināt {0}!</title>
+			<!--Please contact support-->
+			<message>Lūdzu, sazinieties ar atbalstu.</message>
+		</output>
+		<output id="5">
+			<!--Logs are not available yet-->
+			<message>Žurnālfaili vēl nav pieejami!</message>
+		</output>
+		<output id="6">
+			<!--Starting a manual check for updated apps-->
+			<message>Manuāli pārbaudu atjauninātās aplikācijas...</message>
+		</output>
+		<output id="7">
+			<!--Couldn't start a manual check for updated apps-->
+			<message>Nevarēja manuāli pārbaudīt atjauninātās aplikācijas!</message>
+		</output>
+		<output id="8">
+			<!--A check for updated apps already running-->
+			<message>Jau pārbauda atjauninātās aplikācijas...</message>
+		</output>
+		<output id="9">
+			<!--Manual check for updated apps completed-->
+			<message>Atjaunināto aplikāciju pārbaude pabeigta...</message>
+		</output>
+		<output id="10">
+			<!--See changelog-->
+			<message>Lasiet izmaiņu sarakstu changelog</message>
+		</output>
+		<output id="11">
+			<!--Open log file-->
+			<message>Atvērt žurnālfailu</message>
+		</output>
+	</outputs>
+</local>

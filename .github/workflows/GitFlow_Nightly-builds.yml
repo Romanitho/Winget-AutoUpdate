@@ -46,15 +46,15 @@ jobs:
             Write-Host $MERGED_PRS
             echo "BUILD_NEEDED=true" >> $env:GITHUB_OUTPUT
 
-            # If latest tag is already a pre-release, create another pre-release
-            # Otherwise create a pre-minor release
+            # Determine release type
             if ($LATEST_TAG -like "*-*") {
-              echo "RELEASE_TYPE=prerelease" >> $env:GITHUB_OUTPUT
+              $RELEASE_TYPE = "prerelease"
             }
             else {
-              echo "RELEASE_TYPE=preminor" >> $env:GITHUB_OUTPUT
+              $RELEASE_TYPE = "preminor"
             }
-            Write-Host "Next release: $($LATEST_TAG -like "*-*" ? "prerelease" : "preminor")"
+            echo "RELEASE_TYPE=$RELEASE_TYPE" >> $env:GITHUB_OUTPUT
+            Write-Host "Next release: $RELEASE_TYPE"
           } else {
             # If no merged PRs, skip building
             Write-Host "No PRs merged to develop since latest tag. Skipping build."
@@ -123,7 +123,7 @@ jobs:
           # Build MSI package with version information
           echo "### Create WAU MSI ###"
           cd .\Sources\Wix\
-          wix build -src build.wxs -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext -out ..\..\WAU.msi -arch x64 -d Version=${{ steps.format_version.outputs.MsiVersion }} -d NextSemVer=${{ steps.format_version.outputs.NextSemVer }} -d Comment="${{ steps.format_version.outputs.ReleaseName }}" -d PreRelease=1
+          wix build -src build.wxs -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext -out ..\..\WAU.msi -arch x64 -d Version=${{ steps.format_version.outputs.MsiVersion }} -d NextSemVer=${{ steps.format_version.outputs.NextSemVer }}
           cd ..\..
           Get-Item .\WAU.msi
 
@@ -166,7 +166,7 @@ jobs:
             ## Files
             |Files|Hash (SHA256)|Downloads|
             |---|---|---|
-            |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
-            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU_ADMX.zip)|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
+            |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|
+            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU_ADMX.zip)|`${{ steps.build_project.outputs.admx_sha }}`|
 
-            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>
+            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Downloads)</picture>

@@ -28,6 +28,7 @@ env:
 
 jobs:
   check_branch:
+    name: Check branch pattern
     runs-on: ubuntu-latest
     steps:
       # Step 1: Use GitHub Script for branch pattern validation (safer than shell)

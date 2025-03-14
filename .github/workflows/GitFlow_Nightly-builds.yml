@@ -10,8 +10,6 @@ on:
   # Automated nightly builds at midnight
   schedule:
     - cron: "0 0 * * *"
-  # Allow manual triggering for testing
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -48,15 +46,15 @@ jobs:
             Write-Host $MERGED_PRS
             echo "BUILD_NEEDED=true" >> $env:GITHUB_OUTPUT
 
-            # If latest tag is already a pre-release, create another pre-release
-            # Otherwise create a pre-minor release
+            # Determine release type
             if ($LATEST_TAG -like "*-*") {
-              echo "RELEASE_TYPE=prerelease" >> $env:GITHUB_OUTPUT
+              $RELEASE_TYPE = "prerelease"
             }
             else {
-              echo "RELEASE_TYPE=preminor" >> $env:GITHUB_OUTPUT
+              $RELEASE_TYPE = "preminor"
             }
-            Write-Host "Next release: $($LATEST_TAG -like "*-*" ? "prerelease" : "preminor")"
+            echo "RELEASE_TYPE=$RELEASE_TYPE" >> $env:GITHUB_OUTPUT
+            Write-Host "Next release: $RELEASE_TYPE"
           } else {
             # If no merged PRs, skip building
             Write-Host "No PRs merged to develop since latest tag. Skipping build."

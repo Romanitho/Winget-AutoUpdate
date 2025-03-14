@@ -104,6 +104,7 @@ function Install-Prerequisites {
         }
         catch {
             Write-ToLog "WinGet is not installed" "Red"
+            $WinGetInstalledVersion = "0.0.0"
         }
         Write-ToLog "WinGet installed version: $WinGetInstalledVersion | WinGet available version: $WinGetAvailableVersion"
         #Check if the currently installed version is less than the available version

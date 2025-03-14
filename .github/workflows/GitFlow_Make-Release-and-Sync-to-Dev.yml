@@ -31,7 +31,7 @@ jobs:
         with:
           lfs: "true"
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
 
       # Step 2: Extract version from branch name and calculate build number
       - name: Get final Release Version

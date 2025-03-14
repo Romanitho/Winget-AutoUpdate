@@ -91,8 +91,8 @@ function Install-Prerequisites {
             $WinGetAvailableVersion = ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).TrimStart("v")
         }
         catch {
-            #if fail set version to the latest version as of 2024-04-29
-            $WinGetAvailableVersion = "1.7.11132"
+            #If fail set version to the latest version as of 2025-03-14
+            $WinGetAvailableVersion = "1.10.340"
         }
         try {
             #Get Admin Context Winget Location

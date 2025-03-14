@@ -27,7 +27,7 @@ jobs:
           git pull origin develop
 
           # Merge main into develop with no fast-forward to preserve history
-          git merge --no-ff origin/main -m "Merge main into develop after the creation of release v${{ steps.release_version.outputs.version }}"
+          git merge --no-ff origin/main -m "Merge main into develop after the creation of release"
 
           # Push changes to develop branch
           git push origin develop

@@ -22,10 +22,10 @@ function Test-Mods ($app) {
             $ModsPreInstall = "$Mods\$app-preinstall.ps1"
         } 
         if (Test-Path "$Mods\$app-override.txt") {
-            $ModsOverride = Get-Content "$Mods\$app-override.txt" -Raw
+            $ModsOverride = (Get-Content "$Mods\$app-override.txt" -Raw).Trim()
         }
         if (Test-Path "$Mods\$app-custom.txt") {
-            $ModsCustom = Get-Content "$Mods\$app-custom.txt" -Raw
+            $ModsCustom = (Get-Content "$Mods\$app-custom.txt" -Raw).Trim()
         }
         if (Test-Path "$Mods\$app-install.ps1") {
             $ModsInstall = "$Mods\$app-install.ps1"

@@ -114,19 +114,19 @@ jobs:
       - name: Create release
         uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
         with:
-          tag: v${{ steps.release_version.outputs.version }}
+          tag: v${{ steps.release_version.outputs.NextSemVer }}
           prerelease: false  # This is a stable release
           generateReleaseNotes: true
-          name: WAU ${{ steps.release_version.outputs.version }}
+          name: WAU ${{ steps.release_version.outputs.NextSemVer }}
           artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
           body: |
             ## Files
             |Files|Hash (SHA256)|Downloads|
             |---|---|---|
-            |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.version }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.version }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
-            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.version }}/WAU_ADMX.zip)|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.version }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
+            |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
+            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.NextSemVer }}/WAU_ADMX.zip)|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
 
-            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.version }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>
+            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>
 
       # Step 5: Configure Git for merge back to develop
       - name: Configure Git
@@ -144,7 +144,7 @@ jobs:
           git pull origin develop
 
           # Merge main into develop with no fast-forward to preserve history
-          git merge --no-ff origin/main -m "Merge main into develop after the creation of release v${{ steps.release_version.outputs.version }}"
+          git merge --no-ff origin/main -m "Merge main into develop after the creation of release v${{ steps.release_version.outputs.NextSemVer }}"
 
           # Push changes to develop branch
           git push origin develop

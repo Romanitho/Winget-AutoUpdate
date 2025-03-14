@@ -57,8 +57,8 @@ jobs:
           commit_count_mod=$((commit_count % 65535))
           NEW_VERSION="$VERSION.$commit_count_mod"
           echo "Final version: $NEW_VERSION"
-          echo "newversion=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "MsiVersion=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "NextSemVer=$VERSION" >> $GITHUB_OUTPUT
 
       # Step 3: Build all project artifacts for the stable release
       - name: Build project
@@ -85,7 +85,7 @@ jobs:
           # Build MSI package with STABLE flag
           echo "### Create WAU msi ###"
           cd .\Sources\Wix\
-          wix build -src build.wxs -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext -out ..\..\WAU.msi -arch x64 -d Version=${{ steps.release_version.outputs.newversion }} -d NextSemVer=${{ steps.release_version.outputs.newversion }} -d Comment="STABLE" -d PreRelease=0
+          wix build -src build.wxs -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext -out ..\..\WAU.msi -arch x64 -d Version=${{ steps.release_version.outputs.MsiVersion }} -d NextSemVer=${{ steps.release_version.outputs.NextSemVer }} -d Comment="STABLE" -d PreRelease=0
           cd ..\..
           Get-Item .\WAU.msi
 

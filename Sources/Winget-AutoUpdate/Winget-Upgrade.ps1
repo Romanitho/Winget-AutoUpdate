@@ -208,7 +208,7 @@ if (Test-Network) {
                 #Get Available Version
                 $Script:WAUAvailableVersion = Get-WAUAvailableVersion;
                 #Compare
-                if ([version]$WAUAvailableVersion.replace("-n", "") -gt [version]$WAUCurrentVersion.replace("-n", "")) {
+                if ((Compare-SemVer -Version1 $WAUCurrentVersion -Version2 $WAUAvailableVersion) -lt 0) {
                     #If new version is available, update it
                     Write-ToLog "WAU Available version: $WAUAvailableVersion" "Yellow";
                     Update-WAU;

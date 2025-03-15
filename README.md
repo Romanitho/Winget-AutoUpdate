@@ -38,7 +38,8 @@ You can update only pre-selected apps. To do so, create an "included_apps.txt" w
 > The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
 
 List and Mods folder content will be copied to WAU install location:  
-![image](https://github.com/user-attachments/assets/f0ec4047-d66c-4277-a39c-763fd7516ad8)
+![explorer](https://github.com/user-attachments/assets/a37837b0-b61e-4ce7-b23c-fd8661585e40)
+
 
 ### Notification Level
 You can choose which notification will be displayed: `Full`, `Success only` or `None`.

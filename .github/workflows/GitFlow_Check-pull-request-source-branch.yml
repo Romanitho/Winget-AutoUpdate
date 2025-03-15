@@ -31,13 +31,14 @@ jobs:
     name: Check branch pattern
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check branch pattern
+      # Step 1: Check branch pattern - avec sécurisation des variables
       - name: Check branch pattern
         id: branch_check
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
-          # Get branch information from context
-          HEAD_REF="${{ github.head_ref }}"
-          BASE_REF="${{ github.base_ref }}"
+          # Les variables sont maintenant définies dans l'environnement plutôt qu'injectées directement
           MAIN_BRANCH="${{ env.MAIN_BRANCH }}"
           VALID_PATTERN="${{ env.VALID_PATTERNS }}"
           

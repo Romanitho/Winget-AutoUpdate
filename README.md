@@ -179,6 +179,10 @@ You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob
 "%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
 ```
 
+## GPO / Intune Management
+Read more in the [Policies section](https://github.com/Romanitho/Winget-AutoUpdate/tree/main/Sources/Policies).
+
+
 ## Custom script (Mods for WAU)
 **Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.<br>
 This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM**.<br>
@@ -212,16 +216,6 @@ Another finess is the **AppID** followed by the `-override` suffix as a **text f
 **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
 This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).
-
-## GPO Management
-In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.<br>
-**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).<br>
-With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.<br>
-They will be detected/evaluated on a daily basis.<br>
-The **GPO ADMX/ADML** validated with: [Windows 10 - Validate ADMX for Ingestion](https://web.archive.org/web/20231108145017/https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)<br>
-Read more in the `README.md` under the directory **Policies**.
-
-![image](https://user-images.githubusercontent.com/102996177/213920242-7ff8e2b4-d926-4407-b860-1e5922e29c3e.png)
 
 ## Known issues
 * As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See <https://github.com/Romanitho/Winget-AutoUpdate/issues/113>

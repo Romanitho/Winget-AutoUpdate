@@ -38,7 +38,7 @@ You can update only pre-selected apps. To do so, create an "included_apps.txt" w
 > The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
 
 List and Mods folder content will be copied to WAU install location:  
-![image](https://github.com/user-attachments/assets/f0ec4047-d66c-4277-a39c-763fd7516ad8)
+![image](https://private-user-images.githubusercontent.com/96626929/423074783-a37837b0-b61e-4ce7-b23c-fd8661585e40.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDIwMzUyNTYsIm5iZiI6MTc0MjAzNDk1NiwicGF0aCI6Ii85NjYyNjkyOS80MjMwNzQ3ODMtYTM3ODM3YjAtYjYxZS00Y2U3LWIyM2MtZmQ4NjYxNTg1ZTQwLnBuZz9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTAzMTUlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwMzE1VDEwMzU1NlomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTNiNTBjYTg3YTZhYTY3MDZiOTAwMmVhYmY0NzRlMWJkYjdjNjhhMmU3OGZkZDMxMmNlOTUzMTBlNWU5ZDg0NGMmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.Gs1Hg3n3qNwwgRlPSWWNDi5yJbZwlG0yMdBNTx3_U1o)
 
 ### Notification Level
 You can choose which notification will be displayed: `Full`, `Success only` or `None`.

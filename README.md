@@ -21,7 +21,7 @@ Just download latest release [WAU.msi](https://github.com/Romanitho/Winget-AutoU
 
 
 ### Use winget to install WAU
-The following command will install WAU through winget itself in the newest version available. 
+The following command will install WAU through winget itself in the newest version available.
 
 ```batch
 winget install Romanitho.Winget-AutoUpdate
@@ -174,7 +174,7 @@ Default is 1048576 = 1 MB (ca. 7500 lines)
 Specify Winget-AutoUpdate installation location. Default: `C:\Program Files\Winget-AutoUpdate` (Recommended to leave default).
 
 ### Deploy with Intune
-You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune: 
+You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune:
 ```batch
 "%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
 ```
@@ -201,8 +201,7 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.
 
 > Example:<br>
-If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), 
-prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
+If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
 You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-AutoUpdate?tab=readme-ov-file#custom-script-mods-for-wau), as it's a related feature.<br>
 Read more in the `README.md` under the directory **mods**.

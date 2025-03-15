@@ -1,6 +1,6 @@
 #Function to check if modification exists within 'mods' directory
 
-function Test-Mod ($app) {
+function Test-Mods ($app) {
 
     #Takes care of a null situation
     $ModsPreInstall = $null

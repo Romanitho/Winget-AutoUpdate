@@ -37,7 +37,8 @@
     "subfolders",
     "explorerprocesses",
     "SASURL",
-    "LASTEXITCODE"
+    "LASTEXITCODE",
+    "mods*"
   ],
   "ignorePaths": [
     ".github/*",

@@ -21,7 +21,7 @@ Just download latest release [WAU.msi](https://github.com/Romanitho/Winget-AutoU
 
 
 ### Use winget to install WAU
-The following command will install WAU through winget itself in the newest version available. 
+The following command will install WAU through winget itself in the newest version available.
 
 ```batch
 winget install Romanitho.Winget-AutoUpdate
@@ -175,10 +175,14 @@ Default is 1048576 = 1 MB (ca. 7500 lines)
 Specify Winget-AutoUpdate installation location. Default: `C:\Program Files\Winget-AutoUpdate` (Recommended to leave default).
 
 ### Deploy with Intune
-You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune: 
+You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune:
 ```batch
 "%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
 ```
+
+## GPO / Intune Management
+Read more in the [Policies section](https://github.com/Romanitho/Winget-AutoUpdate/tree/main/Sources/Policies).
+
 
 ## Custom script (Mods for WAU)
 **Mods for WAU** allows you to craft a script to do whatever you like via `_WAU-mods.ps1` in the **mods** folder.<br>
@@ -201,8 +205,7 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.
 
 > Example:<br>
-If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), 
-prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
+If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
 You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-AutoUpdate?tab=readme-ov-file#custom-script-mods-for-wau), as it's a related feature.<br>
 Read more in the `README.md` under the directory **mods**.
@@ -216,16 +219,6 @@ Another finess is the **AppID** followed by the `-override` suffix as a **text f
 **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
 
 This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).
-
-## GPO Management
-In an enterprise environment it's crucial that different groups can have different settings in applications etc. or to implement other mandatory settings, i.e for security/management reasons.<br>
-**WAU** doesn't have any setting that can be changed except for when installing (or editing the registry/the task `Winget-AutoUpdate` as **Admin**).<br>
-With the use of **ADML/ADMX** files you can manage every **WAU** setting from within **GPO**.<br>
-They will be detected/evaluated on a daily basis.<br>
-The **GPO ADMX/ADML** validated with: [Windows 10 - Validate ADMX for Ingestion](https://web.archive.org/web/20231108145017/https://developer.vmware.com/samples/7115/windows-10---validate-admx-for-ingestion)<br>
-Read more in the `README.md` under the directory **Policies**.
-
-![image](https://user-images.githubusercontent.com/102996177/213920242-7ff8e2b4-d926-4407-b860-1e5922e29c3e.png)
 
 ## Known issues
 * As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See <https://github.com/Romanitho/Winget-AutoUpdate/issues/113>
@@ -241,3 +234,4 @@ Feel free to give us any suggestions or optimizations in code and support us by 
 [![GitHub release (release name instead of tag name)](https://img.shields.io/github/v/release/Romanitho/Winget-AutoUpdate?display_name=release&include_prereleases&label=Latest%20Release&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/)
 
 </div>
+

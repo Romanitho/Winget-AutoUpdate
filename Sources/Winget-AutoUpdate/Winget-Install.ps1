@@ -69,7 +69,7 @@ $realPath = if ($scriptItem.LinkType) {
 . "$realPath\functions\Get-WingetCmd.ps1"
 . "$realPath\functions\Write-ToLog.ps1"
 . "$realPath\functions\Confirm-Installation.ps1"
-
+. "$realPath\functions\Compare-SemVer.ps1"
 
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {

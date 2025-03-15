@@ -231,3 +231,4 @@ Feel free to give us any suggestions or optimizations in code and support us by 
 [![GitHub release (release name instead of tag name)](https://img.shields.io/github/v/release/Romanitho/Winget-AutoUpdate?display_name=release&include_prereleases&label=Latest%20Release&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/)
 
 </div>
+

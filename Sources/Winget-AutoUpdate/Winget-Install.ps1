@@ -59,7 +59,8 @@ $scriptItem = Get-Item -LiteralPath $MyInvocation.MyCommand.Definition
 $realPath = if ($scriptItem.LinkType) {
     $targetPath = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($scriptItem.Directory.FullName, $scriptItem.Target))
     Split-Path -Parent $targetPath
-} else {
+}
+else {
     $scriptItem.DirectoryName
 }
 

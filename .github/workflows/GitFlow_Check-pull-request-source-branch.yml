@@ -31,7 +31,7 @@ jobs:
     name: Check branch pattern
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Check branch pattern - avec sécurisation des variables
+      # Step 1: Check branch pattern
       - name: Check branch pattern
         id: branch_check
         env:

@@ -217,7 +217,6 @@ function Test-ModsUninstall ($AppID) {
 }
 
 #Install function
-#Install function
 function Install-App ($AppID, $AppArgs) {
     $IsInstalled = Confirm-Installation $AppID
     if (!($IsInstalled) -or $AllowUpgrade ) {

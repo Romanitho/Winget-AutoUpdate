@@ -94,19 +94,6 @@ else {
     }
     Exit 1
 }
-$FilePath = "$realPath\functions\Update-StoreApps.ps1"
-if (Test-Path $FilePath) {
-    . $FilePath
-}
-else {
-    if (Get-Command -Name "Write-ToLog" -ErrorAction SilentlyContinue) {
-        Write-ToLog "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." "Red"
-    }
-    else {
-        Write-Host "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." -ForegroundColor Red
-    }
-    Exit 1
-}
 $FilePath = "$realPath\functions\Add-ScopeMachine.ps1"
 if (Test-Path $FilePath) {
     . $FilePath
@@ -134,19 +121,6 @@ else {
     Exit 1
 }
 $FilePath = "$realPath\functions\Confirm-Installation.ps1"
-if (Test-Path $FilePath) {
-    . $FilePath
-}
-else {
-    if (Get-Command -Name "Write-ToLog" -ErrorAction SilentlyContinue) {
-        Write-ToLog "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." "Red"
-    }
-    else {
-        Write-Host "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." -ForegroundColor Red
-    }
-    Exit 1
-}
-$FilePath = "$realPath\functions\Compare-SemVer.ps1"
 if (Test-Path $FilePath) {
     . $FilePath
 }

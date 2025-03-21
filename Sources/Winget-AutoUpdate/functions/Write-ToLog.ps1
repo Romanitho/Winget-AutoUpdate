@@ -33,6 +33,9 @@ function Write-ToLog {
     }
 
     #Echo log
+    if ([String]::IsNullOrEmpty($LogColor)) {
+        $LogColor = "White"
+    }
     $Log | Write-host -ForegroundColor $LogColor
 
     #Write log to file

@@ -285,18 +285,14 @@ function Install-App ($AppID, $AppArgs) {
             }
             else {
                 if ($retryCount -lt $maxRetries -and -not $DisableRetry) {
-                    $RetryText = " Retrying... (Retry $retryCount of $maxRetries)"
-                }
-                else {
-                    $RetryText = ""
-                }
-                Write-ToLog "-> $AppID installation failed with Exit Code: $exitCode.$RetryText" "Red"
-                Start-Sleep 5
+                    Write-ToLog "-> $AppID installation failed with Exit Code: $exitCode. Retrying... (Retry $retryCount of $maxRetries)" "Red"
+                    Start-Sleep 5
+                }    
             }
         }
 
         if (-not $installSuccess) {
-            Write-ToLog "-> $AppID installation failed after $($maxRetries+1) attempts!" "Red"
+            Write-ToLog "-> $AppID installation failed with Exit Code: $exitCode after $($maxRetries+1) attempts!" "Red"
         }
 
         # Apply post-installation modifications if the installation was successful

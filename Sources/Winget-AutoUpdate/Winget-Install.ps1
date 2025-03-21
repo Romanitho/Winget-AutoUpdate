@@ -68,13 +68,97 @@ else {
     $scriptItem.DirectoryName
 }
 
-. "$realPath\functions\Install-Prerequisites.ps1"
-. "$realPath\functions\Update-StoreApps.ps1"
-. "$realPath\functions\Add-ScopeMachine.ps1"
-. "$realPath\functions\Get-WingetCmd.ps1"
-. "$realPath\functions\Write-ToLog.ps1"
-. "$realPath\functions\Confirm-Installation.ps1"
-. "$realPath\functions\Compare-SemVer.ps1"
+$FilePath = "$realPath\functions\Write-ToLog.ps1"
+if (Test-Path $FilePath) {
+    . $FilePath
+}
+else {
+    if (Get-Command -Name "Write-ToLog" -ErrorAction SilentlyContinue) {
+        Write-ToLog "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." "Red"
+    }
+    else {
+        Write-Host "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." -ForegroundColor Red
+    }
+    Exit 1
+}
+$FilePath = "$realPath\functions\Install-Prerequisites.ps1"
+if (Test-Path $FilePath) {
+    . $FilePath
+}
+else {
+    if (Get-Command -Name "Write-ToLog" -ErrorAction SilentlyContinue) {
+        Write-ToLog "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." "Red"
+    }
+    else {
+        Write-Host "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." -ForegroundColor Red
+    }
+    Exit 1
+}
+$FilePath = "$realPath\functions\Update-StoreApps.ps1"
+if (Test-Path $FilePath) {
+    . $FilePath
+}
+else {
+    if (Get-Command -Name "Write-ToLog" -ErrorAction SilentlyContinue) {
+        Write-ToLog "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." "Red"
+    }
+    else {
+        Write-Host "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." -ForegroundColor Red
+    }
+    Exit 1
+}
+$FilePath = "$realPath\functions\Add-ScopeMachine.ps1"
+if (Test-Path $FilePath) {
+    . $FilePath
+}
+else {
+    if (Get-Command -Name "Write-ToLog" -ErrorAction SilentlyContinue) {
+        Write-ToLog "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." "Red"
+    }
+    else {
+        Write-Host "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." -ForegroundColor Red
+    }
+    Exit 1
+}
+$FilePath = "$realPath\functions\Get-WingetCmd.ps1"
+if (Test-Path $FilePath) {
+    . $FilePath
+}
+else {
+    if (Get-Command -Name "Write-ToLog" -ErrorAction SilentlyContinue) {
+        Write-ToLog "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." "Red"
+    }
+    else {
+        Write-Host "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." -ForegroundColor Red
+    }
+    Exit 1
+}
+$FilePath = "$realPath\functions\Confirm-Installation.ps1"
+if (Test-Path $FilePath) {
+    . $FilePath
+}
+else {
+    if (Get-Command -Name "Write-ToLog" -ErrorAction SilentlyContinue) {
+        Write-ToLog "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." "Red"
+    }
+    else {
+        Write-Host "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." -ForegroundColor Red
+    }
+    Exit 1
+}
+$FilePath = "$realPath\functions\Compare-SemVer.ps1"
+if (Test-Path $FilePath) {
+    . $FilePath
+}
+else {
+    if (Get-Command -Name "Write-ToLog" -ErrorAction SilentlyContinue) {
+        Write-ToLog "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." "Red"
+    }
+    else {
+        Write-Host "Error: Cannot find required file $FilePath - Unable to import function. Aborting run." -ForegroundColor Red
+    }
+    Exit 1
+}
 
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {

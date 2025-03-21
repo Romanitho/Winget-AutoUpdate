@@ -287,7 +287,7 @@ function Install-App ($AppID, $AppArgs) {
                 if ($retryCount -lt $maxRetries -and -not $DisableRetry) {
                     Write-ToLog "-> $AppID installation failed with Exit Code: $exitCode. Retrying... (Retry $retryCount of $maxRetries)" "Red"
                     Start-Sleep 5
-                }    
+                }
             }
         }
 
@@ -490,6 +490,14 @@ else {
 #Logs initialization
 if (!(Test-Path $LogPath)) {
     New-Item -ItemType Directory -Force -Path $LogPath | Out-Null
+}
+
+#Log file
+if ($IsElevated) {
+    $Script:LogFile = "$LogPath\install.log"
+}
+else {
+    $Script:LogFile = "$LogPath\install_$env:UserName.log"
 }
 
 #Log Header

@@ -13,12 +13,16 @@ Function Update-StoreApps {
 	if (!(Test-Path "${env:SystemDrive}\Users\WDAGUtilityAccount") -and (Get-CimInstance Win32_OperatingSystem).Caption -notmatch "Windows Server") {
 
 		try {
-			# Can't get it done with Get-CimInstance, using deprecated Get-WmiObject
 			$namespaceName = "root\cimv2\mdm\dmmap"
 			$className = "MDM_EnterpriseModernAppManagement_AppManagement01"
-			$wmiObj = Get-WmiObject -Namespace $namespaceName -Class $className
+			$methodName = 'UpdateScanMethod'
+			$cimObj = Get-CimInstance -Namespace $namespaceName -ClassName $className -Shallow
 			Write-ToLog $action_string "green"
-			$wmiObj.UpdateScanMethod() | Out-Null
+			$result = $cimObj | Invoke-CimMethod -MethodName $methodName
+			if ($result.ReturnValue -ne 0) {
+				Write-ToLog $fail_string "red"
+				return $false
+			}
 			return $true
 		}
 		catch {

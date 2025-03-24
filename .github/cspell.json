@@ -2,8 +2,10 @@
   "language": "en",
   "words": [
     "ADDLOCAL",
-    "ADML","adml",
-    "ADMX","admx",
+    "ADML",
+    "adml",
+    "ADMX",
+    "admx",
     "ARCHITEW",
     "AZUREBLOBURL",
     "BYPASSLISTFORUSERS",

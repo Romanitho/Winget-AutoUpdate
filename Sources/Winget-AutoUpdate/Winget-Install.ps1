@@ -256,7 +256,7 @@ function Install-App ($AppID, $AppArgs) {
 }
 
 # Uninstall function
-function Uninstall-App ($AppID) {
+function Uninstall-App ($AppID, $AppArgs) {
     $IsInstalled = Confirm-Installation $AppID
     if ($IsInstalled) {
         # Check if mods exist for uninstalling
@@ -281,7 +281,7 @@ function Uninstall-App ($AppID) {
         while ($retryCount -le $maxRetries -and -not $uninstallSuccess) {
             Write-ToLog "-> Uninstalling $AppID (Attempt: $($retryCount))..." "Yellow"
             $retryCount++
-            $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -s winget" -split " "
+            $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
             Write-ToLog "-> Running: \"$Winget\" $WingetArgs"
             & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
             if (-not ([String]::IsNullOrEmpty($LASTEXITCODE))) {

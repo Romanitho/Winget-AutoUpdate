@@ -260,10 +260,6 @@ function Uninstall-App ($AppID) {
             & "$ModsPreUninstall"
         }
 
-        # Stop running processes related to the application before uninstalling
-        Write-ToLog "-> Stopping processes related to $AppID..." "Yellow"
-        Stop-Process -Name $AppID -Force -ErrorAction SilentlyContinue
-
         # Uninstall with retry logic
         $retryCount = 0
         if ($DisableRetry) {

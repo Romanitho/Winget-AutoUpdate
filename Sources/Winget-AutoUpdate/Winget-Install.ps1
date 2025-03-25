@@ -70,6 +70,7 @@ else {
 
 . "$realPath\functions\Install-Prerequisites.ps1"
 . "$realPath\functions\Update-StoreApps.ps1" #Used by Install-Prerequisites
+. "$realPath\functions\Compare-SemVer.ps1" #Used by Install-Prerequisites
 . "$realPath\functions\Add-ScopeMachine.ps1"
 . "$realPath\functions\Get-WingetCmd.ps1"
 . "$realPath\functions\Write-ToLog.ps1"
@@ -193,7 +194,7 @@ function Install-App ($AppID, $AppArgs) {
                 $Script:ExitCode = 0
             }
 
-            if ($exitCode -eq 0) {
+            if (($ExitCode -eq 0) -or ($ExitCode -eq 3010) -or ($ExitCode -eq 1641) -or ($ExitCode -eq 1707)) {
                 $installSuccess = $true
                 Write-ToLog "-> $AppID successfully installed." "Green"
             }
@@ -205,17 +206,24 @@ function Install-App ($AppID, $AppArgs) {
             }
         }
 
+        if ($ModsInstall) {
+            Write-ToLog "-> Modifications for $AppID during install are being applied..." "Yellow"
+            & "$ModsInstall"
+        }
+
+        #Check if install is ok
+        $IsInstalled = Confirm-Installation $AppID
+        if ($IsInstalled) {
+            $installSuccess = $true
+            Write-ToLog "-> $AppID successfully installed." "Green"
+        }
+
         if (-not $installSuccess) {
             Write-ToLog "-> $AppID installation failed with Exit Code: $exitCode after $($maxRetries+1) attempts!" "Red"
         }
 
         # Apply post-installation modifications if the installation was successful
         if ($installSuccess) {
-            if ($ModsInstall) {
-                Write-ToLog "-> Modifications for $AppID during install are being applied..." "Yellow"
-                & "$ModsInstall"
-            }
-
             if ($ModsInstalledOnce) {
                 Write-ToLog "-> Modifications for $AppID after install (one time) are being applied..." "Yellow"
                 & "$ModsInstalledOnce"
@@ -283,14 +291,20 @@ function Uninstall-App ($AppID) {
                 $Script:ExitCode = 0
             }
 
-            if ($exitCode -eq 0) {
+            if (($ExitCode -eq 0) -or ($ExitCode -eq 3010) -or ($ExitCode -eq 1641) -or ($ExitCode -eq 1707)) {
                 $uninstallSuccess = $true
-                Write-ToLog "-> $AppID successfully uninstalled." "Green"
             }
             else {
                 Write-ToLog "-> $AppID uninstallation failed with Exit Code: $exitCode. Retrying... (Retry $retryCount of $maxRetries)" "Red"
                 Start-Sleep 5
             }
+        }
+
+        #Check if uninstall is ok
+        $IsInstalled = Confirm-Installation $AppID
+        if (!($IsInstalled)) {
+            $uninstallSuccess = $true
+            Write-ToLog "-> $AppID successfully uninstalled." "Green"
         }
 
         if (-not $uninstallSuccess) {
@@ -299,21 +313,25 @@ function Uninstall-App ($AppID) {
 
         # Apply post-uninstallation modifications if the uninstallation was successful
         if ($uninstallSuccess) {
-            if ($ModsUninstall) {
-                Write-ToLog "-> Modifications for $AppID during uninstall are being applied..." "Yellow"
-                & "$ModsUninstall"
-            }
-
             if ($ModsUninstalled) {
                 Write-ToLog "-> Modifications for $AppID after uninstall are being applied..." "Yellow"
                 & "$ModsUninstalled"
             }
 
-            # Remove leftover files and folders
-            $AppDataPath = "$env:LOCALAPPDATA\$AppID"
-            if (Test-Path $AppDataPath) {
-                Write-ToLog "-> Removing leftover files for $AppID..." "Yellow"
-                Remove-Item -Path $AppDataPath -Recurse -Force -ErrorAction SilentlyContinue
+            #Remove mods if deployed from Winget-Install
+            if (Test-Path ".\mods\$AppID-*") {
+                #Check if WAU default install path exists
+                $Mods = "$WAUModsLocation"
+                if (Test-Path "$Mods\$AppID*") {
+                    Write-ToLog "-> Remove $AppID modifications from WAU 'mods'"
+                    #Remove mods
+                    Remove-Item -Path "$Mods\$AppID-*" -Exclude "*uninstall*" -Force
+                }
+            }
+
+            #Remove from WAU White List if set
+            if ($WAUWhiteList) {
+                Remove-WAUWhiteList $AppID
             }
         }
     }

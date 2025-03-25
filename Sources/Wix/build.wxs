@@ -1,7 +1,9 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
 
     <!-- Product Config -->
-    <Package Language="1033" Name="Winget-AutoUpdate" Version="$(var.Version)" Manufacturer="Romanitho" UpgradeCode="BDDEA607-F4AF-4229-8610-16E3B6455FDC" InstallerVersion="200">
+    <Package Language="1033" Name="Winget-AutoUpdate" Version="$(var.Version)"
+        Manufacturer="Romanitho" UpgradeCode="BDDEA607-F4AF-4229-8610-16E3B6455FDC"
+        InstallerVersion="200">
 
         <!-- Package Config -->
         <SummaryInformation Description="WAU (x64) [$(var.Version)]" />
@@ -16,41 +18,54 @@
         <!-- MSI Properties Config -->
         <Property Id="ARPCOMMENTS" Value="$(var.Comment)" />
         <Property Id="ARPPRODUCTICON" Value="icon.ico" />
-        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Run WAU after closing this wizard." />
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT"
+            Value="Run WAU after closing this wizard." />
         <Property Id="ARPHELPLINK" Value="https://github.com/Romanitho/Winget-AutoUpdate" />
         <Property Id="ARPURLINFOABOUT" Value="https://github.com/Romanitho/Winget-AutoUpdate" />
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
 
         <!-- Check for Powershell -->
         <Property Id="POWERSHELLEXE">
-            <RegistrySearch Id="POWERSHELLEXE" Type="raw" Root="HKLM" Key="SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell" Name="Path" />
+            <RegistrySearch Id="POWERSHELLEXE" Type="raw" Root="HKLM"
+                Key="SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell" Name="Path" />
         </Property>
-        <Launch Condition="Installed OR POWERSHELLEXE" Message="You must have PowerShell 5.0 or higher." />
+        <Launch Condition="Installed OR POWERSHELLEXE"
+            Message="You must have PowerShell 5.0 or higher." />
 
         <!-- WAU Properties Config -->
         <Property Id="RUN_WAU" Value="NO" />
         <Property Id="NOTIFICATIONLEVEL" Secure="yes" />
         <Property Id="NOTIFICATIONLEVEL_VALUE" Value="Full">
-            <RegistrySearch Id="SearchNotificationLevel" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_NotificationLevel"  />
+            <RegistrySearch Id="SearchNotificationLevel" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_NotificationLevel" />
         </Property>
         <Property Id="USERCONTEXT" Secure="yes" />
         <Property Id="USERCONTEXT_REG" Value="#0">
-            <RegistrySearch Id="SearchUserContext" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UserContext"  />
+            <RegistrySearch Id="SearchUserContext" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UserContext" />
         </Property>
         <Property Id="DISABLEWAUAUTOUPDATE" Secure="yes" />
         <Property Id="DISABLEWAUAUTOUPDATE_REG" Value="#0">
-            <RegistrySearch Id="SearchWAUSelfUpdate" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_DisableAutoUpdate"  />
+            <RegistrySearch Id="SearchWAUSelfUpdate" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_DisableAutoUpdate" />
         </Property>
         <Property Id="UPDATESINTERVAL" Secure="yes" />
         <Property Id="UPDATESINTERVAL_VALUE" Value="Never">
-            <RegistrySearch Id="SearchUpdateInterval" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatesInterval"  />
+            <RegistrySearch Id="SearchUpdateInterval" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatesInterval" />
         </Property>
         <Property Id="UPDATESATLOGON" Secure="yes" />
         <Property Id="UPDATESATLOGON_REG" Value="#1">
-            <RegistrySearch Id="SearchWAUUpdatesAtLogon" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatesAtLogon"  />
+            <RegistrySearch Id="SearchWAUUpdatesAtLogon" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatesAtLogon" />
         </Property>
         <Property Id="USEWHITELIST" Value="0">
-            <RegistrySearch Id="SearchUseWhiteList" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UseWhiteList"  />
+            <RegistrySearch Id="SearchUseWhiteList" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UseWhiteList" />
+        </Property>
+        <Property Id="EXCLUDEPINNEDAPPS" Value="0">
+            <RegistrySearch Id="SearchExcludePinnedApps" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_ExcludePinnedApps" />
         </Property>
         <Property Id="BLACKLIST_PATH">
             <DirectorySearch Id="CheckBlacklistDir" Path="[CURRENTDIRECTORY]">
@@ -65,51 +80,63 @@
         <Property Id="B_W_LIST_PATH" Secure="yes" />
         <Property Id="LISTPATH" Secure="yes" />
         <Property Id="LISTPATH_VALUE">
-            <RegistrySearch Id="SearchListPath" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_ListPath"  />
+            <RegistrySearch Id="SearchListPath" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_ListPath" />
         </Property>
         <Property Id="MODSPATH" Secure="yes" />
         <Property Id="MODSPATH_VALUE">
-            <RegistrySearch Id="SearchModsPath" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_ModsPath"  />
+            <RegistrySearch Id="SearchModsPath" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_ModsPath" />
         </Property>
         <Property Id="AZUREBLOBURL" Secure="yes" />
         <Property Id="AZUREBLOBURL_VALUE">
-            <RegistrySearch Id="SearchAzureBlobSASURL" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_AzureBlobSASURL"  />
+            <RegistrySearch Id="SearchAzureBlobSASURL" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_AzureBlobSASURL" />
         </Property>
         <Property Id="DONOTRUNONMETERED" Secure="yes" />
         <Property Id="DONOTRUNONMETERED_VALUE" Value="#1">
-            <RegistrySearch Id="SearchDoNotRunOnMetered" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_DoNotRunOnMetered"  />
+            <RegistrySearch Id="SearchDoNotRunOnMetered" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_DoNotRunOnMetered" />
         </Property>
         <Property Id="UPDATESATTIME" Secure="yes" />
         <Property Id="UPDATESATTIME_VALUE" Value="06:00:00">
-            <RegistrySearch Id="SearchUpdatesAtTime" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatesAtTime"  />
+            <RegistrySearch Id="SearchUpdatesAtTime" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatesAtTime" />
         </Property>
         <Property Id="BYPASSLISTFORUSERS" Secure="yes" />
         <Property Id="BYPASSLISTFORUSERS_VALUE" Value="#0">
-            <RegistrySearch Id="SearchBypassListForUsers" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_BypassListForUsers"  />
+            <RegistrySearch Id="SearchBypassListForUsers" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_BypassListForUsers" />
         </Property>
         <Property Id="MAXLOGFILES" Secure="yes" />
         <Property Id="MAXLOGFILES_VALUE" Value="#3">
-            <RegistrySearch Id="SearchMaxLogFiles" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_MaxLogFiles"  />
+            <RegistrySearch Id="SearchMaxLogFiles" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_MaxLogFiles" />
         </Property>
         <Property Id="MAXLOGSIZE" Secure="yes" />
         <Property Id="MAXLOGSIZE_VALUE" Value="#1048576">
-            <RegistrySearch Id="SearchMaxLogSize" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_MaxLogSize"  />
+            <RegistrySearch Id="SearchMaxLogSize" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_MaxLogSize" />
         </Property>
         <Property Id="UPDATEPRERELEASE" Secure="yes" />
         <Property Id="UPDATEPRERELEASE_VALUE" Value="#$(var.PreRelease)">
-            <RegistrySearch Id="SearchUpdatePrerelease" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatePrerelease"  />
+            <RegistrySearch Id="SearchUpdatePrerelease" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatePrerelease" />
         </Property>
         <Property Id="DESKTOPSHORTCUT" Secure="yes" />
         <Property Id="DESKTOPSHORTCUT_VALUE" Value="#0">
-            <RegistrySearch Id="SearchDesktopShortcut" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_DesktopShortcut"  />
+            <RegistrySearch Id="SearchDesktopShortcut" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_DesktopShortcut" />
         </Property>
         <Property Id="STARTMENUSHORTCUT" Secure="yes" />
         <Property Id="STARTMENUSHORTCUT_VALUE" Value="#0">
-            <RegistrySearch Id="SearchStartMenuShortcut" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_StartMenuShortcut"  />
+            <RegistrySearch Id="SearchStartMenuShortcut" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_StartMenuShortcut" />
         </Property>
         <Property Id="APPINSTALLERSHORTCUT" Secure="yes" />
         <Property Id="APPINSTALLERSHORTCUT_VALUE" Value="#0">
-            <RegistrySearch Id="SearchAppInstallerShortcut" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_AppInstallerShortcut"  />
+            <RegistrySearch Id="SearchAppInstallerShortcut" Type="raw" Root="HKLM"
+                Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_AppInstallerShortcut" />
         </Property>
 
         <!-- UI Config -->
@@ -129,153 +156,277 @@
             <DialogRef Id="ProgressDlg" />
             <DialogRef Id="ResumeDlg" />
             <DialogRef Id="UserExit" />
-            <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath_$(sys.BUILDARCHSHORT)" Order="3" />
-            <Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="4" Condition="NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot;" />
-            <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="StartWAU" Order="1" Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
-            <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999" />
+            <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction"
+                Value="WixUIValidatePath_$(sys.BUILDARCHSHORT)" Order="3" />
+            <Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg"
+                Order="4"
+                Condition="NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot;" />
+            <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="StartWAU"
+                Order="1" Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
+            <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return"
+                Order="999" />
             <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="WAUInstallDirDlg" />
             <Publish Dialog="WAUInstallDirDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" />
-            <Publish Dialog="WAUInstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
-            <Publish Dialog="WAUInstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath_$(sys.BUILDARCHSHORT)" Order="2" Condition="NOT WIXUI_DONTVALIDATEPATH" />
-            <Publish Dialog="WAUInstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3" Condition="NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot;" />
-            <Publish Dialog="WAUInstallDirDlg" Control="Next" Event="NewDialog" Value="WAUConfig" Order="4" Condition="WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID=&quot;1&quot;" />
-            <Publish Dialog="WAUInstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1" />
-            <Publish Dialog="WAUInstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2" />
-            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WAUConfig" Order="1" Condition="NOT Installed" />
-            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" Condition="Installed" />
-            <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg" />
-            <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="WAUConfig" />
-            <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg" />
-            <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg" />
-            <Publish Dialog="WAUConfig" Control="Back" Event="NewDialog" Value="WAUInstallDirDlg" Order="1" Condition="NOT Installed" />
-            <Publish Dialog="WAUConfig" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2" Condition="Installed" />
+            <Publish Dialog="WAUInstallDirDlg" Control="Next" Event="SetTargetPath"
+                Value="[WIXUI_INSTALLDIR]" Order="1" />
+            <Publish Dialog="WAUInstallDirDlg" Control="Next" Event="DoAction"
+                Value="WixUIValidatePath_$(sys.BUILDARCHSHORT)" Order="2"
+                Condition="NOT WIXUI_DONTVALIDATEPATH" />
+            <Publish Dialog="WAUInstallDirDlg" Control="Next" Event="SpawnDialog"
+                Value="InvalidDirDlg" Order="3"
+                Condition="NOT WIXUI_DONTVALIDATEPATH AND WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot;" />
+            <Publish Dialog="WAUInstallDirDlg" Control="Next" Event="NewDialog" Value="WAUConfig"
+                Order="4" Condition="WIXUI_DONTVALIDATEPATH OR WIXUI_INSTALLDIR_VALID=&quot;1&quot;" />
+            <Publish Dialog="WAUInstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty"
+                Value="[WIXUI_INSTALLDIR]" Order="1" />
+            <Publish Dialog="WAUInstallDirDlg" Control="ChangeFolder" Event="SpawnDialog"
+                Value="BrowseDlg" Order="2" />
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WAUConfig"
+                Order="1" Condition="NOT Installed" />
+            <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg"
+                Order="2" Condition="Installed" />
+            <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog"
+                Value="MaintenanceTypeDlg" />
+            <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog"
+                Value="WAUConfig" />
+            <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog"
+                Value="VerifyReadyDlg" />
+            <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog"
+                Value="MaintenanceWelcomeDlg" />
+            <Publish Dialog="WAUConfig" Control="Back" Event="NewDialog" Value="WAUInstallDirDlg"
+                Order="1" Condition="NOT Installed" />
+            <Publish Dialog="WAUConfig" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg"
+                Order="2" Condition="Installed" />
             <Publish Dialog="WAUConfig" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" />
             <Property Id="ARPNOMODIFY" Value="1" />
 
             <!-- WAU Custome UI Config -->
-            <Dialog Id="WAUInstallDirDlg" Width="370" Height="270" Title="!(loc.InstallDirDlg_Title)">
-                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
-                <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
-                <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+            <Dialog Id="WAUInstallDirDlg" Width="370" Height="270"
+                Title="!(loc.InstallDirDlg_Title)">
+                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                    Default="yes" Text="!(loc.WixUINext)" />
+                <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17"
+                    Text="!(loc.WixUIBack)" />
+                <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                    Cancel="yes" Text="!(loc.WixUICancel)">
                     <Publish Event="SpawnDialog" Value="CancelDlg" />
                 </Control>
-                <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.InstallDirDlgDescription)" />
-                <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.InstallDirDlgTitle)" />
-                <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
+                <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15"
+                    Transparent="yes" NoPrefix="yes" Text="!(loc.InstallDirDlgDescription)" />
+                <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15"
+                    Transparent="yes" NoPrefix="yes" Text="!(loc.InstallDirDlgTitle)" />
+                <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44"
+                    TabSkip="no" Text="!(loc.InstallDirDlgBannerBitmap)" />
                 <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
                 <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
-                <Control Id="FolderLabel" Type="Text" X="20" Y="60" Width="290" Height="30" NoPrefix="yes" Text="!(loc.InstallDirDlgFolderLabel)" />
-                <Control Id="Folder" Type="PathEdit" X="20" Y="100" Width="320" Height="18" Property="WIXUI_INSTALLDIR" Indirect="yes" />
-                <Control Id="ChangeFolder" Type="PushButton" X="20" Y="120" Width="56" Height="17" Text="!(loc.InstallDirDlgChange)" />
-                <Control Id="WAUAppInstallerShortcut" Type="CheckBox" Width="155" Height="17" X="20" Y="160" Text="Install WAU App Installer shortcut" Property="APPINSTALLERSHORTCUT_CHECKED" CheckBoxValue="1">
-                    <Publish Property="APPINSTALLERSHORTCUT" Value="1" Order="1" Condition="APPINSTALLERSHORTCUT_CHECKED" />
-                    <Publish Property="APPINSTALLERSHORTCUT" Value="0" Order="2" Condition="NOT APPINSTALLERSHORTCUT_CHECKED" />
+                <Control Id="FolderLabel" Type="Text" X="20" Y="60" Width="290" Height="30"
+                    NoPrefix="yes" Text="!(loc.InstallDirDlgFolderLabel)" />
+                <Control Id="Folder" Type="PathEdit" X="20" Y="100" Width="320" Height="18"
+                    Property="WIXUI_INSTALLDIR" Indirect="yes" />
+                <Control Id="ChangeFolder" Type="PushButton" X="20" Y="120" Width="56" Height="17"
+                    Text="!(loc.InstallDirDlgChange)" />
+                <Control Id="WAUAppInstallerShortcut" Type="CheckBox" Width="155" Height="17" X="20"
+                    Y="160" Text="Install WAU App Installer shortcut"
+                    Property="APPINSTALLERSHORTCUT_CHECKED" CheckBoxValue="1">
+                    <Publish Property="APPINSTALLERSHORTCUT" Value="1" Order="1"
+                        Condition="APPINSTALLERSHORTCUT_CHECKED" />
+                    <Publish Property="APPINSTALLERSHORTCUT" Value="0" Order="2"
+                        Condition="NOT APPINSTALLERSHORTCUT_CHECKED" />
                 </Control>
-                <Control Id="WAUDesktopShortcut" Type="CheckBox" Width="155" Height="17" X="20" Y="180" Text="Install Desktop shortcut" Property="DESKTOPSHORTCUT_CHECKED" CheckBoxValue="1">
-                    <Publish Property="DESKTOPSHORTCUT" Value="1" Order="1" Condition="DESKTOPSHORTCUT_CHECKED" />
-                    <Publish Property="DESKTOPSHORTCUT" Value="0" Order="2" Condition="NOT DESKTOPSHORTCUT_CHECKED" />
+                <Control Id="WAUDesktopShortcut" Type="CheckBox" Width="155" Height="17" X="20"
+                    Y="180" Text="Install Desktop shortcut" Property="DESKTOPSHORTCUT_CHECKED"
+                    CheckBoxValue="1">
+                    <Publish Property="DESKTOPSHORTCUT" Value="1" Order="1"
+                        Condition="DESKTOPSHORTCUT_CHECKED" />
+                    <Publish Property="DESKTOPSHORTCUT" Value="0" Order="2"
+                        Condition="NOT DESKTOPSHORTCUT_CHECKED" />
                 </Control>
-                <Control Id="WAUStartMenuShortcut" Type="CheckBox" Width="155" Height="17" X="20" Y="200" Text="Install Start Menu shortcut" Property="STARTMENUSHORTCUT_CHECKED" CheckBoxValue="1">
-                    <Publish Property="STARTMENUSHORTCUT" Value="1" Order="1" Condition="STARTMENUSHORTCUT_CHECKED" />
-                    <Publish Property="STARTMENUSHORTCUT" Value="0" Order="2" Condition="NOT STARTMENUSHORTCUT_CHECKED" />
+                <Control Id="WAUStartMenuShortcut" Type="CheckBox" Width="155" Height="17" X="20"
+                    Y="200" Text="Install Start Menu shortcut" Property="STARTMENUSHORTCUT_CHECKED"
+                    CheckBoxValue="1">
+                    <Publish Property="STARTMENUSHORTCUT" Value="1" Order="1"
+                        Condition="STARTMENUSHORTCUT_CHECKED" />
+                    <Publish Property="STARTMENUSHORTCUT" Value="0" Order="2"
+                        Condition="NOT STARTMENUSHORTCUT_CHECKED" />
                 </Control>
             </Dialog>
             <Dialog Id="WAUConfig" Width="370" Height="270" Title="!(loc.InstallDirDlg_Title)">
-                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" />
-                <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
-                <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+                <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17"
+                    Default="yes" Text="!(loc.WixUINext)" />
+                <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17"
+                    Text="!(loc.WixUIBack)" />
+                <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17"
+                    Cancel="yes" Text="!(loc.WixUICancel)">
                     <Publish Event="SpawnDialog" Value="CancelDlg" />
                 </Control>
-                <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}WAU Configuration" />
-                <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Select the configuration and click on Next" />
-                <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+                <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15"
+                    Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}WAU Configuration" />
+                <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15"
+                    Transparent="yes" NoPrefix="yes"
+                    Text="Select the configuration and click on Next" />
+                <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44"
+                    TabSkip="no" Text="WixUI_Bmp_Banner" />
                 <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
                 <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
-                <Control Id="NotifLevelLabel" Type="Text" X="20" Y="60" Width="76" Height="14" NoPrefix="yes" Text="Notification level:" />
-                <Control Id="NotifLevelComboBox" Type="ComboBox" X="98" Y="58" Width="70" Height="16" Property="NOTIFICATIONLEVEL_VALUE" ComboList="yes" Sorted="yes">
+                <Control Id="NotifLevelLabel" Type="Text" X="20" Y="60" Width="76" Height="14"
+                    NoPrefix="yes" Text="Notification level:" />
+                <Control Id="NotifLevelComboBox" Type="ComboBox" X="98" Y="58" Width="70"
+                    Height="16" Property="NOTIFICATIONLEVEL_VALUE" ComboList="yes" Sorted="yes">
                     <ComboBox Property="NOTIFICATIONLEVEL_VALUE">
                         <ListItem Value="Full" Text="Full" />
                         <ListItem Value="SuccessOnly" Text="Success only" />
                         <ListItem Value="None" Text="None" />
                     </ComboBox>
                 </Control>
-                <Control Type="CheckBox" Id="UserContextCheckBox" Width="190" Height="14" X="20" Y="80" Text="Install WAU with User context execution too" Property="USERCONTEXT_CHECKED" CheckBoxValue="1">
-                    <Publish Property="USERCONTEXT" Value="1" Order="1" Condition="USERCONTEXT_CHECKED" />
-                    <Publish Property="USERCONTEXT" Value="0" Order="2" Condition="NOT USERCONTEXT_CHECKED" />
+                <Control Type="CheckBox" Id="UserContextCheckBox" Width="190" Height="14" X="20"
+                    Y="80" Text="Install WAU with User context execution too"
+                    Property="USERCONTEXT_CHECKED" CheckBoxValue="1">
+                    <Publish Property="USERCONTEXT" Value="1" Order="1"
+                        Condition="USERCONTEXT_CHECKED" />
+                    <Publish Property="USERCONTEXT" Value="0" Order="2"
+                        Condition="NOT USERCONTEXT_CHECKED" />
                 </Control>
-                <Control Type="CheckBox" Id="WAUAutoUpdateCheckBox" Width="190" Height="14" X="20" Y="100" Text="Disable WAU Auto Update" Property="DISABLEWAUAUTOUPDATE_CHECKED" CheckBoxValue="1">
-                    <Publish Property="DISABLEWAUAUTOUPDATE" Value="1" Order="1" Condition="DISABLEWAUAUTOUPDATE_CHECKED" />
-                    <Publish Property="DISABLEWAUAUTOUPDATE" Value="0" Order="2" Condition="NOT DISABLEWAUAUTOUPDATE_CHECKED" />
+                <Control Type="CheckBox" Id="WAUAutoUpdateCheckBox" Width="190" Height="14" X="20"
+                    Y="100" Text="Disable WAU Auto Update" Property="DISABLEWAUAUTOUPDATE_CHECKED"
+                    CheckBoxValue="1">
+                    <Publish Property="DISABLEWAUAUTOUPDATE" Value="1" Order="1"
+                        Condition="DISABLEWAUAUTOUPDATE_CHECKED" />
+                    <Publish Property="DISABLEWAUAUTOUPDATE" Value="0" Order="2"
+                        Condition="NOT DISABLEWAUAUTOUPDATE_CHECKED" />
                 </Control>
-                <Control Type="GroupBox" Id="RadioGroupText" Width="320" Height="58" X="20" Y="122" Text="Update interval" />
-                <Control Type="RadioButtonGroup" Id="UpdateIntervalRad" Property="UPDATESINTERVAL_VALUE" Width="300" Height="18" X="30" Y="136">
+                <Control Type="GroupBox" Id="RadioGroupText" Width="320" Height="58" X="20" Y="122"
+                    Text="Update interval" />
+                <Control Type="RadioButtonGroup" Id="UpdateIntervalRad"
+                    Property="UPDATESINTERVAL_VALUE" Width="300" Height="18" X="30" Y="136">
                     <RadioButtonGroup Property="UPDATESINTERVAL_VALUE">
                         <RadioButton Text="Daily" Height="17" Value="Daily" Width="58" X="0" Y="0" />
-                        <RadioButton Text="Weekly" Height="17" Value="Weekly" Width="58" X="60" Y="0" />
-                        <RadioButton Text="Biweekly" Height="17" Value="Biweekly" Width="58" X="120" Y="0" />
-                        <RadioButton Text="Monthly" Height="17" Value="Monthly" Width="58" X="180" Y="0" />
+                        <RadioButton Text="Weekly" Height="17" Value="Weekly" Width="58" X="60"
+                            Y="0" />
+                        <RadioButton Text="Biweekly" Height="17" Value="Biweekly" Width="58" X="120"
+                            Y="0" />
+                        <RadioButton Text="Monthly" Height="17" Value="Monthly" Width="58" X="180"
+                            Y="0" />
                         <RadioButton Text="Never" Height="17" Value="Never" Width="58" X="240" Y="0" />
                     </RadioButtonGroup>
                 </Control>
-                <Control Type="CheckBox" Id="WAUUpdatesAtLogonCheckBox" Width="140" Height="14" X="30" Y="158" Text="Run WAU at user logon" Property="UPDATESATLOGON_CHECKED" CheckBoxValue="1">
-                    <Publish Property="UPDATESATLOGON" Value="1" Order="1" Condition="UPDATESATLOGON_CHECKED" />
-                    <Publish Property="UPDATESATLOGON" Value="0" Order="2" Condition="NOT UPDATESATLOGON_CHECKED" />
+                <Control Type="CheckBox" Id="WAUUpdatesAtLogonCheckBox" Width="140" Height="14"
+                    X="30" Y="158" Text="Run WAU at user logon" Property="UPDATESATLOGON_CHECKED"
+                    CheckBoxValue="1">
+                    <Publish Property="UPDATESATLOGON" Value="1" Order="1"
+                        Condition="UPDATESATLOGON_CHECKED" />
+                    <Publish Property="UPDATESATLOGON" Value="0" Order="2"
+                        Condition="NOT UPDATESATLOGON_CHECKED" />
                 </Control>
-                <Control Type="Text" Id="ListTextBox" Width="313" Height="12" X="20" Y="190" Text="Provided list: (The list must be in the same directory as this installer)" />
-                <Control Type="Edit" Id="ListEdit" Width="320" Height="17" X="20" Y="202" Property="B_W_LIST_PATH" Disabled="yes" />
+                <Control Type="Text" Id="ListTextBox" Width="313" Height="12" X="20" Y="190"
+                    Text="Provided list: (The list must be in the same directory as this installer)" />
+                <Control Type="Edit" Id="ListEdit" Width="320" Height="17" X="20" Y="202"
+                    Property="B_W_LIST_PATH" Disabled="yes" />
             </Dialog>
         </UI>
         <UIRef Id="WixUI_Common" />
 
         <!-- Set properties -->
-        <SetProperty Id="APPINSTALLERSHORTCUT_CHECKED" After="AppSearch" Value="1" Condition="APPINSTALLERSHORTCUT_VALUE = &quot;#1&quot;" />
-        <SetProperty Action="SetAPPINSTALLERSHORTCUT_0" Id="APPINSTALLERSHORTCUT" After="AppSearch" Value="0" Condition="(NOT APPINSTALLERSHORTCUT) AND (APPINSTALLERSHORTCUT_VALUE &lt;&gt; &quot;#1&quot;)" />
-        <SetProperty Action="SetAPPINSTALLERSHORTCUTSHORTCUT_1" Id="APPINSTALLERSHORTCUT" After="AppSearch" Value="1" Condition="(NOT APPINSTALLERSHORTCUT) AND (APPINSTALLERSHORTCUT_VALUE = &quot;#1&quot;)" />
-        <SetProperty Id="DESKTOPSHORTCUT_CHECKED" After="AppSearch" Value="1" Condition="DESKTOPSHORTCUT_VALUE = &quot;#1&quot;" />
-        <SetProperty Action="SetDESKTOPSHORTCUT_0" Id="DESKTOPSHORTCUT" After="AppSearch" Value="0" Condition="(NOT DESKTOPSHORTCUT) AND (DESKTOPSHORTCUT_VALUE &lt;&gt; &quot;#1&quot;)" />
-        <SetProperty Action="SetDESKTOPSHORTCUT_1" Id="DESKTOPSHORTCUT" After="AppSearch" Value="1" Condition="(NOT DESKTOPSHORTCUT) AND (DESKTOPSHORTCUT_VALUE = &quot;#1&quot;)" />
-        <SetProperty Id="STARTMENUSHORTCUT_CHECKED" After="AppSearch" Value="1" Condition="STARTMENUSHORTCUT_VALUE = &quot;#1&quot;" />
-        <SetProperty Action="SetSTARTMENUSHORTCUT_0" Id="STARTMENUSHORTCUT" After="AppSearch" Value="0" Condition="(NOT STARTMENUSHORTCUT) AND (STARTMENUSHORTCUT_VALUE &lt;&gt; &quot;#1&quot;)" />
-        <SetProperty Action="SetSTARTMENUSHORTCUT_1" Id="STARTMENUSHORTCUT" After="AppSearch" Value="1" Condition="(NOT STARTMENUSHORTCUT) AND (STARTMENUSHORTCUT_VALUE = &quot;#1&quot;)" />
-        <SetProperty Id="NOTIFICATIONLEVEL_VALUE" After="AppSearch" Value="[NOTIFICATIONLEVEL]" Condition="NOTIFICATIONLEVEL" />
-        <SetProperty Action="SetUSERCONTEXT_0" Id="USERCONTEXT" After="AppSearch" Value="0" Condition="(NOT USERCONTEXT) AND (USERCONTEXT_REG &lt;&gt; &quot;#1&quot;)" />
-        <SetProperty Action="SetUSERCONTEXT_1" Id="USERCONTEXT" After="AppSearch" Value="1" Condition="(NOT USERCONTEXT) AND (USERCONTEXT_REG = &quot;#1&quot;)" />
-        <SetProperty Id="USERCONTEXT_CHECKED" After="AppSearch" Value="1" Condition="USERCONTEXT_REG = &quot;#1&quot;" />
-        <SetProperty Action="SetDISABLEWAUAUTOUPDATE_0" Id="DISABLEWAUAUTOUPDATE" After="AppSearch" Value="0" Condition="(NOT DISABLEWAUAUTOUPDATE) AND (DISABLEWAUAUTOUPDATE_REG &lt;&gt; &quot;#1&quot;)" />
-        <SetProperty Action="SetDISABLEWAUAUTOUPDATE_1" Id="DISABLEWAUAUTOUPDATE" After="AppSearch" Value="1" Condition="(NOT DISABLEWAUAUTOUPDATE) AND (DISABLEWAUAUTOUPDATE_REG = &quot;#1&quot;)" />
-        <SetProperty Id="DISABLEWAUAUTOUPDATE_CHECKED" After="AppSearch" Value="1" Condition="DISABLEWAUAUTOUPDATE_REG = &quot;#1&quot;" />
-        <SetProperty Id="UPDATESINTERVAL_VALUE" After="AppSearch" Value="[UPDATESINTERVAL]" Condition="UPDATESINTERVAL" />
-        <SetProperty Action="SetUPDATESATLOGON_0" Id="UPDATESATLOGON" After="AppSearch" Value="0" Condition="(NOT UPDATESATLOGON) AND (UPDATESATLOGON_REG &lt;&gt; &quot;#1&quot;)" />
-        <SetProperty Action="SetUPDATESATLOGON_1" Id="UPDATESATLOGON" After="AppSearch" Value="1" Condition="(NOT UPDATESATLOGON) AND (UPDATESATLOGON_REG = &quot;#1&quot;)" />
-        <SetProperty Id="UPDATESATLOGON_CHECKED" After="AppSearch" Value="1" Condition="UPDATESATLOGON_REG = &quot;#1&quot;" />
-        <SetProperty Action="SetLIST_PATHBlackList" Id="B_W_LIST_PATH" After="AppSearch" Value="[BLACKLIST_PATH]" Condition="BLACKLIST_PATH" />
-        <SetProperty Action="SetLIST_PATHWhiteList" Id="B_W_LIST_PATH" After="SetLIST_PATHBlackList" Value="[WHITELIST_PATH]" Condition="WHITELIST_PATH" />
-        <SetProperty Action="SetUSEWHITELIST_0" Id="USEWHITELIST" After="SetLIST_PATHWhiteList" Value="0" Condition="BLACKLIST_PATH OR USEWHITELIST = &quot;#0&quot;" />
-        <SetProperty Action="SetUSEWHITELIST_1" Id="USEWHITELIST" After="SetUSEWHITELIST_0" Value="1" Condition="WHITELIST_PATH OR USEWHITELIST = &quot;#1&quot;" />
+        <SetProperty Id="APPINSTALLERSHORTCUT_CHECKED" After="AppSearch" Value="1"
+            Condition="APPINSTALLERSHORTCUT_VALUE = &quot;#1&quot;" />
+        <SetProperty Action="SetAPPINSTALLERSHORTCUT_0" Id="APPINSTALLERSHORTCUT" After="AppSearch"
+            Value="0"
+            Condition="(NOT APPINSTALLERSHORTCUT) AND (APPINSTALLERSHORTCUT_VALUE &lt;&gt; &quot;#1&quot;)" />
+        <SetProperty Action="SetAPPINSTALLERSHORTCUTSHORTCUT_1" Id="APPINSTALLERSHORTCUT"
+            After="AppSearch" Value="1"
+            Condition="(NOT APPINSTALLERSHORTCUT) AND (APPINSTALLERSHORTCUT_VALUE = &quot;#1&quot;)" />
+        <SetProperty Id="DESKTOPSHORTCUT_CHECKED" After="AppSearch" Value="1"
+            Condition="DESKTOPSHORTCUT_VALUE = &quot;#1&quot;" />
+        <SetProperty Action="SetDESKTOPSHORTCUT_0" Id="DESKTOPSHORTCUT" After="AppSearch" Value="0"
+            Condition="(NOT DESKTOPSHORTCUT) AND (DESKTOPSHORTCUT_VALUE &lt;&gt; &quot;#1&quot;)" />
+        <SetProperty Action="SetDESKTOPSHORTCUT_1" Id="DESKTOPSHORTCUT" After="AppSearch" Value="1"
+            Condition="(NOT DESKTOPSHORTCUT) AND (DESKTOPSHORTCUT_VALUE = &quot;#1&quot;)" />
+        <SetProperty Id="STARTMENUSHORTCUT_CHECKED" After="AppSearch" Value="1"
+            Condition="STARTMENUSHORTCUT_VALUE = &quot;#1&quot;" />
+        <SetProperty Action="SetSTARTMENUSHORTCUT_0" Id="STARTMENUSHORTCUT" After="AppSearch"
+            Value="0"
+            Condition="(NOT STARTMENUSHORTCUT) AND (STARTMENUSHORTCUT_VALUE &lt;&gt; &quot;#1&quot;)" />
+        <SetProperty Action="SetSTARTMENUSHORTCUT_1" Id="STARTMENUSHORTCUT" After="AppSearch"
+            Value="1"
+            Condition="(NOT STARTMENUSHORTCUT) AND (STARTMENUSHORTCUT_VALUE = &quot;#1&quot;)" />
+        <SetProperty Id="NOTIFICATIONLEVEL_VALUE" After="AppSearch" Value="[NOTIFICATIONLEVEL]"
+            Condition="NOTIFICATIONLEVEL" />
+        <SetProperty Action="SetUSERCONTEXT_0" Id="USERCONTEXT" After="AppSearch" Value="0"
+            Condition="(NOT USERCONTEXT) AND (USERCONTEXT_REG &lt;&gt; &quot;#1&quot;)" />
+        <SetProperty Action="SetUSERCONTEXT_1" Id="USERCONTEXT" After="AppSearch" Value="1"
+            Condition="(NOT USERCONTEXT) AND (USERCONTEXT_REG = &quot;#1&quot;)" />
+        <SetProperty Id="USERCONTEXT_CHECKED" After="AppSearch" Value="1"
+            Condition="USERCONTEXT_REG = &quot;#1&quot;" />
+        <SetProperty Action="SetDISABLEWAUAUTOUPDATE_0" Id="DISABLEWAUAUTOUPDATE" After="AppSearch"
+            Value="0"
+            Condition="(NOT DISABLEWAUAUTOUPDATE) AND (DISABLEWAUAUTOUPDATE_REG &lt;&gt; &quot;#1&quot;)" />
+        <SetProperty Action="SetDISABLEWAUAUTOUPDATE_1" Id="DISABLEWAUAUTOUPDATE" After="AppSearch"
+            Value="1"
+            Condition="(NOT DISABLEWAUAUTOUPDATE) AND (DISABLEWAUAUTOUPDATE_REG = &quot;#1&quot;)" />
+        <SetProperty Id="DISABLEWAUAUTOUPDATE_CHECKED" After="AppSearch" Value="1"
+            Condition="DISABLEWAUAUTOUPDATE_REG = &quot;#1&quot;" />
+        <SetProperty Id="UPDATESINTERVAL_VALUE" After="AppSearch" Value="[UPDATESINTERVAL]"
+            Condition="UPDATESINTERVAL" />
+        <SetProperty Action="SetUPDATESATLOGON_0" Id="UPDATESATLOGON" After="AppSearch" Value="0"
+            Condition="(NOT UPDATESATLOGON) AND (UPDATESATLOGON_REG &lt;&gt; &quot;#1&quot;)" />
+        <SetProperty Action="SetUPDATESATLOGON_1" Id="UPDATESATLOGON" After="AppSearch" Value="1"
+            Condition="(NOT UPDATESATLOGON) AND (UPDATESATLOGON_REG = &quot;#1&quot;)" />
+        <SetProperty Id="UPDATESATLOGON_CHECKED" After="AppSearch" Value="1"
+            Condition="UPDATESATLOGON_REG = &quot;#1&quot;" />
+        <SetProperty Action="SetLIST_PATHBlackList" Id="B_W_LIST_PATH" After="AppSearch"
+            Value="[BLACKLIST_PATH]" Condition="BLACKLIST_PATH" />
+        <SetProperty Action="SetLIST_PATHWhiteList" Id="B_W_LIST_PATH" After="SetLIST_PATHBlackList"
+            Value="[WHITELIST_PATH]" Condition="WHITELIST_PATH" />
+        <SetProperty Action="SetUSEWHITELIST_0" Id="USEWHITELIST" After="SetLIST_PATHWhiteList"
+            Value="0" Condition="BLACKLIST_PATH OR USEWHITELIST = &quot;#0&quot;" />
+        <SetProperty Action="SetUSEWHITELIST_1" Id="USEWHITELIST" After="SetUSEWHITELIST_0"
+            Value="1" Condition="WHITELIST_PATH OR USEWHITELIST = &quot;#1&quot;" />
+        <SetProperty Action="SetEXCLUDEPINNEDAPPS_0" Id="EXCLUDEPINNEDAPPS" After="AppSearch"
+            Value="0" Condition="EXCLUDEPINNEDAPPS" />
+        <SetProperty Action="SetEXCLUDEPINNEDAPPS_1" Id="EXCLUDEPINNEDAPPS" After="AppSearch"
+            Value="1" Condition="BLACKLIST_PATH OR USEWHITELIST = &quot;#0&quot;" />
         <SetProperty Id="LISTPATH_VALUE" After="AppSearch" Value="[LISTPATH]" Condition="LISTPATH" />
         <SetProperty Id="MODSPATH_VALUE" After="AppSearch" Value="[MODSPATH]" Condition="MODSPATH" />
-        <SetProperty Id="AZUREBLOBURL_VALUE" After="AppSearch" Value="[AZUREBLOBURL]" Condition="AZUREBLOBURL" />
-        <SetProperty Id="DONOTRUNONMETERED_VALUE" After="AppSearch" Value="#[DONOTRUNONMETERED]" Condition="DONOTRUNONMETERED" />
-        <SetProperty Id="UPDATESATTIME_VALUE" After="AppSearch" Value="[UPDATESATTIME]" Condition="UPDATESATTIME" />
-        <SetProperty Id="BYPASSLISTFORUSERS_VALUE" After="AppSearch" Value="#[BYPASSLISTFORUSERS]" Condition="BYPASSLISTFORUSERS" />
-        <SetProperty Id="MAXLOGFILES_VALUE" After="AppSearch" Value="#[MAXLOGFILES]" Condition="MAXLOGFILES" />
-        <SetProperty Id="MAXLOGSIZE_VALUE" After="AppSearch" Value="#[MAXLOGSIZE]" Condition="MAXLOGSIZE" />
-        <SetProperty Action="SetUPDATEPRERELEASE_0" Id="UPDATEPRERELEASE" After="AppSearch" Value="0" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE &lt;&gt; &quot;#1&quot;)" />
-        <SetProperty Action="SetUPDATEPRERELEASE_1" Id="UPDATEPRERELEASE" After="AppSearch" Value="1" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE = &quot;#1&quot;)" />
-        <SetProperty Id="CA_PowerShell_Install" Before="CA_PowerShell_Install" Sequence="execute" Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot; -CurrentDir &quot;[CURRENTDIRECTORY]&quot;" />
-        <SetProperty Id="CA_PowerShell_Uninstall" Before="CA_PowerShell_Uninstall" Sequence="execute" Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot; -Upgrade &quot;#[UPGRADINGPRODUCTCODE]&quot; -Uninstall" />
+        <SetProperty Id="AZUREBLOBURL_VALUE" After="AppSearch" Value="[AZUREBLOBURL]"
+            Condition="AZUREBLOBURL" />
+        <SetProperty Id="DONOTRUNONMETERED_VALUE" After="AppSearch" Value="#[DONOTRUNONMETERED]"
+            Condition="DONOTRUNONMETERED" />
+        <SetProperty Id="UPDATESATTIME_VALUE" After="AppSearch" Value="[UPDATESATTIME]"
+            Condition="UPDATESATTIME" />
+        <SetProperty Id="BYPASSLISTFORUSERS_VALUE" After="AppSearch" Value="#[BYPASSLISTFORUSERS]"
+            Condition="BYPASSLISTFORUSERS" />
+        <SetProperty Id="MAXLOGFILES_VALUE" After="AppSearch" Value="#[MAXLOGFILES]"
+            Condition="MAXLOGFILES" />
+        <SetProperty Id="MAXLOGSIZE_VALUE" After="AppSearch" Value="#[MAXLOGSIZE]"
+            Condition="MAXLOGSIZE" />
+        <SetProperty Action="SetUPDATEPRERELEASE_0" Id="UPDATEPRERELEASE" After="AppSearch"
+            Value="0"
+            Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE &lt;&gt; &quot;#1&quot;)" />
+        <SetProperty Action="SetUPDATEPRERELEASE_1" Id="UPDATEPRERELEASE" After="AppSearch"
+            Value="1"
+            Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE = &quot;#1&quot;)" />
+        <SetProperty Id="CA_PowerShell_Install" Before="CA_PowerShell_Install" Sequence="execute"
+            Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot; -CurrentDir &quot;[CURRENTDIRECTORY]&quot;" />
+        <SetProperty Id="CA_PowerShell_Uninstall" Before="CA_PowerShell_Uninstall"
+            Sequence="execute"
+            Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot; -Upgrade &quot;#[UPGRADINGPRODUCTCODE]&quot; -Uninstall" />
 
         <!-- Custom Actions -->
-        <CustomAction Id="StartWAU" Impersonate="yes" ExeCommand="conhost.exe --headless schtasks /run /tn WAU\Winget-AutoUpdate" Directory="INSTALLDIR" Return="ignore" />
-        <CustomAction Id="CA_PowerShell_Install" DllEntry="WixQuietExec" Execute="deferred" Return="check" Impersonate="no" BinaryRef="Wix4UtilCA_X64" />
-        <CustomAction Id="CA_PowerShell_Uninstall" DllEntry="WixQuietExec" Execute="deferred" Return="ignore" Impersonate="no" BinaryRef="Wix4UtilCA_X64" />
+        <CustomAction Id="StartWAU" Impersonate="yes"
+            ExeCommand="conhost.exe --headless schtasks /run /tn WAU\Winget-AutoUpdate"
+            Directory="INSTALLDIR" Return="ignore" />
+        <CustomAction Id="CA_PowerShell_Install" DllEntry="WixQuietExec" Execute="deferred"
+            Return="check" Impersonate="no" BinaryRef="Wix4UtilCA_X64" />
+        <CustomAction Id="CA_PowerShell_Uninstall" DllEntry="WixQuietExec" Execute="deferred"
+            Return="ignore" Impersonate="no" BinaryRef="Wix4UtilCA_X64" />
         <InstallExecuteSequence>
             <Custom Action="StartWAU" After="InstallFinalize" Condition="RUN_WAU=&quot;YES&quot;" />
-            <Custom Action="CA_PowerShell_Install" Before="InstallFinalize" Condition="NOT (REMOVE=&quot;ALL&quot;)" />
-            <Custom Action="CA_PowerShell_Uninstall" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot; OR REINSTALL" />
+            <Custom Action="CA_PowerShell_Install" Before="InstallFinalize"
+                Condition="NOT (REMOVE=&quot;ALL&quot;)" />
+            <Custom Action="CA_PowerShell_Uninstall" Before="RemoveFiles"
+                Condition="REMOVE=&quot;ALL&quot; OR REINSTALL" />
         </InstallExecuteSequence>
 
-		<!-- WAU Features -->
+        <!-- WAU Features -->
         <Feature Id="WAU" Title="Winget-AutoUpdate" Level="1">
             <ComponentGroupRef Id="CompFiles" />
             <ComponentRef Id="CompReg" />
@@ -284,109 +435,144 @@
             <ComponentRef Id="StartMenuShortcut" />
         </Feature>
 
-		<!-- WAU Structure -->
-		<ComponentGroup Id="CompFiles" Directory="INSTALLDIR">
-			<Files Include="..\Winget-AutoUpdate\**"/>
-		</ComponentGroup>
-		<StandardDirectory Id="ProgramFiles6432Folder">
-			<Directory Id="INSTALLDIR" Name="Winget-AutoUpdate">
-				<Component Id="CompReg" >
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="ProductVersion" Type="string" Value="$(var.NextSemVer)" KeyPath="yes" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="InstallLocation" Type="string" Value="[INSTALLDIR]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_NotificationLevel" Type="string" Value="[NOTIFICATIONLEVEL_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_UserContext" Type="integer" Value="[USERCONTEXT]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_DisableAutoUpdate" Type="integer" Value="[DISABLEWAUAUTOUPDATE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_UpdatesInterval" Type="string" Value="[UPDATESINTERVAL_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_UpdatesAtLogon" Type="integer" Value="[UPDATESATLOGON]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_UseWhiteList" Type="integer" Value="[USEWHITELIST]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_ListPath" Type="string" Value="[LISTPATH_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_ModsPath" Type="string" Value="[MODSPATH_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_AzureBlobSASURL" Type="string" Value="[AZUREBLOBURL_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_DoNotRunOnMetered" Type="string" Value="[DONOTRUNONMETERED_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_UpdatesAtTime" Type="string" Value="[UPDATESATTIME_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_BypassListForUsers" Type="string" Value="[BYPASSLISTFORUSERS_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_MaxLogFiles" Type="string" Value="[MAXLOGFILES_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_MaxLogSize" Type="string" Value="[MAXLOGSIZE_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
-						<RegistryValue Name="WAU_UpdatePrerelease" Type="integer" Value="[UPDATEPRERELEASE]" />
-					</RegistryKey>
-					<RegistryKey Key="AppUserModelId\Windows.SystemToast.WAU.Notification" Root="HKCR">
-						<RegistryValue Name="DisplayName" Type="expandable" Value="Application Update" />
-					</RegistryKey>
-					<RegistryKey Key="AppUserModelId\Windows.SystemToast.WAU.Notification" Root="HKCR">
-						<RegistryValue Name="IconUri" Type="expandable" Value="%SystemRoot%\system32\@WindowsUpdateToastIcon.png" />
-					</RegistryKey>
+        <!-- WAU Structure -->
+        <ComponentGroup Id="CompFiles" Directory="INSTALLDIR">
+            <Files Include="..\Winget-AutoUpdate\**" />
+        </ComponentGroup>
+        <StandardDirectory Id="ProgramFiles6432Folder">
+            <Directory Id="INSTALLDIR" Name="Winget-AutoUpdate">
+                <Component Id="CompReg">
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="ProductVersion" Type="string" Value="$(var.NextSemVer)"
+                            KeyPath="yes" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="InstallLocation" Type="string" Value="[INSTALLDIR]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_NotificationLevel" Type="string"
+                            Value="[NOTIFICATIONLEVEL_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_UserContext" Type="integer" Value="[USERCONTEXT]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_DisableAutoUpdate" Type="integer"
+                            Value="[DISABLEWAUAUTOUPDATE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_UpdatesInterval" Type="string"
+                            Value="[UPDATESINTERVAL_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_UpdatesAtLogon" Type="integer"
+                            Value="[UPDATESATLOGON]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_UseWhiteList" Type="integer" Value="[USEWHITELIST]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_ExcludePinnedApps" Type="integer"
+                            Value="[EXCLUDEPINNEDAPPS]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_ListPath" Type="string" Value="[LISTPATH_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_ModsPath" Type="string" Value="[MODSPATH_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_AzureBlobSASURL" Type="string"
+                            Value="[AZUREBLOBURL_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_DoNotRunOnMetered" Type="string"
+                            Value="[DONOTRUNONMETERED_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_UpdatesAtTime" Type="string"
+                            Value="[UPDATESATTIME_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_BypassListForUsers" Type="string"
+                            Value="[BYPASSLISTFORUSERS_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_MaxLogFiles" Type="string"
+                            Value="[MAXLOGFILES_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_MaxLogSize" Type="string"
+                            Value="[MAXLOGSIZE_VALUE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+                        <RegistryValue Name="WAU_UpdatePrerelease" Type="integer"
+                            Value="[UPDATEPRERELEASE]" />
+                    </RegistryKey>
+                    <RegistryKey Key="AppUserModelId\Windows.SystemToast.WAU.Notification"
+                        Root="HKCR">
+                        <RegistryValue Name="DisplayName" Type="expandable"
+                            Value="Application Update" />
+                    </RegistryKey>
+                    <RegistryKey Key="AppUserModelId\Windows.SystemToast.WAU.Notification"
+                        Root="HKCR">
+                        <RegistryValue Name="IconUri" Type="expandable"
+                            Value="%SystemRoot%\system32\@WindowsUpdateToastIcon.png" />
+                    </RegistryKey>
                     <RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
-						<RegistryValue Name="WAU_AppInstallerShortcut" Type="integer" Value="[APPINSTALLERSHORTCUT]" />
-					</RegistryKey>
-					<RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
-						<RegistryValue Name="WAU_DesktopShortcut" Type="integer" Value="[DESKTOPSHORTCUT]" />
-					</RegistryKey>
-					<RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
-						<RegistryValue Name="WAU_StartMenuShortcut" Type="integer" Value="[STARTMENUSHORTCUT]" />
-					</RegistryKey>
-				</Component>
-			</Directory>
-		</StandardDirectory>
-		<StandardDirectory Id="DesktopFolder">
-			<Component Id="AppInstallerShortcut" Condition="APPINSTALLERSHORTCUT = 1">
-				<RegistryKey Root="HKCU" Key="SOFTWARE\[Manufacturer]\[ProductName]">
-					<RegistryValue Name="WAU_AppInstallerShortcut" Type="integer" Value="[APPINSTALLERSHORTCUT]" KeyPath="yes" />
-				</RegistryKey>
-				<Shortcut Id="AppInstallerShortcut" Name="WAU App Installer" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]WAU-Installer-GUI.ps1&quot;" Icon="icon.ico" />
-			</Component>
-		</StandardDirectory>
-		<StandardDirectory Id="DesktopFolder">
-			<Component Id="DesktopShortcut" Condition="DESKTOPSHORTCUT = 1">
-				<RegistryKey Root="HKCU" Key="SOFTWARE\[Manufacturer]\[ProductName]">
-					<RegistryValue Name="WAU_DesktopShortcut" Type="integer" Value="[DESKTOPSHORTCUT]" KeyPath="yes" />
-				</RegistryKey>
-				<Shortcut Id="DesktopShortcut" Name="Run WAU" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]User-Run.ps1&quot;" Icon="icon.ico" />
-			</Component>
-		</StandardDirectory>
-		<StandardDirectory Id="ProgramMenuFolder">
-			<Directory Id="Wau" Name="Winget-AutoUpdate">
-				<Component Id="StartMenuShortcut" Condition="STARTMENUSHORTCUT = 1">
-					<RegistryKey Root="HKCU" Key="SOFTWARE\[Manufacturer]\[ProductName]">
-						<RegistryValue Name="WAU_StartMenuShortcut" Type="integer" Value="[STARTMENUSHORTCUT]" KeyPath="yes" />
-					</RegistryKey>
-					<Shortcut Id="StartMenuShortcut1" Name="Run WAU" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]User-Run.ps1&quot;" Icon="icon.ico" />
-					<Shortcut Id="StartMenuShortcut2" Name="Open log" Target="[INSTALLDIR]logs\updates.log" />
-					<RemoveFolder Id="WAU" On="uninstall" />
-				</Component>
-			</Directory>
-		</StandardDirectory>
-	</Package>
+                        <RegistryValue Name="WAU_AppInstallerShortcut" Type="integer"
+                            Value="[APPINSTALLERSHORTCUT]" />
+                    </RegistryKey>
+                    <RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
+                        <RegistryValue Name="WAU_DesktopShortcut" Type="integer"
+                            Value="[DESKTOPSHORTCUT]" />
+                    </RegistryKey>
+                    <RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
+                        <RegistryValue Name="WAU_StartMenuShortcut" Type="integer"
+                            Value="[STARTMENUSHORTCUT]" />
+                    </RegistryKey>
+                </Component>
+            </Directory>
+        </StandardDirectory>
+        <StandardDirectory Id="DesktopFolder">
+            <Component Id="AppInstallerShortcut" Condition="APPINSTALLERSHORTCUT = 1">
+                <RegistryKey Root="HKCU" Key="SOFTWARE\[Manufacturer]\[ProductName]">
+                    <RegistryValue Name="WAU_AppInstallerShortcut" Type="integer"
+                        Value="[APPINSTALLERSHORTCUT]" KeyPath="yes" />
+                </RegistryKey>
+                <Shortcut Id="AppInstallerShortcut" Name="WAU App Installer"
+                    Target="[System64Folder]conhost.exe"
+                    Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]WAU-Installer-GUI.ps1&quot;"
+                    Icon="icon.ico" />
+            </Component>
+        </StandardDirectory>
+        <StandardDirectory Id="DesktopFolder">
+            <Component Id="DesktopShortcut" Condition="DESKTOPSHORTCUT = 1">
+                <RegistryKey Root="HKCU" Key="SOFTWARE\[Manufacturer]\[ProductName]">
+                    <RegistryValue Name="WAU_DesktopShortcut" Type="integer"
+                        Value="[DESKTOPSHORTCUT]" KeyPath="yes" />
+                </RegistryKey>
+                <Shortcut Id="DesktopShortcut" Name="Run WAU" Target="[System64Folder]conhost.exe"
+                    Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]User-Run.ps1&quot;"
+                    Icon="icon.ico" />
+            </Component>
+        </StandardDirectory>
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="Wau" Name="Winget-AutoUpdate">
+                <Component Id="StartMenuShortcut" Condition="STARTMENUSHORTCUT = 1">
+                    <RegistryKey Root="HKCU" Key="SOFTWARE\[Manufacturer]\[ProductName]">
+                        <RegistryValue Name="WAU_StartMenuShortcut" Type="integer"
+                            Value="[STARTMENUSHORTCUT]" KeyPath="yes" />
+                    </RegistryKey>
+                    <Shortcut Id="StartMenuShortcut1" Name="Run WAU"
+                        Target="[System64Folder]conhost.exe"
+                        Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]User-Run.ps1&quot;"
+                        Icon="icon.ico" />
+                    <Shortcut Id="StartMenuShortcut2" Name="Open log"
+                        Target="[INSTALLDIR]logs\updates.log" />
+                    <RemoveFolder Id="WAU" On="uninstall" />
+                </Component>
+            </Directory>
+        </StandardDirectory>
+    </Package>
 </Wix>

@@ -21,7 +21,7 @@ Just download latest release [WAU.msi](https://github.com/Romanitho/Winget-AutoU
 
 
 ### Use winget to install WAU
-The following command will install WAU through winget itself in the newest version available. 
+The following command will install WAU through winget itself in the newest version available.
 
 ```batch
 winget install Romanitho.Winget-AutoUpdate
@@ -37,7 +37,7 @@ You can update only pre-selected apps. To do so, create an "included_apps.txt" w
 
 > The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
 
-List and Mods folder content will be copied to WAU install location:  
+List and Mods folder content will be copied to WAU install location:
 ![explorer](https://github.com/user-attachments/assets/a37837b0-b61e-4ce7-b23c-fd8661585e40)
 
 
@@ -110,6 +110,10 @@ Instead you must escape **every** special character (notice the `%` escape too) 
 
 If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
 
+### EXCLUDEPINNEDAPPS
+Default value 0. Set `EXCLUDEPINNEDAPPS=1` to enable including pinned winget apps to Blacklist. If you are using a whitelist, this option will be ignored. [More details.](https://learn.microsoft.com/en-us/windows/package-manager/winget/pinning)
+
+If you are using a wildcard in the blacklist (f.e. Microsoft.Edge*), the app will always be skipped, even if the pinned version is less than the latest available version.
 
 ### MODSPATH
 Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
@@ -175,7 +179,7 @@ Default is 1048576 = 1 MB (ca. 7500 lines)
 Specify Winget-AutoUpdate installation location. Default: `C:\Program Files\Winget-AutoUpdate` (Recommended to leave default).
 
 ### Deploy with Intune
-You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune: 
+You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune:
 ```batch
 "%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
 ```
@@ -198,7 +202,7 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.
 
 > Example:<br>
-If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), 
+If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit),
 prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
 You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-AutoUpdate?tab=readme-ov-file#custom-script-mods-for-wau), as it's a related feature.<br>

@@ -346,7 +346,7 @@ if (Test-Network) {
                     New-Item "$WorkingDir\logs\error.txt" -Value "Blacklist doesn't exist in GPO" -Force
                     Exit 1
                 }
-                foreach ($app in $toSkip) { Write-ToLog "Exclude app ${app}" }
+                foreach ($app in $toSkip) { Write-ToLog "Exclude app $($app.AppID) $($app.PinnedVersion)" }
             }
         }
 
@@ -410,63 +410,73 @@ if (Test-Network) {
                         Write-ToLog "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
                     }
                     #if app is in "excluded list", skip it
-                    elseif ($toSkip -contains $app.Id) {
-                        Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+                    elseif ($toSkip.AppID -contains $app.Id) {
+                        $matchingToSkip = $toSkip | Where-Object { $_.AppID -contains $app.Id }
+                        if ($matchingToSkip.PinnedVersion) {
+                            $regexPattern = $matchingToSkip.PinnedVersion -replace '\.', '\.' -replace '\*', '.*'
+                            $regexPattern = "^$regexPattern$".Trim()
+                            if ($app.AvailableVersion -match $regexPattern) {
+                                Update-App $app
+                            }
+                        }
+                        else {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+                        }
+                        #if app with wildcard is in "excluded list", skip it
+                        elseif ($toSkip.AppID | Where-Object { $app.Id -like $_ }) {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
+                        }
+                        # else, update it
+                        else {
+                            Update-App $app
+                        }
                     }
-                    #if app with wildcard is in "excluded list", skip it
-                    elseif ($toSkip | Where-Object { $app.Id -like $_ }) {
-                        Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
-                    }
-                    # else, update it
-                    else {
-                        Update-App $app
-                    }
+                }
+
+                if ($InstallOK -gt 0) {
+                    Write-ToLog "$InstallOK apps updated ! No more update." "Green"
                 }
             }
 
-            if ($InstallOK -gt 0) {
-                Write-ToLog "$InstallOK apps updated ! No more update." "Green"
+            if ($InstallOK -eq 0 -or !$InstallOK) {
+                Write-ToLog "No new update." "Green"
+            }
+
+            #Test if _WAU-mods-postsys.ps1 exists: Mods for WAU (postsys) - if Network is active/any Winget is installed/running as SYSTEM _after_ SYSTEM updates
+            if ($true -eq $IsSystem) {
+                if (Test-Path "$Mods\_WAU-mods-postsys.ps1") {
+                    Write-ToLog "Running Mods (postsys) for WAU..." "Yellow"
+                    & "$Mods\_WAU-mods-postsys.ps1"
+                }
+            }
+
+            #Check if user context is activated during system run
+            if ($IsSystem -and ($WAUConfig.WAU_UserContext -eq 1)) {
+
+                $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
+
+                $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+                If ($explorerprocesses.Count -eq 0) {
+                    Write-ToLog "No explorer process found / Nobody interactively logged on..."
+                }
+                Else {
+                    #Get Winget system apps to escape them before running user context
+                    Write-ToLog "User logged on, get a list of installed Winget apps in System context..."
+                    Get-WingetSystemApps -src $Script:WingetSourceCustom;
+
+                    #Run user context scheduled task
+                    Write-ToLog "Starting WAU in User context..."
+                    $null = $UserContextTask | Start-ScheduledTask -ErrorAction SilentlyContinue
+                    Exit 0
+                }
             }
         }
-
-        if ($InstallOK -eq 0 -or !$InstallOK) {
-            Write-ToLog "No new update." "Green"
+        else {
+            Write-ToLog "Critical: Winget not installed or detected, exiting..." "red"
+            New-Item "$WorkingDir\logs\error.txt" -Value "Winget not installed or detected" -Force
+            Write-ToLog "End of process!" "Cyan"
+            Exit 1
         }
-
-        #Test if _WAU-mods-postsys.ps1 exists: Mods for WAU (postsys) - if Network is active/any Winget is installed/running as SYSTEM _after_ SYSTEM updates
-        if ($true -eq $IsSystem) {
-            if (Test-Path "$Mods\_WAU-mods-postsys.ps1") {
-                Write-ToLog "Running Mods (postsys) for WAU..." "Yellow"
-                & "$Mods\_WAU-mods-postsys.ps1"
-            }
-        }
-
-        #Check if user context is activated during system run
-        if ($IsSystem -and ($WAUConfig.WAU_UserContext -eq 1)) {
-
-            $UserContextTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -ErrorAction SilentlyContinue
-
-            $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
-            If ($explorerprocesses.Count -eq 0) {
-                Write-ToLog "No explorer process found / Nobody interactively logged on..."
-            }
-            Else {
-                #Get Winget system apps to escape them before running user context
-                Write-ToLog "User logged on, get a list of installed Winget apps in System context..."
-                Get-WingetSystemApps -src $Script:WingetSourceCustom;
-
-                #Run user context scheduled task
-                Write-ToLog "Starting WAU in User context..."
-                $null = $UserContextTask | Start-ScheduledTask -ErrorAction SilentlyContinue
-                Exit 0
-            }
-        }
-    }
-    else {
-        Write-ToLog "Critical: Winget not installed or detected, exiting..." "red"
-        New-Item "$WorkingDir\logs\error.txt" -Value "Winget not installed or detected" -Force
-        Write-ToLog "End of process!" "Cyan"
-        Exit 1
     }
 }
 

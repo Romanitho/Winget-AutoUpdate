@@ -181,9 +181,10 @@ function Install-App ($AppID, $AppArgs) {
         }
         $installSuccess = $false
 
+        Write-ToLog "-> Installing $AppID (Initial Attempt)..." "Yellow"
+
         while ($retryCount -le $maxRetries -and -not $installSuccess) {
-            Write-ToLog "-> Installing $AppID (Attempt: $($retryCount))..." "Yellow"
-            $retryCount++
+            # Winget Uninstall Command
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
             Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
             & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
@@ -194,14 +195,18 @@ function Install-App ($AppID, $AppArgs) {
                 $Script:ExitCode = 0
             }
 
-            if (($ExitCode -eq 0) -or ($ExitCode -eq 3010) -or ($ExitCode -eq 1641) -or ($ExitCode -eq 1707)) {
+            # Erfolg prüfen
+            if ($ExitCode -eq 0 -or $ExitCode -eq 3010 -or $ExitCode -eq 1641 -or $ExitCode -eq 1707) {
                 $installSuccess = $true
-                Write-ToLog "-> $AppID successfully installed." "Green"
             }
             else {
-                if ($retryCount -lt $maxRetries -and -not $DisableRetry) {
-                    Write-ToLog "-> $AppID installation failed with Exit Code: $exitCode. Retrying... (Retry $retryCount of $maxRetries)" "Red"
+                if ($retryCount -lt $maxRetries) {
+                    $retryCount++
+                    Write-ToLog "-> $AppID installation failed with Exit Code: $ExitCode. Retrying... (Retry $retryCount of $maxRetries)" "Red"
                     Start-Sleep 5
+                }
+                else {
+                    break
                 }
             }
         }
@@ -216,6 +221,9 @@ function Install-App ($AppID, $AppArgs) {
         if ($IsInstalled) {
             $installSuccess = $true
             Write-ToLog "-> $AppID successfully installed." "Green"
+        }
+        else {
+            $installSuccess = $false
         }
 
         if (-not $installSuccess) {
@@ -278,12 +286,15 @@ function Uninstall-App ($AppID, $AppArgs) {
         }
         $uninstallSuccess = $false
 
+        Write-ToLog "-> Uninstalling $AppID (Initial Attempt)..." "Yellow"
+
         while ($retryCount -le $maxRetries -and -not $uninstallSuccess) {
-            Write-ToLog "-> Uninstalling $AppID (Attempt: $($retryCount))..." "Yellow"
-            $retryCount++
+            # Winget Uninstall Command
             $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
-            Write-ToLog "-> Running: \"$Winget\" $WingetArgs"
+            Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
             & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+
+            # Exit Code Handling
             if (-not ([String]::IsNullOrEmpty($LASTEXITCODE))) {
                 $Script:ExitCode = $LASTEXITCODE
             }
@@ -291,13 +302,25 @@ function Uninstall-App ($AppID, $AppArgs) {
                 $Script:ExitCode = 0
             }
 
-            if (($ExitCode -eq 0) -or ($ExitCode -eq 3010) -or ($ExitCode -eq 1641) -or ($ExitCode -eq 1707)) {
+            # Erfolg prüfen
+            if ($ExitCode -eq 0 -or $ExitCode -eq 3010 -or $ExitCode -eq 1641 -or $ExitCode -eq 1707) {
                 $uninstallSuccess = $true
             }
             else {
-                Write-ToLog "-> $AppID uninstallation failed with Exit Code: $exitCode. Retrying... (Retry $retryCount of $maxRetries)" "Red"
-                Start-Sleep 5
+                if ($retryCount -lt $maxRetries) {
+                    $retryCount++
+                    Write-ToLog "-> $AppID uninstallation failed with Exit Code: $exitCode. Retrying... (Retry $retryCount of $maxRetries)" "Red"
+                    Start-Sleep 5
+                }
+                else {
+                    break
+                }
             }
+        }
+
+        if ($ModsUninstall) {
+            Write-ToLog "-> Modifications for $AppID during uninstall are being applied..." "Yellow"
+            & "$ModsUninstall"
         }
 
         #Check if uninstall is ok
@@ -305,6 +328,9 @@ function Uninstall-App ($AppID, $AppArgs) {
         if (!($IsInstalled)) {
             $uninstallSuccess = $true
             Write-ToLog "-> $AppID successfully uninstalled." "Green"
+        }
+        else {
+            $uninstallSuccess = $false
         }
 
         if (-not $uninstallSuccess) {

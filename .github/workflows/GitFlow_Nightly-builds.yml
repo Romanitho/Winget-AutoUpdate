@@ -18,6 +18,11 @@ jobs:
   build:
     name: Create Nightly Build
     runs-on: windows-latest
+    
+    env:
+      # Define the branch as a variable
+      BRANCH: develop
+    
     steps:
       # Step 1: Checkout the develop branch for nightly builds
       - name: Checkout code
@@ -26,7 +31,7 @@ jobs:
           lfs: "true"
           fetch-depth: 0
           # Always checkout develop for nightly builds
-          ref: develop
+          ref: ${{ env.BRANCH }}
 
       # Step 2: Verify if a new build is required by checking for merged PRs since last tag
       - name: Check for merged PRs since last tag
@@ -38,7 +43,7 @@ jobs:
           Write-Host "Latest tag: $LATEST_TAG"
 
           # Get merged PRs since last tag using Git directly
-          $MERGED_PRS = git log --merges --grep="Merge pull request" --oneline "$LATEST_TAG..develop"
+          $MERGED_PRS = git log --merges --grep="Merge pull request" --oneline "$LATEST_TAG..${{ env.BRANCH }}"
 
           # If merged PRs exist, set BUILD_NEEDED and determine release type
           if ($MERGED_PRS) {
@@ -57,7 +62,7 @@ jobs:
             Write-Host "Next release: $RELEASE_TYPE"
           } else {
             # If no merged PRs, skip building
-            Write-Host "No PRs merged to develop since latest tag. Skipping build."
+            Write-Host "No PRs merged to ${{ env.BRANCH }} since latest tag. Skipping build."
             echo "BUILD_NEEDED=false" >> $env:GITHUB_OUTPUT
           }
 
@@ -154,6 +159,7 @@ jobs:
         if: steps.check_prs.outputs.BUILD_NEEDED == 'true'
         with:
           tag: v${{ steps.format_version.outputs.NextSemVer }}
+          commit: ${{ env.BRANCH }}
           prerelease: true
           generateReleaseNotes: true
           name: ${{ steps.format_version.outputs.ReleaseName }}

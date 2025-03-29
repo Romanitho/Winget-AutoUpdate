@@ -33,7 +33,11 @@ function Write-ToLog {
     }
 
     #Echo log
-    $Log | Write-host -ForegroundColor $LogColor
+    if ($LogColor -notin @("Black", "DarkBlue", "DarkGreen", "DarkCyan", "DarkRed", "DarkMagenta", "DarkYellow", "Gray", "DarkGray", "Blue", "Green", "Cyan", "Red", "Magenta", "Yellow", "White")) {
+        $LogColor = "White"
+    }
+    $Log | Write-Host -ForegroundColor $LogColor
+
 
     #Write log to file
     $Log | Out-File -FilePath $LogFile -Append

@@ -16,6 +16,9 @@ To uninstall app. Works with AppIDs
 .PARAMETER AllowUpgrade
 To allow upgrade app if present. Works with AppIDs
 
+.PARAMETER DisableRetry
+Disables the retry logic for installation and uninstallation on errors. Only one (un)install attempt will be made.
+
 .PARAMETER LogPath
 Used to specify logpath. Default is same folder as Winget-Autoupdate project
 
@@ -48,9 +51,10 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $Uninstall,
     [Parameter(Mandatory = $False)] [String] $LogPath,
     [Parameter(Mandatory = $False)] [Switch] $WAUWhiteList,
-    [Parameter(Mandatory = $False)] [Switch] $AllowUpgrade
+    [Parameter(Mandatory = $False)] [Switch] $AllowUpgrade,
+    [Parameter(Mandatory = $False)] [Switch] $DisableRetry
 )
-
+$Script:ExitCode = 0
 
 <# FUNCTIONS #>
 
@@ -65,25 +69,31 @@ else {
 }
 
 . "$realPath\functions\Install-Prerequisites.ps1"
-. "$realPath\functions\Update-StoreApps.ps1"
+. "$realPath\functions\Update-StoreApps.ps1" #Used by Install-Prerequisites
+. "$realPath\functions\Compare-SemVer.ps1" #Used by Install-Prerequisites
 . "$realPath\functions\Add-ScopeMachine.ps1"
 . "$realPath\functions\Get-WingetCmd.ps1"
 . "$realPath\functions\Write-ToLog.ps1"
 . "$realPath\functions\Confirm-Installation.ps1"
-. "$realPath\functions\Compare-SemVer.ps1"
 
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {
     #Check is app exists in the winget repository
-    $WingetApp = & $winget show --Id $AppID -e --accept-source-agreements -s winget | Out-String
+    try {
+        $WingetApp = & $winget show --Id $AppID -e --accept-source-agreements -s winget | Out-String
 
-    #Return if AppID exists
-    if ($WingetApp -match [regex]::Escape($AppID)) {
-        Write-ToLog "-> $AppID exists on Winget Repository." "Cyan"
-        return $true
+        #Return if AppID exists
+        if ($WingetApp -match [regex]::Escape($AppID)) {
+            Write-ToLog "-> $AppID exists on Winget Repository." "Cyan"
+            return $true
+        }
+        else {
+            Write-ToLog "-> $AppID does not exist on Winget Repository! Check spelling." "Red"
+            return $false
+        }
     }
-    else {
-        Write-ToLog "-> $AppID does not exist on Winget Repository! Check spelling." "Red"
+    catch {
+        Write-ToLog "Error $_ while checking winget package availability" "Red"
         return $false
     }
 }
@@ -161,11 +171,45 @@ function Install-App ($AppID, $AppArgs) {
             & "$ModsPreInstall"
         }
 
-        #Install App
-        Write-ToLog "-> Installing $AppID..." "Yellow"
-        $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
-        Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
-        & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        #Install App with retry logic
+        $retryCount = 0
+        if ($DisableRetry) {
+            $maxRetries = 0
+        }
+        else {
+            $maxRetries = 2
+        }
+        $installSuccess = $false
+
+        Write-ToLog "-> Installing $AppID (Initial Attempt)..." "Yellow"
+
+        while ($retryCount -le $maxRetries -and -not $installSuccess) {
+            # Winget Uninstall Command
+            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
+            Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
+            & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+            if (-not ([String]::IsNullOrEmpty($LASTEXITCODE))) {
+                $Script:ExitCode = $LASTEXITCODE
+            }
+            else {
+                $Script:ExitCode = 0
+            }
+
+            # Erfolg prüfen
+            if ($ExitCode -eq 0 -or $ExitCode -eq 3010 -or $ExitCode -eq 1641 -or $ExitCode -eq 1707) {
+                $installSuccess = $true
+            }
+            else {
+                if ($retryCount -lt $maxRetries) {
+                    $retryCount++
+                    Write-ToLog "-> $AppID installation failed with Exit Code: $ExitCode. Retrying... (Retry $retryCount of $maxRetries)" "Red"
+                    Start-Sleep 5
+                }
+                else {
+                    break
+                }
+            }
+        }
 
         if ($ModsInstall) {
             Write-ToLog "-> Modifications for $AppID during install are being applied..." "Yellow"
@@ -175,8 +219,19 @@ function Install-App ($AppID, $AppArgs) {
         #Check if install is ok
         $IsInstalled = Confirm-Installation $AppID
         if ($IsInstalled) {
+            $installSuccess = $true
             Write-ToLog "-> $AppID successfully installed." "Green"
+        }
+        else {
+            $installSuccess = $false
+        }
 
+        if (-not $installSuccess) {
+            Write-ToLog "-> $AppID installation failed with Exit Code: $exitCode after $($maxRetries+1) attempts!" "Red"
+        }
+
+        # Apply post-installation modifications if the installation was successful
+        if ($installSuccess) {
             if ($ModsInstalledOnce) {
                 Write-ToLog "-> Modifications for $AppID after install (one time) are being applied..." "Yellow"
                 & "$ModsInstalledOnce"
@@ -202,33 +257,66 @@ function Install-App ($AppID, $AppArgs) {
                 Add-WAUWhiteList $AppID
             }
         }
-        else {
-            Write-ToLog "-> $AppID installation failed!" "Red"
-        }
     }
     else {
         Write-ToLog "-> $AppID is already installed." "Cyan"
     }
 }
 
-#Uninstall function
+# Uninstall function
 function Uninstall-App ($AppID, $AppArgs) {
     $IsInstalled = Confirm-Installation $AppID
     if ($IsInstalled) {
-        #Check if mods exist (or already exist) for preuninstall/uninstall/uninstalled
-        $ModsPreUninstall, $ModsUninstall, $ModsUninstalled = Test-ModsUninstall $AppID
+        # Check if mods exist for uninstalling
+        $ModsPreUninstall, $ModsUninstall, $ModsUninstalled = Test-ModsUninstall $($AppID)
 
-        #If PreUninstall script exist
+        # If PreUninstall script exists
         if ($ModsPreUninstall) {
             Write-ToLog "-> Modifications for $AppID before uninstall are being applied..." "Yellow"
             & "$ModsPreUninstall"
         }
 
-        #Uninstall App
-        Write-ToLog "-> Uninstalling $AppID..." "Yellow"
-        $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
-        Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
-        & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        # Uninstall with retry logic
+        $retryCount = 0
+        if ($DisableRetry) {
+            $maxRetries = 0
+        }
+        else {
+            $maxRetries = 2
+        }
+        $uninstallSuccess = $false
+
+        Write-ToLog "-> Uninstalling $AppID (Initial Attempt)..." "Yellow"
+
+        while ($retryCount -le $maxRetries -and -not $uninstallSuccess) {
+            # Winget Uninstall Command
+            $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
+            Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
+            & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+
+            # Exit Code Handling
+            if (-not ([String]::IsNullOrEmpty($LASTEXITCODE))) {
+                $Script:ExitCode = $LASTEXITCODE
+            }
+            else {
+                $Script:ExitCode = 0
+            }
+
+            # Erfolg prüfen
+            if ($ExitCode -eq 0 -or $ExitCode -eq 3010 -or $ExitCode -eq 1641 -or $ExitCode -eq 1707) {
+                $uninstallSuccess = $true
+            }
+            else {
+                if ($retryCount -lt $maxRetries) {
+                    $retryCount++
+                    Write-ToLog "-> $AppID uninstallation failed with Exit Code: $exitCode. Retrying... (Retry $retryCount of $maxRetries)" "Red"
+                    Start-Sleep 5
+                }
+                else {
+                    break
+                }
+            }
+        }
 
         if ($ModsUninstall) {
             Write-ToLog "-> Modifications for $AppID during uninstall are being applied..." "Yellow"
@@ -238,7 +326,19 @@ function Uninstall-App ($AppID, $AppArgs) {
         #Check if uninstall is ok
         $IsInstalled = Confirm-Installation $AppID
         if (!($IsInstalled)) {
+            $uninstallSuccess = $true
             Write-ToLog "-> $AppID successfully uninstalled." "Green"
+        }
+        else {
+            $uninstallSuccess = $false
+        }
+
+        if (-not $uninstallSuccess) {
+            Write-ToLog "-> $AppID uninstallation failed after $($maxRetries+1) attempts!" "Red"
+        }
+
+        # Apply post-uninstallation modifications if the uninstallation was successful
+        if ($uninstallSuccess) {
             if ($ModsUninstalled) {
                 Write-ToLog "-> Modifications for $AppID after uninstall are being applied..." "Yellow"
                 & "$ModsUninstalled"
@@ -259,9 +359,6 @@ function Uninstall-App ($AppID, $AppArgs) {
             if ($WAUWhiteList) {
                 Remove-WAUWhiteList $AppID
             }
-        }
-        else {
-            Write-ToLog "-> $AppID uninstall failed!" "Red"
         }
     }
     else {
@@ -349,6 +446,14 @@ if (!(Test-Path $LogPath)) {
     New-Item -ItemType Directory -Force -Path $LogPath | Out-Null
 }
 
+#Log file
+if ($IsElevated) {
+    $Script:LogFile = "$LogPath\install.log"
+}
+else {
+    $Script:LogFile = "$LogPath\install_$env:UserName.log"
+}
+
 #Log Header
 if ($Uninstall) {
     Write-ToLog -LogMsg "NEW UNINSTALL REQUEST" -LogColor "Magenta" -IsHeader
@@ -407,6 +512,11 @@ if ($Winget) {
         Start-Sleep 1
     }
 }
+else {
+    Write-ToLog "Winget command not found!`n" "Red"
+    $Script:ExitCode = 1
+}
 
 Write-ToLog "###   END REQUEST   ###`n" "Magenta"
 Start-Sleep 3
+Exit $ExitCode

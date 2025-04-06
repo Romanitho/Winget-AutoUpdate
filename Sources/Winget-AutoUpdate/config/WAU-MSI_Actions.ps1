@@ -52,25 +52,26 @@ function Install-WingetAutoUpdate {
 
         # Settings for the scheduled task for Updates (System)
         Write-Host "-> Installing WAU scheduled tasks"
+        $randomDelay = "00:30:00"
         $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($InstallPath)winget-upgrade.ps1`""
         $taskTriggers = @()
         if ($WAUconfig.WAU_UpdatesAtLogon -eq 1) {
             $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
         }
         if ($WAUconfig.WAU_UpdatesInterval -eq "Daily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUconfig.WAU_UpdatesAtTime -RandomDelay "00:30:00"
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUconfig.WAU_UpdatesAtTime -RandomDelay $randomDelay
         }
         elseif ($WAUconfig.WAU_UpdatesInterval -eq "BiDaily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUconfig.WAU_UpdatesAtTime -DaysInterval 2 -RandomDelay "00:30:00"
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUconfig.WAU_UpdatesAtTime -DaysInterval 2 -RandomDelay $randomDelay
         }
         elseif ($WAUconfig.WAU_UpdatesInterval -eq "Weekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUconfig.WAU_UpdatesAtTime -DaysOfWeek 2 -RandomDelay "00:30:00"
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUconfig.WAU_UpdatesAtTime -DaysOfWeek 2 -RandomDelay $randomDelay
         }
         elseif ($WAUconfig.WAU_UpdatesInterval -eq "BiWeekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUconfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay "00:30:00"
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUconfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay $randomDelay
         }
         elseif ($WAUconfig.WAU_UpdatesInterval -eq "Monthly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUconfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay "00:30:00"
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUconfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $randomDelay
         }
         $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00

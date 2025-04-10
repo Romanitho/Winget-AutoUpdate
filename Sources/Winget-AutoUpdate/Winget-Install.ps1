@@ -195,7 +195,6 @@ function Install-App ($AppID, $AppArgs) {
                 $Script:ExitCode = 0
             }
 
-            # Erfolg prüfen
             if ($ExitCode -eq 0 -or $ExitCode -eq 3010 -or $ExitCode -eq 1641 -or $ExitCode -eq 1707) {
                 $installSuccess = $true
             }
@@ -302,7 +301,6 @@ function Uninstall-App ($AppID, $AppArgs) {
                 $Script:ExitCode = 0
             }
 
-            # Erfolg prüfen
             if ($ExitCode -eq 0 -or $ExitCode -eq 3010 -or $ExitCode -eq 1641 -or $ExitCode -eq 1707) {
                 $uninstallSuccess = $true
             }

@@ -305,7 +305,7 @@ function Remove-WAUWhiteList ($AppID) {
 if ("$env:PROCESSOR_ARCHITEW6432" -ne "ARM64") {
     if (Test-Path "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe") {
         Start-Process "$($env:WINDIR)\SysNative\WindowsPowerShell\v1.0\powershell.exe" -Wait -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command $($MyInvocation.line)"
-        Exit $lastexitcode
+        exit $lastexitcode
     }
 }
 

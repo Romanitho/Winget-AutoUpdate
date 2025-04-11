@@ -141,6 +141,55 @@ function Install-Prerequisites {
         else {
             Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "Green"
         }
+
+        # Check if PowerShell module Microsoft.WinGet.Client is installed and up to date
+        $moduleName = "Microsoft.WinGet.Client"
+        $Script:winGetModuleAvailable = $false
+
+        Write-ToLog "Checking if PowerShell module '$moduleName' is installed and up to date..." "Yellow"
+
+        try {
+            $installedModule = Get-InstalledModule -Name $moduleName -ErrorAction Stop
+            try {
+                $availableModule = Find-Module -Name $moduleName -ErrorAction Stop
+
+                if ($availableModule.Version -gt $installedModule.Version) {
+                    Write-ToLog "-> Updating '$moduleName' from version $($installedModule.Version) to $($availableModule.Version)..." "Yellow"
+                    Update-Module -Name $moduleName -Force -ErrorAction Stop
+                    Write-ToLog "-> Module '$moduleName' updated successfully." "Green"
+                }
+                else {
+                    Write-ToLog "-> Module '$moduleName' is already up to date (version $($installedModule.Version))." "Green"
+                }
+
+                $Script:winGetModuleAvailable = $true
+            }
+            catch {
+                Write-ToLog "-> Failed to check or update '$moduleName'. Error: $_" "Red"
+            }
+        }
+        catch {
+            Write-ToLog "-> Module '$moduleName' is not installed. Attempting installation..." "Red"
+            try {
+                Install-Module -Name $moduleName -Scope AllUsers -Force -ErrorAction Stop
+                Write-ToLog "-> Module '$moduleName' installed successfully." "Green"
+                if (-not (Get-Module -Name Microsoft.WinGet.Client)) {
+                    Import-Module Microsoft.WinGet.Client -ErrorAction Stop
+                }
+                $Script:winGetModuleAvailable = $true
+            }
+            catch {
+                Write-ToLog "-> Failed to install/import '$moduleName'. Error: $_" "Red"
+            }
+        }
+
+        if ($Script:winGetModuleAvailable) {
+            Write-ToLog "PowerShell module '$moduleName' is available." "Green"
+        }
+        else {
+            Write-ToLog "PowerShell module '$moduleName' is NOT available. Using winget cmd commands instead." "Red"
+        }
+
         Write-ToLog "Prerequisites checked. OK" "Green"
 
     }

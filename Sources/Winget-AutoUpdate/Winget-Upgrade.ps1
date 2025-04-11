@@ -186,8 +186,10 @@ if (Test-Network) {
     }
 
     #Check if Winget is installed and get Winget cmd
-    [string]$Script:Winget = Get-WingetCmd;
-    Write-ToLog "Selected winget instance: $($Script:Winget)";
+    if ($winGetModuleAvailable -eq $false) {
+        [string]$Script:Winget = Get-WingetCmd;
+        Write-ToLog "Selected winget instance: $($Script:Winget)";
+    }
 
     if ($Script:Winget) {
 

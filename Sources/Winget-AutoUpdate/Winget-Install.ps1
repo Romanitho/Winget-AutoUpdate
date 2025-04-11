@@ -59,7 +59,8 @@ $scriptItem = Get-Item -LiteralPath $MyInvocation.MyCommand.Definition
 $realPath = if ($scriptItem.LinkType) {
     $targetPath = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($scriptItem.Directory.FullName, $scriptItem.Target))
     Split-Path -Parent $targetPath
-} else {
+}
+else {
     $scriptItem.DirectoryName
 }
 
@@ -73,17 +74,43 @@ $realPath = if ($scriptItem.LinkType) {
 
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {
-    #Check is app exists in the winget repository
-    $WingetApp = & $winget show --Id $AppID -e --accept-source-agreements -s winget | Out-String
+    if ($winGetModuleAvailable) {
+        try {
+            # Try to find the package via PowerShell module
+            $package = Find-WinGetPackage -Id $AppID -Exact -Source "winget" -ErrorAction Stop
 
-    #Return if AppID exists
-    if ($WingetApp -match [regex]::Escape($AppID)) {
-        Write-ToLog "-> $AppID exists on Winget Repository." "Cyan"
-        return $true
+            if ($package) {
+                Write-ToLog "-> $AppID exists in WinGet repository (via PowerShell module)." "Cyan"
+                return $true
+            }
+            else {
+                Write-ToLog "-> $AppID does not exist in WinGet repository (via PowerShell module)." "Red"
+                return $false
+            }
+        }
+        catch {
+            Write-ToLog "-> Error while checking $AppID with WinGet PowerShell module: $_" "Red"
+            return $false
+        }
     }
     else {
-        Write-ToLog "-> $AppID does not exist on Winget Repository! Check spelling." "Red"
-        return $false
+        # Fallback to CLI method
+        try {
+            $WingetApp = & $winget show --Id $AppID -e --accept-source-agreements -s winget | Out-String
+
+            if ($WingetApp -match [regex]::Escape($AppID)) {
+                Write-ToLog "-> $AppID exists in WinGet repository (via CLI)." "Cyan"
+                return $true
+            }
+            else {
+                Write-ToLog "-> $AppID does not exist in WinGet repository! (via CLI)" "Red"
+                return $false
+            }
+        }
+        catch {
+            Write-ToLog "-> Error while checking $AppID with WinGet CLI: $_" "Red"
+            return $false
+        }
     }
 }
 
@@ -162,10 +189,31 @@ function Install-App ($AppID, $AppArgs) {
 
         #Install App
         Write-ToLog "-> Installing $AppID..." "Yellow"
-        $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
-        Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
-        & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 
+        if ($winGetModuleAvailable) {
+            try {
+                # Use WinGet PowerShell module
+                $package = Find-WinGetPackage -Id $AppID -Exact -Source "winget" -ErrorAction Stop
+                if ($package) {
+                    $installArgs = @{}
+                    if ($AppArgs) {
+                        $installArgs['InstallerArguments'] = $AppArgs
+                    }
+                    Write-ToLog "-> Installing $AppID using WinGet PowerShell module..."
+                    Install-WinGetPackage -InputObject $package @installArgs -ErrorAction Stop | Tee-Object -FilePath $LogFile -Append
+                }
+            }
+            catch {
+                Write-ToLog "-> Error installing $AppID via PowerShell module: $_" "Red"
+            }
+        }
+        else {
+            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
+            Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
+            & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        }
+
+        #If Install script exist
         if ($ModsInstall) {
             Write-ToLog "-> Modifications for $AppID during install are being applied..." "Yellow"
             & "$ModsInstall"
@@ -225,10 +273,27 @@ function Uninstall-App ($AppID, $AppArgs) {
 
         #Uninstall App
         Write-ToLog "-> Uninstalling $AppID..." "Yellow"
-        $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h" -split " "
-        Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
-        & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 
+        if ($winGetModuleAvailable) {
+            try {
+                # Use WinGet PowerShell module
+                $package = Get-WinGetPackage -Id $AppID -Exact -ErrorAction Stop
+                if ($package) {
+                    Write-ToLog "-> Uninstalling $AppID using WinGet PowerShell module..."
+                    Uninstall-WinGetPackage -InputObject $package -ErrorAction Stop | Tee-Object -FilePath $LogFile -Append
+                }
+            }
+            catch {
+                Write-ToLog "-> Error uninstalling $AppID via PowerShell module: $_" "Red"
+            }
+        }
+        else {
+            $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h" -split " "
+            Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
+            & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        }
+
+        #If Uninstall script exist
         if ($ModsUninstall) {
             Write-ToLog "-> Modifications for $AppID during uninstall are being applied..." "Yellow"
             & "$ModsUninstall"
@@ -363,7 +428,9 @@ if ($IsElevated -eq $True) {
     Install-Prerequisites
 
     #Reload Winget command
-    $Script:Winget = Get-WingetCmd
+    if ($winGetModuleAvailable -eq $false) {
+        $Script:Winget = Get-WingetCmd
+    }
 
     #Run Scope Machine function
     Add-ScopeMachine
@@ -372,10 +439,12 @@ else {
     Write-ToLog "Running without admin rights.`n"
 
     #Get Winget command
-    $Script:Winget = Get-WingetCmd
+    if ($winGetModuleAvailable -eq $false) {
+        $Script:Winget = Get-WingetCmd
+    }
 }
 
-if ($Winget) {
+if (($Winget) -or ($winGetModuleAvailable)) {
     #Put apps in an array
     $AppIDsArray = $AppIDs -split ","
     Write-Host ""

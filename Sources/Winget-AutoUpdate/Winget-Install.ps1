@@ -70,7 +70,7 @@ else {
 . "$realPath\functions\Get-WingetCmd.ps1"
 . "$realPath\functions\Write-ToLog.ps1"
 . "$realPath\functions\Confirm-Installation.ps1"
-
+. "$realPath\functions\Compare-SemVer.ps1"
 
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {
@@ -273,6 +273,9 @@ function Uninstall-App ($AppID, $AppArgs) {
 
         #Uninstall App
         Write-ToLog "-> Uninstalling $AppID..." "Yellow"
+        $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
+        Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
+        & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 
         if ($winGetModuleAvailable) {
             try {

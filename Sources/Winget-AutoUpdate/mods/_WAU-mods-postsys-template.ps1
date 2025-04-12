@@ -9,14 +9,14 @@ Make sure your Functions have unique names!
 . $PSScriptRoot\_Mods-Functions.ps1
 
 <# ARRAYS/VARIABLES #>
-#Example:
-#Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1","lnk2"
-#The function Remove-ModsLnk returns the number of removed links.
-#$Lnk = @("Acrobat Read*","Bitwarden","calibre*")
+# Example:
+# Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1","lnk2"
+# The function Remove-ModsLnk returns the number of removed links.
+# $Lnk = @("Acrobat Read*","Bitwarden","calibre*")
 
 
 <# MAIN #>
-#Example:
+# Example:
 # if ($Lnk) {
 #     $removedCount = Remove-ModsLnk $Lnk
 #     Write-ToLog "-> Removed $($removedCount) Public Desktop Links!" "Green"

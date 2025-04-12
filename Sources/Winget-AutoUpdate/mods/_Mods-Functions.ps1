@@ -56,17 +56,17 @@ function Uninstall-WingetID ($WingetIDUninst) {
 function Uninstall-ModsApp ($AppUninst, $AllVersions) {
     foreach ($app in $AppUninst) {
         # we start from scanning the x64 node in registry, if something was found, then we set x64=TRUE
-        [bool]$app_was_x64 = Process-installedSoftware -app $app -x64 $true;
+        [bool]$app_was_x64 = Get-InstalledSoftware -app $app -x64 $true;
 
         # if nothing was found in x64 node, then we repeat that action in x86 node
         if (!$app_was_x64) {
-            Process-installedSoftware -app $app | Out-Null;
+            Get-InstalledSoftware -app $app | Out-Null;
         }
     }
     Return
 }
 
-Function Process-installedSoftware() {
+Function Get-InstalledSoftware() {
     [OutputType([Bool])]
     Param(
         [parameter(Mandatory = $true)] [string]$app,

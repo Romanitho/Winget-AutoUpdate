@@ -22,4 +22,4 @@ Make sure your Functions have unique names!
 #     Write-ToLog "-> Removed $($removedCount) Public Desktop Links!" "Green"
 # }
 
-Write-ToLog "...nothing to do!" "Green"
+Write-ToLog "-> ...Mods (postsys) for WAU has nothing more to do!" "Green"

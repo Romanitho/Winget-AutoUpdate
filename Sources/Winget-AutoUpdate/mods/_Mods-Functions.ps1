@@ -141,10 +141,15 @@ Function Process-installedSoftware() {
 }
 
 function Remove-ModsLnk ($Lnk) {
+    $removedCount = 0
     foreach ($link in $Lnk) {
-        Remove-Item -Path "${env:Public}\Desktop\$link.lnk" -Force -ErrorAction SilentlyContinue | Out-Null
+        $linkPath = "${env:Public}\Desktop\$link.lnk"
+        if (Test-Path $linkPath) {
+            Remove-Item -Path $linkPath -Force -ErrorAction SilentlyContinue | Out-Null
+            $removedCount++
+        }
     }
-    Return
+    Return $removedCount
 }
 
 function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {

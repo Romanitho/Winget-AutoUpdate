@@ -1,3 +1,16 @@
+<# A mods template for apps
+Possible use cases:
+"$Mods\AppID-preinstall.ps1"
+"$Mods\AppID-install.ps1"
+"$Mods\AppID-upgrade.ps1"
+"$Mods\AppID-installed.ps1"
+"$Mods\AppID-notinstalled.ps1"
+#>
+
+<# FUNCTIONS #>
+. $PSScriptRoot\_Mods-Functions.ps1
+
+
 <# ARRAYS/VARIABLES #>
 #App to Run (as SYSTEM)
 #$RunWait = $False if it shouldn't be waited for completion. Example:
@@ -82,8 +95,6 @@ $GrantPath = @("")
 $RunUser = ""
 $User = $True
 
-<# FUNCTIONS #>
-. $PSScriptRoot\_Mods-Functions.ps1
 
 <# MAIN #>
 if ($RunSystem) {
@@ -134,5 +145,6 @@ if ($GrantPath) {
 if ($RunUser) {
     Invoke-ModsApp $RunUser "" "" $User
 }
+
 
 <# EXTRAS #>

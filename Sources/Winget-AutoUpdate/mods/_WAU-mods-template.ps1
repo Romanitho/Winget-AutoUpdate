@@ -7,6 +7,7 @@ Exit 1 to Re-run WAU from this script (beware of loops)!
 #>
 
 <# FUNCTIONS #>
+. $PSScriptRoot\_Mods-Functions.ps1
 
 
 <# ARRAYS/VARIABLES #>

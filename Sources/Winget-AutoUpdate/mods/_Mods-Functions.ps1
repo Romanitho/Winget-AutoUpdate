@@ -88,9 +88,9 @@ Function Get-InstalledSoftware() {
             if ($UninstallString -like "MsiExec.exe*") {
                 $ProductCode = Select-String "{.*}" -inputobject $UninstallString
                 $ProductCode = $ProductCode.matches.groups[0].value
-                #MSI x64 Installer
+                # MSI Installer
                 $Exec = Start-Process "C:\Windows\System32\msiexec.exe" -ArgumentList "/x$ProductCode REBOOT=R /qn" -PassThru -Wait
-                #Stop Hard Reboot (if bad MSI!)
+                # Stop Hard Reboot (if bad MSI!)
                 if ($Exec.ExitCode -eq 1641) {
                     Start-Process "C:\Windows\System32\shutdown.exe" -ArgumentList "/a"
                 }
@@ -101,31 +101,52 @@ Function Get-InstalledSoftware() {
                     $QuietUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $QuietUninstallString
                     $Command = $QuietUninstallString.matches.groups[1].value
                     $Parameter = $QuietUninstallString.matches.groups[2].value
-                    #All EXE x64 Installers (already defined silent uninstall)
+                    # All EXE Installers (already defined silent uninstall)
                     Start-Process $Command -ArgumentList $Parameter -Wait
                 }
                 else {
-                    if ((Test-Path $CleanedUninstallString)) {
-                        $NullSoft = Select-String -Path $CleanedUninstallString -Pattern "Nullsoft"
-                    }
-                    if ($NullSoft) {
-                        #NSIS x64 Installer
-                        Start-Process $UninstallString -ArgumentList "/S" -Wait
-                    }
-                    else {
-                        if ((Test-Path $CleanedUninstallString)) {
-                            $Inno = Select-String -Path $CleanedUninstallString -Pattern "Inno Setup"
+                    # Improved detection logic
+                    if ((Test-Path $CleanedUninstallString -ErrorAction SilentlyContinue)) {
+                        try {
+                            # Read only the first kilobytes to find installer signatures
+                            $fileContent = Get-Content -Path $CleanedUninstallString -TotalCount 4096 -Raw -ErrorAction Stop
+                            
+                            if ($fileContent -match "Nullsoft" -or $fileContent -match "NSIS") {
+                                # NSIS Installer
+                                Start-Process $UninstallString -ArgumentList "/NCRC /S" -Wait
+                            }
+                            elseif ($fileContent -match "Inno Setup") {
+                                # Inno Installer
+                                Start-Process $UninstallString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
+                            }
+<#                             # Add more installation engines here
+                            elseif ($fileContent -match "InstallShield") {
+                                # InstallShield
+                                Start-Process $UninstallString -ArgumentList "/s" -Wait
+                            }
+                            elseif ($fileContent -match "Wise Installation Wizard") {
+                                # Wise Installer
+                                Start-Process $UninstallString -ArgumentList "/s" -Wait
+                            }
+                            elseif ($fileContent -match "Advanced Installer") {
+                                # Advanced Installer
+                                Start-Process $UninstallString -ArgumentList "/quiet" -Wait
+                            }
+ #>                            else {
+                                Write-Host "$(if($true -eq $x64) {'x64'} else {'x86'}) Uninstaller unknown, trying the UninstallString from registry..."
+                                $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $UninstallString
+                                $Command = $NativeUninstallString.matches.groups[1].value
+                                $Parameter = $NativeUninstallString.matches.groups[2].value
+                                Start-Process $Command -ArgumentList $Parameter -Wait
+                            }
                         }
-                        if ($Inno) {
-                            #Inno x64 Installer
-                            Start-Process $UninstallString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
-                        }
-                        else {
-                            Write-Host "$(if($true -eq $x64) {'x64'} else {'x86'}) Uninstaller unknown, trying the UninstallString from registry..."
+                        catch {
+                            Write-Warning "Could not read installer file: $_"
+                            # Fallback to standard method
+                            Write-Host "Failed to inspect installer, trying UninstallString directly..."
                             $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $UninstallString
                             $Command = $NativeUninstallString.matches.groups[1].value
                             $Parameter = $NativeUninstallString.matches.groups[2].value
-                            #All EXE x64 Installers (native defined uninstall)
                             Start-Process $Command -ArgumentList $Parameter -Wait
                         }
                     }

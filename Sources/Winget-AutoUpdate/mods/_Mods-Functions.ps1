@@ -108,27 +108,27 @@ Function Get-InstalledSoftware() {
                     # Improved detection logic
                     if ((Test-Path $CleanedUninstallString -ErrorAction SilentlyContinue)) {
                         try {
-                            # Read only the first kilobytes to find installer signatures
-                            $fileContent = Get-Content -Path $CleanedUninstallString -TotalCount 4096 -Raw -ErrorAction Stop
-                            
-                            if ($fileContent -match "Nullsoft" -or $fileContent -match "NSIS") {
+                            # Read the whole file to find installer signatures
+                            $fileContent = Get-Content -Path $CleanedUninstallString -Raw -ErrorAction Stop
+                            # Executes silent uninstallation based on installer type
+                            if ($fileContent -match "\bNullsoft\b" -or $fileContent -match "\bNSIS\b") {
                                 # NSIS Installer
                                 Start-Process $UninstallString -ArgumentList "/NCRC /S" -Wait
                             }
-                            elseif ($fileContent -match "Inno Setup") {
+                            elseif ($fileContent -match "\bInno Setup\b") {
                                 # Inno Installer
                                 Start-Process $UninstallString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
                             }
 <#                             # More installation engines goes here
-                            elseif ($fileContent -match "InstallShield") {
+                            elseif ($fileContent -match "\bInstallShield\b") {
                                 # InstallShield
                                 Start-Process $UninstallString -ArgumentList "/s" -Wait
                             }
-                            elseif ($fileContent -match "Wise Installation Wizard") {
+                            elseif ($fileContent -match "\bWise Installation Wizard\b") {
                                 # Wise Installer
                                 Start-Process $UninstallString -ArgumentList "/s" -Wait
                             }
-                            elseif ($fileContent -match "Advanced Installer") {
+                            elseif ($fileContent -match "\bAdvanced Installer\b") {
                                 # Advanced Installer
                                 Start-Process $UninstallString -ArgumentList "/quiet" -Wait
                             }

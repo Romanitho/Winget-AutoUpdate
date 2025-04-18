@@ -84,7 +84,8 @@ Function Get-InstalledSoftware() {
     foreach ($obj in $InstalledSoftware) {
         if ($obj.GetValue('DisplayName') -like $App) {
             $UninstallString = $obj.GetValue('UninstallString')
-            $CleanedUninstallString = $UninstallString.Trim([char]0x0022)
+            $CleanedUninstallString = $UninstallString.Replace('"', '')
+            $ExeString = $CleanedUninstallString.Substring(0, $CleanedUninstallString.IndexOf('.exe') + 4)
             if ($UninstallString -like "MsiExec.exe*") {
                 $ProductCode = Select-String "{.*}" -inputobject $UninstallString
                 $ProductCode = $ProductCode.matches.groups[0].value
@@ -98,7 +99,7 @@ Function Get-InstalledSoftware() {
             else {
                 $QuietUninstallString = $obj.GetValue('QuietUninstallString')
                 if ($QuietUninstallString) {
-                    $QuietUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $QuietUninstallString
+                    $QuietUninstallString = Select-String '("[^"]*") +(.*)' -inputobject $QuietUninstallString
                     $Command = $QuietUninstallString.matches.groups[1].value
                     $Parameter = $QuietUninstallString.matches.groups[2].value
                     # All EXE Installers (already defined silent uninstall)
@@ -106,34 +107,40 @@ Function Get-InstalledSoftware() {
                 }
                 else {
                     # Improved detection logic
-                    if ((Test-Path $CleanedUninstallString -ErrorAction SilentlyContinue)) {
+                    if ((Test-Path $ExeString -ErrorAction SilentlyContinue)) {
                         try {
                             # Read the whole file to find installer signatures
-                            $fileContent = Get-Content -Path $CleanedUninstallString -Raw -ErrorAction Stop
+                            $fileContent = Get-Content -Path $ExeString -Raw -ErrorAction Stop
                             # Executes silent uninstallation based on installer type
                             if ($fileContent -match "\bNullsoft\b" -or $fileContent -match "\bNSIS\b") {
-                                # NSIS Installer
-                                Start-Process $UninstallString -ArgumentList "/NCRC /S" -Wait
+                                # Nullsoft (NSIS) Installer
+                                Start-Process $ExeString -ArgumentList "/NCRC /S" -Wait
                             }
                             elseif ($fileContent -match "\bInno Setup\b") {
                                 # Inno Installer
-                                Start-Process $UninstallString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
+                                Start-Process $ExeString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
                             }
-<#                             # More installation engines goes here
-                            elseif ($fileContent -match "\bInstallShield\b") {
-                                # InstallShield
-                                Start-Process $UninstallString -ArgumentList "/s" -Wait
+                            elseif ($fileContent -match "\bWise Solutions\b") {
+                                # Wise Uninstaller (Unwise32.exe)
+                                # Copy files to temp folder so that Unwise32.exe can find Install.log (very, very old system)
+                                $ArgString = $CleanedUninstallString.Substring($UninstallString.IndexOf('.exe') + 4).Trim()
+                                Copy-Item -Path $ExeString -Destination $env:TEMP -Force
+                                $ExeString = Join-Path $env:TEMP (Split-Path $ExeString -Leaf)
+                                Copy-Item -Path $ArgString -Destination $env:TEMP -Force
+                                $ArgString = Join-Path $env:TEMP (Split-Path $ArgString -Leaf)
+                                Start-Process $ExeString -ArgumentList "/s $ArgString" -Wait
                             }
-                            elseif ($fileContent -match "\bWise Installation Wizard\b") {
-                                # Wise Installer
-                                Start-Process $UninstallString -ArgumentList "/s" -Wait
-                            }
-                            elseif ($fileContent -match "\bAdvanced Installer\b") {
-                                # Advanced Installer
-                                Start-Process $UninstallString -ArgumentList "/quiet" -Wait
-                            }
- #>                            else {
-                                Write-Host "$(if($true -eq $x64) {'x64'} else {'x86'}) Uninstaller unknown, trying the UninstallString from registry..."
+                            # More installation engines goes here
+                            # elseif ($fileContent -match "\bInstallShield\b") {
+                            #     # InstallShield
+                            #     Start-Process $UninstallString -ArgumentList "/s" -Wait
+                            # }
+                            # elseif ($fileContent -match "\bAdvanced Installer\b") {
+                            #     # Advanced Installer
+                            #     Start-Process $UninstallString -ArgumentList "/quiet" -Wait
+                            # }
+                             else {
+                                 Write-Host "$(if($true -eq $x64) {'x64'} else {'x86'}) Uninstaller unknown, trying the UninstallString from registry..."
                                 $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $UninstallString
                                 $Command = $NativeUninstallString.matches.groups[1].value
                                 $Parameter = $NativeUninstallString.matches.groups[2].value

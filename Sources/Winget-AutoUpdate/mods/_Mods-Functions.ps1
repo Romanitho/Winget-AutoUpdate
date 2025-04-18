@@ -113,22 +113,26 @@ Function Get-InstalledSoftware() {
                             $fileContent = Get-Content -Path $ExeString -Raw -ErrorAction Stop
                             # Executes silent uninstallation based on installer type
                             if ($fileContent -match "\bNullsoft\b" -or $fileContent -match "\bNSIS\b") {
-                                # Nullsoft (NSIS) Installer
+                                # Nullsoft (NSIS) Uninstaller
                                 Start-Process $ExeString -ArgumentList "/NCRC /S" -Wait
                             }
                             elseif ($fileContent -match "\bInno Setup\b") {
-                                # Inno Installer
+                                # Inno Uninstaller
                                 Start-Process $ExeString -ArgumentList "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-" -Wait
                             }
                             elseif ($fileContent -match "\bWise Solutions\b") {
                                 # Wise Uninstaller (Unwise32.exe)
+                                # Find the Install.log path parameter in the UninstallString
+                                $ArgString = $CleanedUninstallString.Substring($CleanedUninstallString.IndexOf('.exe') + 4).Trim()
                                 # Copy files to temp folder so that Unwise32.exe can find Install.log (very, very old system)
-                                $ArgString = $CleanedUninstallString.Substring($UninstallString.IndexOf('.exe') + 4).Trim()
                                 Copy-Item -Path $ExeString -Destination $env:TEMP -Force
                                 $ExeString = Join-Path $env:TEMP (Split-Path $ExeString -Leaf)
                                 Copy-Item -Path $ArgString -Destination $env:TEMP -Force
                                 $ArgString = Join-Path $env:TEMP (Split-Path $ArgString -Leaf)
+                                # Execute the uninstaller with the copied Unwise32.exe
                                 Start-Process $ExeString -ArgumentList "/s $ArgString" -Wait
+                                # Remove the copied Unwise32.exe from temp folder (Install.log gets deleted by Unwise32.exe)
+                                Remove-Item -Path $ExeString -Force -ErrorAction SilentlyContinue
                             }
                             else {
                                 Write-Host "$(if($true -eq $x64) {'x64'} else {'x86'}) Uninstaller unknown, trying the UninstallString from registry..."

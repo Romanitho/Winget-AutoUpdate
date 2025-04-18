@@ -130,17 +130,8 @@ Function Get-InstalledSoftware() {
                                 $ArgString = Join-Path $env:TEMP (Split-Path $ArgString -Leaf)
                                 Start-Process $ExeString -ArgumentList "/s $ArgString" -Wait
                             }
-                            # More installation engines goes here
-                            # elseif ($fileContent -match "\bInstallShield\b") {
-                            #     # InstallShield
-                            #     Start-Process $UninstallString -ArgumentList "/s" -Wait
-                            # }
-                            # elseif ($fileContent -match "\bAdvanced Installer\b") {
-                            #     # Advanced Installer
-                            #     Start-Process $UninstallString -ArgumentList "/quiet" -Wait
-                            # }
-                             else {
-                                 Write-Host "$(if($true -eq $x64) {'x64'} else {'x86'}) Uninstaller unknown, trying the UninstallString from registry..."
+                            else {
+                                Write-Host "$(if($true -eq $x64) {'x64'} else {'x86'}) Uninstaller unknown, trying the UninstallString from registry..."
                                 $NativeUninstallString = Select-String "(\x22.*\x22) +(.*)" -inputobject $UninstallString
                                 $Command = $NativeUninstallString.matches.groups[1].value
                                 $Parameter = $NativeUninstallString.matches.groups[2].value

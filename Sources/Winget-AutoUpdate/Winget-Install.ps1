@@ -290,9 +290,8 @@ $Script:IsElevated = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuilt
 #Get WAU Installed location
 $WAURegKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
-# Get the Working Dir
-[string]$Script:WorkingDir = $PSScriptRoot
-$Mods = "$WorkingDir\mods"
+# Use the Working Dir (even if it is from a symlink)
+$Mods = "$realPath\mods"
 
 #Log file & LogPath initialization
 if ($IsElevated) {

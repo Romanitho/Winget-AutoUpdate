@@ -1,11 +1,11 @@
 <#
 .SYNOPSIS
 Install apps with Winget through Intune or SCCM.
-Can be used standalone.
+(Can be used standalone.) - Deprecated in favor of Winget-AutoUpdate.
 
 .DESCRIPTION
 Allow to run Winget in System Context to install your apps.
-https://github.com/Romanitho/Winget-Install
+(https://github.com/Romanitho/Winget-Install) - Deprecated in favor of Winget-AutoUpdate.
 
 .PARAMETER AppIDs
 Forward Winget App ID to install. For multiple apps, separate with ",". Case sensitive.
@@ -90,59 +90,39 @@ function Confirm-Exist ($AppID) {
 
 #Check if install modifications exist in "mods" directory
 function Test-ModsInstall ($AppID) {
-    #Check current location
-    if (Test-Path ".\mods\$AppID-preinstall.ps1") {
-        $ModsPreInstall = ".\mods\$AppID-preinstall.ps1"
-    }
-    #Else, check in WAU mods
-    elseif (Test-Path "$WAUModsLocation\$AppID-preinstall.ps1") {
-        $ModsPreInstall = "$WAUModsLocation\$AppID-preinstall.ps1"
-    }
-
-    if (Test-Path ".\mods\$AppID-install.ps1") {
-        $ModsInstall = ".\mods\$AppID-install.ps1"
-    }
-    elseif (Test-Path "$WAUModsLocation\$AppID-install.ps1") {
-        $ModsInstall = "$WAUModsLocation\$AppID-install.ps1"
-    }
-
-    if (Test-Path ".\mods\$AppID-installed-once.ps1") {
-        $ModsInstalledOnce = ".\mods\$AppID-installed-once.ps1"
+    if (Test-Path "$Mods\$AppID-*") {
+        if (Test-Path "$Mods\$AppID-preinstall.ps1") {
+            $ModsPreInstall = "$Mods\$AppID-preinstall.ps1"
+        } 
+        if (Test-Path "$Mods\$AppID-override.txt") {
+            $ModsOverride = (Get-Content "$Mods\$AppID-override.txt" -Raw).Trim()
+        }
+        if (Test-Path "$Mods\$AppID-custom.txt") {
+            $ModsCustom = (Get-Content "$Mods\$AppID-custom.txt" -Raw).Trim()
+        }
+        if (Test-Path "$Mods\$AppID-install.ps1") {
+            $ModsInstall = "$Mods\$AppID-install.ps1"
+        }
+        if (Test-Path "$Mods\$AppID-installed.ps1") {
+            $ModsInstalled = "$Mods\$AppID-installed.ps1"
+        }
     }
 
-    if (Test-Path ".\mods\$AppID-installed.ps1") {
-        $ModsInstalled = ".\mods\$AppID-installed.ps1"
-    }
-    elseif (Test-Path "$WAUModsLocation\$AppID-installed.ps1") {
-        $ModsInstalled = "$WAUModsLocation\$AppID-installed.ps1"
-    }
-
-    return $ModsPreInstall, $ModsInstall, $ModsInstalledOnce, $ModsInstalled
+    return $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsInstall, $ModsInstalled
 }
 
 #Check if uninstall modifications exist in "mods" directory
 function Test-ModsUninstall ($AppID) {
-    #Check current location
-    if (Test-Path ".\mods\$AppID-preuninstall.ps1") {
-        $ModsPreUninstall = ".\mods\$AppID-preuninstall.ps1"
-    }
-    #Else, check in WAU mods
-    elseif (Test-Path "$WAUModsLocation\$AppID-preuninstall.ps1") {
-        $ModsPreUninstall = "$WAUModsLocation\$AppID-preuninstall.ps1"
-    }
-
-    if (Test-Path ".\mods\$AppID-uninstall.ps1") {
-        $ModsUninstall = ".\mods\$AppID-uninstall.ps1"
-    }
-    elseif (Test-Path "$WAUModsLocation\$AppID-uninstall.ps1") {
-        $ModsUninstall = "$WAUModsLocation\$AppID-uninstall.ps1"
-    }
-
-    if (Test-Path ".\mods\$AppID-uninstalled.ps1") {
-        $ModsUninstalled = ".\mods\$AppID-uninstalled.ps1"
-    }
-    elseif (Test-Path "$WAUModsLocation\$AppID-uninstalled.ps1") {
-        $ModsUninstalled = "$WAUModsLocation\$AppID-uninstalled.ps1"
+    if (Test-Path "$Mods\$AppID-*") {
+        if (Test-Path "$Mods\$AppID-preuninstall.ps1") {
+            $ModsPreUninstall = "$Mods\$AppID-preinstall.ps1"
+        } 
+        if (Test-Path "$Mods\$AppID-uninstall.ps1") {
+            $ModsUninstall = "$Mods\$AppID-uninstall.ps1"
+        }
+        if (Test-Path "$Mods\$AppID-uninstalled.ps1") {
+            $ModsUninstalled = "$Mods\$AppID-uninstalled.ps1"
+        }
     }
 
     return $ModsPreUninstall, $ModsUninstall, $ModsUninstalled
@@ -152,8 +132,8 @@ function Test-ModsUninstall ($AppID) {
 function Install-App ($AppID, $AppArgs) {
     $IsInstalled = Confirm-Installation $AppID
     if (!($IsInstalled) -or $AllowUpgrade ) {
-        #Check if mods exist (or already exist) for preinstall/install/installedonce/installed
-        $ModsPreInstall, $ModsInstall, $ModsInstalledOnce, $ModsInstalled = Test-ModsInstall $($AppID)
+        #Check if mods exist (or already exist) for preinstall/override/custom/install/installed
+        $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsInstall, $ModsInstalled = Test-ModsInstall $($AppID)
 
         #If PreInstall script exist
         if ($ModsPreInstall) {
@@ -163,7 +143,18 @@ function Install-App ($AppID, $AppArgs) {
 
         #Install App
         Write-ToLog "-> Installing $AppID..." "Yellow"
-        $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
+        if ($ModsOverride) {
+            Write-ToLog "-> Arguments (overriding default): $ModsOverride"
+            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride" -split " "
+        }
+        elseif ($ModsCustom) {
+            Write-ToLog "-> Arguments (customized default): $ModsCustom"
+            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget --custom $ModsCustom" -split " "
+        }
+        else {
+            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
+        }
+
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
         & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 
@@ -184,17 +175,6 @@ function Install-App ($AppID, $AppArgs) {
             elseif ($ModsInstalled) {
                 Write-ToLog "-> Modifications for $AppID after install are being applied..." "Yellow"
                 & "$ModsInstalled"
-            }
-
-            #Add mods if deployed from Winget-Install
-            if (Test-Path ".\mods\$AppID-*") {
-                #Check if WAU default install path exists
-                $Mods = "$WAUModsLocation"
-                if (Test-Path $Mods) {
-                    #Add mods
-                    Write-ToLog "-> Add modifications for $AppID to WAU 'mods'"
-                    Copy-Item ".\mods\$AppID-*" -Destination "$Mods" -Exclude "*installed-once*", "*uninstall*" -Force
-                }
             }
 
             #Add to WAU White List if set
@@ -242,17 +222,6 @@ function Uninstall-App ($AppID, $AppArgs) {
             if ($ModsUninstalled) {
                 Write-ToLog "-> Modifications for $AppID after uninstall are being applied..." "Yellow"
                 & "$ModsUninstalled"
-            }
-
-            #Remove mods if deployed from Winget-Install
-            if (Test-Path ".\mods\$AppID-*") {
-                #Check if WAU default install path exists
-                $Mods = "$WAUModsLocation"
-                if (Test-Path "$Mods\$AppID*") {
-                    Write-ToLog "-> Remove $AppID modifications from WAU 'mods'"
-                    #Remove mods
-                    Remove-Item -Path "$Mods\$AppID-*" -Exclude "*uninstall*" -Force
-                }
             }
 
             #Remove from WAU White List if set
@@ -321,7 +290,9 @@ $Script:IsElevated = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuilt
 #Get WAU Installed location
 $WAURegKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
-$Script:WAUModsLocation = Join-Path -Path $WAUInstallLocation -ChildPath "mods"
+# Get the Working Dir
+[string]$Script:WorkingDir = $PSScriptRoot
+$Mods = "$WorkingDir\mods"
 
 #Log file & LogPath initialization
 if ($IsElevated) {

@@ -144,12 +144,12 @@ function Install-App ($AppID, $AppArgs) {
         #Install App
         Write-ToLog "-> Installing $AppID..." "Yellow"
         if ($ModsOverride) {
-            Write-ToLog "-> Arguments (overriding default): $ModsOverride"
+            Write-ToLog "-> Arguments (overriding default): $ModsOverride" # Without -h (user overrides default)
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride" -split " "
         }
         elseif ($ModsCustom) {
-            Write-ToLog "-> Arguments (customized default): $ModsCustom"
-            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget --custom $ModsCustom" -split " "
+            Write-ToLog "-> Arguments (customizing default): $ModsCustom" # With -h (user customizes default)
+            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom" -split " "
         }
         else {
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "

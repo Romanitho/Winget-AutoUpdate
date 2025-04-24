@@ -115,7 +115,7 @@ function Test-ModsInstall ($AppID) {
 function Test-ModsUninstall ($AppID) {
     if (Test-Path "$Mods\$AppID-*") {
         if (Test-Path "$Mods\$AppID-preuninstall.ps1") {
-            $ModsPreUninstall = "$Mods\$AppID-preinstall.ps1"
+            $ModsPreUninstall = "$Mods\$AppID-preuninstall.ps1"
         } 
         if (Test-Path "$Mods\$AppID-uninstall.ps1") {
             $ModsUninstall = "$Mods\$AppID-uninstall.ps1"

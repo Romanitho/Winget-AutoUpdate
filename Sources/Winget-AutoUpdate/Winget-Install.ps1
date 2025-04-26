@@ -292,7 +292,7 @@ function Test-LogFileStatus {
     #LogRotation
     [bool]$LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize;
     if ($false -eq $LogRotate) {
-        Write-ToLog "An Exception occurred during Log Rotation..." -Component "WinGet-Install"
+        Write-ToLog "An Exception occurred during Log Rotation..." "Red" -Component "WinGet-Install"
     }
 }
 

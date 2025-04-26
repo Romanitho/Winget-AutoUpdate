@@ -2,7 +2,7 @@
 # Write-ToLog "Installing $AppID..." "DarkYellow"
 
 # Extra Configuration Manager details
-# Write-ToLog -LogMsg "Installing $AppID..." -LogColor "Yellow" -Component "AppInstaller" -LogLevel "1"
+# Write-ToLog -LogMsg "Installing $AppID..." -LogColor "DarkYellow" -Component "AppInstaller" -LogLevel "1"
 
 # With Event Log
 # Write-ToLog -LogMsg "Debug information" -LogColor "Gray" -UseEventLog

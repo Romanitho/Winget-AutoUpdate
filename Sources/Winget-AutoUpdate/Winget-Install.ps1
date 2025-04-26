@@ -71,6 +71,7 @@ else {
 . "$realPath\functions\Write-ToLog.ps1"
 . "$realPath\functions\Confirm-Installation.ps1"
 . "$realPath\functions\Compare-SemVer.ps1"
+. "$realPath\functions\Invoke-LogRotation.ps1"
 
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {
@@ -268,6 +269,33 @@ function Remove-WAUWhiteList ($AppID) {
     }
 }
 
+# Function to check log file status
+function Test-LogFileStatus {
+    # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
+    $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles
+    if ($null -eq $MaxLogFiles) {
+        [int32]$MaxLogFiles = 3;
+    }
+    else {
+        [int32]$MaxLogFiles = $MaxLogFiles;
+    }
+
+    # Maximum size of log file.
+    $MaxLogSize = $WAUConfig.WAU_MaxLogSize;
+    if (!$MaxLogSize) {
+        [int64]$MaxLogSize = [int64]1MB; # in bytes, default is 1 MB = 1048576
+    }
+    else {
+        [int64]$MaxLogSize = $MaxLogSize;
+    }
+
+    #LogRotation
+    [bool]$LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize;
+    if ($false -eq $LogRotate) {
+        Write-ToLog "An Exception occurred during Log Rotation..." -Component "WinGet-Install"
+    }
+}
+
 <# MAIN #>
 
 #If running as a 32-bit process on an x64 system, re-launch as a 64-bit process
@@ -319,12 +347,15 @@ if (!(Test-Path $LogPath)) {
     New-Item -ItemType Directory -Force -Path $LogPath | Out-Null
 }
 
+# Test the status of the log files
+Test-LogFileStatus
+
 #Log Header
 if ($Uninstall) {
-    Write-ToLog -LogMsg "###   NEW UNINSTALL REQUEST   ###" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
+    Write-ToLog "###   NEW UNINSTALL REQUEST   ###" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
 }
 else {
-    Write-ToLog -LogMsg "###   NEW INSTALL REQUEST   ###" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
+    Write-ToLog "###   NEW INSTALL REQUEST   ###" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
 }
 
 if ($IsElevated -eq $True) {

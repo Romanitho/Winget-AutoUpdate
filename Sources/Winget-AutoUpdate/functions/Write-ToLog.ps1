@@ -75,11 +75,11 @@ function Write-ToLog {
         $Log = "#" * 65 + "`n#    $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern) - $LogMsg`n" + "#" * 65
         Write-Host $Log -ForegroundColor $LogColor
         #Write log to file
-        $Log | Out-File -FilePath $StandardLogFile -Append -Encoding Unicode
+        $Log | Out-File -FilePath $StandardLogFile -Append
     }
     else {
         Write-Host $StandardLogLine -ForegroundColor $LogColor
-        $StandardLogLine | Out-File -FilePath $StandardLogFile -Append -Encoding Unicode
+        $StandardLogLine | Out-File -FilePath $StandardLogFile -Append
     }
 
     # 2. Configuration Manager log format
@@ -102,7 +102,7 @@ function Write-ToLog {
         $CMLogLine = "<![LOG[$LogMsg]LOG]!><time=`"$time`" date=`"$date`" component=`"$Component`" context=`"`" type=`"$CMLogLevel`" thread=`"$ThreadID`" file=`"`">"
 
         # Write to CM log file
-        $CMLogLine | Out-File -FilePath $CMLogFile -Append -Encoding Unicode
+        $CMLogLine | Out-File -FilePath $CMLogFile -Append
     }
 
     # 3. Windows Event Log

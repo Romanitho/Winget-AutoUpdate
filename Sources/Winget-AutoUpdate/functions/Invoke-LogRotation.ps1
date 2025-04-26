@@ -12,7 +12,7 @@ function Invoke-LogRotation {
     if (-not($MaxLogFiles -eq 1)) {
         try {
             # get current size of standard log file
-            $currentSize = (Get-Item $LogFile).Length
+            $currentSize = if (Test-Path $LogFile) { (Get-Item $LogFile).Length } else { 0 }
 
             # get standard log name
             $logFileName = Split-Path $LogFile -Leaf
@@ -53,7 +53,7 @@ function Invoke-LogRotation {
 
             # get current size of CM log file if it exists
             if (Test-Path $CMLogFile) {
-                $currentCMSize = (Get-Item $CMLogFile).Length
+                $currentCMSize = if (Test-Path $CMLogFile) { (Get-Item $CMLogFile).Length } else { 0 }
 
                 # get CM log name
                 $logFileName = Split-Path $CMLogFile -Leaf

@@ -166,7 +166,7 @@ function Install-App ($AppID, $AppArgs) {
         #Check if install is ok
         $IsInstalled = Confirm-Installation $AppID
         if ($IsInstalled) {
-            Write-ToLog "-> $AppID successfully installed." "Green"
+            Write-ToLog "-> $AppID successfully installed." "Green" -Component "WinGet-Install"
 
             if ($ModsInstalledOnce) {
                 Write-ToLog "-> Modifications for $AppID after install (one time) are being applied..." "DarkYellow" -Component "WinGet-Install"
@@ -200,18 +200,18 @@ function Uninstall-App ($AppID, $AppArgs) {
 
         #If PreUninstall script exist
         if ($ModsPreUninstall) {
-            Write-ToLog "-> Modifications for $AppID before uninstall are being applied..." "DarkYellow"
+            Write-ToLog "-> Modifications for $AppID before uninstall are being applied..." "DarkYellow" -Component "WinGet-Install"
             & "$ModsPreUninstall"
         }
 
         #Uninstall App
-        Write-ToLog "-> Uninstalling $AppID..." "DarkYellow"
+        Write-ToLog "-> Uninstalling $AppID..." "DarkYellow" -Component "WinGet-Install"
         $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
-        Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
+        Write-ToLog "-> Running: `"$Winget`" $WingetArgs" -Component "WinGet-Install"
         & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 
         if ($ModsUninstall) {
-            Write-ToLog "-> Modifications for $AppID during uninstall are being applied..." "Yellow"
+            Write-ToLog "-> Modifications for $AppID during uninstall are being applied..." "DarkYellow" -Component "WinGet-Install"
             & "$ModsUninstall"
         }
 

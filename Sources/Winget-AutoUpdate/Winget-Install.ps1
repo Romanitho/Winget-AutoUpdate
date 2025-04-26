@@ -79,11 +79,11 @@ function Confirm-Exist ($AppID) {
 
     #Return if AppID exists
     if ($WingetApp -match [regex]::Escape($AppID)) {
-        Write-ToLog "-> $AppID exists on Winget Repository." "Cyan"
+        Write-ToLog "-> $AppID exists on Winget Repository." "Cyan" -Component "WinGet-Install"
         return $true
     }
     else {
-        Write-ToLog "-> $AppID does not exist on Winget Repository! Check spelling." "Red"
+        Write-ToLog "-> $AppID does not exist on Winget Repository! Check spelling." "Red" -Component "WinGet-Install"
         return $false
     }
 }
@@ -137,29 +137,29 @@ function Install-App ($AppID, $AppArgs) {
 
         #If PreInstall script exist
         if ($ModsPreInstall) {
-            Write-ToLog "-> Modifications for $AppID before install are being applied..." "DarkYellow"
+            Write-ToLog "-> Modifications for $AppID before install are being applied..." "DarkYellow" -Component "WinGet-Install"
             & "$ModsPreInstall"
         }
 
         #Install App
-        Write-ToLog "-> Installing $AppID..." "DarkYellow"
+        Write-ToLog "-> Installing $AppID..." "DarkYellow" -Component "WinGet-Install"
         if ($ModsOverride) {
-            Write-ToLog "-> Arguments (overriding default): $ModsOverride" # Without -h (user overrides default)
+            Write-ToLog "-> Arguments (overriding default): $ModsOverride" -Component "WinGet-Install" # Without -h (user overrides default)
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride" -split " "
         }
         elseif ($ModsCustom) {
-            Write-ToLog "-> Arguments (customizing default): $ModsCustom" # With -h (user customizes default)
+            Write-ToLog "-> Arguments (customizing default): $ModsCustom" -Component "WinGet-Install" # With -h (user customizes default)
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom" -split " "
         }
         else {
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
         }
 
-        Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
+        Write-ToLog "-> Running: `"$Winget`" $WingetArgs" -Component "WinGet-Install"
         & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 
         if ($ModsInstall) {
-            Write-ToLog "-> Modifications for $AppID during install are being applied..." "Yellow"
+            Write-ToLog "-> Modifications for $AppID during install are being applied..." "DarkYellow" -Component "WinGet-Install"
             & "$ModsInstall"
         }
 
@@ -169,11 +169,11 @@ function Install-App ($AppID, $AppArgs) {
             Write-ToLog "-> $AppID successfully installed." "Green"
 
             if ($ModsInstalledOnce) {
-                Write-ToLog "-> Modifications for $AppID after install (one time) are being applied..." "Yellow"
+                Write-ToLog "-> Modifications for $AppID after install (one time) are being applied..." "DarkYellow" -Component "WinGet-Install"
                 & "$ModsInstalledOnce"
             }
             elseif ($ModsInstalled) {
-                Write-ToLog "-> Modifications for $AppID after install are being applied..." "Yellow"
+                Write-ToLog "-> Modifications for $AppID after install are being applied..." "DarkYellow" -Component "WinGet-Install"
                 & "$ModsInstalled"
             }
 
@@ -183,11 +183,11 @@ function Install-App ($AppID, $AppArgs) {
             }
         }
         else {
-            Write-ToLog "-> $AppID installation failed!" "Red"
+            Write-ToLog "-> $AppID installation failed!" "Red" -Component "WinGet-Install"
         }
     }
     else {
-        Write-ToLog "-> $AppID is already installed." "Cyan"
+        Write-ToLog "-> $AppID is already installed." "Cyan" -Component "WinGet-Install"
     }
 }
 
@@ -200,12 +200,12 @@ function Uninstall-App ($AppID, $AppArgs) {
 
         #If PreUninstall script exist
         if ($ModsPreUninstall) {
-            Write-ToLog "-> Modifications for $AppID before uninstall are being applied..." "Yellow"
+            Write-ToLog "-> Modifications for $AppID before uninstall are being applied..." "DarkYellow"
             & "$ModsPreUninstall"
         }
 
         #Uninstall App
-        Write-ToLog "-> Uninstalling $AppID..." "Yellow"
+        Write-ToLog "-> Uninstalling $AppID..." "DarkYellow"
         $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
         & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
@@ -218,9 +218,9 @@ function Uninstall-App ($AppID, $AppArgs) {
         #Check if uninstall is ok
         $IsInstalled = Confirm-Installation $AppID
         if (!($IsInstalled)) {
-            Write-ToLog "-> $AppID successfully uninstalled." "Green"
+            Write-ToLog "-> $AppID successfully uninstalled." "Green" -Component "WinGet-Install"
             if ($ModsUninstalled) {
-                Write-ToLog "-> Modifications for $AppID after uninstall are being applied..." "Yellow"
+                Write-ToLog "-> Modifications for $AppID after uninstall are being applied..." "DarkYellow" -Component "WinGet-Install"
                 & "$ModsUninstalled"
             }
 
@@ -230,11 +230,11 @@ function Uninstall-App ($AppID, $AppArgs) {
             }
         }
         else {
-            Write-ToLog "-> $AppID uninstall failed!" "Red"
+            Write-ToLog "-> $AppID uninstall failed!" "Red" -Component "WinGet-Install"
         }
     }
     else {
-        Write-ToLog "-> $AppID is not installed." "Cyan"
+        Write-ToLog "-> $AppID is not installed." "Cyan" -Component "WinGet-Install"
     }
 }
 
@@ -247,7 +247,7 @@ function Add-WAUWhiteList ($AppID) {
         if (!(Test-Path $WhiteList)) {
             New-Item -ItemType File -Path $WhiteList -Force -ErrorAction SilentlyContinue
         }
-        Write-ToLog "-> Add $AppID to WAU included_apps.txt"
+        Write-ToLog "-> Add $AppID to WAU included_apps.txt" -Component "WinGet-Install"
         #Add App to "included_apps.txt"
         Add-Content -Path $WhiteList -Value "`n$AppID" -Force
         #Remove duplicate and blank lines
@@ -261,7 +261,7 @@ function Remove-WAUWhiteList ($AppID) {
     #Check if WAU default install path exists
     $WhiteList = "$WAUInstallLocation\included_apps.txt"
     if (Test-Path $WhiteList) {
-        Write-ToLog "-> Remove $AppID from WAU included_apps.txt"
+        Write-ToLog "-> Remove $AppID from WAU included_apps.txt" -Component "WinGet-Install"
         #Remove app from list
         $file = Get-Content $WhiteList | Where-Object { $_ -ne "$AppID" }
         $file | Out-File $WhiteList
@@ -321,14 +321,14 @@ if (!(Test-Path $LogPath)) {
 
 #Log Header
 if ($Uninstall) {
-    Write-ToLog -LogMsg "NEW UNINSTALL REQUEST" -LogColor "Magenta" -IsHeader
+    Write-ToLog -LogMsg "NEW UNINSTALL REQUEST" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
 }
 else {
-    Write-ToLog -LogMsg "NEW INSTALL REQUEST" -LogColor "Magenta" -IsHeader
+    Write-ToLog -LogMsg "NEW INSTALL REQUEST" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
 }
 
 if ($IsElevated -eq $True) {
-    Write-ToLog "Running with admin rights.`n"
+    Write-ToLog "Running with admin rights.`n" -Component "WinGet-Install"
 
     #Check/install prerequisites
     Install-Prerequisites
@@ -340,7 +340,7 @@ if ($IsElevated -eq $True) {
     Add-ScopeMachine
 }
 else {
-    Write-ToLog "Running without admin rights.`n"
+    Write-ToLog "Running without admin rights.`n" -Component "WinGet-Install"
 
     #Get Winget command
     $Script:Winget = Get-WingetCmd
@@ -357,7 +357,7 @@ if ($Winget) {
         $AppID, $AppArgs = ($App_Full.Trim().Split(" ", 2))
 
         #Log current App
-        Write-ToLog "Start $AppID processing..." "Blue"
+        Write-ToLog "Start $AppID processing..." "Blue" -Component "WinGet-Install"
 
         #Install or Uninstall command
         if ($Uninstall) {
@@ -373,10 +373,10 @@ if ($Winget) {
         }
 
         #Log current App
-        Write-ToLog "$AppID processing finished!`n" "Blue"
+        Write-ToLog "$AppID processing finished!`n" "Blue" -Component "WinGet-Install"
         Start-Sleep 1
     }
 }
 
-Write-ToLog "###   END REQUEST   ###`n" "Magenta"
+Write-ToLog "###   END REQUEST   ###`n" "Magenta" -Component "WinGet-Install"
 Start-Sleep 3

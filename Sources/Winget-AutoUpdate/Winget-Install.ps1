@@ -378,5 +378,5 @@ if ($Winget) {
     }
 }
 
-Write-ToLog "###   END REQUEST   ###`n" "Magenta" -Component "WinGet-Install"
+Write-ToLog "###   END REQUEST   ###`n" "Magenta" -IsHeader -Component "WinGet-Install"
 Start-Sleep 3

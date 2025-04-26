@@ -53,7 +53,7 @@ function Invoke-LogRotation {
 
             # get current size of CM log file if it exists
             if (Test-Path $CMLogFile) {
-                $currentCMSize = if (Test-Path $CMLogFile) { (Get-Item $CMLogFile).Length } else { 0 }
+                $currentCMSize = (Get-Item $CMLogFile).Length
 
                 # get CM log name
                 $logFileName = Split-Path $CMLogFile -Leaf

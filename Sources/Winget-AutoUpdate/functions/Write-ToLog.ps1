@@ -99,7 +99,8 @@ function Write-ToLog {
         }
 
         # Create the log entry in CM format - note the exact format needed for OneTrace
-        $CMLogLine = "<![LOG[$LogMsg]LOG]!><time=`"$time`" date=`"$date`" component=`"$Component`" context=`"`" type=`"$CMLogLevel`" thread=`"$ThreadID`" file=`"`">"
+        $ComputerName = $env:COMPUTERNAME
+        $CMLogLine = "<![LOG[$LogMsg]LOG]!><time=`"$time`" date=`"$date`" component=`"$Component`" context=`"`" type=`"$CMLogLevel`" thread=`"$ThreadID`" file=`"$ComputerName`">"
 
         # Write to CM log file
         $CMLogLine | Out-File -FilePath $CMLogFile -Append

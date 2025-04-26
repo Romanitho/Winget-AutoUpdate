@@ -137,12 +137,12 @@ function Install-App ($AppID, $AppArgs) {
 
         #If PreInstall script exist
         if ($ModsPreInstall) {
-            Write-ToLog "-> Modifications for $AppID before install are being applied..." "Yellow"
+            Write-ToLog "-> Modifications for $AppID before install are being applied..." "DarkYellow"
             & "$ModsPreInstall"
         }
 
         #Install App
-        Write-ToLog "-> Installing $AppID..." "Yellow"
+        Write-ToLog "-> Installing $AppID..." "DarkYellow"
         if ($ModsOverride) {
             Write-ToLog "-> Arguments (overriding default): $ModsOverride" # Without -h (user overrides default)
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride" -split " "

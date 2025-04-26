@@ -321,10 +321,10 @@ if (!(Test-Path $LogPath)) {
 
 #Log Header
 if ($Uninstall) {
-    Write-ToLog -LogMsg "NEW UNINSTALL REQUEST" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
+    Write-ToLog -LogMsg "###   NEW UNINSTALL REQUEST   ###" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
 }
 else {
-    Write-ToLog -LogMsg "NEW INSTALL REQUEST" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
+    Write-ToLog -LogMsg "###   NEW INSTALL REQUEST   ###" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
 }
 
 if ($IsElevated -eq $True) {

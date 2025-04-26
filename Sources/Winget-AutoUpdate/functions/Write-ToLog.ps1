@@ -142,16 +142,20 @@ function Write-ToLog {
                 elseif ($LogMsg -match "Uninstalling") {
                     $EventID = 1002
                 }
-                # Om det är ett modifieringsmeddelande
+                # If it is a modification message
                 elseif ($LogMsg -match "Modifications") {
                     $EventID = 1003
+                }
+                # If it is an updating message
+                elseif ($LogMsg -match "Updating") {
+                    $EventID = 1004
                 }
                 # If it is an error
                 elseif ($EventLogEntryType -eq "Error") {
                     $EventID = 9000
                 }
 
-                # FIX: Use string concatenation instead of variable interpolation with colon
+                # Use string concatenation instead of variable interpolation with colon
                 $EventMessage = "$($Component): $LogMsg"
                 Write-EventLog -LogName Application -Source $LogSource -EventId $EventID `
                     -EntryType $EventLogEntryType -Message $EventMessage

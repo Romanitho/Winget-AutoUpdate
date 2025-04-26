@@ -169,11 +169,7 @@ function Install-App ($AppID, $AppArgs) {
         if ($IsInstalled) {
             Write-ToLog "-> $AppID successfully installed." "Green" -Component "WinGet-Install"
 
-            if ($ModsInstalledOnce) {
-                Write-ToLog "-> Modifications for $AppID after install (one time) are being applied..." "DarkYellow" -Component "WinGet-Install"
-                & "$ModsInstalledOnce"
-            }
-            elseif ($ModsInstalled) {
+            if ($ModsInstalled) {
                 Write-ToLog "-> Modifications for $AppID after install are being applied..." "DarkYellow" -Component "WinGet-Install"
                 & "$ModsInstalled"
             }

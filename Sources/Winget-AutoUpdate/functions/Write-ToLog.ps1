@@ -7,6 +7,9 @@
 # With Event Log
 # Write-ToLog -LogMsg "Debug information" -LogColor "Gray" -UseEventLog
 
+# As header
+# Write-ToLog "NEW INSTALL REQUEST" "RoyalBlue" -IsHeader -Component "WinGet-Install"
+
 function Write-ToLog {
     param (
         [Parameter(Mandatory = $true)]

@@ -348,10 +348,10 @@ Test-LogFileStatus
 
 #Log Header
 if ($Uninstall) {
-    Write-ToLog "NEW UNINSTALL REQUEST" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
+    Write-ToLog "NEW UNINSTALL REQUEST" "Magenta" -IsHeader -Component "WinGet-Install"
 }
 else {
-    Write-ToLog "NEW INSTALL REQUEST" -LogColor "Magenta" -IsHeader -Component "WinGet-Install"
+    Write-ToLog "NEW INSTALL REQUEST" "Magenta" -IsHeader -Component "WinGet-Install"
 }
 
 if ($IsElevated -eq $True) {

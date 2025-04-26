@@ -1,4 +1,4 @@
-# Standard use (all three destinations)
+﻿# Standard use (all three destinations)
 # Write-ToLog "Installing $AppID..." "DarkYellow"
 
 # Extra Configuration Manager details

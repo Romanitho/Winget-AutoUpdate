@@ -354,7 +354,7 @@ else {
 if (!(Test-Path $LogPath)) {
     New-Item -ItemType Directory -Force -Path $LogPath | Out-Null
 }
-$Script:CMLogFile = $CMLogFile = $LogFile -replace "\.log$", "_CM.log"
+$Script:CMLogFile = $LogFile -replace "\.log$", "_CM.log"
 
 # Test the status of the log files
 Test-LogFileStatus

@@ -157,7 +157,7 @@ function Install-App ($AppID, $AppArgs) {
         }
 
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs" -LogLevel "0" -Component "WinGet-Install"
-        if ($CMLogFile) {
+        if (Test-Path $CMLogFile) {
             & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
             Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
         }
@@ -211,7 +211,7 @@ function Uninstall-App ($AppID, $AppArgs) {
         Write-ToLog "-> Uninstalling $AppID..." "DarkYellow" -Component "WinGet-Install"
         $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs" -LogLevel "0" -Component "WinGet-Install"
-        if ($CMLogFile) {
+        if (Test-Path $CMLogFile) {
             & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
             Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
         }

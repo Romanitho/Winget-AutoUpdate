@@ -2,6 +2,9 @@
 
 Function Update-App ($app) {
 
+    # Set CMLogFile name
+    $CMLogFile = $LogFile -replace "\.log$", "_CM.log"
+
     #Get App Info
     $ReleaseNoteURL = Get-AppInfo $app.Id
     if ($ReleaseNoteURL) {
@@ -24,26 +27,44 @@ Function Update-App ($app) {
 
     #If PreInstall script exist
     if ($ModsPreInstall) {
-        Write-ToLog "Modifications for $($app.Id) before upgrade are being applied..." "Yellow"
+        Write-ToLog "Modifications for $($app.Id) before upgrade are being applied..." "DarkYellow"
         & "$ModsPreInstall"
     }
 
     #Run Winget Upgrade command
     if ($ModsOverride) {
         Write-ToLog "-> Running (overriding default): Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride"
-        & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        if (Test-Path $CMLogFile) {
+            & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
+            Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+        }
+        else {
+            & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        }
     }
     elseif ($ModsCustom) {
          Write-ToLog "-> Running (customizing default): Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom"
-         & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+         if (Test-Path $CMLogFile) {
+            & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
+            Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+        }
+        else {
+            & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        }
     }
     else {
         Write-ToLog "-> Running: Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h"
-        & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        if (Test-Path $CMLogFile) {
+            & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
+            Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+        }
+        else {
+            & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        }
     }
 
     if ($ModsUpgrade) {
-        Write-ToLog "Modifications for $($app.Id) during upgrade are being applied..." "Yellow"
+        Write-ToLog "Modifications for $($app.Id) during upgrade are being applied..." "DarkYellow"
         & "$ModsUpgrade"
     }
 
@@ -63,23 +84,41 @@ Function Update-App ($app) {
         $retry = 1
         While (($ConfirmInstall -eq $false) -and ($retry -le 2)) {
 
-            Write-ToLog "-> An upgrade for $($app.Name) failed, now trying an install instead... ($retry/2)" "Yellow"
+            Write-ToLog "-> An upgrade for $($app.Name) failed, now trying an install instead... ($retry/2)" "DarkYellow"
 
             if ($ModsOverride) {
                 Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride"
-                & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+                if (Test-Path $CMLogFile) {
+                    & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
+                    Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+                }
+                else {
+                    & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+                }
             }
             elseif ($ModsCustom) {
                  Write-ToLog "-> Running (customizing default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom"
-                 & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+                 if (Test-Path $CMLogFile) {
+                    & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
+                    Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+                }
+                else {
+                    & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+                }
             }
             else {
                 Write-ToLog "-> Running: Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force"
-                & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+                if (Test-Path $CMLogFile) {
+                    & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
+                    Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+                }
+                else {
+                    & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+                }
             }
 
             if ($ModsInstall) {
-                Write-ToLog "Modifications for $($app.Id) during install are being applied..." "Yellow"
+                Write-ToLog "Modifications for $($app.Id) during install are being applied..." "DarkYellow"
                 & "$ModsInstall"
             }
 
@@ -93,14 +132,14 @@ Function Update-App ($app) {
         # Upgrade/install was successful
         $true {
             if ($ModsInstalled) {
-                Write-ToLog "Modifications for $($app.Id) after upgrade/install are being applied..." "Yellow"
+                Write-ToLog "Modifications for $($app.Id) after upgrade/install are being applied..." "DarkYellow"
                 & "$ModsInstalled"
             }
         }
         # Upgrade/install was unsuccessful
         $false {
             if ($ModsNotInstalled) {
-                Write-ToLog "Modifications for $($app.Id) after a failed upgrade/install are being applied..." "Yellow"
+                Write-ToLog "Modifications for $($app.Id) after a failed upgrade/install are being applied..." "DarkYellow"
                 & "$ModsNotInstalled"
             }
         }

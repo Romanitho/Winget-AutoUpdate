@@ -10,6 +10,8 @@
 # As header
 # Write-ToLog "NEW INSTALL REQUEST" "RoyalBlue" -IsHeader -Component "WinGet-Install"
 
+# Color options: Black, DarkBlue, DarkGreen, DarkCyan, DarkRed, DarkMagenta, DarkYellow, Gray, DarkGray, Blue, Green, Cyan, Red, Magenta, Yellow, White
+
 function Write-ToLog {
     param (
         [Parameter(Mandatory = $true)]
@@ -17,7 +19,7 @@ function Write-ToLog {
         [string]$LogColor = "White",
         [switch]$IsHeader,
         [string]$Component = "WAU",
-        [string]$LogLevel = "1",  # 1=Information, 2=Warning, 3=Error
+        [string]$LogLevel = "1",  # 0=Verbose, 1=Information, 2=Warning, 3=Error, 4=None
         [string]$LogSource = "WAU",
         [bool]$UseCMLog = $false,
         [bool]$UseEventLog = $true

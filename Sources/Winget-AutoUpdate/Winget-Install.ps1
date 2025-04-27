@@ -156,8 +156,14 @@ function Install-App ($AppID, $AppArgs) {
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
         }
 
-        Write-ToLog "-> Running: `"$Winget`" $WingetArgs" -Component "WinGet-Install"
-        & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        Write-ToLog "-> Running: `"$Winget`" $WingetArgs" -LogLevel "0" -Component "WinGet-Install"
+        if ($CMLogFile) {
+            & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
+            Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+        }
+        else {
+            & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        }
 
         if ($ModsInstall) {
             Write-ToLog "-> Modifications for $AppID during install are being applied..." "DarkYellow" -Component "WinGet-Install"
@@ -204,8 +210,14 @@ function Uninstall-App ($AppID, $AppArgs) {
         #Uninstall App
         Write-ToLog "-> Uninstalling $AppID..." "DarkYellow" -Component "WinGet-Install"
         $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
-        Write-ToLog "-> Running: `"$Winget`" $WingetArgs" -Component "WinGet-Install"
-        & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        Write-ToLog "-> Running: `"$Winget`" $WingetArgs" -LogLevel "0" -Component "WinGet-Install"
+        if ($CMLogFile) {
+            & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
+            Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+        }
+        else {
+            & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        }
 
         if ($ModsUninstall) {
             Write-ToLog "-> Modifications for $AppID during uninstall are being applied..." "DarkYellow" -Component "WinGet-Install"
@@ -342,6 +354,7 @@ else {
 if (!(Test-Path $LogPath)) {
     New-Item -ItemType Directory -Force -Path $LogPath | Out-Null
 }
+$Script:CMLogFile = $CMLogFile = $LogFile -replace "\.log$", "_CM.log"
 
 # Test the status of the log files
 Test-LogFileStatus

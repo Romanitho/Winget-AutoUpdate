@@ -140,19 +140,19 @@ function Write-ToLog {
                 $EventID = 1000  # Standard information log
 
                 # If it is an installation message
-                if ($LogMsg -match "Installing") {
+                if ($LogMsg -match "\bInstalling\b") {
                     $EventID = 1001
                 }
                 # If it is an uninstall message
-                elseif ($LogMsg -match "Uninstalling") {
+                elseif ($LogMsg -match "\bUninstalling\b") {
                     $EventID = 1002
                 }
                 # If it is a modification message
-                elseif ($LogMsg -match "Modifications") {
+                elseif ($LogMsg -match "\bModifications\b") {
                     $EventID = 1003
                 }
                 # If it is an updating message
-                elseif ($LogMsg -match "Updating") {
+                elseif ($LogMsg -match "\bUpdating\b") {
                     $EventID = 1004
                 }
                 # If it is an error

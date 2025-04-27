@@ -36,7 +36,7 @@ Function Update-App ($app) {
         Write-ToLog "-> Running (overriding default): Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride"
         if (Test-Path $CMLogFile) {
             & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
-            Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+            Write-ToLog "-> EOR" "Gray" -LogLevel "0"
         }
         else {
             & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
@@ -46,7 +46,7 @@ Function Update-App ($app) {
          Write-ToLog "-> Running (customizing default): Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom"
          if (Test-Path $CMLogFile) {
             & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
-            Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+            Write-ToLog "-> EOR" "Gray" -LogLevel "0"
         }
         else {
             & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
@@ -56,7 +56,7 @@ Function Update-App ($app) {
         Write-ToLog "-> Running: Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h"
         if (Test-Path $CMLogFile) {
             & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
-            Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+            Write-ToLog "-> EOR" "Gray" -LogLevel "0"
         }
         else {
             & $Winget upgrade --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
@@ -90,7 +90,7 @@ Function Update-App ($app) {
                 Write-ToLog "-> Running (overriding default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride"
                 if (Test-Path $CMLogFile) {
                     & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
-                    Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+                    Write-ToLog "-> EOR" "Gray" -LogLevel "0"
                 }
                 else {
                     & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget --force --override $ModsOverride | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
@@ -100,7 +100,7 @@ Function Update-App ($app) {
                  Write-ToLog "-> Running (customizing default): Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom"
                  if (Test-Path $CMLogFile) {
                     & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
-                    Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+                    Write-ToLog "-> EOR" "Gray" -LogLevel "0"
                 }
                 else {
                     & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force --custom $ModsCustom | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
@@ -110,7 +110,7 @@ Function Update-App ($app) {
                 Write-ToLog "-> Running: Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force"
                 if (Test-Path $CMLogFile) {
                     & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append | Tee-Object -file $CMLogFile -Append
-                    Write-ToLog "-> EOR" "Gray" -LogLevel "0" -Component "WinGet-Install"
+                    Write-ToLog "-> EOR" "Gray" -LogLevel "0"
                 }
                 else {
                     & $Winget install --id $($app.Id) -e --accept-package-agreements --accept-source-agreements -s winget -h --force | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append

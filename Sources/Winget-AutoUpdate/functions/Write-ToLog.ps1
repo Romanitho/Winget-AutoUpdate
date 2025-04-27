@@ -1,16 +1,57 @@
-﻿# Standard use (all three destinations)
-# Write-ToLog "Installing $AppID..." "DarkYellow"
+﻿<#
+.SYNOPSIS
+Writing to log files and console with formatting and color options.
 
+.DESCRIPTION
+This function handles logging to multiple destinations - standard log file, Configuration Manager log file, Windows Event Log, and console output.
+It supports color-coded output, headers, and different log levels.
+
+.PARAMETER LogMsg
+The message to log.
+
+.PARAMETER LogColor
+The color to use for console output.
+Available colors: Black, DarkBlue, DarkGreen, DarkCyan, DarkRed, DarkMagenta, DarkYellow, Gray, DarkGray, Blue, Green, Cyan, Red, Magenta, Yellow, White
+
+.PARAMETER IsHeader
+Switch to format the message as a header with surrounding '#' characters.
+
+.PARAMETER Component
+The component name to use in Configuration Manager log format.
+
+.PARAMETER LogLevel
+The log level to use:
+0 = Verbose
+1 = Information (default)
+2 = Warning
+3 = Error
+4 = None
+
+.PARAMETER LogSource
+The source name for the Windows Event Log.
+
+.PARAMETER UseCMLog
+Whether to use Configuration Manager log format.
+
+.PARAMETER UseEventLog
+Whether to write to the Windows Event Log.
+
+.EXAMPLE
+# Standard use (all three destinations)
+Write-ToLog "Installing $AppID..." "DarkYellow"
+
+.EXAMPLE
 # Extra Configuration Manager details
-# Write-ToLog -LogMsg "Installing $AppID..." -LogColor "DarkYellow" -Component "AppInstaller" -LogLevel "1"
+Write-ToLog -LogMsg "Installing $AppID..." -LogColor "DarkYellow" -Component "AppInstaller" -LogLevel "1"
 
+.EXAMPLE
 # With Event Log
-# Write-ToLog -LogMsg "Debug information" -LogColor "Gray" -UseEventLog
+Write-ToLog -LogMsg "Debug information" -LogColor "Gray" -UseEventLog
 
+.EXAMPLE
 # As header
-# Write-ToLog "NEW INSTALL REQUEST" "RoyalBlue" -IsHeader -Component "WinGet-Install"
-
-# Color options: Black, DarkBlue, DarkGreen, DarkCyan, DarkRed, DarkMagenta, DarkYellow, Gray, DarkGray, Blue, Green, Cyan, Red, Magenta, Yellow, White
+Write-ToLog "NEW INSTALL REQUEST" "RoyalBlue" -IsHeader -Component "WinGet-Install"
+#>
 
 function Write-ToLog {
     param (

@@ -51,9 +51,39 @@ You can easily translate toast notifications by creating your locale xml config 
 WAU runs ,by default, at logon. You can configure the frequency with options (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never).
 
 ### Log location
-You can find logs in install location, in logs folder for priviledged executions. For user runs (Winget-Install.ps1) a log file will be created at %AppData%\Winget-AutoUpdate\Logs .<br>
-If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**<br>
-If you are deploying winget Apps with [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) a **SymLink** (WAU-install.log & WAU-user_%username%.log) is also created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
+You can find logs in the install location, in **logs** folder for priviledged executions (after the first run of WAU).
+
+For user runs of **Winget-Install.ps1** a log file will be created at **%AppData%\Winget-AutoUpdate\Logs**.
+
+If **Intune Management Extension** is installed, **SymLinks** (**WAU-updates.log**/**WAU-install.log**) are created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**.
+
+Later experience sadly confirms that **Intune Management Extension** keeps its folder to itself, cleaning it from time to time!
+
+#### Comprehensive Logging System
+WAU uses a comprehensive logging system that writes to three different destinations simultaneously:
+
+1. **Standard Log File**: 
+   - Simple text-based logs with timestamps
+   - Easily readable format for general troubleshooting
+   - Located in the installation directory's logs folder
+
+2. **Configuration Manager (CM) Log Format**:
+   - Compatible with Microsoft's CMTrace and CMLogViewer tools
+   - Detailed log format with component, context, source, thread ID, and log level information
+   - Automatically created if CMTrace or CMLogViewer is detected on the system
+   - File name ends with "_CM.log"
+
+3. **Windows Event Log**:
+   - Entries are written to the Application log under the "WAU" source
+   - Different event IDs based on the operation (installs, uninstalls, modifications, updates, errors)
+   - Integrates with centralized event log monitoring solutions
+
+Logs are automatically rotated when they reach the configured size limit (default 1MB), with a configurable number of historical log files kept (default 3).<br>
+You can adjust these settings with the MAXLOGFILES and MAXLOGSIZE parameters during installation.
+
+All log destinations support different log levels (1=Information, 2=Warning, 3=Error) and the console output uses color coding for easier reading, with headers for important sections.
+
+CMTrace and CMLogViewer support log level 0 and 4 (Verbose, None).
 
 ### "Unknown" App version
 As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255), Winget cannot detect the current version of some installed apps. We decided to skip managing these apps with WAU to avoid retries each time WAU runs:

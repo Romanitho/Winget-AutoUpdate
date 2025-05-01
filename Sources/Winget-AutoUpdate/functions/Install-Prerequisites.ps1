@@ -88,11 +88,11 @@ function Install-Prerequisites {
         try {
             #Get latest WinGet info
             $WinGeturl = 'https://api.github.com/repos/microsoft/winget-cli/releases/latest'
-            $WinGetAvailableVersion = ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).Replace("v", "")
+            $WinGetAvailableVersion = ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).TrimStart("v")
         }
         catch {
-            #if fail set version to the latest version as of 2024-04-29
-            $WinGetAvailableVersion = "1.7.11132"
+            #If fail set version to the latest version as of 2025-03-14
+            $WinGetAvailableVersion = "1.10.340"
         }
         try {
             #Get Admin Context Winget Location
@@ -100,13 +100,15 @@ function Install-Prerequisites {
             #If multiple versions, pick most recent one
             $WingetCmd = $WingetInfo[-1].FileName
             #Get current Winget Version
-            $WingetInstalledVersion = (& $WingetCmd -v).Replace("v", "").trim()
+            $WingetInstalledVersion = (& $WingetCmd -v).Trim().TrimStart("v")
         }
         catch {
             Write-ToLog "WinGet is not installed" "Red"
+            $WinGetInstalledVersion = "0.0.0"
         }
-        #Check if the current available WinGet is newer than the installed
-        if ($WinGetAvailableVersion -gt $WinGetInstalledVersion) {
+        Write-ToLog "WinGet installed version: $WinGetInstalledVersion | WinGet available version: $WinGetAvailableVersion"
+        #Check if the currently installed version is less than the available version
+        if ((Compare-SemVer -Version1 $WinGetInstalledVersion -Version2 $WinGetAvailableVersion) -lt 0) {
             #Install WinGet MSIXBundle in SYSTEM context
             try {
                 #Download WinGet MSIXBundle

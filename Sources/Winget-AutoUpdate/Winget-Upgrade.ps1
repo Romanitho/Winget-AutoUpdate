@@ -1,9 +1,9 @@
 #region LOAD FUNCTIONS
-    # Get the Working Dir
-    [string]$Script:WorkingDir = $PSScriptRoot;
+# Get the Working Dir
+[string]$Script:WorkingDir = $PSScriptRoot;
 
-    # Get Functions
-    Get-ChildItem -Path "$($Script:WorkingDir)\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-Object { . $_.FullName; }
+# Get Functions
+Get-ChildItem -Path "$($Script:WorkingDir)\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-Object { . $_.FullName; }
 #endregion LOAD FUNCTIONS
 
 <# MAIN #>
@@ -20,36 +20,36 @@ $Script:ProgressPreference = [System.Management.Automation.ActionPreference]::Si
 [string]$LogFile = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'updates.log');
 
 #region Get settings and Domain/Local Policies (GPO) if activated.
-    Write-ToLog "Reading WAUConfig";
-    $Script:WAUConfig = Get-WAUConfig;
+Write-ToLog "Reading WAUConfig";
+$Script:WAUConfig = Get-WAUConfig;
 
-    if ($WAUConfig.WAU_ActivateGPOManagement -eq 1) {
-        Write-ToLog "WAU Policies management Enabled.";
-    }
+if ($WAUConfig.WAU_ActivateGPOManagement -eq 1) {
+    Write-ToLog "WAU Policies management Enabled.";
+}
 #endregion Get settings and Domain/Local Policies (GPO) if activated.
 
-#region Winget Source Custom
-    # Default name of winget repository used within this script
-    [string]$DefaultWingetRepoName = 'winget';
+# Default name of winget repository used within this script
+[string]$DefaultWingetRepoName = 'winget';
 
-    # Defining custom repository for winget tool (only if GPO management is active)
-    if($Script:WAUConfig.WAU_ActivateGPOManagement) {
-        if($null -eq $Script:WAUConfig.WAU_WingetSourceCustom) {
-            [string]$Script:WingetSourceCustom = $DefaultWingetRepoName;
-        } 
-        else {
-            [string]$Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
-        }
+#region Winget Source Custom
+# Defining a custom source even if not used below (failsafe suggested by github/sebneus mentioned in issues/823)
+[string]$Script:WingetSourceCustom = $DefaultWingetRepoName;
+
+# Defining custom repository for winget tool (only if GPO management is active)
+if ($Script:WAUConfig.WAU_ActivateGPOManagement) {
+    if ($null -ne $Script:WAUConfig.WAU_WingetSourceCustom) {
+        $Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
         Write-ToLog "Selecting winget repository named '$($Script:WingetSourceCustom)'";
     }
+}
 #endregion Winget Source Custom
 
 #region Checking execution context
-    # Check if running account is system or interactive logon System(default) otherwise User
-    [bool]$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem;
-    
-    # Check for current session ID (O = system without ServiceUI)
-    [Int32]$Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId;
+# Check if running account is system or interactive logon System(default) otherwise User
+[bool]$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem;
+
+# Check for current session ID (O = system without ServiceUI)
+[Int32]$Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId;
 #endregion
 
 # Preparation to run in current context
@@ -89,12 +89,12 @@ if ($true -eq $IsSystem) {
             # Define user-specific log path and log file
             $UserLogPath = "$($UserDir.FullName)\AppData\Roaming\Winget-AutoUpdate\Logs"
             $UserLogFile = "$UserLogPath\install_$($UserDir.Name).log"
-        
+
             # Check if the user's log file exists
             if (Test-Path -Path $UserLogFile -ErrorAction SilentlyContinue) {
                 # Define the Symlink target
                 $UserLogLink = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-user_$($UserDir.Name).log"
-        
+
                 # Create Symlink if it doesn't already exist
                 if (!(Test-Path -Path $UserLogLink -ErrorAction SilentlyContinue)) {
                     New-Item -Path $UserLogLink -ItemType SymbolicLink -Value $UserLogFile -Force -ErrorAction SilentlyContinue | Out-Null
@@ -103,7 +103,7 @@ if ($true -eq $IsSystem) {
             }
         }
     }
-    
+
     #Check if running with session ID 0
     if ($SessionID -eq 0) {
         #Check if ServiceUI exists
@@ -173,9 +173,9 @@ if ($true -eq $IsSystem) {
 #endregion Run Scope Machine function if run as System
 
 #region Get Notif Locale function
-    [string]$LocaleDisplayName = Get-NotifLocale;
-    Write-ToLog "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan";
-#endregion 
+[string]$LocaleDisplayName = Get-NotifLocale;
+Write-ToLog "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan";
+#endregion
 
 #Check network connectivity
 if (Test-Network) {
@@ -208,7 +208,7 @@ if (Test-Network) {
                 #Get Available Version
                 $Script:WAUAvailableVersion = Get-WAUAvailableVersion;
                 #Compare
-                if ([version]$WAUAvailableVersion.replace("-n", "") -gt [version]$WAUCurrentVersion.replace("-n", "")) {
+                if ((Compare-SemVer -Version1 $WAUCurrentVersion -Version2 $WAUAvailableVersion) -lt 0) {
                     #If new version is available, update it
                     Write-ToLog "WAU Available version: $WAUAvailableVersion" "Yellow";
                     Update-WAU;
@@ -431,6 +431,14 @@ if (Test-Network) {
 
         if ($InstallOK -eq 0 -or !$InstallOK) {
             Write-ToLog "No new update." "Green"
+        }
+
+        #Test if _WAU-mods-postsys.ps1 exists: Mods for WAU (postsys) - if Network is active/any Winget is installed/running as SYSTEM _after_ SYSTEM updates
+        if ($true -eq $IsSystem) {
+            if (Test-Path "$Mods\_WAU-mods-postsys.ps1") {
+                Write-ToLog "Running Mods (postsys) for WAU..." "Yellow"
+                & "$Mods\_WAU-mods-postsys.ps1"
+            }
         }
 
         #Check if user context is activated during system run

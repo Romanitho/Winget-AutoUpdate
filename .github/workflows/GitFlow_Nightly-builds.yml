@@ -1,0 +1,178 @@
+# This workflow creates nightly builds from the develop branch:
+# - Checks for merged PRs since the last tag
+# - Creates a pre-release version if changes are detected
+# - Builds and packages the software
+# - Creates GitHub release with artifacts and download counters
+
+name: GitFlow | Nightly Builds
+
+on:
+  # Automated nightly builds at midnight
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Create Nightly Build
+    runs-on: windows-latest
+    
+    env:
+      # Define the branch as a variable
+      BRANCH: develop
+    
+    steps:
+      # Step 1: Checkout the develop branch for nightly builds
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: "true"
+          fetch-depth: 0
+          # Always checkout develop for nightly builds
+          ref: ${{ env.BRANCH }}
+
+      # Step 2: Verify if a new build is required by checking for merged PRs since last tag
+      - name: Check for merged PRs since last tag
+        id: check_prs
+        shell: powershell
+        run: |
+          # Find the latest tag of any type
+          $LATEST_TAG = git tag --sort=-v:refname | Select-Object -First 1
+          Write-Host "Latest tag: $LATEST_TAG"
+
+          # Get merged PRs since last tag using Git directly
+          $MERGED_PRS = git log --merges --grep="Merge pull request" --oneline "$LATEST_TAG..${{ env.BRANCH }}"
+
+          # If merged PRs exist, set BUILD_NEEDED and determine release type
+          if ($MERGED_PRS) {
+            Write-Host "Found PRs merged to develop since latest tag:"
+            Write-Host $MERGED_PRS
+            echo "BUILD_NEEDED=true" >> $env:GITHUB_OUTPUT
+
+            # Determine release type
+            if ($LATEST_TAG -like "*-*") {
+              $RELEASE_TYPE = "prerelease"
+            }
+            else {
+              $RELEASE_TYPE = "preminor"
+            }
+            echo "RELEASE_TYPE=$RELEASE_TYPE" >> $env:GITHUB_OUTPUT
+            Write-Host "Next release: $RELEASE_TYPE"
+          } else {
+            # If no merged PRs, skip building
+            Write-Host "No PRs merged to ${{ env.BRANCH }} since latest tag. Skipping build."
+            echo "BUILD_NEEDED=false" >> $env:GITHUB_OUTPUT
+          }
+
+      # Step 3: Generate new semantic version number
+      - name: Auto Increment Semver Action
+        uses: MCKanpolat/auto-semver-action@5003b8d37f4b03d95f15303ea10242cbf7c13141 # 2
+        if: steps.check_prs.outputs.BUILD_NEEDED == 'true'
+        id: versioning
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          incrementPerCommit: false
+          releaseType: ${{ steps.check_prs.outputs.RELEASE_TYPE }}
+
+      # Step 4: Format version numbers for different purposes (SemVer, MSI version)
+      - name: Format Semver (and MSI version)
+        if: steps.check_prs.outputs.BUILD_NEEDED == 'true'
+        id: format_version
+        shell: powershell
+        run: |
+          # Get version from previous step
+          $NextSemver = "${{ steps.versioning.outputs.version }}"
+
+          # Create MSI-compatible version (x.y.z.build)
+          $commit_count = (git rev-list --count HEAD)
+          $commit_count_mod = $commit_count % 65535  # MSI has a version limit
+          $MsiBase = $NextSemver.Split("-")[0]  # Remove prerelease segment
+          $MsiVersion = "$MsiBase.$commit_count_mod"
+
+          # Format the release name
+          $ReleaseName = "WAU $NextSemver [Nightly Build]"
+
+          # Output all version information
+          echo "MSI version: $MsiVersion"
+          echo "Semver created: $NextSemver"
+          echo "Release name: $ReleaseName"
+          echo "MsiVersion=$MsiVersion" >> $env:GITHUB_OUTPUT
+          echo "NextSemVer=$NextSemver" >> $env:GITHUB_OUTPUT
+          echo "ReleaseName=$ReleaseName" >> $env:GITHUB_OUTPUT
+
+      # Step 5: Build the project and generate artifacts
+      - name: Build project
+        if: steps.check_prs.outputs.BUILD_NEEDED == 'true'
+        id: build_project
+        shell: powershell
+        run: |
+          # Download and install Microsoft Deployment Toolkit
+          echo "### Get MDT from Microsoft ###"
+          wget https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi -UseBasicParsing -OutFile .\MicrosoftDeploymentToolkit_x64.msi
+          Start-Process .\MicrosoftDeploymentToolkit_x64.msi -ArgumentList "/quiet /norestart" -Wait
+
+          # Extract ServiceUI for elevated notifications
+          echo "### Copy ServiceUI.exe x64 to 'Sources\Winget-AutoUpdate' folder ###"
+          Copy-Item -Path "C:\Program Files\Microsoft Deployment Toolkit\Templates\Distribution\Tools\x64\ServiceUI.exe" -Destination ".\Sources\Winget-AutoUpdate\ServiceUI.exe" -Force
+          Get-Item .\Sources\Winget-AutoUpdate\*
+
+          # Install WiX tools for MSI creation
+          echo "### Install WiX ###"
+          dotnet new console
+          dotnet tool install --global wix --version 5.0.1
+          wix extension add WixToolset.UI.wixext/5.0.1 -g
+          wix extension add WixToolset.Util.wixext/5.0.1 -g
+
+          # Build MSI package with version information
+          echo "### Create WAU MSI ###"
+          cd .\Sources\Wix\
+          wix build -src build.wxs -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext -out ..\..\WAU.msi -arch x64 -d Version=${{ steps.format_version.outputs.MsiVersion }} -d NextSemVer=${{ steps.format_version.outputs.NextSemVer }} -d Comment="${{ steps.format_version.outputs.ReleaseName }}" -d PreRelease=1
+          cd ..\..
+          Get-Item .\WAU.msi
+
+          # Calculate MSI file hash for verification
+          echo "### Get MSI file SHA ###"
+          $MsiSHA = (Get-FileHash .\WAU.msi).hash
+          echo " - WAU.msi SHA256: $MsiSHA"
+          echo "msi_sha=$MsiSHA" >> $env:GITHUB_OUTPUT
+
+          # Package ADMX policy templates
+          echo "### Zip ADMX ###"
+          Compress-Archive -Path .\Sources\Policies\ADMX -DestinationPath .\WAU_ADMX.zip -Force
+          Get-Item .\*.zip
+
+          # Calculate ADMX package hash for verification
+          echo "### Get ADMX zip SHA ###"
+          $ADMXSHA = (Get-FileHash .\WAU_ADMX.zip).hash
+          echo " - WAU_ADMX.zip SHA256: $ADMXSHA"
+          echo "admx_sha=$ADMXSHA" >> $env:GITHUB_OUTPUT
+
+          # Create installation counter file for tracking installs
+          echo "### Create install counter file ###"
+          echo "Install counter file." > WAU_InstallCounter
+
+      # Step 6: Create GitHub release with all artifacts
+      - name: Create release
+        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
+        if: steps.check_prs.outputs.BUILD_NEEDED == 'true'
+        with:
+          tag: v${{ steps.format_version.outputs.NextSemVer }}
+          commit: ${{ env.BRANCH }}
+          prerelease: true
+          generateReleaseNotes: true
+          name: ${{ steps.format_version.outputs.ReleaseName }}
+          artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
+          body: |
+            This is an **automated nightly build** created from the latest changes in the develop branch.
+
+            ⚠️ **Warning**: This build may contain unstable features and is intended for testing purposes only.
+
+            ## Files
+            |Files|Hash (SHA256)|Downloads|
+            |---|---|---|
+            |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
+            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU_ADMX.zip)|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
+
+            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>

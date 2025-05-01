@@ -1,0 +1,150 @@
+# This workflow completes the GitFlow release process:
+# - Triggers automatically when a PR from release/* or hotfix/* to main is merged
+# - Extracts version number from branch name
+# - Builds stable release artifacts (not nightly builds)
+# - Creates GitHub release with download stats
+# - Synchronizes develop branch with main to maintain GitFlow integrity
+
+name: GitFlow | Make Release and resync to develop
+
+on:
+  # Trigger when PRs to main are closed (merged or not)
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  build:
+    name: Create Release
+    # Run only when PR is merged (not just closed) and source branch is release/* or hotfix/*
+    if: github.event.pull_request.merged == true && (startsWith(github.event.pull_request.head.ref, 'release/') || startsWith(github.event.pull_request.head.ref, 'hotfix/'))
+    runs-on: windows-latest
+    steps:
+      # Step 1: Checkout the code from the main branch after merge
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+        with:
+          lfs: "true"
+          fetch-depth: 0
+          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
+
+      # Step 2: Extract version from branch name and calculate build number
+      - name: Get final Release Version
+        id: release_version
+        shell: bash
+        run: |
+          # Extract version from branch name if it's a release branch
+          if [[ "${{ github.event.pull_request.head.ref }}" =~ ^release/ ]]; then
+            VERSION=$(echo "${{ github.event.pull_request.head.ref }}" | sed -E 's/^release\///')
+            echo "Version extracted from release branch: $VERSION"
+          else
+            # Fetch the latest stable version for hotfix
+            LATEST_TAG=$(git tag -l --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
+            echo "Latest stable version: $LATEST_TAG"
+            # Calculate the new hotfix version by incrementing patch number
+            IFS='.' read -r -a version_parts <<< "${LATEST_TAG/v/}"
+            PATCH=$((version_parts[2] + 1))
+            VERSION="${version_parts[0]}.${version_parts[1]}.$PATCH"
+            echo "Version generated for hotfix: $VERSION"
+          fi
+          # Get the commit count and apply modulo 65535 (MSI version component limit)
+          commit_count=$(git rev-list --count HEAD)
+          commit_count_mod=$((commit_count % 65535))
+          NEW_VERSION="$VERSION.$commit_count_mod"
+          echo "Final version: $NEW_VERSION"
+          echo "MsiVersion=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "NextSemVer=$VERSION" >> $GITHUB_OUTPUT
+
+      # Step 3: Build all project artifacts for the stable release
+      - name: Build project
+        id: build_project
+        shell: powershell
+        run: |
+          # Download and install Microsoft Deployment Toolkit
+          echo "### Get MDT from Microsoft ###"
+          wget https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi -UseBasicParsing -OutFile .\MicrosoftDeploymentToolkit_x64.msi
+          Start-Process .\MicrosoftDeploymentToolkit_x64.msi -ArgumentList "/quiet /norestart" -Wait
+
+          # Extract ServiceUI for elevated notifications
+          echo "### Copy ServiceUI.exe x64 to 'Sources\Winget-AutoUpdate' folder ###"
+          Copy-Item -Path "C:\Program Files\Microsoft Deployment Toolkit\Templates\Distribution\Tools\x64\ServiceUI.exe" -Destination ".\Sources\Winget-AutoUpdate\ServiceUI.exe" -Force
+          Get-Item .\Sources\Winget-AutoUpdate\*
+
+          # Install WiX tools for MSI creation
+          echo "### Install WiX ###"
+          dotnet new console
+          dotnet tool install --global wix --version 5.0.1
+          wix extension add WixToolset.UI.wixext/5.0.1 -g
+          wix extension add WixToolset.Util.wixext/5.0.1 -g
+
+          # Build MSI package with STABLE flag
+          echo "### Create WAU msi ###"
+          cd .\Sources\Wix\
+          wix build -src build.wxs -ext WixToolset.Util.wixext -ext WixToolset.UI.wixext -out ..\..\WAU.msi -arch x64 -d Version=${{ steps.release_version.outputs.MsiVersion }} -d NextSemVer=${{ steps.release_version.outputs.NextSemVer }} -d Comment="STABLE" -d PreRelease=0
+          cd ..\..
+          Get-Item .\WAU.msi
+
+          # Calculate MSI file hash for verification
+          echo "### Get MSI file SHA ###"
+          $MsiSHA = (Get-FileHash .\WAU.msi).hash
+          echo " - WAU.msi SHA256: $MsiSHA"
+          echo "msi_sha=$MsiSHA" >> $env:GITHUB_OUTPUT
+
+          # Package ADMX policy templates
+          echo "### Zip ADMX ###"
+          Compress-Archive -Path .\Sources\Policies\ADMX -DestinationPath .\WAU_ADMX.zip -Force
+          Get-Item .\*.zip
+
+          # Calculate ADMX package hash for verification
+          echo "### Get ADMX zip SHA ###"
+          $ADMXSHA = (Get-FileHash .\WAU_ADMX.zip).hash
+          echo " - WAU_ADMX.zip SHA256: $ADMXSHA"
+          echo "admx_sha=$ADMXSHA" >> $env:GITHUB_OUTPUT
+
+          # Create installation counter file for tracking installs
+          echo "### Create install counter file ###"
+          echo "Install counter file." > WAU_InstallCounter
+
+      # Step 4: Create stable GitHub release with all artifacts
+      - name: Create release
+        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
+        with:
+          tag: v${{ steps.release_version.outputs.NextSemVer }}
+          prerelease: false  # This is a stable release
+          generateReleaseNotes: true
+          name: WAU ${{ steps.release_version.outputs.NextSemVer }}
+          artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
+          body: |
+            ## Files
+            |Files|Hash (SHA256)|Downloads|
+            |---|---|---|
+            |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
+            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.NextSemVer }}/WAU_ADMX.zip)|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
+
+            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>
+
+      # Step 5: Configure Git for merge back to develop
+      - name: Configure Git
+        shell: bash
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      # Step 6: Sync develop with main to ensure all release changes are in the develop branch
+      - name: Sync develop with main
+        shell: bash
+        run: |
+          # Checkout develop branch
+          git checkout develop
+          git pull origin develop
+
+          # Merge main into develop with no fast-forward to preserve history
+          git merge --no-ff origin/main -m "Merge main into develop after the creation of release v${{ steps.release_version.outputs.NextSemVer }}"
+
+          # Push changes to develop branch
+          git push origin develop

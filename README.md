@@ -264,7 +264,9 @@ Another finess is the **AppID** followed by the `-override` suffix as a **text f
 > Example:<br>
 **Adobe.Acrobat.Reader.64-bit-override.txt** with the content `"-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1"`
 
-This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).
+This will use the **content** of the text file as a native **winget --override** parameter when upgrading.
+
+Likewise you can use the **AppID** followed by the `-custom` suffix as a **text file** (.**txt**) that you can place under the **mods** folder (*Arguments to be passed on to the installer in addition to the defaults*).
 
 ## Known issues
 * As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See <https://github.com/Romanitho/Winget-AutoUpdate/issues/113>

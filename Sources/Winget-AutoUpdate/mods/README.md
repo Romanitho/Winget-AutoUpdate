@@ -30,7 +30,7 @@ Name it `_WAU-notinstalled.ps1` for activation
 ### Winget native parameters:
 Another finess is the **AppID** followed by the `-override` or `-custom` suffix as a **text file** (**.txt**).
 > Example:  
->  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
+>  **Adobe.Acrobat.Reader.64-bit-override.txt** with the content `"-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1"`
 
 > Example:  
 >  **ShareX.ShareX-custom.txt** with the content `/MERGETASKS=!CreateDesktopIcon`

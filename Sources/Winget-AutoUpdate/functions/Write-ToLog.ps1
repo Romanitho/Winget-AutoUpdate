@@ -116,12 +116,17 @@ function Write-ToLog {
     $StandardLogLine = "$FormattedDate $LogMsg"
 
     # If header requested, format and write to console and standard log file
-    # Note: The header is not written to the CM log file or Event log, as it is not in the correct format
+    # Note: The big header is not written to the CM log file or Event log, as it is not in the correct format
     if ($IsHeader) {
         $Log = "#" * 65 + "`n#    $(Get-Date -Format (Get-culture).DateTimeFormat.ShortDatePattern) - $LogMsg`n" + "#" * 65
         Write-Host $Log -ForegroundColor $LogColor
-        #Write log to file
+        # Write log to file
         $Log | Out-File -FilePath $StandardLogFile -Append
+
+        # Set a small header for CM/Event log
+        if ($UseCMLog -or $UseEventLog) {
+            $LogMsg = "### $LogMsg ###"
+        }
     }
     else {
         Write-Host $StandardLogLine -ForegroundColor $LogColor

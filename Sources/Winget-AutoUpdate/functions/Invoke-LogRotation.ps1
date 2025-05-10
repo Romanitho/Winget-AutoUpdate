@@ -92,10 +92,10 @@ function Invoke-LogRotation {
 
             # Log actions
             if ($logrotate) {
-                Write-ToLog "###   Max Standard log size reached: $MaxLogSize bytes - Rotated Logs   ###"
+                Write-ToLog "Max Standard log size reached: $MaxLogSize bytes - Rotated Logs" -IsHeader
             }
             if ($CM_logrotate) {
-                Write-ToLog "###   Max CM log size reached: $MaxLogSize bytes - Rotated CM Logs   ###"
+                Write-ToLog "Max CM log size reached: $MaxLogSize bytes - Rotated CM Logs" -IsHeader
             }  
 
             # end of try block

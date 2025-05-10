@@ -125,7 +125,7 @@ function Write-ToLog {
 
         # Set a small header for CM/Event log
         if ($UseCMLog -or $UseEventLog) {
-            $LogMsg = "### $LogMsg ###"
+            $LogMsg = "###   $LogMsg   ###"
         }
     }
     else {

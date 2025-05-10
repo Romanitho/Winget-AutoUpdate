@@ -45,8 +45,8 @@ Write-ToLog "Installing $AppID..." "DarkYellow"
 Write-ToLog -LogMsg "Installing $AppID..." -LogColor "DarkYellow" -Component "AppInstaller" -LogLevel "1"
 
 .EXAMPLE
-# With Event Log
-Write-ToLog -LogMsg "Debug information" -LogColor "Gray" -UseEventLog
+# Without Event Log
+Write-ToLog -LogMsg "Debug information" -LogColor "Gray" -UseEventLog $false
 
 .EXAMPLE
 # As header

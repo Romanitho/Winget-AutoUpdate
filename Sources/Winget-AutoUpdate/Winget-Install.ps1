@@ -138,8 +138,12 @@ function Install-App ($AppID, $AppArgs) {
 
         #If PreInstall script exist
         if ($ModsPreInstall) {
-            Write-ToLog "-> Modifications for $AppID before install are being applied..." "DarkYellow" -Component "WinGet-Install"
-            & "$ModsPreInstall"
+            Write-ToLog "Modifications for $AppID before install are being applied..." "DarkYellow" -Component "WinGet-Install"
+            $preInstallResult = & "$ModsPreInstall"
+            if ($preInstallResult -eq $false) {
+                Write-ToLog "PreInstall script for $AppID requested to skip this installation" "Yellow" -Component "WinGet-Install"
+                return  # Exit the function early
+            }
         }
 
         #Install App

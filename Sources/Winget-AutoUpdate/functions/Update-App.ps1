@@ -96,12 +96,14 @@ Function Update-App ($app) {
         #Test for a Pending Reboot (Component Based Servicing/WindowsUpdate/CCM_ClientUtilities)
         $PendingReboot = Test-PendingReboot
         if ($PendingReboot -eq $true) {
-            Write-ToLog "-> A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n-> ...an install for $($app.Name) is NOT executed!" "Red"
-            continue
+            Write-ToLog "-> A Pending Reboot lingers and probably prohibited $($app.Name) from upgrading...`n-> ...limiting to 1 install attempt instead of 2" "Yellow"
+            $retry = 2
         }
-
-        #If app failed to upgrade, run Install command (2 tries max - some apps get uninstalled after single "Install" command.)
-        $retry = 1
+        else {
+            #If app failed to upgrade, run Install command (2 tries max - some apps get uninstalled after single "Install" command.)
+            $retry = 1
+        }
+        
         While (($ConfirmInstall -eq $false) -and ($retry -le 2)) {
 
             Write-ToLog "-> An upgrade for $($app.Name) failed, now trying an install instead... ($retry/2)" "DarkYellow"

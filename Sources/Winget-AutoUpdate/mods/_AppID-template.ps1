@@ -105,7 +105,8 @@ if ($RunSystem) {
     Invoke-ModsApp $RunSystem $RunSwitch $RunWait ""
 }
 if ($Skip) {
-    Skip-ModsProc $Skip
+    $result = Skip-ModsProc $Skip
+    if ($result -eq $false) { return $false }
 }
 if ($Proc) {
     Stop-ModsProc $Proc

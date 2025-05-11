@@ -20,6 +20,10 @@ $RunSystem = ""
 $RunSwitch = ""
 $RunWait = $True
 
+# Beginning of Process Name to check for if running - optional wildcard (*) after, without .exe, multiple: "proc1*","proc2"
+# If found, it will return $False, stop this script and request for the main script to skip the app.
+$Skip = @("")
+
 # Beginning of Process Name to Stop - optional wildcard (*) after, without .exe, multiple: "proc1*","proc2"
 $Proc = @("")
 
@@ -99,6 +103,9 @@ $User = $True
 <# MAIN #>
 if ($RunSystem) {
     Invoke-ModsApp $RunSystem $RunSwitch $RunWait ""
+}
+if ($Skip) {
+    Skip-ModsProc $Skip
 }
 if ($Proc) {
     Stop-ModsProc $Proc

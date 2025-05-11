@@ -24,7 +24,7 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.
 
-If **AppID**`-preinstall.ps1` returns `$false`, the install/update for that **AppID** is skipped (checking if an App is running, etc...).
+If **AppID**`-preinstall.ps1`/`-preuninstall.ps1` returns `$false`, the install/update/uninstall for that **AppID** is skipped (checking if an App is running, etc...).
 
 A script **Template** for an all-purpose mod (`_WAU-notinstalled-template.ps1`) is included in which actions can be taken if an upgrade/install fails for any **AppID** (any individual `AppID-notinstalled.ps1` overrides this global one)
 Name it `_WAU-notinstalled.ps1` for activation

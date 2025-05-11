@@ -207,8 +207,12 @@ function Uninstall-App ($AppID, $AppArgs) {
 
         #If PreUninstall script exist
         if ($ModsPreUninstall) {
-            Write-ToLog "-> Modifications for $AppID before uninstall are being applied..." "DarkYellow" -Component "WinGet-Install"
-            & "$ModsPreUninstall"
+            Write-ToLog "Modifications for $AppID before uninstall are being applied..." "DarkYellow" -Component "WinGet-Install"
+            $preUnInstallResult = & "$ModsPreUnInstall"
+            if ($preUnInstallResult -eq $false) {
+                Write-ToLog "PreUnInstall script for $AppID requested to skip this uninstallation" "Yellow" -Component "WinGet-Install"
+                return  # Exit the function early
+            }
         }
 
         #Uninstall App

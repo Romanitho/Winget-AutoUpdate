@@ -28,7 +28,11 @@ Function Update-App ($app) {
     #If PreInstall script exist
     if ($ModsPreInstall) {
         Write-ToLog "Modifications for $($app.Id) before upgrade are being applied..." "DarkYellow"
-        & "$ModsPreInstall"
+        $preInstallResult = & "$ModsPreInstall"
+        if ($preInstallResult -eq $false) {
+            Write-ToLog "PreInstall script for $($app.Id) requested to skip this update" "Yellow"
+            continue  # Skip to next app in the parent loop
+        }
     }
 
 	# Define upgrade base parameters

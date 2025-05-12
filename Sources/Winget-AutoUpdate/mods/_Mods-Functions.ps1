@@ -18,11 +18,11 @@ function Invoke-ModsApp ($Run, $RunSwitch, $RunWait, $User) {
     Return
 }
 
-function Skip-ModsProc ($Skip) {
-    foreach ($process in $Skip) {
+function Skip-ModsProc ($SkipApp) {
+    foreach ($process in $SkipApp) {
         $running = Get-Process -Name $process -ErrorAction SilentlyContinue
         if ($running) {
-            Return $false
+            Return $true
         }
     }
     Return

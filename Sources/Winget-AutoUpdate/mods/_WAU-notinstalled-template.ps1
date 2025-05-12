@@ -10,20 +10,22 @@ This all-purpose mod will be overridden by any specific:
 <# FUNCTIONS #>
 . $PSScriptRoot\_Mods-Functions.ps1
 
+
 <# ARRAYS/VARIABLES #>
 
 
 <# MAIN #>
-if ($($app.Id) -eq "Microsoft.SQLServerManagementStudio") {
-	if ($ConfirmInstall -eq $false) {
-		try {
-			Write-ToLog "...successfully done something" "Green"
-		}
-		catch {
-			Write-ToLog "...failed to do something" "Red"
-		}
-	}
-}
-else {
-	Write-ToLog "...nothing defined for $($app.Id)" "Yellow"
-}
+# Example:
+# if ($($app.Id) -eq "Microsoft.SQLServerManagementStudio") {
+# 	if ($ConfirmInstall -eq $false) {
+# 		try {
+# 			Write-ToLog "...successfully done something" "Green"
+# 		}
+# 		catch {
+# 			Write-ToLog "...failed to do something" "Red"
+# 		}
+# 	}
+# }
+# else {
+# 	Write-ToLog "...nothing defined for $($app.Id)" "Yellow"
+# }

@@ -18,11 +18,11 @@ jobs:
   build:
     name: Create Nightly Build
     runs-on: windows-latest
-    
+
     env:
       # Define the branch as a variable
       BRANCH: develop
-    
+
     steps:
       # Step 1: Checkout the develop branch for nightly builds
       - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
         shell: powershell
         run: |
           # Find the latest tag of any type
-          $LATEST_TAG = git tag --sort=-v:refname | Select-Object -First 1
+          $LATEST_TAG = git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags | Select-Object -First 1
           Write-Host "Latest tag: $LATEST_TAG"
 
           # Get merged PRs since last tag using Git directly

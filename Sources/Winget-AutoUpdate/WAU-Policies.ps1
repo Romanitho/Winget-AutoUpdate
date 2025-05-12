@@ -44,35 +44,93 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
     $WAUTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue
 
     #Update 'Winget-AutoUpdate' scheduled task settings
-    $taskTriggers = @()
-    if ($WAUConfig.WAU_UpdatesAtLogon -eq 1) {
-        $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
+    $currentTriggers = $WAUTask.Triggers
+    $configChanged = $false
+
+    #Check if LogOn trigger setting has changed
+    $hasLogonTrigger = $currentTriggers | Where-Object { $_.TriggerType -eq "LogOn" }
+    if (($WAUConfig.WAU_UpdatesAtLogon -eq 1 -and -not $hasLogonTrigger) -or 
+        ($WAUConfig.WAU_UpdatesAtLogon -ne 1 -and $hasLogonTrigger)) {
+        $configChanged = $true
     }
-    if ($WAUConfig.WAU_UpdatesInterval -eq "Daily") {
-        $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime
+
+    #Check if schedule type has changed
+    $currentIntervalType = "None"
+    foreach ($trigger in $currentTriggers) {
+        if ($trigger.TriggerType -eq "Daily" -and $trigger.DaysInterval -eq 1) {
+            $currentIntervalType = "Daily"
+            break
+        }
+        elseif ($trigger.TriggerType -eq "Daily" -and $trigger.DaysInterval -eq 2) {
+            $currentIntervalType = "BiDaily"
+            break
+        }
+        elseif ($trigger.TriggerType -eq "Weekly" -and $trigger.WeeksInterval -eq 1) {
+            $currentIntervalType = "Weekly"
+            break
+        }
+        elseif ($trigger.TriggerType -eq "Weekly" -and $trigger.WeeksInterval -eq 2) {
+            $currentIntervalType = "BiWeekly"
+            break
+        }
+        elseif ($trigger.TriggerType -eq "Weekly" -and $trigger.WeeksInterval -eq 4) {
+            $currentIntervalType = "Monthly"
+            break
+        }
+        elseif ($trigger.TriggerType -eq "Once" -and [DateTime]::Parse($trigger.StartBoundary) -lt (Get-Date)) {
+            $currentIntervalType = "Never"
+            break
+        }
     }
-    elseif ($WAUConfig.WAU_UpdatesInterval -eq "BiDaily") {
-        $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime -DaysInterval 2
+
+    if ($currentIntervalType -ne $WAUConfig.WAU_UpdatesInterval) {
+        $configChanged = $true
     }
-    elseif ($WAUConfig.WAU_UpdatesInterval -eq "Weekly") {
-        $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2
+
+    #Check if schedule time has changed
+    if ($currentIntervalType -ne "None" -and $currentIntervalType -ne "Never") {
+        $timeTrigger = $currentTriggers | Where-Object { $_.TriggerType -ne "LogOn" } | Select-Object -First 1
+        if ($timeTrigger) {
+            $currentTime = [DateTime]::Parse($timeTrigger.StartBoundary).ToString("HH:mm:ss")
+            if ($currentTime -ne $WAUConfig.WAU_UpdatesAtTime) {
+                $configChanged = $true
+            }
+        }
     }
-    elseif ($WAUConfig.WAU_UpdatesInterval -eq "BiWeekly") {
-        $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2
-    }
-    elseif ($WAUConfig.WAU_UpdatesInterval -eq "Monthly") {
-        $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
-    }
-    #If trigger(s) set
-    if ($taskTriggers) {
-        #Edit scheduled task
-        Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Trigger $taskTriggers | Out-Null
-    }
-    #If not, remove trigger(s)
-    else {
-        #Remove by setting past due date
-        $tasktriggers = New-ScheduledTaskTrigger -Once -At "01/01/1970"
-        Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Trigger $taskTriggers | Out-Null
+
+    #Only update triggers if configuration has changed
+    if ($configChanged) {
+        $taskTriggers = @()
+        if ($WAUConfig.WAU_UpdatesAtLogon -eq 1) {
+            $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
+        }
+        if ($WAUConfig.WAU_UpdatesInterval -eq "Daily") {
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime
+        }
+        elseif ($WAUConfig.WAU_UpdatesInterval -eq "BiDaily") {
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime -DaysInterval 2
+        }
+        elseif ($WAUConfig.WAU_UpdatesInterval -eq "Weekly") {
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2
+        }
+        elseif ($WAUConfig.WAU_UpdatesInterval -eq "BiWeekly") {
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2
+        }
+        elseif ($WAUConfig.WAU_UpdatesInterval -eq "Monthly") {
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
+        }
+        
+        #If trigger(s) set
+        if ($taskTriggers) {
+            #Edit scheduled task
+            Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Trigger $taskTriggers | Out-Null
+        }
+        #If not, remove trigger(s)
+        else {
+            #Remove by setting past due date
+            $tasktriggers = New-ScheduledTaskTrigger -Once -At "01/01/1970"
+            Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Trigger $tasktriggers | Out-Null
+        }
     }
 
     #Log latest applied config

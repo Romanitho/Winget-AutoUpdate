@@ -53,6 +53,9 @@ Write-ToLog -LogMsg "Debug information" -LogColor "Gray" -UseEventLog $false
 Write-ToLog "NEW INSTALL REQUEST" "RoyalBlue" -IsHeader -Component "WinGet-Install"
 #>
 
+# This variable is used to cache the result of the CMTrace tools existence check
+$script:CMLogToolsExist = $null
+
 function Write-ToLog {
     param (
         [Parameter(Mandatory = $true)]
@@ -66,8 +69,14 @@ function Write-ToLog {
         [bool]$UseEventLog = $true
     )
 
-    if ((Test-Path -Path "$env:windir\CCM\CMTrace.exe") -or (Test-Path -Path "${env:ProgramFiles(x86)}\Configuration Manager Support Center\CMLogViewer.exe")) {
-        # If either CMTrace or CMLogViewer is installed, set $UseCMLog = $true
+    # Check once per session if CMTrace tools exist
+    if ($null -eq $script:CMLogToolsExist) {
+        $script:CMLogToolsExist = (Test-Path -Path "$env:windir\CCM\CMTrace.exe") -or 
+                                  (Test-Path -Path "${env:ProgramFiles(x86)}\Configuration Manager Support Center\CMLogViewer.exe")
+    }
+
+    # Use the cached result
+    if ($script:CMLogToolsExist) {
         $UseCMLog = $true
     }
 

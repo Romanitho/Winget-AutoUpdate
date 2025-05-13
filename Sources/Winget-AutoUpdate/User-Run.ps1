@@ -29,7 +29,17 @@ $Script:WorkingDir = $PSScriptRoot
 Get-NotifLocale
 
 #Set common variables
-$OnClickAction = "$WorkingDir\logs\updates.log"
+# Set CMLogFile name
+$CMLogFile = "$WorkingDir\logs\updates_CM.log"
+
+# Check if CM log file exists
+if (Test-Path $CMLogFile) {
+	$OnClickAction = $CMLogFile
+}
+else {
+	$OnClickAction = "$WorkingDir\logs\updates.log"
+}
+
 $Button1Text = $NotifLocale.local.outputs.output[11].message
 
 try {

@@ -24,13 +24,15 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 
 `AppID-install.ps1` is recommended because it's used in **both** scenarios.
 
+If **AppID**`-preinstall.ps1`/`-preuninstall.ps1` returns `$false`, the install/update/uninstall for that **AppID** is skipped (checking if an App is running, etc...).
+
 A script **Template** for an all-purpose mod (`_WAU-notinstalled-template.ps1`) is included in which actions can be taken if an upgrade/install fails for any **AppID** (any individual `AppID-notinstalled.ps1` overrides this global one)
 Name it `_WAU-notinstalled.ps1` for activation
 
 ### Winget native parameters:
 Another finess is the **AppID** followed by the `-override` or `-custom` suffix as a **text file** (**.txt**).
 > Example:  
->  **Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
+>  **Adobe.Acrobat.Reader.64-bit-override.txt** with the content `"-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1"`
 
 > Example:  
 >  **ShareX.ShareX-custom.txt** with the content `/MERGETASKS=!CreateDesktopIcon`

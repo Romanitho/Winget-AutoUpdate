@@ -119,7 +119,6 @@ jobs:
           generateReleaseNotes: true
           name: WAU ${{ steps.release_version.outputs.NextSemVer }}
           artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
-          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
           body: |
             ## Files
             |Files|Hash (SHA256)|Downloads|

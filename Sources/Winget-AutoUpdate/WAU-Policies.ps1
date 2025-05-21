@@ -87,9 +87,25 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
         $configChanged = $true
     }
 
+    #Check if delay is set
+    if ($WAUConfig.WAU_UpdatesTimeDelay) {
+        $randomDelay = [TimeSpan]::ParseExact($WAUConfig.WAU_UpdatesTimeDelay, "hh\:mm", $null)
+    } else {   
+        $randomDelay = [TimeSpan]::ParseExact("00:00", "hh\:mm", $null) #setting to 00:00 disables the random delay
+    }
+
+    #Check if delay has changed
+    $timeTrigger = $currentTriggers | Where-Object { $_.CimClass.CimClassName -ne "MSFT_TaskLogonTrigger" } | Select-Object -First 1
+    if ($timeTrigger.RandomDelay -match '^PT(?:(\d+)H)?(?:(\d+)M)?$') {
+        $hours = if ($matches[1]) { [int]$matches[1] } else { 0 }
+        $minutes = if ($matches[2]) { [int]$matches[2] } else { 0 }
+        $existingRandomDelay = New-TimeSpan -Hours $hours -Minutes $minutes
+    }
+    if ($existingRandomDelay -ne $randomDelay) {
+        $configChanged = $true
+    }
     #Check if schedule time has changed
     if ($currentIntervalType -ne "None" -and $currentIntervalType -ne "Never") {
-        $timeTrigger = $currentTriggers | Where-Object { $_.CimClass.CimClassName -ne "MSFT_TaskLogonTrigger" } | Select-Object -First 1
         if ($timeTrigger) {
             $currentTime = [DateTime]::Parse($timeTrigger.StartBoundary).ToString("HH:mm:ss")
             if ($currentTime -ne $WAUConfig.WAU_UpdatesAtTime) {
@@ -105,19 +121,19 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
             $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
         }
         if ($WAUConfig.WAU_UpdatesInterval -eq "Daily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime -RandomDelay $randomDelay
         }
         elseif ($WAUConfig.WAU_UpdatesInterval -eq "BiDaily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime -DaysInterval 2
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime -DaysInterval 2 -RandomDelay $randomDelay
         }
         elseif ($WAUConfig.WAU_UpdatesInterval -eq "Weekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -RandomDelay $randomDelay
         }
         elseif ($WAUConfig.WAU_UpdatesInterval -eq "BiWeekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay $randomDelay
         }
         elseif ($WAUConfig.WAU_UpdatesInterval -eq "Monthly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $randomDelay
         }
         
         #If trigger(s) set

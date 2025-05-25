@@ -87,14 +87,8 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
         $configChanged = $true
     }
 
-    #Check if delay is set
-    if ($WAUConfig.WAU_UpdatesTimeDelay) {
-        $randomDelay = [TimeSpan]::ParseExact($WAUConfig.WAU_UpdatesTimeDelay, "hh\:mm", $null)
-    } else {   
-        $randomDelay = [TimeSpan]::ParseExact("00:00", "hh\:mm", $null) #setting to 00:00 disables the random delay
-    }
-
     #Check if delay has changed
+    $randomDelay = [TimeSpan]::ParseExact($WAUConfig.WAU_UpdatesTimeDelay, "hh\:mm", $null)
     $timeTrigger = $currentTriggers | Where-Object { $_.CimClass.CimClassName -ne "MSFT_TaskLogonTrigger" } | Select-Object -First 1
     if ($timeTrigger.RandomDelay -match '^PT(?:(\d+)H)?(?:(\d+)M)?$') {
         $hours = if ($matches[1]) { [int]$matches[1] } else { 0 }

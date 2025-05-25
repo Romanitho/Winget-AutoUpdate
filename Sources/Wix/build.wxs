@@ -83,6 +83,10 @@
         <Property Id="UPDATESATTIME_VALUE" Value="06:00:00">
             <RegistrySearch Id="SearchUpdatesAtTime" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatesAtTime"  />
         </Property>
+        <Property Id="UPDATESATTIMEDELAY" Secure="yes" />
+        <Property Id="UPDATESATTIMEDELAY_VALUE" Value="00:00">
+            <RegistrySearch Id="DelayUpdatesAtTime" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdatesTimeDelay"  />
+        </Property>
         <Property Id="BYPASSLISTFORUSERS" Secure="yes" />
         <Property Id="BYPASSLISTFORUSERS_VALUE" Value="#0">
             <RegistrySearch Id="SearchBypassListForUsers" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_BypassListForUsers"  />
@@ -257,6 +261,7 @@
         <SetProperty Id="AZUREBLOBURL_VALUE" After="AppSearch" Value="[AZUREBLOBURL]" Condition="AZUREBLOBURL" />
         <SetProperty Id="DONOTRUNONMETERED_VALUE" After="AppSearch" Value="#[DONOTRUNONMETERED]" Condition="DONOTRUNONMETERED" />
         <SetProperty Id="UPDATESATTIME_VALUE" After="AppSearch" Value="[UPDATESATTIME]" Condition="UPDATESATTIME" />
+        <SetProperty Id="UPDATESATTIMEDELAY_VALUE" After="AppSearch" Value="00:00" Condition="UPDATESATTIMEDELAY" />
         <SetProperty Id="BYPASSLISTFORUSERS_VALUE" After="AppSearch" Value="#[BYPASSLISTFORUSERS]" Condition="BYPASSLISTFORUSERS" />
         <SetProperty Id="MAXLOGFILES_VALUE" After="AppSearch" Value="#[MAXLOGFILES]" Condition="MAXLOGFILES" />
         <SetProperty Id="MAXLOGSIZE_VALUE" After="AppSearch" Value="#[MAXLOGSIZE]" Condition="MAXLOGSIZE" />
@@ -329,6 +334,9 @@
 					</RegistryKey>
 					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UpdatesAtTime" Type="string" Value="[UPDATESATTIME_VALUE]" />
+					</RegistryKey>
+					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+						<RegistryValue Name="WAU_UpdatesTimeDelay" Type="string" Value="[UPDATESATTIMEDELAY_VALUE]" />
 					</RegistryKey>
 					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_BypassListForUsers" Type="string" Value="[BYPASSLISTFORUSERS_VALUE]" />

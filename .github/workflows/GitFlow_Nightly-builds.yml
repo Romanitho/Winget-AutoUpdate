@@ -39,9 +39,7 @@ jobs:
         shell: powershell
         run: |
           # Get the latest release of any type
-          $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/Romanitho/Winget-AutoUpdate/releases"
-          $latest = $releases | Sort-Object {[datetime]$_.published_at} -Descending | Select-Object -First 1
-          $LATEST_TAG = $latest.tag_name
+          $LATEST_TAG = git tag -l --sort=-version:refname | Select-Object -First 1
           Write-Host "Latest release: $LATEST_TAG"
 
           # Get merged PRs since last tag using Git directly

@@ -10,7 +10,7 @@
       <string id="WAUEX">Experimental</string>
       <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 or later</string>
       <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 or later</string>
-      <string id="SUPPORTED_WAU_2_5_2">Winget-AutoUpdate version 2.5.2 or later</string>
+      <string id="SUPPORTED_WAU_2_6_0">Winget-AutoUpdate version 2.6.0 or later</string>
       <string id="SUPPORTED_WAU_EXPERIMENTAL">Winget-AutoUpdate Experimental, subject to change, do
         not use on PROD</string>
       <string id="ActivateGPOManagement_Name">Activate WAU GPO Management</string>

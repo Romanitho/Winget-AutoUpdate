@@ -48,7 +48,7 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
     $configChanged = $false
 
     #Check if LogOn trigger setting has changed
-    $hasLogonTrigger = $currentTriggers | Where-Object { $_.TriggerType -eq "LogOn" }
+    $hasLogonTrigger = $currentTriggers | Where-Object { $_.CimClass.CimClassName -eq "MSFT_TaskLogonTrigger" }
     if (($WAUConfig.WAU_UpdatesAtLogon -eq 1 -and -not $hasLogonTrigger) -or 
         ($WAUConfig.WAU_UpdatesAtLogon -ne 1 -and $hasLogonTrigger)) {
         $configChanged = $true
@@ -57,27 +57,27 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
     #Check if schedule type has changed
     $currentIntervalType = "None"
     foreach ($trigger in $currentTriggers) {
-        if ($trigger.TriggerType -eq "Daily" -and $trigger.DaysInterval -eq 1) {
+        if ($trigger.CimClass.CimClassName -eq "MSFT_TaskDailyTrigger" -and $trigger.DaysInterval -eq 1) {
             $currentIntervalType = "Daily"
             break
         }
-        elseif ($trigger.TriggerType -eq "Daily" -and $trigger.DaysInterval -eq 2) {
+        elseif ($trigger.CimClass.CimClassName -eq "MSFT_TaskDailyTrigger" -and $trigger.DaysInterval -eq 2) {
             $currentIntervalType = "BiDaily"
             break
         }
-        elseif ($trigger.TriggerType -eq "Weekly" -and $trigger.WeeksInterval -eq 1) {
+        elseif ($trigger.CimClass.CimClassName -eq "MSFT_TaskWeeklyTrigger" -and $trigger.WeeksInterval -eq 1) {
             $currentIntervalType = "Weekly"
             break
         }
-        elseif ($trigger.TriggerType -eq "Weekly" -and $trigger.WeeksInterval -eq 2) {
+        elseif ($trigger.CimClass.CimClassName -eq "MSFT_TaskWeeklyTrigger" -and $trigger.WeeksInterval -eq 2) {
             $currentIntervalType = "BiWeekly"
             break
         }
-        elseif ($trigger.TriggerType -eq "Weekly" -and $trigger.WeeksInterval -eq 4) {
+        elseif ($trigger.CimClass.CimClassName -eq "MSFT_TaskWeeklyTrigger" -and $trigger.WeeksInterval -eq 4) {
             $currentIntervalType = "Monthly"
             break
         }
-        elseif ($trigger.TriggerType -eq "Once" -and [DateTime]::Parse($trigger.StartBoundary) -lt (Get-Date)) {
+        elseif ($trigger.CimClass.CimClassName -eq "MSFT_TaskTimeTrigger" -and [DateTime]::Parse($trigger.StartBoundary) -lt (Get-Date)) {
             $currentIntervalType = "Never"
             break
         }
@@ -87,9 +87,19 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
         $configChanged = $true
     }
 
+    #Check if delay has changed
+    $randomDelay = [TimeSpan]::ParseExact($WAUConfig.WAU_UpdatesTimeDelay, "hh\:mm", $null)
+    $timeTrigger = $currentTriggers | Where-Object { $_.CimClass.CimClassName -ne "MSFT_TaskLogonTrigger" } | Select-Object -First 1
+    if ($timeTrigger.RandomDelay -match '^PT(?:(\d+)H)?(?:(\d+)M)?$') {
+        $hours = if ($matches[1]) { [int]$matches[1] } else { 0 }
+        $minutes = if ($matches[2]) { [int]$matches[2] } else { 0 }
+        $existingRandomDelay = New-TimeSpan -Hours $hours -Minutes $minutes
+    }
+    if ($existingRandomDelay -ne $randomDelay) {
+        $configChanged = $true
+    }
     #Check if schedule time has changed
     if ($currentIntervalType -ne "None" -and $currentIntervalType -ne "Never") {
-        $timeTrigger = $currentTriggers | Where-Object { $_.TriggerType -ne "LogOn" } | Select-Object -First 1
         if ($timeTrigger) {
             $currentTime = [DateTime]::Parse($timeTrigger.StartBoundary).ToString("HH:mm:ss")
             if ($currentTime -ne $WAUConfig.WAU_UpdatesAtTime) {
@@ -105,19 +115,19 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
             $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
         }
         if ($WAUConfig.WAU_UpdatesInterval -eq "Daily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime -RandomDelay $randomDelay
         }
         elseif ($WAUConfig.WAU_UpdatesInterval -eq "BiDaily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime -DaysInterval 2
+            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime -DaysInterval 2 -RandomDelay $randomDelay
         }
         elseif ($WAUConfig.WAU_UpdatesInterval -eq "Weekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -RandomDelay $randomDelay
         }
         elseif ($WAUConfig.WAU_UpdatesInterval -eq "BiWeekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay $randomDelay
         }
         elseif ($WAUConfig.WAU_UpdatesInterval -eq "Monthly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4
+            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $randomDelay
         }
         
         #If trigger(s) set
@@ -132,7 +142,7 @@ if ($WAUConfig.WAU_RunGPOManagement -eq 1) {
             Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Trigger $tasktriggers | Out-Null
         }
     }
-
+    
     #Log latest applied config
     Add-Content -Path $GPOLogFile -Value "`nLatest applied settings:"
     $WAUConfig.PSObject.Properties | Where-Object { $_.Name -like "WAU_*" } | Select-Object Name, Value | Out-File -Encoding default -FilePath $GPOLogFile -Append

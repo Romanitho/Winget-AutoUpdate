@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="5.0"
   schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions">
   <policyNamespaces>
     <target prefix="WAU" namespace="Romanitho.Policies.WAU" />
@@ -10,6 +10,7 @@
     <definitions>
       <definition name="SUPPORTED_WAU_1_16_0" displayName="$(string.SUPPORTED_WAU_1_16_0)" />
       <definition name="SUPPORTED_WAU_1_16_5" displayName="$(string.SUPPORTED_WAU_1_16_5)" />
+      <definition name="SUPPORTED_WAU_2_5_2" displayName="$(string.SUPPORTED_WAU_2_5_2)" />
       <definition name="SUPPORTED_WAU_EXPERIMENTAL"
         displayName="$(string.SUPPORTED_WAU_EXPERIMENTAL)" />
     </definitions>
@@ -418,6 +419,17 @@
       <supportedOn ref="WAU:SUPPORTED_WAU_EXPERIMENTAL" />
       <elements>
         <text id="WingetSourceCustom" valueName="WAU_WingetSourceCustom" />
+      </elements>
+    </policy>
+    <policy name="UpdatesTime_Delay" class="Machine"
+      displayName="$(string.UpdatesTimeDelay_Name)"
+      explainText="$(string.UpdatesTimeDelay_Explain)"
+      key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.UpdatesTimeDelayTime)">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_5_2" />
+      <elements>
+        <text id="UpdatesTimeDelayTime" valueName="WAU_UpdatesTimeDelay" />
       </elements>
     </policy>
   </policies>

@@ -444,7 +444,7 @@ function Show-WAUSettingsGUI {
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <!-- Update Time Column -->
-        <StackPanel Grid.Column="0">
+        <StackPanel Grid.Column="0" Margin="0,0,5,0">
             <StackPanel Orientation="Horizontal">
             <TextBox x:Name="UpdateTimeTextBox" Width="80" Height="25" Text="06:00:00" VerticalContentAlignment="Center"/>
             <TextBlock Text="(HH:mm:ss format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
@@ -452,7 +452,7 @@ function Show-WAUSettingsGUI {
             <TextBlock Text="Time of day when updates are checked" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
         </StackPanel>
         <!-- Random Delay Column -->
-        <StackPanel Grid.Column="1">
+        <StackPanel Grid.Column="1" Margin="5,0,0,0">
             <StackPanel Orientation="Horizontal">
             <TextBox x:Name="RandomDelayTextBox" Width="60" Height="25" Text="00:00" VerticalContentAlignment="Center"/>
             <TextBlock Text="(HH:mm format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
@@ -466,8 +466,8 @@ function Show-WAUSettingsGUI {
     <GroupBox Grid.Row="4" Header="List &amp; Mods Definitions" Margin="0,0,0,10">
         <StackPanel Margin="10,10,10,10">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-            <TextBlock Text="List Path (only folder):" Width="180" VerticalAlignment="Center"/>
-            <TextBox x:Name="ListPathTextBox" Width="340" Height="25" VerticalContentAlignment="Center">
+            <TextBlock Text="List Path (only folder):" Width="160" VerticalAlignment="Center"/>
+            <TextBox x:Name="ListPathTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
             <TextBox.ToolTip>
                 <TextBlock>
                 Path for list files. Can be URL, UNC path, local path or 'GPO'. If set to 'GPO', ensure you also configure the list/lists in GPO!
@@ -476,8 +476,8 @@ function Show-WAUSettingsGUI {
             </TextBox>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-            <TextBlock Text="Mods Path:" Width="180" VerticalAlignment="Center"/>
-            <TextBox x:Name="ModsPathTextBox" Width="340" Height="25" VerticalContentAlignment="Center">
+            <TextBlock Text="Mods Path:" Width="160" VerticalAlignment="Center"/>
+            <TextBox x:Name="ModsPathTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
             <TextBox.ToolTip>
                 <TextBlock>
                 Path for mods files. Can be URL, UNC path, local path or 'AzureBlob'. If set to 'AzureBlob', ensure you also configure 'Azure Blob SAS URL' below!
@@ -486,8 +486,8 @@ function Show-WAUSettingsGUI {
             </TextBox>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-            <TextBlock Text="Azure Blob SAS URL:" Width="180" VerticalAlignment="Center"/>
-            <TextBox x:Name="AzureBlobSASURLTextBox" Width="340" Height="25" VerticalContentAlignment="Center">
+            <TextBlock Text="Azure Blob SAS URL:" Width="160" VerticalAlignment="Center"/>
+            <TextBox x:Name="AzureBlobSASURLTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
             <TextBox.ToolTip>
                 <TextBlock>
                 Azure Storage Blob URL with SAS token for use with the 'Mods' feature. The URL must include the SAS token and have 'read' and 'list' permissions.
@@ -543,7 +543,7 @@ function Show-WAUSettingsGUI {
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
         <!-- MaxLogFiles column -->
-        <StackPanel Grid.Column="0">
+        <StackPanel Grid.Column="0" Margin="0,0,5,0">
             <StackPanel Orientation="Horizontal">
             <ComboBox x:Name="MaxLogFilesComboBox" Width="60" Height="25" SelectedIndex="3" VerticalContentAlignment="Center">
                 <ComboBox.ToolTip>
@@ -657,7 +657,7 @@ function Show-WAUSettingsGUI {
             <TextBlock Text="Number of allowed log files" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
         </StackPanel>
         <!-- MaxLogSize column -->
-        <StackPanel Grid.Column="1">
+        <StackPanel Grid.Column="1" Margin="5,0,0,0">
             <StackPanel Orientation="Horizontal">
             <ComboBox x:Name="MaxLogSizeComboBox" Width="70" Height="25" SelectedIndex="0" VerticalContentAlignment="Center" IsEditable="True">
                 <ComboBox.ToolTip>

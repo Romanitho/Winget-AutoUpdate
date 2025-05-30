@@ -568,7 +568,7 @@ function Show-WAUSettingsGUI {
         <CheckBox Grid.Row="2" Grid.Column="0" x:Name="DesktopShortcutCheckBox" Content="Desktop shortcut" Margin="0,0,5,5"
                 ToolTip="Create/delete WAU Desktop shortcut"/>
         <CheckBox Grid.Row="2" Grid.Column="1" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5"
-                ToolTip="Create/delete Start menu shortcuts (WAU Settings will be created on Desktop!)"/>
+                ToolTip="Create/delete Start menu shortcuts (WAU Settings will be created on Desktop if deleted!)"/>
         <CheckBox Grid.Row="2" Grid.Column="2" x:Name="AppInstallerShortcutCheckBox" Content="App Installer shortcut" Margin="0,0,5,5"
                 ToolTip="Create/delete shortcut for the App Installer"/>
         <CheckBox Grid.Row="3" Grid.Column="0" x:Name="UseWhiteListCheckBox" Content="Use whitelist" Margin="0,0,5,0"

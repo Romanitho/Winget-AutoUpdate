@@ -416,7 +416,7 @@ function Show-WAUSettingsGUI {
     $xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="WAU Settings" Height="820" Width="600" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+    Title="WAU Settings (Administrator)" Height="820" Width="600" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
     FontSize="11">
     <Grid Margin="10">
     <Grid.RowDefinitions>

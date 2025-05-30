@@ -123,6 +123,13 @@ function Set-WAUConfig {
                     if (Test-Path $shortcutDir) {
                         Remove-Item -Path $shortcutDir -Recurse -Force
                     }
+                    
+                    # Create desktop shortcut for WAU Settings if Start Menu shortcuts are removed
+                    $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings.lnk"
+                    if (-not (Test-Path $settingsDesktopShortcut)) {
+                        Write-Host "Creating WAU Settings desktop shortcut (Start Menu removed)..." -ForegroundColor Yellow
+                        Add-Shortcut $settingsDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "WAU Settings" "Normal"
+                    }
                 }
             }
         }
@@ -177,6 +184,46 @@ function Set-WAUConfig {
             }
         }
 
+        # Check if WAU schedule is disabled and create Run WAU desktop shortcut if needed
+        if ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -eq 'Never') {
+            $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
+            # Always create if it doesn't exist when schedule is disabled (regardless of desktop shortcut setting)
+            if (-not (Test-Path $runWAUDesktopShortcut)) {
+                Write-Host "Creating Run WAU desktop shortcut (schedule disabled)..." -ForegroundColor Yellow
+                Add-Shortcut $runWAUDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Winget AutoUpdate" "Normal"
+                $shortcutsChanged = $true
+            }
+        }
+        # Remove Run WAU desktop shortcut if schedule is enabled and desktop shortcuts are disabled
+        elseif ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -ne 'Never' -and $Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
+            $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
+            if (Test-Path $runWAUDesktopShortcut) {
+                Write-Host "Removing Run WAU desktop shortcut (schedule enabled and desktop shortcuts disabled)..." -ForegroundColor Yellow
+                Remove-Item -Path $runWAUDesktopShortcut -Force
+                $shortcutsChanged = $true
+            }
+        }
+
+        # Remove WAU Settings desktop shortcut if Start Menu shortcuts are created
+        if ($Settings.ContainsKey('WAU_StartMenuShortcut') -and $Settings['WAU_StartMenuShortcut'] -eq 1) {
+            $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings.lnk"
+            if (Test-Path $settingsDesktopShortcut) {
+                Write-Host "Removing WAU Settings desktop shortcut (Start Menu created)..." -ForegroundColor Yellow
+                Remove-Item -Path $settingsDesktopShortcut -Force
+                $shortcutsChanged = $true
+            }
+            
+            # Also remove Run WAU desktop shortcut if Start Menu is created and Desktop shortcuts are disabled
+            if ($Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
+                $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
+                if (Test-Path $runWAUDesktopShortcut) {
+                    Write-Host "Removing Run WAU desktop shortcut (Start Menu created and desktop shortcuts disabled)..." -ForegroundColor Yellow
+                    Remove-Item -Path $runWAUDesktopShortcut -Force
+                    $shortcutsChanged = $true
+                }
+            }
+        }
+ 
         # Show summary of changes
         if ($registryChanged -or $shortcutsChanged -or $scheduleChanged) {
             $changesSummary = @()
@@ -374,7 +421,7 @@ function Show-WAUSettingsGUI {
         </StackPanel>
     </GroupBox>
     
-    <!-- Update Interval and Notification Level(Combined) -->
+    <!-- Update Interval and Notification Level (Combined) -->
     <GroupBox Grid.Row="2" Header="Update Interval &amp; Notifications" Margin="0,0,0,10">
         <Grid Margin="10">
             <Grid.ColumnDefinitions>
@@ -402,7 +449,7 @@ function Show-WAUSettingsGUI {
                     <ComboBoxItem Content="Success Only" Tag="SuccessOnly"/>
                     <ComboBoxItem Content="None" Tag="None"/>
                 </ComboBox>
-                <TextBlock Text="Controls level of notifications" 
+                <TextBlock Text="Level of notifications" 
                            FontSize="10" Foreground="Gray" Margin="0,5,0,0"
                            TextWrapping="Wrap"/>
             </StackPanel>
@@ -495,18 +542,12 @@ function Show-WAUSettingsGUI {
                 ToolTip="Disable automatic updating of WAU itself"/>
         <CheckBox Grid.Row="1" Grid.Column="1" x:Name="UpdatePreReleaseCheckBox" Content="Update WAU to PreRelease" Margin="0,0,5,5"
                 ToolTip="Allow WAU to update itself to pre-release versions"/>
-        <CheckBox Grid.Row="1" Grid.Column="2" x:Name="DoNotRunOnMeteredCheckBox" Content="Not on metered connection" Margin="0,0,5,5"
+        <CheckBox Grid.Row="1" Grid.Column="2" x:Name="DoNotRunOnMeteredCheckBox" Content="Don't run on data plan" Margin="0,0,5,5"
                 ToolTip="Prevent WAU from running when connected to a metered network"/>
         <CheckBox Grid.Row="2" Grid.Column="0" x:Name="DesktopShortcutCheckBox" Content="Desktop shortcut" Margin="0,0,5,5"
                 ToolTip="Create/delete WAU Desktop shortcut"/>
         <CheckBox Grid.Row="2" Grid.Column="1" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5"
-                ToolTipService.ShowOnDisabled="True">
-            <CheckBox.ToolTip>
-            <TextBlock Foreground="Red">
-                Create/delete Start menu shortcuts (WAU Settings is started from here!)
-            </TextBlock>
-            </CheckBox.ToolTip>
-        </CheckBox>
+                ToolTip="Create/delete Start menu shortcuts (WAU Settings will be created on Desktop!)"/>
         <CheckBox Grid.Row="2" Grid.Column="2" x:Name="AppInstallerShortcutCheckBox" Content="App Installer shortcut" Margin="0,0,5,5"
                 ToolTip="Create/delete shortcut for the App Installer"/>
         <CheckBox Grid.Row="3" Grid.Column="0" x:Name="UseWhiteListCheckBox" Content="Use whitelist" Margin="0,0,5,0"
@@ -514,8 +555,8 @@ function Show-WAUSettingsGUI {
         </Grid>
     </GroupBox>
     
-    <!-- Log files management -->
-    <GroupBox Grid.Row="6" Header="Log files management" Margin="0,0,0,10">
+    <!-- Log Files Management -->
+    <GroupBox Grid.Row="6" Header="Log Files Management" Margin="0,0,0,10">
         <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
@@ -586,45 +627,45 @@ function Show-WAUSettingsGUI {
         if ($interval -eq "Never") {
             $controls.StatusText.Text = "Disabled"
             $controls.StatusText.Foreground = "Red"
-            $controls.StatusDescription.Text = "WAU schedule is disabled and will not check for updates automatically"
+            $controls.StatusDescription.Text = "WAU will not check for updates automatically when schedule is disabled"
             $controls.UpdateTimeTextBox.IsEnabled = $false
             $controls.RandomDelayTextBox.IsEnabled = $false
-            $controls.ListPathTextBox.IsEnabled = $true
-            $controls.ModsPathTextBox.IsEnabled = $true
-            $controls.AzureBlobSASURLTextBox.IsEnabled = $true
-            $controls.UpdatesAtLogonCheckBox.IsEnabled = $true
-            $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $true
-            $controls.UserContextCheckBox.IsEnabled = $true
-            $controls.BypassListForUsersCheckBox.IsEnabled = $true
-            $controls.DisableAutoUpdateCheckBox.IsEnabled = $true
-            $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
-            $controls.UseWhiteListCheckBox.IsEnabled = $true
-            $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
-            $controls.DesktopShortcutCheckBox.IsEnabled = $true
-            $controls.StartMenuShortcutCheckBox.IsEnabled = $true
-            $controls.MaxLogFilesTextBox.IsEnabled = $true
-            $controls.MaxLogSizeTextBox.IsEnabled = $true
+            # $controls.ListPathTextBox.IsEnabled = $true
+            # $controls.ModsPathTextBox.IsEnabled = $true
+            # $controls.AzureBlobSASURLTextBox.IsEnabled = $true
+            # $controls.UpdatesAtLogonCheckBox.IsEnabled = $true
+            # $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $true
+            # $controls.UserContextCheckBox.IsEnabled = $true
+            # $controls.BypassListForUsersCheckBox.IsEnabled = $true
+            # $controls.DisableAutoUpdateCheckBox.IsEnabled = $true
+            # $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
+            # $controls.UseWhiteListCheckBox.IsEnabled = $true
+            # $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
+            # $controls.DesktopShortcutCheckBox.IsEnabled = $true
+            # $controls.StartMenuShortcutCheckBox.IsEnabled = $true
+            # $controls.MaxLogFilesTextBox.IsEnabled = $true
+            # $controls.MaxLogSizeTextBox.IsEnabled = $true
         } else {
             $controls.StatusText.Text = "Active"
             $controls.StatusText.Foreground = "Green"
             $controls.StatusDescription.Text = "WAU will check for updates according to the schedule below"
             $controls.UpdateTimeTextBox.IsEnabled = $true
             $controls.RandomDelayTextBox.IsEnabled = $true
-            $controls.ListPathTextBox.IsEnabled = $true
-            $controls.ModsPathTextBox.IsEnabled = $true
-            $controls.AzureBlobSASURLTextBox.IsEnabled = $true
-            $controls.UpdatesAtLogonCheckBox.IsEnabled = $true
-            $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $true
-            $controls.UserContextCheckBox.IsEnabled = $true
-            $controls.BypassListForUsersCheckBox.IsEnabled = $true
-            $controls.DisableAutoUpdateCheckBox.IsEnabled = $true
-            $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
-            $controls.UseWhiteListCheckBox.IsEnabled = $true
-            $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
-            $controls.DesktopShortcutCheckBox.IsEnabled = $true
-            $controls.StartMenuShortcutCheckBox.IsEnabled = $true
-            $controls.MaxLogFilesTextBox.IsEnabled = $true
-            $controls.MaxLogSizeTextBox.IsEnabled = $true
+            # $controls.ListPathTextBox.IsEnabled = $true
+            # $controls.ModsPathTextBox.IsEnabled = $true
+            # $controls.AzureBlobSASURLTextBox.IsEnabled = $true
+            # $controls.UpdatesAtLogonCheckBox.IsEnabled = $true
+            # $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $true
+            # $controls.UserContextCheckBox.IsEnabled = $true
+            # $controls.BypassListForUsersCheckBox.IsEnabled = $true
+            # $controls.DisableAutoUpdateCheckBox.IsEnabled = $true
+            # $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
+            # $controls.UseWhiteListCheckBox.IsEnabled = $true
+            # $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
+            # $controls.DesktopShortcutCheckBox.IsEnabled = $true
+            # $controls.StartMenuShortcutCheckBox.IsEnabled = $true
+            # $controls.MaxLogFilesTextBox.IsEnabled = $true
+            # $controls.MaxLogSizeTextBox.IsEnabled = $true
         }
     }
     
@@ -677,6 +718,19 @@ function Show-WAUSettingsGUI {
     $controls.DesktopShortcutCheckBox.IsChecked = ($currentConfig.WAU_DesktopShortcut -eq 1)
     $controls.StartMenuShortcutCheckBox.IsChecked = ($currentConfig.WAU_StartMenuShortcut -eq 1)
 
+    # Function to handle DisableAutoUpdate checkbox state
+    function Update-PreReleaseCheckBoxState {
+        if ($controls.DisableAutoUpdateCheckBox.IsChecked) {
+            $controls.UpdatePreReleaseCheckBox.IsChecked = $false
+            $controls.UpdatePreReleaseCheckBox.IsEnabled = $false
+        } else {
+            $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
+        }
+    }
+
+    # Set initial state
+    Update-PreReleaseCheckBoxState
+
     # Information
     $controls.VersionText.Text = "Version: $($currentConfig.ProductVersion)"
     $controls.InstallLocationText.Text = "Install Location: $($currentConfig.InstallLocation)"
@@ -694,6 +748,15 @@ function Show-WAUSettingsGUI {
         Update-StatusDisplay
     })
     
+    # Event handler for DisableAutoUpdate checkbox
+    $controls.DisableAutoUpdateCheckBox.Add_Checked({
+        Update-PreReleaseCheckBoxState
+    })
+    
+    $controls.DisableAutoUpdateCheckBox.Add_Unchecked({
+        Update-PreReleaseCheckBoxState
+    })
+
     # Event handlers
     $controls.SaveButton.Add_Click({
         $controls.StatusBarText.Text = "Saving settings..."
@@ -732,7 +795,7 @@ function Show-WAUSettingsGUI {
             WAU_UserContext = if ($controls.UserContextCheckBox.IsChecked) { 1 } else { 0 }
             WAU_BypassListForUsers = if ($controls.BypassListForUsersCheckBox.IsChecked) { 1 } else { 0 }
             WAU_DisableAutoUpdate = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_UpdatePreRelease = if ($controls.UpdatePreReleaseCheckBox.IsChecked) { 1 } else { 0 }
+            WAU_UpdatePreRelease = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 0 } elseif ($controls.UpdatePreReleaseCheckBox.IsChecked) { 1 } else { 0 }
             WAU_UseWhiteList = if ($controls.UseWhiteListCheckBox.IsChecked) { 1 } else { 0 }
             WAU_AppInstallerShortcut = if ($controls.AppInstallerShortcutCheckBox.IsChecked) { 1 } else { 0 }
             WAU_DesktopShortcut = if ($controls.DesktopShortcutCheckBox.IsChecked) { 1 } else { 0 }

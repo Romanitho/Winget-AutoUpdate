@@ -63,8 +63,6 @@ function Set-WAUConfig {
         
         # Get current configuration to compare
         $currentConfig = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue
-        $registryChanged = $false
-        $shortcutsChanged = $false
         
         # Only update registry values that have actually changed
         foreach ($key in $Settings.Keys) {
@@ -79,7 +77,6 @@ function Set-WAUConfig {
             # Compare current value with new value
             if ($currentValue -ne $newValue) {
                 Set-ItemProperty -Path $regPath -Name $key -Value $newValue -Force
-                $registryChanged = $true
             }
         }
         
@@ -108,7 +105,6 @@ function Set-WAUConfig {
             
             if ($currentStartMenuSetting -ne $newStartMenuSetting) {
                 Set-ItemProperty -Path $regPath -Name 'WAU_StartMenuShortcut' -Value $newStartMenuSetting -Force
-                $shortcutsChanged = $true
                 
                 $shortcutDir = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
                 
@@ -142,7 +138,6 @@ function Set-WAUConfig {
             
             if ($currentAppInstallerSetting -ne $newAppInstallerSetting) {
                 Set-ItemProperty -Path $regPath -Name 'WAU_AppInstallerShortcut' -Value $newAppInstallerSetting -Force
-                $shortcutsChanged = $true
                 
                 $appInstallerShortcut = "${env:Public}\Desktop\WAU App Installer.lnk"
                 
@@ -164,7 +159,6 @@ function Set-WAUConfig {
             
             if ($currentDesktopSetting -ne $newDesktopSetting) {
                 Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $newDesktopSetting -Force
-                $shortcutsChanged = $true
                 
                 $desktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
                 
@@ -185,7 +179,6 @@ function Set-WAUConfig {
             # Always create if it doesn't exist when schedule is disabled (regardless of desktop shortcut setting)
             if (-not (Test-Path $runWAUDesktopShortcut)) {
                 Add-Shortcut $runWAUDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Winget AutoUpdate" "Normal"
-                $shortcutsChanged = $true
                 # Mirror shortcut creation to registry
                 Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 1 -Force
             }
@@ -195,7 +188,6 @@ function Set-WAUConfig {
             $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
             if (Test-Path $runWAUDesktopShortcut) {
                 Remove-Item -Path $runWAUDesktopShortcut -Force
-                $shortcutsChanged = $true
                 # Mirror shortcut removal to registry
                 Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
             }
@@ -206,7 +198,6 @@ function Set-WAUConfig {
             $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
             if (Test-Path $settingsDesktopShortcut) {
                 Remove-Item -Path $settingsDesktopShortcut -Force
-                $shortcutsChanged = $true
             }
             
             # Also remove Run WAU desktop shortcut if Start Menu is created and Desktop shortcuts are disabled
@@ -214,7 +205,6 @@ function Set-WAUConfig {
                 $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
                 if (Test-Path $runWAUDesktopShortcut) {
                     Remove-Item -Path $runWAUDesktopShortcut -Force
-                    $shortcutsChanged = $true
                     # Mirror shortcut removal to registry
                     Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
                 }
@@ -229,7 +219,6 @@ function Set-WAUConfig {
         
         if ($currentDesktopSetting -ne $correctRegistryValue) {
             Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $correctRegistryValue -Force
-            $shortcutsChanged = $true
         }
         
         return $true

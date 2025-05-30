@@ -79,7 +79,6 @@ function Set-WAUConfig {
             # Compare current value with new value
             if ($currentValue -ne $newValue) {
                 Set-ItemProperty -Path $regPath -Name $key -Value $newValue -Force
-                Write-Host "Updated registry: $key = $newValue (was: $currentValue)" -ForegroundColor Cyan
                 $registryChanged = $true
             }
         }
@@ -109,13 +108,11 @@ function Set-WAUConfig {
             
             if ($currentStartMenuSetting -ne $newStartMenuSetting) {
                 Set-ItemProperty -Path $regPath -Name 'WAU_StartMenuShortcut' -Value $newStartMenuSetting -Force
-                Write-Host "Updated registry: WAU_StartMenuShortcut = $newStartMenuSetting (was: $currentStartMenuSetting)" -ForegroundColor Cyan
                 $shortcutsChanged = $true
                 
                 $shortcutDir = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
                 
                 if ($newStartMenuSetting -eq 1) {
-                    Write-Host "Creating Start Menu shortcuts..." -ForegroundColor Yellow
                     if (-not (Test-Path $shortcutDir)) {
                         New-Item -Path $shortcutDir -ItemType Directory | Out-Null
                     }
@@ -125,7 +122,6 @@ function Set-WAUConfig {
                     Add-Shortcut "$shortcutDir\WAU Settings (Administrator).lnk" "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
                 }
                 else {
-                    Write-Host "Removing Start Menu shortcuts..." -ForegroundColor Yellow
                     if (Test-Path $shortcutDir) {
                         Remove-Item -Path $shortcutDir -Recurse -Force
                     }
@@ -133,7 +129,6 @@ function Set-WAUConfig {
                     # Create desktop shortcut for WAU Settings if Start Menu shortcuts are removed
                     $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
                     if (-not (Test-Path $settingsDesktopShortcut)) {
-                        Write-Host "Creating WAU Settings desktop shortcut (Start Menu removed)..." -ForegroundColor Yellow
                         Add-Shortcut $settingsDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
                     }
                 }
@@ -147,17 +142,14 @@ function Set-WAUConfig {
             
             if ($currentAppInstallerSetting -ne $newAppInstallerSetting) {
                 Set-ItemProperty -Path $regPath -Name 'WAU_AppInstallerShortcut' -Value $newAppInstallerSetting -Force
-                Write-Host "Updated registry: WAU_AppInstallerShortcut = $newAppInstallerSetting (was: $currentAppInstallerSetting)" -ForegroundColor Cyan
                 $shortcutsChanged = $true
                 
                 $appInstallerShortcut = "${env:Public}\Desktop\WAU App Installer.lnk"
                 
                 if ($newAppInstallerSetting -eq 1) {
-                    Write-Host "Creating App Installer shortcut..." -ForegroundColor Yellow
                     Add-Shortcut $appInstallerShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
                 }
                 else {
-                    Write-Host "Removing App Installer shortcut..." -ForegroundColor Yellow
                     if (Test-Path $appInstallerShortcut) {
                         Remove-Item -Path $appInstallerShortcut -Force
                     }
@@ -172,17 +164,14 @@ function Set-WAUConfig {
             
             if ($currentDesktopSetting -ne $newDesktopSetting) {
                 Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $newDesktopSetting -Force
-                Write-Host "Updated registry: WAU_DesktopShortcut = $newDesktopSetting (was: $currentDesktopSetting)" -ForegroundColor Cyan
                 $shortcutsChanged = $true
                 
                 $desktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
                 
                 if ($newDesktopSetting -eq 1) {
-                    Write-Host "Creating Desktop shortcut..." -ForegroundColor Yellow
                     Add-Shortcut $desktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Winget AutoUpdate" "Normal"
                 }
                 else {
-                    Write-Host "Removing Desktop shortcut..." -ForegroundColor Yellow
                     if (Test-Path $desktopShortcut) {
                         Remove-Item -Path $desktopShortcut -Force
                     }
@@ -195,24 +184,20 @@ function Set-WAUConfig {
             $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
             # Always create if it doesn't exist when schedule is disabled (regardless of desktop shortcut setting)
             if (-not (Test-Path $runWAUDesktopShortcut)) {
-                Write-Host "Creating Run WAU desktop shortcut (schedule disabled)..." -ForegroundColor Yellow
                 Add-Shortcut $runWAUDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Winget AutoUpdate" "Normal"
                 $shortcutsChanged = $true
                 # Mirror shortcut creation to registry
                 Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 1 -Force
-                Write-Host "Updated registry: WAU_DesktopShortcut = 1 (shortcut created)" -ForegroundColor Cyan
             }
         }
         # Remove Run WAU desktop shortcut if schedule is enabled and desktop shortcuts are disabled
         elseif ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -ne 'Never' -and $Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
             $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
             if (Test-Path $runWAUDesktopShortcut) {
-                Write-Host "Removing Run WAU desktop shortcut (schedule enabled and desktop shortcuts disabled)..." -ForegroundColor Yellow
                 Remove-Item -Path $runWAUDesktopShortcut -Force
                 $shortcutsChanged = $true
                 # Mirror shortcut removal to registry
                 Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
-                Write-Host "Updated registry: WAU_DesktopShortcut = 0 (shortcut removed)" -ForegroundColor Cyan
             }
         }
 
@@ -220,7 +205,6 @@ function Set-WAUConfig {
         if ($Settings.ContainsKey('WAU_StartMenuShortcut') -and $Settings['WAU_StartMenuShortcut'] -eq 1) {
             $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
             if (Test-Path $settingsDesktopShortcut) {
-                Write-Host "Removing WAU Settings desktop shortcut (Start Menu created)..." -ForegroundColor Yellow
                 Remove-Item -Path $settingsDesktopShortcut -Force
                 $shortcutsChanged = $true
             }
@@ -229,12 +213,10 @@ function Set-WAUConfig {
             if ($Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
                 $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
                 if (Test-Path $runWAUDesktopShortcut) {
-                    Write-Host "Removing Run WAU desktop shortcut (Start Menu created and desktop shortcuts disabled)..." -ForegroundColor Yellow
                     Remove-Item -Path $runWAUDesktopShortcut -Force
                     $shortcutsChanged = $true
                     # Mirror shortcut removal to registry
                     Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
-                    Write-Host "Updated registry: WAU_DesktopShortcut = 0 (shortcut removed)" -ForegroundColor Cyan
                 }
             }
         }
@@ -247,21 +229,7 @@ function Set-WAUConfig {
         
         if ($currentDesktopSetting -ne $correctRegistryValue) {
             Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $correctRegistryValue -Force
-            Write-Host "Mirrored desktop shortcut status to registry: WAU_DesktopShortcut = $correctRegistryValue (shortcut exists: $actualShortcutExists)" -ForegroundColor Magenta
             $shortcutsChanged = $true
-        }
-        
-        # Show summary of changes
-        if ($registryChanged -or $shortcutsChanged -or $scheduleChanged) {
-            $changesSummary = @()
-            if ($registryChanged) { $changesSummary += "Registry settings" }
-            if ($scheduleChanged) { $changesSummary += "Scheduled task" }
-            if ($shortcutsChanged) { $changesSummary += "Shortcuts" }
-            
-            $changesText = $changesSummary -join ", "
-            [System.Windows.MessageBox]::Show("Updated: $changesText", "Settings Saved", "OK", "Information")
-        } else {
-            [System.Windows.MessageBox]::Show("No changes detected - all settings unchanged", "Settings", "OK", "Information")
         }
         
         return $true
@@ -351,7 +319,6 @@ function Update-WAUScheduledTask {
 
         # Only update triggers if configuration has changed (same logic as WAU-Policies)
         if ($configChanged) {
-            Write-Host "Updating scheduled task..." -ForegroundColor Yellow
             
             # Build new triggers array (same logic as WAU-Policies)
             $taskTriggers = @()
@@ -384,9 +351,6 @@ function Update-WAUScheduledTask {
                 Set-ScheduledTask -TaskPath $task.TaskPath -TaskName $task.TaskName -Trigger $tasktriggers | Out-Null
             }
             
-            [System.Windows.MessageBox]::Show("Scheduled task updated with new triggers", "Settings", "OK", "Information")
-        } else {
-            [System.Windows.MessageBox]::Show("No changes detected - scheduled task unchanged", "Settings", "OK", "Information")
         }
     }
     catch {
@@ -1083,7 +1047,7 @@ function Start-ElevatedProcess {
         }
         
         # Debug output to verify path
-        Write-Host "Script path: $scriptPath" -ForegroundColor Yellow
+        # Write-Host "Script path: $scriptPath" -ForegroundColor Yellow
         
         if ([string]::IsNullOrEmpty($scriptPath)) {
             throw "Could not determine script path"

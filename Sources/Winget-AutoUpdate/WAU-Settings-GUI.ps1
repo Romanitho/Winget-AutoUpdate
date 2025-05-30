@@ -1012,13 +1012,6 @@ function Test-WAUInstalled {
     return $matchingApps
 }
 
-# Function to check if running as administrator
-function Test-Administrator {
-    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
-    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-}
-
 # Function to restart with elevated permissions
 function Start-ElevatedProcess {
     try {

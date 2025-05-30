@@ -192,6 +192,9 @@ function Set-WAUConfig {
                 Write-Host "Creating Run WAU desktop shortcut (schedule disabled)..." -ForegroundColor Yellow
                 Add-Shortcut $runWAUDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Winget AutoUpdate" "Normal"
                 $shortcutsChanged = $true
+                # Mirror shortcut creation to registry
+                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 1 -Force
+                Write-Host "Updated registry: WAU_DesktopShortcut = 1 (shortcut created)" -ForegroundColor Cyan
             }
         }
         # Remove Run WAU desktop shortcut if schedule is enabled and desktop shortcuts are disabled
@@ -201,6 +204,9 @@ function Set-WAUConfig {
                 Write-Host "Removing Run WAU desktop shortcut (schedule enabled and desktop shortcuts disabled)..." -ForegroundColor Yellow
                 Remove-Item -Path $runWAUDesktopShortcut -Force
                 $shortcutsChanged = $true
+                # Mirror shortcut removal to registry
+                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
+                Write-Host "Updated registry: WAU_DesktopShortcut = 0 (shortcut removed)" -ForegroundColor Cyan
             }
         }
 
@@ -220,10 +226,25 @@ function Set-WAUConfig {
                     Write-Host "Removing Run WAU desktop shortcut (Start Menu created and desktop shortcuts disabled)..." -ForegroundColor Yellow
                     Remove-Item -Path $runWAUDesktopShortcut -Force
                     $shortcutsChanged = $true
+                    # Mirror shortcut removal to registry
+                    Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
+                    Write-Host "Updated registry: WAU_DesktopShortcut = 0 (shortcut removed)" -ForegroundColor Cyan
                 }
             }
         }
- 
+
+        # Mirror actual desktop shortcut status to registry
+        $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
+        $actualShortcutExists = Test-Path $runWAUDesktopShortcut
+        $currentDesktopSetting = $currentConfig.WAU_DesktopShortcut
+        $correctRegistryValue = if ($actualShortcutExists) { 1 } else { 0 }
+        
+        if ($currentDesktopSetting -ne $correctRegistryValue) {
+            Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $correctRegistryValue -Force
+            Write-Host "Mirrored desktop shortcut status to registry: WAU_DesktopShortcut = $correctRegistryValue (shortcut exists: $actualShortcutExists)" -ForegroundColor Magenta
+            $shortcutsChanged = $true
+        }
+        
         # Show summary of changes
         if ($registryChanged -or $shortcutsChanged -or $scheduleChanged) {
             $changesSummary = @()

@@ -560,7 +560,7 @@ function Show-WAUSettingsGUI {
     
     <!-- Buttons -->
     <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-        <Button x:Name="RunNowButton" Content="Run WAU Now" Width="100" Height="30" Margin="0,0,10,0"/>
+        <Button x:Name="RunNowButton" Content="Run WAU" Width="100" Height="30" Margin="0,0,10,0"/>
         <Button x:Name="OpenLogsButton" Content="Open Logs" Width="100" Height="30" Margin="0,0,20,0"/>
         <Button x:Name="SaveButton" Content="Save Settings" Width="100" Height="30" Margin="0,0,10,0" IsDefault="True"/>
         <Button x:Name="CancelButton" Content="Cancel" Width="80" Height="30"/>

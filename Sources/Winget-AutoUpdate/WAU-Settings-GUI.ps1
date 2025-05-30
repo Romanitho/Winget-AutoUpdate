@@ -601,7 +601,7 @@ function Show-WAUSettingsGUI {
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal">
             <TextBox x:Name="MaxLogSizeTextBox" Width="60" Height="25" Text="1048576" VerticalContentAlignment="Center"/>
-            <TextBlock Text="(default 1048576 = 1 MB)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
+            <TextBlock Text="(Default 1048576 Bytes = 1 MB)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
             </StackPanel>
             <TextBlock Text="Size of the log file before rotating" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
         </StackPanel>

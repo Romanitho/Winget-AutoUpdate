@@ -402,7 +402,7 @@ function Show-WAUSettingsGUI {
                     <ComboBoxItem Content="Success Only" Tag="SuccessOnly"/>
                     <ComboBoxItem Content="None" Tag="None"/>
                 </ComboBox>
-                <TextBlock Text="Controls when notifications are shown" 
+                <TextBlock Text="Controls level of notifications" 
                            FontSize="10" Foreground="Gray" Margin="0,5,0,0"
                            TextWrapping="Wrap"/>
             </StackPanel>
@@ -514,8 +514,8 @@ function Show-WAUSettingsGUI {
         </Grid>
     </GroupBox>
     
-    <!-- Log file options -->
-    <GroupBox Grid.Row="6" Header="Log file options" Margin="0,0,0,10">
+    <!-- Log files management -->
+    <GroupBox Grid.Row="6" Header="Log files management" Margin="0,0,0,10">
         <Grid Margin="10">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />

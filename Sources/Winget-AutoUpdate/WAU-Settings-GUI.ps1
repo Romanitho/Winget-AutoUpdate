@@ -5,11 +5,16 @@
 WAU Settings GUI - Configure Winget-AutoUpdate settings after installation
 
 .DESCRIPTION
-Provides a user-friendly interface to modify _all_ WAU settings including:
+Provides a user-friendly interface to modify every aspect of WAU settings including:
 - Notification levels
 - Update intervals and timing
-- Manual update trigger
-- etc.
+- Managing scheduled tasks
+- Creating/removing shortcuts
+- Configuring list and mods paths
+- Additional options like running at logon, user context, etc.
+- Managing log files
+- Updating WAU configuration in the registry   
+- Starting WAU manually
 
 .NOTES
 Must be run as Administrator
@@ -114,9 +119,10 @@ function Set-WAUConfig {
                     if (-not (Test-Path $shortcutDir)) {
                         New-Item -Path $shortcutDir -ItemType Directory | Out-Null
                     }
-                    Add-Shortcut "$shortcutDir\Run WAU.lnk" "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Winget AutoUpdate" "Normal"
-                    Add-Shortcut "$shortcutDir\WAU Settings.lnk" "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "WAU Settings" "Normal"
+                    Add-Shortcut "$shortcutDir\Run WAU.lnk" "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Run Winget AutoUpdate" "Normal"
                     Add-Shortcut "$shortcutDir\Open Logs.lnk" "$($currentConfig.InstallLocation)logs" "" "" "" "Open WAU Logs" "Normal"
+                    Add-Shortcut "$shortcutDir\WAU App Installer.lnk" "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
+                    Add-Shortcut "$shortcutDir\WAU Settings (Administrator).lnk" "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
                 }
                 else {
                     Write-Host "Removing Start Menu shortcuts..." -ForegroundColor Yellow
@@ -125,10 +131,10 @@ function Set-WAUConfig {
                     }
                     
                     # Create desktop shortcut for WAU Settings if Start Menu shortcuts are removed
-                    $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings.lnk"
+                    $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
                     if (-not (Test-Path $settingsDesktopShortcut)) {
                         Write-Host "Creating WAU Settings desktop shortcut (Start Menu removed)..." -ForegroundColor Yellow
-                        Add-Shortcut $settingsDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "WAU Settings" "Normal"
+                        Add-Shortcut $settingsDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
                     }
                 }
             }
@@ -148,7 +154,7 @@ function Set-WAUConfig {
                 
                 if ($newAppInstallerSetting -eq 1) {
                     Write-Host "Creating App Installer shortcut..." -ForegroundColor Yellow
-                    Add-Shortcut $appInstallerShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "WAU App Installer" "Normal"
+                    Add-Shortcut $appInstallerShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
                 }
                 else {
                     Write-Host "Removing App Installer shortcut..." -ForegroundColor Yellow
@@ -212,7 +218,7 @@ function Set-WAUConfig {
 
         # Remove WAU Settings desktop shortcut if Start Menu shortcuts are created
         if ($Settings.ContainsKey('WAU_StartMenuShortcut') -and $Settings['WAU_StartMenuShortcut'] -eq 1) {
-            $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings.lnk"
+            $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
             if (Test-Path $settingsDesktopShortcut) {
                 Write-Host "Removing WAU Settings desktop shortcut (Start Menu created)..." -ForegroundColor Yellow
                 Remove-Item -Path $settingsDesktopShortcut -Force
@@ -565,12 +571,12 @@ function Show-WAUSettingsGUI {
                 ToolTip="Allow WAU to update itself to pre-release versions"/>
         <CheckBox Grid.Row="1" Grid.Column="2" x:Name="DoNotRunOnMeteredCheckBox" Content="Don't run on data plan" Margin="0,0,5,5"
                 ToolTip="Prevent WAU from running when connected to a metered network"/>
-        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="DesktopShortcutCheckBox" Content="Desktop shortcut" Margin="0,0,5,5"
-                ToolTip="Create/delete WAU Desktop shortcut"/>
-        <CheckBox Grid.Row="2" Grid.Column="1" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5"
-                ToolTip="Create/delete Start menu shortcuts (WAU Settings will be created on Desktop if deleted!)"/>
-        <CheckBox Grid.Row="2" Grid.Column="2" x:Name="AppInstallerShortcutCheckBox" Content="App Installer shortcut" Margin="0,0,5,5"
-                ToolTip="Create/delete shortcut for the App Installer"/>
+        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5"
+                ToolTip="Create/delete Start menu shortcuts ('WAU Settings' will be created on Desktop if deleted!)"/>
+        <CheckBox Grid.Row="2" Grid.Column="1" x:Name="DesktopShortcutCheckBox" Content="WAU Desktop shortcut" Margin="0,0,5,5"
+                ToolTip="Create/delete 'Run WAU' shortcut on Desktop"/>
+        <CheckBox Grid.Row="2" Grid.Column="2" x:Name="AppInstallerShortcutCheckBox" Content="App Installer Desktop shortcut" Margin="0,0,5,5"
+                ToolTip="Create/delete shortcut 'WAU App Installer' on Desktop"/>
         <CheckBox Grid.Row="3" Grid.Column="0" x:Name="UseWhiteListCheckBox" Content="Use whitelist" Margin="0,0,5,0"
                 ToolTip="Only update apps that are included in a whitelist"/>
         </Grid>
@@ -586,13 +592,113 @@ function Show-WAUSettingsGUI {
         <!-- MaxLogFiles column -->
         <StackPanel Grid.Column="0">
             <StackPanel Orientation="Horizontal">
-            <TextBox x:Name="MaxLogFilesTextBox" Width="80" Height="25" Text="3" VerticalContentAlignment="Center">
-                <TextBox.ToolTip>
+            <ComboBox x:Name="MaxLogFilesComboBox" Width="60" Height="25" SelectedIndex="3" VerticalContentAlignment="Center">
+                <ComboBox.ToolTip>
                     <TextBlock>
-                        Set to '0' to never delete old logs, '1' to keep only the original and let it grow.
+                        Set to '0' to never delete old logs, '1' to keep only the original and let it grow
                     </TextBlock>
-                </TextBox.ToolTip>
-            </TextBox>
+                </ComboBox.ToolTip>
+                <ComboBoxItem Content="0"/>
+                <ComboBoxItem Content="1"/>
+                <ComboBoxItem Content="2"/>
+                <ComboBoxItem Content="3"/>
+                <ComboBoxItem Content="4"/>
+                <ComboBoxItem Content="5"/>
+                <ComboBoxItem Content="6"/>
+                <ComboBoxItem Content="7"/>
+                <ComboBoxItem Content="8"/>
+                <ComboBoxItem Content="9"/>
+                <ComboBoxItem Content="10"/>
+                <ComboBoxItem Content="11"/>
+                <ComboBoxItem Content="12"/>
+                <ComboBoxItem Content="13"/>
+                <ComboBoxItem Content="14"/>
+                <ComboBoxItem Content="15"/>
+                <ComboBoxItem Content="16"/>
+                <ComboBoxItem Content="17"/>
+                <ComboBoxItem Content="18"/>
+                <ComboBoxItem Content="19"/>
+                <ComboBoxItem Content="20"/>
+                <ComboBoxItem Content="21"/>
+                <ComboBoxItem Content="22"/>
+                <ComboBoxItem Content="23"/>
+                <ComboBoxItem Content="24"/>
+                <ComboBoxItem Content="25"/>
+                <ComboBoxItem Content="26"/>
+                <ComboBoxItem Content="27"/>
+                <ComboBoxItem Content="28"/>
+                <ComboBoxItem Content="29"/>
+                <ComboBoxItem Content="30"/>
+                <ComboBoxItem Content="31"/>
+                <ComboBoxItem Content="32"/>
+                <ComboBoxItem Content="33"/>
+                <ComboBoxItem Content="34"/>
+                <ComboBoxItem Content="35"/>
+                <ComboBoxItem Content="36"/>
+                <ComboBoxItem Content="37"/>
+                <ComboBoxItem Content="38"/>
+                <ComboBoxItem Content="39"/>
+                <ComboBoxItem Content="40"/>
+                <ComboBoxItem Content="41"/>
+                <ComboBoxItem Content="42"/>
+                <ComboBoxItem Content="43"/>
+                <ComboBoxItem Content="44"/>
+                <ComboBoxItem Content="45"/>
+                <ComboBoxItem Content="46"/>
+                <ComboBoxItem Content="47"/>
+                <ComboBoxItem Content="48"/>
+                <ComboBoxItem Content="49"/>
+                <ComboBoxItem Content="50"/>
+                <ComboBoxItem Content="51"/>
+                <ComboBoxItem Content="52"/>
+                <ComboBoxItem Content="53"/>
+                <ComboBoxItem Content="54"/>
+                <ComboBoxItem Content="55"/>
+                <ComboBoxItem Content="56"/>
+                <ComboBoxItem Content="57"/>
+                <ComboBoxItem Content="58"/>
+                <ComboBoxItem Content="59"/>
+                <ComboBoxItem Content="60"/>
+                <ComboBoxItem Content="61"/>
+                <ComboBoxItem Content="62"/>
+                <ComboBoxItem Content="63"/>
+                <ComboBoxItem Content="64"/>
+                <ComboBoxItem Content="65"/>
+                <ComboBoxItem Content="66"/>
+                <ComboBoxItem Content="67"/>
+                <ComboBoxItem Content="68"/>
+                <ComboBoxItem Content="69"/>
+                <ComboBoxItem Content="70"/>
+                <ComboBoxItem Content="71"/>
+                <ComboBoxItem Content="72"/>
+                <ComboBoxItem Content="73"/>
+                <ComboBoxItem Content="74"/>
+                <ComboBoxItem Content="75"/>
+                <ComboBoxItem Content="76"/>
+                <ComboBoxItem Content="77"/>
+                <ComboBoxItem Content="78"/>
+                <ComboBoxItem Content="79"/>
+                <ComboBoxItem Content="80"/>
+                <ComboBoxItem Content="81"/>
+                <ComboBoxItem Content="82"/>
+                <ComboBoxItem Content="83"/>
+                <ComboBoxItem Content="84"/>
+                <ComboBoxItem Content="85"/>
+                <ComboBoxItem Content="86"/>
+                <ComboBoxItem Content="87"/>
+                <ComboBoxItem Content="88"/>
+                <ComboBoxItem Content="89"/>
+                <ComboBoxItem Content="90"/>
+                <ComboBoxItem Content="91"/>
+                <ComboBoxItem Content="92"/>
+                <ComboBoxItem Content="93"/>
+                <ComboBoxItem Content="94"/>
+                <ComboBoxItem Content="95"/>
+                <ComboBoxItem Content="96"/>
+                <ComboBoxItem Content="97"/>
+                <ComboBoxItem Content="98"/>
+                <ComboBoxItem Content="99"/>
+            </ComboBox>
             <TextBlock Text="(0-99, default 3)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
             </StackPanel>
             <TextBlock Text="Number of allowed log files" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
@@ -600,8 +706,24 @@ function Show-WAUSettingsGUI {
         <!-- MaxLogSize column -->
         <StackPanel Grid.Column="1">
             <StackPanel Orientation="Horizontal">
-            <TextBox x:Name="MaxLogSizeTextBox" Width="60" Height="25" Text="1048576" VerticalContentAlignment="Center"/>
-            <TextBlock Text="(Default 1048576 Bytes = 1 MB)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
+            <ComboBox x:Name="MaxLogSizeComboBox" Width="70" Height="25" SelectedIndex="0" VerticalContentAlignment="Center" IsEditable="True">
+                <ComboBox.ToolTip>
+                    <TextBlock>
+                        Maximum size of each log file before rotation occurs (Bytes if manually entered!)
+                    </TextBlock>
+                </ComboBox.ToolTip>
+                <ComboBoxItem Content="1 MB" Tag="1048576"/>
+                <ComboBoxItem Content="2 MB" Tag="2097152"/>
+                <ComboBoxItem Content="3 MB" Tag="3145728"/>
+                <ComboBoxItem Content="4 MB" Tag="4194304"/>
+                <ComboBoxItem Content="5 MB" Tag="5242880"/>
+                <ComboBoxItem Content="6 MB" Tag="6291456"/>
+                <ComboBoxItem Content="7 MB" Tag="7340032"/>
+                <ComboBoxItem Content="8 MB" Tag="8388608"/>
+                <ComboBoxItem Content="9 MB" Tag="9437184"/>
+                <ComboBoxItem Content="10 MB" Tag="10485760"/>
+            </ComboBox>
+            <TextBlock Text="(1-10 MB, default 1 MB)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
             </StackPanel>
             <TextBlock Text="Size of the log file before rotating" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
         </StackPanel>
@@ -651,42 +773,12 @@ function Show-WAUSettingsGUI {
             $controls.StatusDescription.Text = "WAU will not check for updates automatically when schedule is disabled"
             $controls.UpdateTimeTextBox.IsEnabled = $false
             $controls.RandomDelayTextBox.IsEnabled = $false
-            # $controls.ListPathTextBox.IsEnabled = $true
-            # $controls.ModsPathTextBox.IsEnabled = $true
-            # $controls.AzureBlobSASURLTextBox.IsEnabled = $true
-            # $controls.UpdatesAtLogonCheckBox.IsEnabled = $true
-            # $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $true
-            # $controls.UserContextCheckBox.IsEnabled = $true
-            # $controls.BypassListForUsersCheckBox.IsEnabled = $true
-            # $controls.DisableAutoUpdateCheckBox.IsEnabled = $true
-            # $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
-            # $controls.UseWhiteListCheckBox.IsEnabled = $true
-            # $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
-            # $controls.DesktopShortcutCheckBox.IsEnabled = $true
-            # $controls.StartMenuShortcutCheckBox.IsEnabled = $true
-            # $controls.MaxLogFilesTextBox.IsEnabled = $true
-            # $controls.MaxLogSizeTextBox.IsEnabled = $true
         } else {
             $controls.StatusText.Text = "Active"
             $controls.StatusText.Foreground = "Green"
             $controls.StatusDescription.Text = "WAU will check for updates according to the schedule below"
             $controls.UpdateTimeTextBox.IsEnabled = $true
             $controls.RandomDelayTextBox.IsEnabled = $true
-            # $controls.ListPathTextBox.IsEnabled = $true
-            # $controls.ModsPathTextBox.IsEnabled = $true
-            # $controls.AzureBlobSASURLTextBox.IsEnabled = $true
-            # $controls.UpdatesAtLogonCheckBox.IsEnabled = $true
-            # $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $true
-            # $controls.UserContextCheckBox.IsEnabled = $true
-            # $controls.BypassListForUsersCheckBox.IsEnabled = $true
-            # $controls.DisableAutoUpdateCheckBox.IsEnabled = $true
-            # $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
-            # $controls.UseWhiteListCheckBox.IsEnabled = $true
-            # $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
-            # $controls.DesktopShortcutCheckBox.IsEnabled = $true
-            # $controls.StartMenuShortcutCheckBox.IsEnabled = $true
-            # $controls.MaxLogFilesTextBox.IsEnabled = $true
-            # $controls.MaxLogSizeTextBox.IsEnabled = $true
         }
     }
     
@@ -724,8 +816,43 @@ function Show-WAUSettingsGUI {
     $controls.AzureBlobSASURLTextBox.Text = if ($currentConfig.WAU_AzureBlobSASURL) { $currentConfig.WAU_AzureBlobSASURL } else { "" }
 
     # Max Log Files and Size
-    $controls.MaxLogFilesTextBox.Text = if ($null -ne $currentConfig.WAU_MaxLogFiles) { $currentConfig.WAU_MaxLogFiles } else { "3" }
-    $controls.MaxLogSizeTextBox.Text = if ($currentConfig.WAU_MaxLogSize) { $currentConfig.WAU_MaxLogSize } else { "1048576" } # Default 1 MB
+    $maxLogFiles = if ($null -ne $currentConfig.WAU_MaxLogFiles) { $currentConfig.WAU_MaxLogFiles } else { "3" }
+    $controls.MaxLogFilesComboBox.SelectedIndex = [int]$maxLogFiles
+    $maxLogSize = if ($currentConfig.WAU_MaxLogSize) { $currentConfig.WAU_MaxLogSize } else { "1048576" }
+    # Handle editable combobox - try to find matching index, otherwise set text directly
+    $logSizeIndex = -1
+    for ($i = 0; $i -lt $controls.MaxLogSizeComboBox.Items.Count; $i++) {
+        if ($controls.MaxLogSizeComboBox.Items[$i].Tag -eq $maxLogSize) {
+            $logSizeIndex = $i
+            break
+        }
+    }
+    
+    if ($logSizeIndex -ge 0) {
+        $controls.MaxLogSizeComboBox.SelectedIndex = $logSizeIndex
+    } else {
+        # If value not found in predefined items, set text directly since it's editable
+        $controls.MaxLogSizeComboBox.Text = $maxLogSize
+    }
+
+    # Function to handle MaxLogFiles ComboBox state
+    function Update-MaxLogSizeState {
+        $selectedValue = $controls.MaxLogFilesComboBox.SelectedItem.Content
+        if ($selectedValue -eq "1") {
+            $controls.MaxLogSizeComboBox.IsEnabled = $false
+            $controls.MaxLogSizeComboBox.SelectedIndex = 0  # Reset to 1 MB default
+        } else {
+            $controls.MaxLogSizeComboBox.IsEnabled = $true
+        }
+    }
+
+    # Set initial state
+    Update-MaxLogSizeState
+
+    # Event handler for MaxLogFiles ComboBox change
+    $controls.MaxLogFilesComboBox.Add_SelectionChanged({
+        Update-MaxLogSizeState
+    })
 
     # Checkboxes
     $controls.UpdatesAtLogonCheckBox.IsChecked = ($currentConfig.WAU_UpdatesAtLogon -eq 1)
@@ -809,8 +936,8 @@ function Show-WAUSettingsGUI {
             WAU_ListPath = $controls.ListPathTextBox.Text
             WAU_ModsPath = $controls.ModsPathTextBox.Text
             WAU_AzureBlobSASURL = $controls.AzureBlobSASURLTextBox.Text
-            WAU_MaxLogFiles = $controls.MaxLogFilesTextBox.Text
-            WAU_MaxLogSize = $controls.MaxLogSizeTextBox.Text
+            WAU_MaxLogFiles = $controls.MaxLogFilesComboBox.SelectedItem.Content
+            WAU_MaxLogSize = if ($controls.MaxLogSizeComboBox.SelectedItem -and $controls.MaxLogSizeComboBox.SelectedItem.Tag) { $controls.MaxLogSizeComboBox.SelectedItem.Tag } else { $controls.MaxLogSizeComboBox.Text }
             WAU_UpdatesAtLogon = if ($controls.UpdatesAtLogonCheckBox.IsChecked) { 1 } else { 0 }
             WAU_DoNotRunOnMetered = if ($controls.DoNotRunOnMeteredCheckBox.IsChecked) { 1 } else { 0 }
             WAU_UserContext = if ($controls.UserContextCheckBox.IsChecked) { 1 } else { 0 }
@@ -932,12 +1059,64 @@ function Test-WAUInstalled {
     return $matchingApps
 }
 
+# Function to check if running as administrator
+function Test-Administrator {
+    $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+    return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+# Function to restart with elevated permissions
+function Start-ElevatedProcess {
+    try {
+        # Get the current script path - use $PSCommandPath instead
+        $scriptPath = $PSCommandPath
+        
+        # Fallback if $PSCommandPath is empty
+        if ([string]::IsNullOrEmpty($scriptPath)) {
+            $scriptPath = $MyInvocation.PSCommandPath
+        }
+        
+        # Final fallback - get from the calling script
+        if ([string]::IsNullOrEmpty($scriptPath)) {
+            $scriptPath = (Get-PSCallStack)[1].ScriptName
+        }
+        
+        # Debug output to verify path
+        Write-Host "Script path: $scriptPath" -ForegroundColor Yellow
+        
+        if ([string]::IsNullOrEmpty($scriptPath)) {
+            throw "Could not determine script path"
+        }
+        
+        # Restart with elevation using conhost.exe
+        Start-Process -FilePath "${env:SystemRoot}\System32\conhost.exe" -Verb RunAs -ArgumentList "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
+        
+        # Exit current non-elevated process
+        exit 0
+    }
+    catch {
+        [System.Windows.MessageBox]::Show("Failed to restart with administrator privileges: $($_.Exception.Message)", "Error", "OK", "Error")
+        exit 1
+    }
+}
+
 <# MAIN #>
 
 # Check if running as administrator
 if (-not (Test-Administrator)) {
-    [System.Windows.MessageBox]::Show("This application must be run as Administrator to modify WAU settings.", "Administrator Required", "OK", "Warning")
-    exit 1
+    $result = [System.Windows.MessageBox]::Show(
+        "This application requires Administrator privileges to modify WAU settings.`n`nWould you like to restart with Administrator privileges?", 
+        "Administrator Required", 
+        "YesNo", 
+        "Question"
+    )
+    
+    if ($result -eq "Yes") {
+        Start-ElevatedProcess
+    } else {
+        exit 1
+    }
 }
 
 # Set console encoding

@@ -392,7 +392,8 @@
 					</RegistryKey>
 					<Shortcut Id="StartMenuShortcut1" Name="Run WAU" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]User-Run.ps1&quot;" Icon="icon.ico" />
 					<Shortcut Id="StartMenuShortcut2" Name="Open Logs" Target="[INSTALLDIR]logs" />
-					<Shortcut Id="StartMenuShortcut3" Name="WAU Settings" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]WAU-Settings-GUI.ps1&quot;" Icon="icon.ico" />
+					<Shortcut Id="StartMenuShortcut3" Name="WAU App Installer" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]WAU-Installer-GUI.ps1&quot;" Icon="icon.ico" />
+					<Shortcut Id="StartMenuShortcut4" Name="WAU Settings (Administrator)" Target="[System64Folder]conhost.exe" Arguments="--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]WAU-Settings-GUI.ps1&quot;" Icon="icon.ico" />
 					<RemoveFolder Id="WAU" On="uninstall" />
 				</Component>
 			</Directory>

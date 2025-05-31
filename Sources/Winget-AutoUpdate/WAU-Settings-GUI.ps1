@@ -901,9 +901,9 @@ function Show-WAUSettingsGUI {
     
     # WAU Auto-Update status
     $wauAutoUpdateDisabled = ($currentConfig.WAU_DisableAutoUpdate -eq 1)
-    $wauPreReleaseDisabled = ($currentConfig.WAU_UpdatePreRelease -eq 0)
-    $wauRunGPOManagementDisabled = ($currentConfig.WAU_RunGPOManagement -eq 0)
-    $controls.WAUAutoUpdateText.Text = "WAU Auto-Update: $(if ($wauAutoUpdateDisabled) { 'Disabled' } else { 'Enabled' }) | WAU PreRelease: $(if ($wauPreReleaseDisabled) { 'Disabled' } else { 'Enabled' }) | GPO management: $(if ($wauRunGPOManagementDisabled) { 'Disabled' } else { 'Enabled' })"
+    $wauPreReleaseEnabled = ($currentConfig.WAU_UpdatePreRelease -eq 0)
+    $wauRunGPOManagementEnabled = ($currentConfig.WAU_RunGPOManagement -eq 0)
+    $controls.WAUAutoUpdateText.Text = "WAU Auto-Update: $(if ($wauAutoUpdateDisabled) { 'Disabled' } else { 'Enabled' }) | WAU PreRelease: $(if ($wauPreReleaseEnabled) { 'Disabled' } else { 'Enabled' }) | GPO management: $(if ($wauRunGPOManagementEnabled) { 'Disabled' } else { 'Enabled' })"
     # Update status display
     Update-StatusDisplay
     

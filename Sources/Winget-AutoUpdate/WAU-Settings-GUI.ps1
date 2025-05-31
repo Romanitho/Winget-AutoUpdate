@@ -41,15 +41,11 @@ $Script:WorkingDir = $PSScriptRoot
 <# FUNCTIONS #>
 
 # 1. Utility functions (no dependencies)
-
-# Function to check if running as administrator
 function Test-Administrator {
     $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
-
-# Function to create shortcuts
 function Add-Shortcut ($Shortcut, $Target, $StartIn, $Arguments, $Icon, $Description, $WindowStyle = "Normal") {
     $WScriptShell = New-Object -ComObject WScript.Shell
     $ShortcutObj = $WScriptShell.CreateShortcut($Shortcut)
@@ -68,10 +64,11 @@ function Add-Shortcut ($Shortcut, $Target, $StartIn, $Arguments, $Icon, $Descrip
         default     { $ShortcutObj.WindowStyle = 1 }
     }
     $ShortcutObj.Save()
-}
 
-# Function to test if WAU is installed and return its GUID
-function Test-WAUInstalled {
+    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($ShortcutObj) | Out-Null
+    [System.Runtime.Interopservices.Marshal]::ReleaseComObject($WScriptShell) | Out-Null
+}
+function Test-WAUInstalledIcon {
     param (
         [Parameter(Mandatory=$true)]
         [string]$displayName
@@ -106,8 +103,6 @@ function Test-WAUInstalled {
 }
 
 # 2. Configuration functions
-
-# Function to get current WAU configuration
 function Get-WAUCurrentConfig {
     try {
         $config = Get-ItemProperty -Path $Script:WAU_REGISTRY_PATH -ErrorAction SilentlyContinue
@@ -121,8 +116,6 @@ function Get-WAUCurrentConfig {
         exit 1
     }
 }
-
-# Function to update scheduled task
 function Update-WAUScheduledTask {
     param([hashtable]$Settings)
     
@@ -180,7 +173,7 @@ function Update-WAUScheduledTask {
         # Check if delay has changed (same logic as WAU-Policies)
         $randomDelay = [TimeSpan]::ParseExact($Settings.WAU_UpdatesTimeDelay, "hh\:mm", $null)
         $timeTrigger = $currentTriggers | Where-Object { $_.CimClass.CimClassName -ne "MSFT_TaskLogonTrigger" } | Select-Object -First 1
-        if ($timeTrigger.RandomDelay -match '^PT(?:(\d+)H)?(?:(\d+)M)?$') {
+        if ($null -ne $timeTrigger -and $timeTrigger.RandomDelay -match '^PT(?:(\d+)H)?(?:(\d+)M)?$') {
             $hours = if ($matches[1]) { [int]$matches[1] } else { 0 }
             $minutes = if ($matches[2]) { [int]$matches[2] } else { 0 }
             $existingRandomDelay = New-TimeSpan -Hours $hours -Minutes $minutes
@@ -191,7 +184,7 @@ function Update-WAUScheduledTask {
 
         # Check if schedule time has changed (same logic as WAU-Policies)
         if ($currentIntervalType -ne "None" -and $currentIntervalType -ne "Never") {
-            if ($timeTrigger) {
+            if ($null -ne $timeTrigger -and $timeTrigger.StartBoundary) {
                 $currentTime = [DateTime]::Parse($timeTrigger.StartBoundary).ToString("HH:mm:ss")
                 if ($currentTime -ne $Settings.WAU_UpdatesAtTime) {
                     $configChanged = $true
@@ -241,8 +234,6 @@ function Update-WAUScheduledTask {
 }
 
 # 3. Main configuration function (depends on above)
-
-# Function to save WAU configuration
 function Set-WAUConfig {
     param(
         [hashtable]$Settings
@@ -250,7 +241,7 @@ function Set-WAUConfig {
     
     try {
         # Get current configuration to compare
-        $currentConfig = Get-ItemProperty -Path $Script:WAU_REGISTRY_PATH -ErrorAction SilentlyContinue
+        $currentConfig = Get-WAUCurrentConfig
         
         # Only update registry values that have actually changed
         foreach ($key in $Settings.Keys) {
@@ -283,7 +274,7 @@ function Set-WAUConfig {
         }
 
         # Find current WAU installation icon
-        $GUID = Test-WAUInstalled -DisplayName "Winget-AutoUpdate"
+        $GUID = Test-WAUInstalledIcon -DisplayName "Winget-AutoUpdate"
         $icon = "${env:SystemRoot}\Installer\${GUID}\icon.ico"
 
         # Handle Start Menu shortcuts
@@ -405,9 +396,145 @@ function Set-WAUConfig {
     }
 }
 
-# 4. Manual start function
+# 4. GUI helper functions (depends on config functions)
+function Update-StatusDisplay {
+    param($controls)
 
-# Function to start WAU manually
+    $interval = $controls.UpdateIntervalComboBox.SelectedItem.Tag
+    if ($interval -eq "Never") {
+        $controls.StatusText.Text = "Disabled"
+        $controls.StatusText.Foreground = "Red"
+        $controls.StatusDescription.Text = "WAU will not check for updates automatically when schedule is disabled"
+        $controls.UpdateTimeTextBox.IsEnabled = $false
+        $controls.RandomDelayTextBox.IsEnabled = $false
+    } else {
+        $controls.StatusText.Text = "Active"
+        $controls.StatusText.Foreground = "Green"
+        $controls.StatusDescription.Text = "WAU will check for updates according to the schedule below"
+        $controls.UpdateTimeTextBox.IsEnabled = $true
+        $controls.RandomDelayTextBox.IsEnabled = $true
+    }
+}
+function Update-MaxLogSizeState {
+    param($controls)
+
+    $selectedValue = $controls.MaxLogFilesComboBox.SelectedItem.Content
+    if ($selectedValue -eq "1") {
+        $controls.MaxLogSizeComboBox.IsEnabled = $false
+        $controls.MaxLogSizeComboBox.SelectedIndex = 0  # Reset to 1 MB default
+    } else {
+        $controls.MaxLogSizeComboBox.IsEnabled = $true
+    }
+}
+function Update-PreReleaseCheckBoxState {
+    param($controls)
+
+    if ($controls.DisableAutoUpdateCheckBox.IsChecked) {
+        $controls.UpdatePreReleaseCheckBox.IsChecked = $false
+        $controls.UpdatePreReleaseCheckBox.IsEnabled = $false
+    } else {
+        $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
+    }
+}
+function Update-WAUGUIFromConfig {
+    param($controls)
+    
+    # Get updated config from registry
+    $updatedConfig = Get-WAUCurrentConfig
+    
+    # Update Notification Level
+    $notifLevel = if ($updatedConfig.WAU_NotificationLevel) { $updatedConfig.WAU_NotificationLevel } else { "Full" }
+    $Controls.NotificationLevelComboBox.SelectedIndex = switch ($notifLevel) {
+        "Full" { 0 }
+        "SuccessOnly" { 1 }
+        "None" { 2 }
+        default { 0 }
+    }
+    
+    # Update Update Interval
+    $updateInterval = if ($updatedConfig.WAU_UpdatesInterval) { $updatedConfig.WAU_UpdatesInterval } else { "Never" }
+    $Controls.UpdateIntervalComboBox.SelectedIndex = switch ($updateInterval) {
+        "Daily" { 0 }
+        "BiDaily" { 1 }
+        "Weekly" { 2 }
+        "BiWeekly" { 3 }
+        "Monthly" { 4 }
+        "Never" { 5 }
+        default { 5 }
+    }
+    
+    # Update time and delay
+    $Controls.UpdateTimeTextBox.Text = if ($updatedConfig.WAU_UpdatesAtTime) { $updatedConfig.WAU_UpdatesAtTime } else { "06:00:00" }
+    $Controls.RandomDelayTextBox.Text = if ($updatedConfig.WAU_UpdatesTimeDelay) { $updatedConfig.WAU_UpdatesTimeDelay } else { "00:00" }
+    
+    # Update paths
+    $Controls.ListPathTextBox.Text = if ($updatedConfig.WAU_ListPath) { $updatedConfig.WAU_ListPath } else { "" }
+    $Controls.ModsPathTextBox.Text = if ($updatedConfig.WAU_ModsPath) { $updatedConfig.WAU_ModsPath } else { "" }
+    $Controls.AzureBlobSASURLTextBox.Text = if ($updatedConfig.WAU_AzureBlobSASURL) { $updatedConfig.WAU_AzureBlobSASURL } else { "" }
+    
+    # Update checkboxes
+    $Controls.UpdatesAtLogonCheckBox.IsChecked = ($updatedConfig.WAU_UpdatesAtLogon -eq 1)
+    $Controls.DoNotRunOnMeteredCheckBox.IsChecked = ($updatedConfig.WAU_DoNotRunOnMetered -eq 1)
+    $Controls.UserContextCheckBox.IsChecked = ($updatedConfig.WAU_UserContext -eq 1)
+    $Controls.BypassListForUsersCheckBox.IsChecked = ($updatedConfig.WAU_BypassListForUsers -eq 1)
+    $Controls.DisableAutoUpdateCheckBox.IsChecked = ($updatedConfig.WAU_DisableAutoUpdate -eq 1)
+    $Controls.UpdatePreReleaseCheckBox.IsChecked = ($updatedConfig.WAU_UpdatePreRelease -eq 1)
+    $Controls.UseWhiteListCheckBox.IsChecked = ($updatedConfig.WAU_UseWhiteList -eq 1)
+    $Controls.AppInstallerShortcutCheckBox.IsChecked = ($updatedConfig.WAU_AppInstallerShortcut -eq 1)
+    $Controls.DesktopShortcutCheckBox.IsChecked = ($updatedConfig.WAU_DesktopShortcut -eq 1)
+    $Controls.StartMenuShortcutCheckBox.IsChecked = ($updatedConfig.WAU_StartMenuShortcut -eq 1)
+    
+    # Update log settings
+    $maxLogFiles = if ($null -ne $updatedConfig.WAU_MaxLogFiles) { $updatedConfig.WAU_MaxLogFiles } else { "3" }
+    try {
+        $maxLogFilesInt = [int]$maxLogFiles
+        if ($maxLogFilesInt -ge 0 -and $maxLogFilesInt -le 99) {
+            $Controls.MaxLogFilesComboBox.SelectedIndex = $maxLogFilesInt
+        } else {
+            $Controls.MaxLogFilesComboBox.SelectedIndex = 3  # Default fallback
+        }
+    } catch {
+        $Controls.MaxLogFilesComboBox.SelectedIndex = 3  # Default fallback
+    }
+
+    # Update log size
+    $maxLogSize = if ($updatedConfig.WAU_MaxLogSize) { $updatedConfig.WAU_MaxLogSize } else { "1048576" }
+    $logSizeIndex = -1
+    try {
+        for ($i = 0; $i -lt $Controls.MaxLogSizeComboBox.Items.Count; $i++) {
+            if ($Controls.MaxLogSizeComboBox.Items[$i].Tag -eq $maxLogSize) {
+                $logSizeIndex = $i
+                break
+            }
+        }
+    }
+    catch {
+        $logSizeIndex = 0  # Fallback to first item
+    }
+
+    if ($logSizeIndex -ge 0) {
+        $Controls.MaxLogSizeComboBox.SelectedIndex = $logSizeIndex
+    } else {
+        $Controls.MaxLogSizeComboBox.Text = $maxLogSize
+    }
+
+    # Update information section
+    $Controls.VersionText.Text = "Version: $($updatedConfig.ProductVersion)"
+    $Controls.InstallLocationText.Text = "Install Location: $($updatedConfig.InstallLocation)"
+
+    # Update WAU Auto-Update status
+    $wauAutoUpdateDisabled = ($updatedConfig.WAU_DisableAutoUpdate -eq 1)
+    $wauPreReleaseEnabled = ($updatedConfig.WAU_UpdatePreRelease -eq 0)
+    $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 0)
+    $Controls.WAUAutoUpdateText.Text = "WAU Auto-Update: $(if ($wauAutoUpdateDisabled) { 'Disabled' } else { 'Enabled' }) | WAU PreRelease: $(if ($wauPreReleaseEnabled) { 'Disabled' } else { 'Enabled' }) | GPO management: $(if ($wauRunGPOManagementEnabled) { 'Disabled' } else { 'Enabled' })"
+
+    # Trigger status update
+    Update-StatusDisplay -Controls $controls
+    Update-MaxLogSizeState -Controls $controls
+    Update-PreReleaseCheckBoxState -Controls $controls
+}
+
+# 5. Manual start function
 function Start-WAUManually {
     try {
         $currentConfig = Get-WAUCurrentConfig
@@ -426,9 +553,7 @@ function Start-WAUManually {
     }
 }
 
-# 5. GUI function (depends on most others)
-
-# Function to create and show the GUI
+# 6. GUI function (depends on most others)
 function Show-WAUSettingsGUI {
     
     # Get current configuration
@@ -656,7 +781,7 @@ function Show-WAUSettingsGUI {
     </GroupBox>
     
     <!-- Status Bar -->
-    <TextBlock Grid.Row="8" x:Name="StatusBarText" Text="Ready" FontSize="10" Foreground="Gray" VerticalAlignment="Bottom"/>
+    <TextBlock Grid.Row="8" x:Name="StatusBarText" Text="" FontSize="10" Foreground="Gray" VerticalAlignment="Bottom"/>
     
     <!-- Buttons -->
     <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
@@ -687,151 +812,30 @@ function Show-WAUSettingsGUI {
         $controls.MaxLogFilesComboBox.Items.Add($item) | Out-Null
     }
 
-    # Function to update status based on interval
-    function Update-StatusDisplay {
-        $interval = $controls.UpdateIntervalComboBox.SelectedItem.Tag
-        if ($interval -eq "Never") {
-            $controls.StatusText.Text = "Disabled"
-            $controls.StatusText.Foreground = "Red"
-            $controls.StatusDescription.Text = "WAU will not check for updates automatically when schedule is disabled"
-            $controls.UpdateTimeTextBox.IsEnabled = $false
-            $controls.RandomDelayTextBox.IsEnabled = $false
-        } else {
-            $controls.StatusText.Text = "Active"
-            $controls.StatusText.Foreground = "Green"
-            $controls.StatusDescription.Text = "WAU will check for updates according to the schedule below"
-            $controls.UpdateTimeTextBox.IsEnabled = $true
-            $controls.RandomDelayTextBox.IsEnabled = $true
-        }
-    }
-    
-    # Populate current settings
-    # Notification Level
-    $notifLevel = if ($currentConfig.WAU_NotificationLevel) { $currentConfig.WAU_NotificationLevel } else { "Full" }
-    $controls.NotificationLevelComboBox.SelectedIndex = switch ($notifLevel) {
-        "Full" { 0 }
-        "SuccessOnly" { 1 }
-        "None" { 2 }
-        default { 0 }
-    }
-    
-    # Update Interval
-    $updateInterval = if ($currentConfig.WAU_UpdatesInterval) { $currentConfig.WAU_UpdatesInterval } else { "Never" }
-    $controls.UpdateIntervalComboBox.SelectedIndex = switch ($updateInterval) {
-        "Daily" { 0 }
-        "BiDaily" { 1 }
-        "Weekly" { 2 }
-        "BiWeekly" { 3 }
-        "Monthly" { 4 }
-        "Never" { 5 }
-        default { 5 }
-    }
-    
-    # Update Time
-    $updateTime = if ($currentConfig.WAU_UpdatesAtTime) { $currentConfig.WAU_UpdatesAtTime } else { "06:00:00" }
-    $controls.UpdateTimeTextBox.Text = $updateTime
-    $updateDelay = if ($currentConfig.WAU_UpdatesTimeDelay) { $currentConfig.WAU_UpdatesTimeDelay } else { "00:00" }
-    $controls.RandomDelayTextBox.Text = $updateDelay
-
-    # List and Mods Paths
-    $controls.ListPathTextBox.Text = if ($currentConfig.WAU_ListPath) { $currentConfig.WAU_ListPath } else { "" }
-    $controls.ModsPathTextBox.Text = if ($currentConfig.WAU_ModsPath) { $currentConfig.WAU_ModsPath } else { "" }
-    $controls.AzureBlobSASURLTextBox.Text = if ($currentConfig.WAU_AzureBlobSASURL) { $currentConfig.WAU_AzureBlobSASURL } else { "" }
-
-    # Max Log Files and Size
-    $maxLogFiles = if ($null -ne $currentConfig.WAU_MaxLogFiles) { $currentConfig.WAU_MaxLogFiles } else { "3" }
-    $controls.MaxLogFilesComboBox.SelectedIndex = [int]$maxLogFiles
-    $maxLogSize = if ($currentConfig.WAU_MaxLogSize) { $currentConfig.WAU_MaxLogSize } else { "1048576" }
-    # Handle editable combobox - try to find matching index, otherwise set text directly
-    $logSizeIndex = -1
-    for ($i = 0; $i -lt $controls.MaxLogSizeComboBox.Items.Count; $i++) {
-        if ($controls.MaxLogSizeComboBox.Items[$i].Tag -eq $maxLogSize) {
-            $logSizeIndex = $i
-            break
-        }
-    }
-    
-    if ($logSizeIndex -ge 0) {
-        $controls.MaxLogSizeComboBox.SelectedIndex = $logSizeIndex
-    } else {
-        # If value not found in predefined items, set text directly since it's editable
-        $controls.MaxLogSizeComboBox.Text = $maxLogSize
-    }
-
-    # Function to handle MaxLogFiles ComboBox state
-    function Update-MaxLogSizeState {
-        $selectedValue = $controls.MaxLogFilesComboBox.SelectedItem.Content
-        if ($selectedValue -eq "1") {
-            $controls.MaxLogSizeComboBox.IsEnabled = $false
-            $controls.MaxLogSizeComboBox.SelectedIndex = 0  # Reset to 1 MB default
-        } else {
-            $controls.MaxLogSizeComboBox.IsEnabled = $true
-        }
-    }
-
-    # Set initial state
-    Update-MaxLogSizeState
-
-    # Event handler for MaxLogFiles ComboBox change
-    $controls.MaxLogFilesComboBox.Add_SelectionChanged({
-        Update-MaxLogSizeState
-    })
-
-    # Checkboxes
-    $controls.UpdatesAtLogonCheckBox.IsChecked = ($currentConfig.WAU_UpdatesAtLogon -eq 1)
-    $controls.DoNotRunOnMeteredCheckBox.IsChecked = ($currentConfig.WAU_DoNotRunOnMetered -eq 1)
-    $controls.UserContextCheckBox.IsChecked = ($currentConfig.WAU_UserContext -eq 1)
-    $controls.BypassListForUsersCheckBox.IsChecked = ($currentConfig.WAU_BypassListForUsers -eq 1)
-    $controls.DisableAutoUpdateCheckBox.IsChecked = ($currentConfig.WAU_DisableAutoUpdate -eq 1)
-    $controls.UpdatePreReleaseCheckBox.IsChecked = ($currentConfig.WAU_UpdatePreRelease -eq 1)
-    $controls.UseWhiteListCheckBox.IsChecked = ($currentConfig.WAU_UseWhiteList -eq 1)
-    $controls.AppInstallerShortcutCheckBox.IsChecked = ($currentConfig.WAU_AppInstallerShortcut -eq 1)
-    $controls.DesktopShortcutCheckBox.IsChecked = ($currentConfig.WAU_DesktopShortcut -eq 1)
-    $controls.StartMenuShortcutCheckBox.IsChecked = ($currentConfig.WAU_StartMenuShortcut -eq 1)
-
-    # Function to handle DisableAutoUpdate checkbox state
-    function Update-PreReleaseCheckBoxState {
-        if ($controls.DisableAutoUpdateCheckBox.IsChecked) {
-            $controls.UpdatePreReleaseCheckBox.IsChecked = $false
-            $controls.UpdatePreReleaseCheckBox.IsEnabled = $false
-        } else {
-            $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
-        }
-    }
-
-    # Set initial state
-    Update-PreReleaseCheckBoxState
-
-    # Information
-    $controls.VersionText.Text = "Version: $($currentConfig.ProductVersion)"
-    $controls.InstallLocationText.Text = "Install Location: $($currentConfig.InstallLocation)"
-    
-    # WAU Auto-Update status
-    $wauAutoUpdateDisabled = ($currentConfig.WAU_DisableAutoUpdate -eq 1)
-    $wauPreReleaseEnabled = ($currentConfig.WAU_UpdatePreRelease -eq 0)
-    $wauRunGPOManagementEnabled = ($currentConfig.WAU_RunGPOManagement -eq 0)
-    $controls.WAUAutoUpdateText.Text = "WAU Auto-Update: $(if ($wauAutoUpdateDisabled) { 'Disabled' } else { 'Enabled' }) | WAU PreRelease: $(if ($wauPreReleaseEnabled) { 'Disabled' } else { 'Enabled' }) | GPO management: $(if ($wauRunGPOManagementEnabled) { 'Disabled' } else { 'Enabled' })"
-    # Update status display
-    Update-StatusDisplay
-    
     # Event handler for interval change
     $controls.UpdateIntervalComboBox.Add_SelectionChanged({
-        Update-StatusDisplay
+        Update-StatusDisplay -Controls $controls
     })
     
     # Event handler for DisableAutoUpdate checkbox
     $controls.DisableAutoUpdateCheckBox.Add_Checked({
-        Update-PreReleaseCheckBoxState
+        Update-PreReleaseCheckBoxState -Controls $controls
     })
     
     $controls.DisableAutoUpdateCheckBox.Add_Unchecked({
-        Update-PreReleaseCheckBoxState
+        Update-PreReleaseCheckBoxState -Controls $controls
     })
 
-    # Event handlers
-    $controls.SaveButton.Add_Click({
-        $controls.StatusBarText.Text = "Saving settings..."
+    # Event handler for MaxLogFiles change
+    $controls.MaxLogFilesComboBox.Add_SelectionChanged({
+        Update-MaxLogSizeState -Controls $controls
+    })
+    
+    # Populate current settings
+    Update-WAUGUIFromConfig -Controls $controls    
 
+    # Event handlers for controls
+    $controls.SaveButton.Add_Click({
         # Validate time format
         try {
             [datetime]::ParseExact($controls.UpdateTimeTextBox.Text, "HH:mm:ss", $null) | Out-Null
@@ -875,14 +879,13 @@ function Show-WAUSettingsGUI {
         
         # Save settings
         if (Set-WAUConfig -Settings $newSettings) {
-            $controls.StatusBarText.Text = "Settings saved successfully!"
             [System.Windows.MessageBox]::Show("Settings have been saved successfully!", "Success", "OK", "Information")
-            # Reload current config and restart GUI with updated settings
-            $window.Close()
-            Show-WAUSettingsGUI
-            
+
+            # Updating settings in-place
+            Update-WAUGUIFromConfig -Controls $controls
+
         } else {
-            $controls.StatusBarText.Text = "Failed to save settings"
+            [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
         }
     })
     

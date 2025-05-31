@@ -31,6 +31,9 @@ $Script:CONHOST_EXE = "${env:SystemRoot}\System32\conhost.exe"
 $Script:POWERSHELL_ARGS = "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File"
 $Script:DESKTOP_RUN_WAU = "${env:Public}\Desktop\Run WAU.lnk"
 $Script:USER_RUN_SCRIPT = "User-Run.ps1"
+$Script:DESKTOP_WAU_SETTINGS = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
+$Script:DESKTOP_WAU_APPINSTALLER = "${env:Public}\Desktop\WAU App Installer.lnk"
+$Script:STARTMENU_WAU_DIR = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
 
 # Get current script directory
 $Script:WorkingDir = $PSScriptRoot
@@ -174,7 +177,7 @@ function Update-WAUScheduledTask {
             $configChanged = $true
         }
 
-        #Check if delay has changed (same logic as WAU-Policies)
+        # Check if delay has changed (same logic as WAU-Policies)
         $randomDelay = [TimeSpan]::ParseExact($Settings.WAU_UpdatesTimeDelay, "hh\:mm", $null)
         $timeTrigger = $currentTriggers | Where-Object { $_.CimClass.CimClassName -ne "MSFT_TaskLogonTrigger" } | Select-Object -First 1
         if ($timeTrigger.RandomDelay -match '^PT(?:(\d+)H)?(?:(\d+)M)?$') {
@@ -202,22 +205,22 @@ function Update-WAUScheduledTask {
             # Build new triggers array (same logic as WAU-Policies)
             $taskTriggers = @()
             if ($Settings.WAU_UpdatesAtLogon -eq 1) {
-                $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
+                $taskTriggers += New-ScheduledTaskTrigger -AtLogOn
             }
             if ($Settings.WAU_UpdatesInterval -eq "Daily") {
-                $tasktriggers += New-ScheduledTaskTrigger -Daily -At $Settings.WAU_UpdatesAtTime -RandomDelay $randomDelay
+                $taskTriggers += New-ScheduledTaskTrigger -Daily -At $Settings.WAU_UpdatesAtTime -RandomDelay $randomDelay
             }
             elseif ($Settings.WAU_UpdatesInterval -eq "BiDaily") {
-                $tasktriggers += New-ScheduledTaskTrigger -Daily -At $Settings.WAU_UpdatesAtTime -DaysInterval 2 -RandomDelay $randomDelay
+                $taskTriggers += New-ScheduledTaskTrigger -Daily -At $Settings.WAU_UpdatesAtTime -DaysInterval 2 -RandomDelay $randomDelay
             }
             elseif ($Settings.WAU_UpdatesInterval -eq "Weekly") {
-                $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $Settings.WAU_UpdatesAtTime -DaysOfWeek 2 -RandomDelay $randomDelay
+                $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $Settings.WAU_UpdatesAtTime -DaysOfWeek 2 -RandomDelay $randomDelay
             }
             elseif ($Settings.WAU_UpdatesInterval -eq "BiWeekly") {
-                $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $Settings.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay $randomDelay
+                $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $Settings.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay $randomDelay
             }
             elseif ($Settings.WAU_UpdatesInterval -eq "Monthly") {
-                $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $Settings.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $randomDelay
+                $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $Settings.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $randomDelay
             }
             
             # If trigger(s) set
@@ -226,8 +229,8 @@ function Update-WAUScheduledTask {
             }
             # If not, remove trigger(s) by setting past due date
             else {
-                $tasktriggers = New-ScheduledTaskTrigger -Once -At "01/01/1970"
-                Set-ScheduledTask -TaskPath $task.TaskPath -TaskName $task.TaskName -Trigger $tasktriggers | Out-Null
+                $taskTriggers = New-ScheduledTaskTrigger -Once -At "01/01/1970"
+                Set-ScheduledTask -TaskPath $task.TaskPath -TaskName $task.TaskName -Trigger $taskTriggers | Out-Null
             }
             
         }
@@ -246,10 +249,8 @@ function Set-WAUConfig {
     )
     
     try {
-        $regPath = $Script:WAU_REGISTRY_PATH
-        
         # Get current configuration to compare
-        $currentConfig = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue
+        $currentConfig = Get-ItemProperty -Path $Script:WAU_REGISTRY_PATH -ErrorAction SilentlyContinue
         
         # Only update registry values that have actually changed
         foreach ($key in $Settings.Keys) {
@@ -263,7 +264,7 @@ function Set-WAUConfig {
             
             # Compare current value with new value
             if ($currentValue -ne $newValue) {
-                Set-ItemProperty -Path $regPath -Name $key -Value $newValue -Force
+                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name $key -Value $newValue -Force
             }
         }
         
@@ -291,28 +292,25 @@ function Set-WAUConfig {
             $newStartMenuSetting = $Settings['WAU_StartMenuShortcut']
             
             if ($currentStartMenuSetting -ne $newStartMenuSetting) {
-                Set-ItemProperty -Path $regPath -Name 'WAU_StartMenuShortcut' -Value $newStartMenuSetting -Force
-                
-                $shortcutDir = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
+                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_StartMenuShortcut' -Value $newStartMenuSetting -Force
                 
                 if ($newStartMenuSetting -eq 1) {
-                    if (-not (Test-Path $shortcutDir)) {
-                        New-Item -Path $shortcutDir -ItemType Directory | Out-Null
+                    if (-not (Test-Path $Script:STARTMENU_WAU_DIR)) {
+                        New-Item -Path $Script:STARTMENU_WAU_DIR -ItemType Directory | Out-Null
                     }
-                    Add-Shortcut "$shortcutDir\Run WAU.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Run Winget AutoUpdate" "Normal"
-                    Add-Shortcut "$shortcutDir\Open Logs.lnk" "$($currentConfig.InstallLocation)logs" "" "" "" "Open WAU Logs" "Normal"
-                    Add-Shortcut "$shortcutDir\WAU App Installer.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
-                    Add-Shortcut "$shortcutDir\WAU Settings (Administrator).lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
+                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\Run WAU.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Run Winget AutoUpdate" "Normal"
+                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\Open Logs.lnk" "$($currentConfig.InstallLocation)logs" "" "" "" "Open WAU Logs" "Normal"
+                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\WAU App Installer.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
+                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\WAU Settings (Administrator).lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
                 }
                 else {
-                    if (Test-Path $shortcutDir) {
-                        Remove-Item -Path $shortcutDir -Recurse -Force
+                    if (Test-Path $Script:STARTMENU_WAU_DIR) {
+                        Remove-Item -Path $Script:STARTMENU_WAU_DIR -Recurse -Force
                     }
                     
                     # Create desktop shortcut for WAU Settings if Start Menu shortcuts are removed
-                    $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
-                    if (-not (Test-Path $settingsDesktopShortcut)) {
-                        Add-Shortcut $settingsDesktopShortcut $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
+                    if (-not (Test-Path $Script:DESKTOP_WAU_SETTINGS)) {
+                        Add-Shortcut $Script:DESKTOP_WAU_SETTINGS $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
                     }
                 }
             }
@@ -324,16 +322,14 @@ function Set-WAUConfig {
             $newAppInstallerSetting = $Settings['WAU_AppInstallerShortcut']
             
             if ($currentAppInstallerSetting -ne $newAppInstallerSetting) {
-                Set-ItemProperty -Path $regPath -Name 'WAU_AppInstallerShortcut' -Value $newAppInstallerSetting -Force
-                
-                $appInstallerShortcut = "${env:Public}\Desktop\WAU App Installer.lnk"
+                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_AppInstallerShortcut' -Value $newAppInstallerSetting -Force
                 
                 if ($newAppInstallerSetting -eq 1) {
-                    Add-Shortcut $appInstallerShortcut $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
+                    Add-Shortcut $Script:DESKTOP_WAU_APPINSTALLER $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
                 }
                 else {
-                    if (Test-Path $appInstallerShortcut) {
-                        Remove-Item -Path $appInstallerShortcut -Force
+                    if (Test-Path $Script:DESKTOP_WAU_APPINSTALLER) {
+                        Remove-Item -Path $Script:DESKTOP_WAU_APPINSTALLER -Force
                     }
                 }
             }
@@ -345,16 +341,14 @@ function Set-WAUConfig {
             $newDesktopSetting = $Settings['WAU_DesktopShortcut']
             
             if ($currentDesktopSetting -ne $newDesktopSetting) {
-                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $newDesktopSetting -Force
-                
-                $desktopShortcut = $Script:DESKTOP_RUN_WAU
+                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value $newDesktopSetting -Force
                 
                 if ($newDesktopSetting -eq 1) {
-                    Add-Shortcut $desktopShortcut $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Winget AutoUpdate" "Normal"
+                    Add-Shortcut $Script:DESKTOP_RUN_WAU $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Winget AutoUpdate" "Normal"
                 }
                 else {
-                    if (Test-Path $desktopShortcut) {
-                        Remove-Item -Path $desktopShortcut -Force
+                    if (Test-Path $Script:DESKTOP_RUN_WAU) {
+                        Remove-Item -Path $Script:DESKTOP_RUN_WAU -Force
                     }
                 }
             }
@@ -362,50 +356,45 @@ function Set-WAUConfig {
 
         # Check if WAU schedule is disabled and create Run WAU desktop shortcut if needed
         if ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -eq 'Never') {
-            $runWAUDesktopShortcut = $Script:DESKTOP_RUN_WAU
             # Always create if it doesn't exist when schedule is disabled (regardless of desktop shortcut setting)
-            if (-not (Test-Path $runWAUDesktopShortcut)) {
-                Add-Shortcut $runWAUDesktopShortcut $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Winget AutoUpdate" "Normal"
+            if (-not (Test-Path $Script:DESKTOP_RUN_WAU)) {
+                Add-Shortcut $Script:DESKTOP_RUN_WAU $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Winget AutoUpdate" "Normal"
                 # Mirror shortcut creation to registry
-                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 1 -Force
+                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value 1 -Force
             }
         }
         # Remove Run WAU desktop shortcut if schedule is enabled and desktop shortcuts are disabled
         elseif ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -ne 'Never' -and $Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
-            $runWAUDesktopShortcut = $Script:DESKTOP_RUN_WAU
-            if (Test-Path $runWAUDesktopShortcut) {
-                Remove-Item -Path $runWAUDesktopShortcut -Force
+            if (Test-Path $Script:DESKTOP_RUN_WAU) {
+                Remove-Item -Path $Script:DESKTOP_RUN_WAU -Force
                 # Mirror shortcut removal to registry
-                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
+                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value 0 -Force
             }
         }
 
         # Remove WAU Settings desktop shortcut if Start Menu shortcuts are created
         if ($Settings.ContainsKey('WAU_StartMenuShortcut') -and $Settings['WAU_StartMenuShortcut'] -eq 1) {
-            $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
-            if (Test-Path $settingsDesktopShortcut) {
-                Remove-Item -Path $settingsDesktopShortcut -Force
+            if (Test-Path $Script:DESKTOP_WAU_SETTINGS) {
+                Remove-Item -Path $Script:DESKTOP_WAU_SETTINGS -Force
             }
             
             # Also remove Run WAU desktop shortcut if Start Menu is created and Desktop shortcuts are disabled
             if ($Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
-                $runWAUDesktopShortcut = $Script:DESKTOP_RUN_WAU
-                if (Test-Path $runWAUDesktopShortcut) {
-                    Remove-Item -Path $runWAUDesktopShortcut -Force
+                if (Test-Path $Script:DESKTOP_RUN_WAU) {
+                    Remove-Item -Path $Script:DESKTOP_RUN_WAU -Force
                     # Mirror shortcut removal to registry
-                    Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
+                    Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value 0 -Force
                 }
             }
         }
 
         # Mirror actual desktop shortcut status to registry
-        $runWAUDesktopShortcut = $Script:DESKTOP_RUN_WAU
-        $actualShortcutExists = Test-Path $runWAUDesktopShortcut
+        $actualShortcutExists = Test-Path $Script:DESKTOP_RUN_WAU
         $currentDesktopSetting = $currentConfig.WAU_DesktopShortcut
         $correctRegistryValue = if ($actualShortcutExists) { 1 } else { 0 }
         
         if ($currentDesktopSetting -ne $correctRegistryValue) {
-            Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $correctRegistryValue -Force
+            Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value $correctRegistryValue -Force
         }
         
         return $true
@@ -912,7 +901,7 @@ function Show-WAUSettingsGUI {
     
     # WAU Auto-Update status
     $wauAutoUpdateDisabled = ($currentConfig.WAU_DisableAutoUpdate -eq 1)
-    $wauPreReleaseDisabled = ($currentConfig.WAU_UpdatePrerelease -eq 0)
+    $wauPreReleaseDisabled = ($currentConfig.WAU_UpdatePreRelease -eq 0)
     $wauRunGPOManagementDisabled = ($currentConfig.WAU_RunGPOManagement -eq 0)
     $controls.WAUAutoUpdateText.Text = "WAU Auto-Update: $(if ($wauAutoUpdateDisabled) { 'Disabled' } else { 'Enabled' }) | WAU PreRelease: $(if ($wauPreReleaseDisabled) { 'Disabled' } else { 'Enabled' }) | GPO management: $(if ($wauRunGPOManagementDisabled) { 'Disabled' } else { 'Enabled' })"
     # Update status display

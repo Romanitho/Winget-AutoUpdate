@@ -614,106 +614,6 @@ function Show-WAUSettingsGUI {
                         Set to '0' to never delete old logs, '1' to keep only the original and let it grow
                     </TextBlock>
                 </ComboBox.ToolTip>
-                <ComboBoxItem Content="0"/>
-                <ComboBoxItem Content="1"/>
-                <ComboBoxItem Content="2"/>
-                <ComboBoxItem Content="3"/>
-                <ComboBoxItem Content="4"/>
-                <ComboBoxItem Content="5"/>
-                <ComboBoxItem Content="6"/>
-                <ComboBoxItem Content="7"/>
-                <ComboBoxItem Content="8"/>
-                <ComboBoxItem Content="9"/>
-                <ComboBoxItem Content="10"/>
-                <ComboBoxItem Content="11"/>
-                <ComboBoxItem Content="12"/>
-                <ComboBoxItem Content="13"/>
-                <ComboBoxItem Content="14"/>
-                <ComboBoxItem Content="15"/>
-                <ComboBoxItem Content="16"/>
-                <ComboBoxItem Content="17"/>
-                <ComboBoxItem Content="18"/>
-                <ComboBoxItem Content="19"/>
-                <ComboBoxItem Content="20"/>
-                <ComboBoxItem Content="21"/>
-                <ComboBoxItem Content="22"/>
-                <ComboBoxItem Content="23"/>
-                <ComboBoxItem Content="24"/>
-                <ComboBoxItem Content="25"/>
-                <ComboBoxItem Content="26"/>
-                <ComboBoxItem Content="27"/>
-                <ComboBoxItem Content="28"/>
-                <ComboBoxItem Content="29"/>
-                <ComboBoxItem Content="30"/>
-                <ComboBoxItem Content="31"/>
-                <ComboBoxItem Content="32"/>
-                <ComboBoxItem Content="33"/>
-                <ComboBoxItem Content="34"/>
-                <ComboBoxItem Content="35"/>
-                <ComboBoxItem Content="36"/>
-                <ComboBoxItem Content="37"/>
-                <ComboBoxItem Content="38"/>
-                <ComboBoxItem Content="39"/>
-                <ComboBoxItem Content="40"/>
-                <ComboBoxItem Content="41"/>
-                <ComboBoxItem Content="42"/>
-                <ComboBoxItem Content="43"/>
-                <ComboBoxItem Content="44"/>
-                <ComboBoxItem Content="45"/>
-                <ComboBoxItem Content="46"/>
-                <ComboBoxItem Content="47"/>
-                <ComboBoxItem Content="48"/>
-                <ComboBoxItem Content="49"/>
-                <ComboBoxItem Content="50"/>
-                <ComboBoxItem Content="51"/>
-                <ComboBoxItem Content="52"/>
-                <ComboBoxItem Content="53"/>
-                <ComboBoxItem Content="54"/>
-                <ComboBoxItem Content="55"/>
-                <ComboBoxItem Content="56"/>
-                <ComboBoxItem Content="57"/>
-                <ComboBoxItem Content="58"/>
-                <ComboBoxItem Content="59"/>
-                <ComboBoxItem Content="60"/>
-                <ComboBoxItem Content="61"/>
-                <ComboBoxItem Content="62"/>
-                <ComboBoxItem Content="63"/>
-                <ComboBoxItem Content="64"/>
-                <ComboBoxItem Content="65"/>
-                <ComboBoxItem Content="66"/>
-                <ComboBoxItem Content="67"/>
-                <ComboBoxItem Content="68"/>
-                <ComboBoxItem Content="69"/>
-                <ComboBoxItem Content="70"/>
-                <ComboBoxItem Content="71"/>
-                <ComboBoxItem Content="72"/>
-                <ComboBoxItem Content="73"/>
-                <ComboBoxItem Content="74"/>
-                <ComboBoxItem Content="75"/>
-                <ComboBoxItem Content="76"/>
-                <ComboBoxItem Content="77"/>
-                <ComboBoxItem Content="78"/>
-                <ComboBoxItem Content="79"/>
-                <ComboBoxItem Content="80"/>
-                <ComboBoxItem Content="81"/>
-                <ComboBoxItem Content="82"/>
-                <ComboBoxItem Content="83"/>
-                <ComboBoxItem Content="84"/>
-                <ComboBoxItem Content="85"/>
-                <ComboBoxItem Content="86"/>
-                <ComboBoxItem Content="87"/>
-                <ComboBoxItem Content="88"/>
-                <ComboBoxItem Content="89"/>
-                <ComboBoxItem Content="90"/>
-                <ComboBoxItem Content="91"/>
-                <ComboBoxItem Content="92"/>
-                <ComboBoxItem Content="93"/>
-                <ComboBoxItem Content="94"/>
-                <ComboBoxItem Content="95"/>
-                <ComboBoxItem Content="96"/>
-                <ComboBoxItem Content="97"/>
-                <ComboBoxItem Content="98"/>
-                <ComboBoxItem Content="99"/>
             </ComboBox>
             <TextBlock Text="(0-99, default 3)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
             </StackPanel>
@@ -780,6 +680,13 @@ function Show-WAUSettingsGUI {
         $controls[$_.Name] = $window.FindName($_.Name)
     }
     
+    # Set initial values for MaxLogFiles ComboBox programmatically
+    0..99 | ForEach-Object { 
+        $item = New-Object System.Windows.Controls.ComboBoxItem
+        $item.Content = [string]$_
+        $controls.MaxLogFilesComboBox.Items.Add($item) | Out-Null
+    }
+
     # Function to update status based on interval
     function Update-StatusDisplay {
         $interval = $controls.UpdateIntervalComboBox.SelectedItem.Tag

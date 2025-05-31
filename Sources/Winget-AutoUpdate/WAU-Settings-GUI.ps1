@@ -25,10 +25,19 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName PresentationFramework
 
+# Constants of most used paths and arguments
+$Script:WAU_REGISTRY_PATH = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
+$Script:CONHOST_EXE = "${env:SystemRoot}\System32\conhost.exe"
+$Script:POWERSHELL_ARGS = "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File"
+$Script:DESKTOP_RUN_WAU = "${env:Public}\Desktop\Run WAU.lnk"
+$Script:USER_RUN_SCRIPT = "User-Run.ps1"
+
 # Get current script directory
 $Script:WorkingDir = $PSScriptRoot
 
 <# FUNCTIONS #>
+
+# 1. Utility functions (no dependencies)
 
 # Function to check if running as administrator
 function Test-Administrator {
@@ -37,10 +46,68 @@ function Test-Administrator {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+# Function to create shortcuts
+function Add-Shortcut ($Shortcut, $Target, $StartIn, $Arguments, $Icon, $Description, $WindowStyle = "Normal") {
+    $WScriptShell = New-Object -ComObject WScript.Shell
+    $ShortcutObj = $WScriptShell.CreateShortcut($Shortcut)
+    $ShortcutObj.TargetPath = $Target
+    if (![string]::IsNullOrWhiteSpace($StartIn)) {
+        $ShortcutObj.WorkingDirectory = $StartIn
+    }
+    $ShortcutObj.Arguments = $Arguments
+    if (![string]::IsNullOrWhiteSpace($Icon)) {
+        $ShortcutObj.IconLocation = $Icon
+    }
+    $ShortcutObj.Description = $Description
+    switch ($WindowStyle.ToLower()) {
+        "minimized" { $ShortcutObj.WindowStyle = 7 }
+        "maximized" { $ShortcutObj.WindowStyle = 3 }
+        default     { $ShortcutObj.WindowStyle = 1 }
+    }
+    $ShortcutObj.Save()
+}
+
+# Function to test if WAU is installed and return its GUID
+function Test-WAUInstalled {
+    param (
+        [Parameter(Mandatory=$true)]
+        [string]$displayName
+    )
+
+    $uninstallKeys = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
+    $matchingApps = @()
+    
+    foreach ($key in $uninstallKeys) {
+        try {
+            $subKeys = Get-ChildItem -Path $key -ErrorAction Stop
+            foreach ($subKey in $subKeys) {
+                try {
+                    $properties = Get-ItemProperty -Path $subKey.PSPath -ErrorAction Stop
+                    if ($properties.DisplayName -like "$displayName") {
+                        # $matchingApps += $properties.DisplayName
+                        $parentKeyName = Split-Path -Path $subKey.PSPath -Leaf
+                        $matchingApps += $parentKeyName
+                    }
+                }
+                catch {
+                    continue
+                }
+            }
+        }
+        catch {
+            continue
+        }
+    }
+
+    return $matchingApps
+}
+
+# 2. Configuration functions
+
 # Function to get current WAU configuration
 function Get-WAUCurrentConfig {
     try {
-        $config = Get-ItemProperty -Path "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
+        $config = Get-ItemProperty -Path $Script:WAU_REGISTRY_PATH -ErrorAction SilentlyContinue
         if (!$config) {
             throw "WAU not found in registry"
         }
@@ -49,183 +116,6 @@ function Get-WAUCurrentConfig {
     catch {
         [System.Windows.MessageBox]::Show("WAU configuration not found. Please ensure WAU is properly installed.", "Error", "OK", "Error")
         exit 1
-    }
-}
-
-# Function to save WAU configuration
-function Set-WAUConfig {
-    param(
-        [hashtable]$Settings
-    )
-    
-    try {
-        $regPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
-        
-        # Get current configuration to compare
-        $currentConfig = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue
-        
-        # Only update registry values that have actually changed
-        foreach ($key in $Settings.Keys) {
-            # Skip shortcut-related settings for now - handle them separately
-            if ($key -in @('WAU_StartMenuShortcut', 'WAU_AppInstallerShortcut', 'WAU_DesktopShortcut')) {
-                continue
-            }
-            
-            $currentValue = $currentConfig.$key
-            $newValue = $Settings[$key]
-            
-            # Compare current value with new value
-            if ($currentValue -ne $newValue) {
-                Set-ItemProperty -Path $regPath -Name $key -Value $newValue -Force
-            }
-        }
-        
-        # Update scheduled task only if relevant settings changed
-        $scheduleSettings = @('WAU_UpdatesInterval', 'WAU_UpdatesAtTime', 'WAU_UpdatesAtLogon', 'WAU_UpdatesTimeDelay')
-        $scheduleChanged = $false
-        foreach ($setting in $scheduleSettings) {
-            if ($Settings.ContainsKey($setting) -and $currentConfig.$setting -ne $Settings[$setting]) {
-                $scheduleChanged = $true
-                break
-            }
-        }
-        
-        if ($scheduleChanged) {
-            Update-WAUScheduledTask -Settings $Settings
-        }
-
-        # Find current WAU installation icon
-        $GUID = Test-WAUInstalled -DisplayName "Winget-AutoUpdate"
-        $icon = "${env:SystemRoot}\Installer\${GUID}\icon.ico"
-
-        # Handle Start Menu shortcuts
-        if ($Settings.ContainsKey('WAU_StartMenuShortcut')) {
-            $currentStartMenuSetting = $currentConfig.WAU_StartMenuShortcut
-            $newStartMenuSetting = $Settings['WAU_StartMenuShortcut']
-            
-            if ($currentStartMenuSetting -ne $newStartMenuSetting) {
-                Set-ItemProperty -Path $regPath -Name 'WAU_StartMenuShortcut' -Value $newStartMenuSetting -Force
-                
-                $shortcutDir = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
-                
-                if ($newStartMenuSetting -eq 1) {
-                    if (-not (Test-Path $shortcutDir)) {
-                        New-Item -Path $shortcutDir -ItemType Directory | Out-Null
-                    }
-                    Add-Shortcut "$shortcutDir\Run WAU.lnk" "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Run Winget AutoUpdate" "Normal"
-                    Add-Shortcut "$shortcutDir\Open Logs.lnk" "$($currentConfig.InstallLocation)logs" "" "" "" "Open WAU Logs" "Normal"
-                    Add-Shortcut "$shortcutDir\WAU App Installer.lnk" "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
-                    Add-Shortcut "$shortcutDir\WAU Settings (Administrator).lnk" "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
-                }
-                else {
-                    if (Test-Path $shortcutDir) {
-                        Remove-Item -Path $shortcutDir -Recurse -Force
-                    }
-                    
-                    # Create desktop shortcut for WAU Settings if Start Menu shortcuts are removed
-                    $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
-                    if (-not (Test-Path $settingsDesktopShortcut)) {
-                        Add-Shortcut $settingsDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
-                    }
-                }
-            }
-        }
-
-        # Handle App Installer shortcut
-        if ($Settings.ContainsKey('WAU_AppInstallerShortcut')) {
-            $currentAppInstallerSetting = $currentConfig.WAU_AppInstallerShortcut
-            $newAppInstallerSetting = $Settings['WAU_AppInstallerShortcut']
-            
-            if ($currentAppInstallerSetting -ne $newAppInstallerSetting) {
-                Set-ItemProperty -Path $regPath -Name 'WAU_AppInstallerShortcut' -Value $newAppInstallerSetting -Force
-                
-                $appInstallerShortcut = "${env:Public}\Desktop\WAU App Installer.lnk"
-                
-                if ($newAppInstallerSetting -eq 1) {
-                    Add-Shortcut $appInstallerShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
-                }
-                else {
-                    if (Test-Path $appInstallerShortcut) {
-                        Remove-Item -Path $appInstallerShortcut -Force
-                    }
-                }
-            }
-        }
-
-        # Handle Desktop shortcut
-        if ($Settings.ContainsKey('WAU_DesktopShortcut')) {
-            $currentDesktopSetting = $currentConfig.WAU_DesktopShortcut
-            $newDesktopSetting = $Settings['WAU_DesktopShortcut']
-            
-            if ($currentDesktopSetting -ne $newDesktopSetting) {
-                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $newDesktopSetting -Force
-                
-                $desktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
-                
-                if ($newDesktopSetting -eq 1) {
-                    Add-Shortcut $desktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Winget AutoUpdate" "Normal"
-                }
-                else {
-                    if (Test-Path $desktopShortcut) {
-                        Remove-Item -Path $desktopShortcut -Force
-                    }
-                }
-            }
-        }
-
-        # Check if WAU schedule is disabled and create Run WAU desktop shortcut if needed
-        if ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -eq 'Never') {
-            $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
-            # Always create if it doesn't exist when schedule is disabled (regardless of desktop shortcut setting)
-            if (-not (Test-Path $runWAUDesktopShortcut)) {
-                Add-Shortcut $runWAUDesktopShortcut "${env:SystemRoot}\System32\conhost.exe" "$($currentConfig.InstallLocation)" "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" "$icon" "Winget AutoUpdate" "Normal"
-                # Mirror shortcut creation to registry
-                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 1 -Force
-            }
-        }
-        # Remove Run WAU desktop shortcut if schedule is enabled and desktop shortcuts are disabled
-        elseif ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -ne 'Never' -and $Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
-            $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
-            if (Test-Path $runWAUDesktopShortcut) {
-                Remove-Item -Path $runWAUDesktopShortcut -Force
-                # Mirror shortcut removal to registry
-                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
-            }
-        }
-
-        # Remove WAU Settings desktop shortcut if Start Menu shortcuts are created
-        if ($Settings.ContainsKey('WAU_StartMenuShortcut') -and $Settings['WAU_StartMenuShortcut'] -eq 1) {
-            $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
-            if (Test-Path $settingsDesktopShortcut) {
-                Remove-Item -Path $settingsDesktopShortcut -Force
-            }
-            
-            # Also remove Run WAU desktop shortcut if Start Menu is created and Desktop shortcuts are disabled
-            if ($Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
-                $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
-                if (Test-Path $runWAUDesktopShortcut) {
-                    Remove-Item -Path $runWAUDesktopShortcut -Force
-                    # Mirror shortcut removal to registry
-                    Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
-                }
-            }
-        }
-
-        # Mirror actual desktop shortcut status to registry
-        $runWAUDesktopShortcut = "${env:Public}\Desktop\Run WAU.lnk"
-        $actualShortcutExists = Test-Path $runWAUDesktopShortcut
-        $currentDesktopSetting = $currentConfig.WAU_DesktopShortcut
-        $correctRegistryValue = if ($actualShortcutExists) { 1 } else { 0 }
-        
-        if ($currentDesktopSetting -ne $correctRegistryValue) {
-            Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $correctRegistryValue -Force
-        }
-        
-        return $true
-    }
-    catch {
-        [System.Windows.MessageBox]::Show("Failed to save configuration: $($_.Exception.Message)", "Error", "OK", "Error")
-        return $false
     }
 }
 
@@ -347,13 +237,195 @@ function Update-WAUScheduledTask {
     }
 }
 
+# 3. Main configuration function (depends on above)
+
+# Function to save WAU configuration
+function Set-WAUConfig {
+    param(
+        [hashtable]$Settings
+    )
+    
+    try {
+        $regPath = $Script:WAU_REGISTRY_PATH
+        
+        # Get current configuration to compare
+        $currentConfig = Get-ItemProperty -Path $regPath -ErrorAction SilentlyContinue
+        
+        # Only update registry values that have actually changed
+        foreach ($key in $Settings.Keys) {
+            # Skip shortcut-related settings for now - handle them separately
+            if ($key -in @('WAU_StartMenuShortcut', 'WAU_AppInstallerShortcut', 'WAU_DesktopShortcut')) {
+                continue
+            }
+            
+            $currentValue = $currentConfig.$key
+            $newValue = $Settings[$key]
+            
+            # Compare current value with new value
+            if ($currentValue -ne $newValue) {
+                Set-ItemProperty -Path $regPath -Name $key -Value $newValue -Force
+            }
+        }
+        
+        # Update scheduled task only if relevant settings changed
+        $scheduleSettings = @('WAU_UpdatesInterval', 'WAU_UpdatesAtTime', 'WAU_UpdatesAtLogon', 'WAU_UpdatesTimeDelay')
+        $scheduleChanged = $false
+        foreach ($setting in $scheduleSettings) {
+            if ($Settings.ContainsKey($setting) -and $currentConfig.$setting -ne $Settings[$setting]) {
+                $scheduleChanged = $true
+                break
+            }
+        }
+        
+        if ($scheduleChanged) {
+            Update-WAUScheduledTask -Settings $Settings
+        }
+
+        # Find current WAU installation icon
+        $GUID = Test-WAUInstalled -DisplayName "Winget-AutoUpdate"
+        $icon = "${env:SystemRoot}\Installer\${GUID}\icon.ico"
+
+        # Handle Start Menu shortcuts
+        if ($Settings.ContainsKey('WAU_StartMenuShortcut')) {
+            $currentStartMenuSetting = $currentConfig.WAU_StartMenuShortcut
+            $newStartMenuSetting = $Settings['WAU_StartMenuShortcut']
+            
+            if ($currentStartMenuSetting -ne $newStartMenuSetting) {
+                Set-ItemProperty -Path $regPath -Name 'WAU_StartMenuShortcut' -Value $newStartMenuSetting -Force
+                
+                $shortcutDir = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
+                
+                if ($newStartMenuSetting -eq 1) {
+                    if (-not (Test-Path $shortcutDir)) {
+                        New-Item -Path $shortcutDir -ItemType Directory | Out-Null
+                    }
+                    Add-Shortcut "$shortcutDir\Run WAU.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Run Winget AutoUpdate" "Normal"
+                    Add-Shortcut "$shortcutDir\Open Logs.lnk" "$($currentConfig.InstallLocation)logs" "" "" "" "Open WAU Logs" "Normal"
+                    Add-Shortcut "$shortcutDir\WAU App Installer.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
+                    Add-Shortcut "$shortcutDir\WAU Settings (Administrator).lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
+                }
+                else {
+                    if (Test-Path $shortcutDir) {
+                        Remove-Item -Path $shortcutDir -Recurse -Force
+                    }
+                    
+                    # Create desktop shortcut for WAU Settings if Start Menu shortcuts are removed
+                    $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
+                    if (-not (Test-Path $settingsDesktopShortcut)) {
+                        Add-Shortcut $settingsDesktopShortcut $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
+                    }
+                }
+            }
+        }
+
+        # Handle App Installer shortcut
+        if ($Settings.ContainsKey('WAU_AppInstallerShortcut')) {
+            $currentAppInstallerSetting = $currentConfig.WAU_AppInstallerShortcut
+            $newAppInstallerSetting = $Settings['WAU_AppInstallerShortcut']
+            
+            if ($currentAppInstallerSetting -ne $newAppInstallerSetting) {
+                Set-ItemProperty -Path $regPath -Name 'WAU_AppInstallerShortcut' -Value $newAppInstallerSetting -Force
+                
+                $appInstallerShortcut = "${env:Public}\Desktop\WAU App Installer.lnk"
+                
+                if ($newAppInstallerSetting -eq 1) {
+                    Add-Shortcut $appInstallerShortcut $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
+                }
+                else {
+                    if (Test-Path $appInstallerShortcut) {
+                        Remove-Item -Path $appInstallerShortcut -Force
+                    }
+                }
+            }
+        }
+
+        # Handle Desktop shortcut
+        if ($Settings.ContainsKey('WAU_DesktopShortcut')) {
+            $currentDesktopSetting = $currentConfig.WAU_DesktopShortcut
+            $newDesktopSetting = $Settings['WAU_DesktopShortcut']
+            
+            if ($currentDesktopSetting -ne $newDesktopSetting) {
+                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $newDesktopSetting -Force
+                
+                $desktopShortcut = $Script:DESKTOP_RUN_WAU
+                
+                if ($newDesktopSetting -eq 1) {
+                    Add-Shortcut $desktopShortcut $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Winget AutoUpdate" "Normal"
+                }
+                else {
+                    if (Test-Path $desktopShortcut) {
+                        Remove-Item -Path $desktopShortcut -Force
+                    }
+                }
+            }
+        }
+
+        # Check if WAU schedule is disabled and create Run WAU desktop shortcut if needed
+        if ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -eq 'Never') {
+            $runWAUDesktopShortcut = $Script:DESKTOP_RUN_WAU
+            # Always create if it doesn't exist when schedule is disabled (regardless of desktop shortcut setting)
+            if (-not (Test-Path $runWAUDesktopShortcut)) {
+                Add-Shortcut $runWAUDesktopShortcut $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Winget AutoUpdate" "Normal"
+                # Mirror shortcut creation to registry
+                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 1 -Force
+            }
+        }
+        # Remove Run WAU desktop shortcut if schedule is enabled and desktop shortcuts are disabled
+        elseif ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -ne 'Never' -and $Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
+            $runWAUDesktopShortcut = $Script:DESKTOP_RUN_WAU
+            if (Test-Path $runWAUDesktopShortcut) {
+                Remove-Item -Path $runWAUDesktopShortcut -Force
+                # Mirror shortcut removal to registry
+                Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
+            }
+        }
+
+        # Remove WAU Settings desktop shortcut if Start Menu shortcuts are created
+        if ($Settings.ContainsKey('WAU_StartMenuShortcut') -and $Settings['WAU_StartMenuShortcut'] -eq 1) {
+            $settingsDesktopShortcut = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
+            if (Test-Path $settingsDesktopShortcut) {
+                Remove-Item -Path $settingsDesktopShortcut -Force
+            }
+            
+            # Also remove Run WAU desktop shortcut if Start Menu is created and Desktop shortcuts are disabled
+            if ($Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
+                $runWAUDesktopShortcut = $Script:DESKTOP_RUN_WAU
+                if (Test-Path $runWAUDesktopShortcut) {
+                    Remove-Item -Path $runWAUDesktopShortcut -Force
+                    # Mirror shortcut removal to registry
+                    Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value 0 -Force
+                }
+            }
+        }
+
+        # Mirror actual desktop shortcut status to registry
+        $runWAUDesktopShortcut = $Script:DESKTOP_RUN_WAU
+        $actualShortcutExists = Test-Path $runWAUDesktopShortcut
+        $currentDesktopSetting = $currentConfig.WAU_DesktopShortcut
+        $correctRegistryValue = if ($actualShortcutExists) { 1 } else { 0 }
+        
+        if ($currentDesktopSetting -ne $correctRegistryValue) {
+            Set-ItemProperty -Path $regPath -Name 'WAU_DesktopShortcut' -Value $correctRegistryValue -Force
+        }
+        
+        return $true
+    }
+    catch {
+        [System.Windows.MessageBox]::Show("Failed to save configuration: $($_.Exception.Message)", "Error", "OK", "Error")
+        return $false
+    }
+}
+
+# 4. Manual start function
+
 # Function to start WAU manually
 function Start-WAUManually {
     try {
+        $currentConfig = Get-WAUCurrentConfig
         $task = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue
         if ($task) {
-            Start-Process -FilePath "${env:SystemRoot}\System32\conhost.exe" `
-                -ArgumentList "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$($currentConfig.InstallLocation)User-Run.ps1`"" `
+            Start-Process -FilePath $Script:CONHOST_EXE `
+                -ArgumentList "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" `
                 -ErrorAction Stop
             [System.Windows.MessageBox]::Show("WAU update task started successfully!", "Success", "OK", "Information")
         } else {
@@ -364,6 +436,8 @@ function Start-WAUManually {
         [System.Windows.MessageBox]::Show("Failed to start WAU: $($_.Exception.Message)", "Error", "OK", "Error")
     }
 }
+
+# 5. GUI function (depends on most others)
 
 # Function to create and show the GUI
 function Show-WAUSettingsGUI {
@@ -957,112 +1031,12 @@ function Show-WAUSettingsGUI {
     $window.ShowDialog() | Out-Null
 }
 
-# Function to create shortcuts
-function Add-Shortcut ($Shortcut, $Target, $StartIn, $Arguments, $Icon, $Description, $WindowStyle = "Normal") {
-    $WScriptShell = New-Object -ComObject WScript.Shell
-    $ShortcutObj = $WScriptShell.CreateShortcut($Shortcut)
-    $ShortcutObj.TargetPath = $Target
-    if (![string]::IsNullOrWhiteSpace($StartIn)) {
-        $ShortcutObj.WorkingDirectory = $StartIn
-    }
-    $ShortcutObj.Arguments = $Arguments
-    if (![string]::IsNullOrWhiteSpace($Icon)) {
-        $ShortcutObj.IconLocation = $Icon
-    }
-    $ShortcutObj.Description = $Description
-    switch ($WindowStyle.ToLower()) {
-        "minimized" { $ShortcutObj.WindowStyle = 7 }
-        "maximized" { $ShortcutObj.WindowStyle = 3 }
-        default     { $ShortcutObj.WindowStyle = 1 }
-    }
-    $ShortcutObj.Save()
-}
-
-function Test-WAUInstalled {
-    param (
-        [Parameter(Mandatory=$true)]
-        [string]$displayName
-    )
-
-    $uninstallKeys = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall"
-    $matchingApps = @()
-    
-    foreach ($key in $uninstallKeys) {
-        try {
-            $subKeys = Get-ChildItem -Path $key -ErrorAction Stop
-            foreach ($subKey in $subKeys) {
-                try {
-                    $properties = Get-ItemProperty -Path $subKey.PSPath -ErrorAction Stop
-                    if ($properties.DisplayName -like "$displayName") {
-                        # $matchingApps += $properties.DisplayName
-                        $parentKeyName = Split-Path -Path $subKey.PSPath -Leaf
-                        $matchingApps += $parentKeyName
-                    }
-                }
-                catch {
-                    continue
-                }
-            }
-        }
-        catch {
-            continue
-        }
-    }
-
-    return $matchingApps
-}
-
-# Function to restart with elevated permissions
-function Start-ElevatedProcess {
-    try {
-        # Get the current script path - use $PSCommandPath instead
-        $scriptPath = $PSCommandPath
-        
-        # Fallback if $PSCommandPath is empty
-        if ([string]::IsNullOrEmpty($scriptPath)) {
-            $scriptPath = $MyInvocation.PSCommandPath
-        }
-        
-        # Final fallback - get from the calling script
-        if ([string]::IsNullOrEmpty($scriptPath)) {
-            $scriptPath = (Get-PSCallStack)[1].ScriptName
-        }
-        
-        # Debug output to verify path
-        # Write-Host "Script path: $scriptPath" -ForegroundColor Yellow
-        
-        if ([string]::IsNullOrEmpty($scriptPath)) {
-            throw "Could not determine script path"
-        }
-        
-        # Restart with elevation using conhost.exe
-        Start-Process -FilePath "${env:SystemRoot}\System32\conhost.exe" -Verb RunAs -ArgumentList "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`""
-        
-        # Exit current non-elevated process
-        exit 0
-    }
-    catch {
-        [System.Windows.MessageBox]::Show("Failed to restart with administrator privileges: $($_.Exception.Message)", "Error", "OK", "Error")
-        exit 1
-    }
-}
-
 <# MAIN #>
 
 # Check if running as administrator
 if (-not (Test-Administrator)) {
-    $result = [System.Windows.MessageBox]::Show(
-        "This application requires Administrator privileges to modify WAU settings.`n`nWould you like to restart with Administrator privileges?", 
-        "Administrator Required", 
-        "YesNo", 
-        "Question"
-    )
-    
-    if ($result -eq "Yes") {
-        Start-ElevatedProcess
-    } else {
-        exit 1
-    }
+    [System.Windows.MessageBox]::Show("This application must be run as Administrator to modify WAU settings.", "Administrator Required", "OK", "Warning")
+    exit 1
 }
 
 # Set console encoding

@@ -524,9 +524,9 @@ function Update-WAUGUIFromConfig {
 
     # Update WAU Auto-Update status
     $wauAutoUpdateDisabled = ($updatedConfig.WAU_DisableAutoUpdate -eq 1)
-    $wauPreReleaseEnabled = ($updatedConfig.WAU_UpdatePreRelease -eq 0)
-    $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 0)
-    $Controls.WAUAutoUpdateText.Text = "WAU Auto-Update: $(if ($wauAutoUpdateDisabled) { 'Disabled' } else { 'Enabled' }) | WAU PreRelease: $(if ($wauPreReleaseEnabled) { 'Disabled' } else { 'Enabled' }) | GPO management: $(if ($wauRunGPOManagementEnabled) { 'Disabled' } else { 'Enabled' })"
+    $wauPreReleaseEnabled = ($updatedConfig.WAU_UpdatePreRelease -eq 1)
+    $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
+    $Controls.WAUAutoUpdateText.Text = "WAU Auto-Update: $(if ($wauAutoUpdateDisabled) { 'Disabled' } else { 'Enabled' }) | WAU PreRelease: $(if ($wauPreReleaseEnabled) { 'Enabled' } else { 'Disabled' }) | GPO management: $(if ($wauRunGPOManagementEnabled) { 'Enabled' } else { 'Disabled' })"
 
     # Trigger status update
     Update-StatusDisplay -Controls $controls

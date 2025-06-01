@@ -658,7 +658,7 @@ function Show-WAUSettingsGUI {
             <TextBox x:Name="ListPathTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
             <TextBox.ToolTip>
                 <TextBlock>
-                Path for list files. Can be URL, UNC path, local path or 'GPO'. If set to 'GPO', ensure you also configure the list/lists in GPO!
+                Path for external list files. Can be URL, UNC path, local path or 'GPO'. If set to 'GPO', ensure you also configure the list/lists in GPO!
                 </TextBlock>
             </TextBox.ToolTip>
             </TextBox>
@@ -668,7 +668,7 @@ function Show-WAUSettingsGUI {
             <TextBox x:Name="ModsPathTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
             <TextBox.ToolTip>
                 <TextBlock>
-                Path for mods files. Can be URL, UNC path, local path or 'AzureBlob'. If set to 'AzureBlob', ensure you also configure 'Azure Blob SAS URL' below!
+                Path for external mods files. Can be URL, UNC path, local path or 'AzureBlob'. If set to 'AzureBlob', ensure you also configure 'Azure Blob SAS URL' below!
                 </TextBlock>
             </TextBox.ToolTip>
             </TextBox>

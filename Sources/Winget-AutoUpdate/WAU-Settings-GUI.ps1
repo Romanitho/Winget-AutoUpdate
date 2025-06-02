@@ -526,7 +526,24 @@ function Update-WAUGUIFromConfig {
     $wauAutoUpdateDisabled = ($updatedConfig.WAU_DisableAutoUpdate -eq 1)
     $wauPreReleaseEnabled = ($updatedConfig.WAU_UpdatePreRelease -eq 1)
     $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
-    $Controls.WAUAutoUpdateText.Text = "WAU Auto-Update: $(if ($wauAutoUpdateDisabled) { 'Disabled' } else { 'Enabled' }) | WAU PreRelease: $(if ($wauPreReleaseEnabled) { 'Enabled' } else { 'Disabled' }) | GPO management: $(if ($wauRunGPOManagementEnabled) { 'Enabled' } else { 'Disabled' })"
+
+    # Helper function to colorize status text
+    function Get-ColoredStatusText($label, $enabled, $enabledText = "Enabled", $disabledText = "Disabled") {
+        $color = if ($enabled) { "#228B22" } else { "#FF6666" } # Forest green or light red
+        $status = if ($enabled) { $enabledText } else { $disabledText }
+        return "{0}: <Run Foreground='{1}'>{2}</Run>" -f $label, $color, $status
+    }
+
+    # Compose colored status text using Inlines (for TextBlock with Inlines)
+    $statusText = @(
+        Get-ColoredStatusText "WAU Auto-Update" (-not $wauAutoUpdateDisabled)
+        Get-ColoredStatusText "WAU PreRelease" $wauPreReleaseEnabled
+        Get-ColoredStatusText "GPO management" $wauRunGPOManagementEnabled
+    ) -join " | "
+
+    # Set the Inlines property for colorized text
+    $Controls.WAUAutoUpdateText.Inlines.Clear()
+    [void]$Controls.WAUAutoUpdateText.Inlines.Add([Windows.Markup.XamlReader]::Parse("<Span xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'>$statusText</Span>"))
 
     # Trigger status update
     Update-StatusDisplay -Controls $controls

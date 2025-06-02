@@ -522,7 +522,7 @@ function Update-WAUGUIFromConfig {
     $Controls.VersionText.Text = "Version: $($updatedConfig.ProductVersion)"
     $Controls.InstallLocationText.Text = "Install Location: $($updatedConfig.InstallLocation)"
 
-    # Update WAU Auto-Update status
+    # Update WAU AutoUpdate status
     $wauAutoUpdateDisabled = ($updatedConfig.WAU_DisableAutoUpdate -eq 1)
     $wauPreReleaseEnabled = ($updatedConfig.WAU_UpdatePreRelease -eq 1)
     $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
@@ -536,7 +536,7 @@ function Update-WAUGUIFromConfig {
 
     # Compose colored status text using Inlines (for TextBlock with Inlines)
     $statusText = @(
-        Get-ColoredStatusText "WAU Auto-Update" (-not $wauAutoUpdateDisabled)
+        Get-ColoredStatusText "WAU AutoUpdate" (-not $wauAutoUpdateDisabled)
         Get-ColoredStatusText "WAU PreRelease" $wauPreReleaseEnabled
         Get-ColoredStatusText "GPO management" $wauRunGPOManagementEnabled
     ) -join " | "
@@ -793,7 +793,7 @@ function Show-WAUSettingsGUI {
         <StackPanel Margin="10">
             <TextBlock x:Name="VersionText" Text="Version: " FontSize="9"/>
             <TextBlock x:Name="InstallLocationText" Text="Install Location: " FontSize="9"/>
-            <TextBlock x:Name="WAUAutoUpdateText" Text="WAU Auto-Update: " FontSize="9"/>
+            <TextBlock x:Name="WAUAutoUpdateText" Text="WAU AutoUpdate: " FontSize="9"/>
         </StackPanel>
     </GroupBox>
     

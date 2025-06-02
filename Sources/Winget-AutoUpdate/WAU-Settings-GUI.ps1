@@ -654,7 +654,7 @@ function Show-WAUSettingsGUI {
     <GroupBox Grid.Row="4" Header="List &amp; Mods Definitions" Margin="0,0,0,10">
         <StackPanel Margin="10,10,10,10">
         <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-            <TextBlock Text="List Path (only folder):" Width="160" VerticalAlignment="Center"/>
+            <TextBlock Text="External List Path (dir only):" Width="160" VerticalAlignment="Center"/>
             <TextBox x:Name="ListPathTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
             <TextBox.ToolTip>
                 <TextBlock>
@@ -664,7 +664,7 @@ function Show-WAUSettingsGUI {
             </TextBox>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-            <TextBlock Text="Mods Path:" Width="160" VerticalAlignment="Center"/>
+            <TextBlock Text="External Mods Path:" Width="160" VerticalAlignment="Center"/>
             <TextBox x:Name="ModsPathTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
             <TextBox.ToolTip>
                 <TextBlock>

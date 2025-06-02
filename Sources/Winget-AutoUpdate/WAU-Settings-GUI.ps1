@@ -408,7 +408,7 @@ function Update-StatusDisplay {
         $controls.UpdateTimeTextBox.IsEnabled = $false
         $controls.RandomDelayTextBox.IsEnabled = $false
     } else {
-        $controls.StatusText.Text = "Active"
+        $controls.StatusText.Text = "Enabled"
         $controls.StatusText.Foreground = "Green"
         $controls.StatusDescription.Text = "WAU will check for updates according to the schedule below"
         $controls.UpdateTimeTextBox.IsEnabled = $true
@@ -600,7 +600,7 @@ function Show-WAUSettingsGUI {
         <StackPanel Margin="10">
         <StackPanel Orientation="Horizontal">
             <TextBlock Text="Schedule:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <TextBlock x:Name="StatusText" Text="Active" Foreground="Green" FontWeight="Bold" VerticalAlignment="Center"/>
+            <TextBlock x:Name="StatusText" Text="Enabled" Foreground="Green" FontWeight="Bold" VerticalAlignment="Center"/>
         </StackPanel>
         <TextBlock x:Name="StatusDescription" Text="WAU will check for updates according to the schedule below" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
         </StackPanel>

@@ -551,7 +551,7 @@ function Update-WAUGUIFromConfig {
         Get-ColoredStatusText "WAU AutoUpdate" (-not $wauAutoUpdateDisabled)
         Get-ColoredStatusText "WAU PreRelease" $wauPreReleaseEnabled
         Get-ColoredStatusText "GPO Management" $wauActivateGPOManagementEnabled
-        Get-ColoredStatusText "Daily GPO Task Read" $wauRunGPOManagementEnabled
+        Get-ColoredStatusText "Daily GPO Task Status" $wauRunGPOManagementEnabled
     ) -join " | "
 
     # Set the Inlines property for colorized text

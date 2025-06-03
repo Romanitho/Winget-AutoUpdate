@@ -27,6 +27,7 @@ Add-Type -AssemblyName PresentationFramework
 
 # Constants of most used paths and arguments
 $Script:WAU_REGISTRY_PATH = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
+$Script:WAU_POLICIES_PATH = "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate"
 $Script:CONHOST_EXE = "${env:SystemRoot}\System32\conhost.exe"
 $Script:POWERSHELL_ARGS = "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File"
 $Script:DESKTOP_RUN_WAU = "${env:Public}\Desktop\Run WAU.lnk"
@@ -445,7 +446,7 @@ function Update-WAUGUIFromConfig {
     # Get GPO policies from registry
     $updatedPolicies = $null
     try {
-        $updatedPolicies = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
+        $updatedPolicies = Get-ItemProperty -Path $Script:WAU_POLICIES_PATH -ErrorAction SilentlyContinue
     }
     catch {
         # GPO registry key doesn't exist or can't be read

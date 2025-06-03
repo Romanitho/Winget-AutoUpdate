@@ -442,6 +442,16 @@ function Update-WAUGUIFromConfig {
     # Get updated config from registry
     $updatedConfig = Get-WAUCurrentConfig
     
+    # Get GPO policies from registry
+    $updatedPolicies = $null
+    try {
+        $updatedPolicies = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
+    }
+    catch {
+        # GPO registry key doesn't exist or can't be read
+    }
+
+
     # Update Notification Level
     $notifLevel = if ($updatedConfig.WAU_NotificationLevel) { $updatedConfig.WAU_NotificationLevel } else { "Full" }
     $Controls.NotificationLevelComboBox.SelectedIndex = switch ($notifLevel) {
@@ -525,7 +535,8 @@ function Update-WAUGUIFromConfig {
     # Update WAU AutoUpdate status
     $wauAutoUpdateDisabled = ($updatedConfig.WAU_DisableAutoUpdate -eq 1)
     $wauPreReleaseEnabled = ($updatedConfig.WAU_UpdatePreRelease -eq 1)
-    $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
+    $wauActivateGPOManagementEnabled = ($updatedPolicies.WAU_ActivateGPOManagement -eq 1)
+    $wauRunGPOManagement = ($updatedConfig.WAU_RunGPOManagement -eq 1)
 
     # Helper function to colorize status text
     function Get-ColoredStatusText($label, $enabled, $enabledText = "Enabled", $disabledText = "Disabled") {
@@ -538,7 +549,8 @@ function Update-WAUGUIFromConfig {
     $statusText = @(
         Get-ColoredStatusText "WAU AutoUpdate" (-not $wauAutoUpdateDisabled)
         Get-ColoredStatusText "WAU PreRelease" $wauPreReleaseEnabled
-        Get-ColoredStatusText "GPO management" $wauRunGPOManagementEnabled
+        Get-ColoredStatusText "GPO Management" $wauActivateGPOManagementEnabled
+        Get-ColoredStatusText "Daily GPO Task Read" $wauRunGPOManagement
     ) -join " | "
 
     # Set the Inlines property for colorized text

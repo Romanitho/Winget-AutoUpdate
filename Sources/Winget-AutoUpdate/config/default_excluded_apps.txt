@@ -7,5 +7,6 @@ Microsoft.RemoteDesktopClient
 Microsoft.Teams*
 Mozilla.Firefox*
 Opera.Opera*
+Parsec.Parsec
 TeamViewer.TeamViewer*
 Romanitho.Winget-AutoUpdate

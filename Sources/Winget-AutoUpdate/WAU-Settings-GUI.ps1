@@ -35,6 +35,8 @@ $Script:USER_RUN_SCRIPT = "User-Run.ps1"
 $Script:DESKTOP_WAU_SETTINGS = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
 $Script:DESKTOP_WAU_APPINSTALLER = "${env:Public}\Desktop\WAU App Installer.lnk"
 $Script:STARTMENU_WAU_DIR = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
+$Script:colorEnabled = "#228B22"  # Forest green
+$Script:colorDisabled = "#FF6666" # Light red
 
 # Get current script directory
 $Script:WorkingDir = $PSScriptRoot
@@ -541,7 +543,7 @@ function Update-WAUGUIFromConfig {
 
     # Helper function to colorize status text
     function Get-ColoredStatusText($label, $enabled, $enabledText = "Enabled", $disabledText = "Disabled") {
-        $color = if ($enabled) { "#228B22" } else { "#FF6666" } # Forest green or light red
+        $color = if ($enabled) { $Script:colorEnabled } else { $Script:colorDisabled }
         $status = if ($enabled) { $enabledText } else { $disabledText }
         return "{0}: <Run Foreground='{1}'>{2}</Run>" -f $label, $color, $status
     }
@@ -925,7 +927,7 @@ function Show-WAUSettingsGUI {
     
             # Update status to "Done" after dialog is closed
             $controls.StatusBarText.Text = "Done"
-            $controls.StatusBarText.Foreground = "#228B22" # Forest green
+            $controls.StatusBarText.Foreground = $Script:colorEnabled
             
             # Updating settings in-place
             Update-WAUGUIFromConfig -Controls $controls
@@ -948,7 +950,7 @@ function Show-WAUSettingsGUI {
     # Cancel button handler to close window
     $controls.CancelButton.Add_Click({
         $controls.StatusBarText.Text = "Done"
-        $controls.StatusBarText.Foreground = "#228B22" # Forest green
+        $controls.StatusBarText.Foreground = $Script:colorEnabled
         
         # Create timer to reset status and close window after 1 seconds
         $timer = New-Object System.Windows.Threading.DispatcherTimer
@@ -978,7 +980,7 @@ function Show-WAUSettingsGUI {
     $window.Add_KeyDown({
         if ($_.Key -eq "Escape") {
             $controls.StatusBarText.Text = "Done"
-            $controls.StatusBarText.Foreground = "#228B22" # Forest green
+            $controls.StatusBarText.Foreground = $Script:colorEnabled
             
             # Create timer to reset status and close window after 1 seconds
             $timer = New-Object System.Windows.Threading.DispatcherTimer

@@ -730,24 +730,24 @@ function Show-WAUSettingsGUI {
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <CheckBox Grid.Row="0" Grid.Column="0" x:Name="UpdatesAtLogonCheckBox" Content="Run at user logon" Margin="0,0,5,5"
-                ToolTip="Run WAU automatically when a user logs in"/>
-        <CheckBox Grid.Row="0" Grid.Column="1" x:Name="UserContextCheckBox" Content="Run in user context" Margin="0,0,5,5"
-                ToolTip="Run WAU also in the current user's context"/>
-        <CheckBox Grid.Row="0" Grid.Column="2" x:Name="BypassListForUsersCheckBox" Content="Bypass list in user context" Margin="0,0,5,5"
-                ToolTip="Ignore the black/white list when running in user context"/>
-        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="DisableAutoUpdateCheckBox" Content="Disable WAU AutoUpdate" Margin="0,0,5,5"
+        <CheckBox Grid.Row="0" Grid.Column="0" x:Name="DisableAutoUpdateCheckBox" Content="Disable WAU AutoUpdate" Margin="0,0,5,5"
                 ToolTip="Disable automatic updating of WAU itself"/>
-        <CheckBox Grid.Row="1" Grid.Column="1" x:Name="UpdatePreReleaseCheckBox" Content="Update WAU to PreRelease" Margin="0,0,5,5"
+        <CheckBox Grid.Row="0" Grid.Column="1" x:Name="UpdatePreReleaseCheckBox" Content="Update WAU to PreRelease" Margin="0,0,5,5"
                 ToolTip="Allow WAU to update itself to pre-release versions"/>
-        <CheckBox Grid.Row="1" Grid.Column="2" x:Name="DoNotRunOnMeteredCheckBox" Content="Don't run on data plan" Margin="0,0,5,5"
+        <CheckBox Grid.Row="0" Grid.Column="2" x:Name="DoNotRunOnMeteredCheckBox" Content="Don't run on data plan" Margin="0,0,5,5"
                 ToolTip="Prevent WAU from running when connected to a metered network"/>
-        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5"
+        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5"
                 ToolTip="Create/delete Start menu shortcuts ('WAU Settings' will be created on Desktop if deleted!)"/>
-        <CheckBox Grid.Row="2" Grid.Column="1" x:Name="DesktopShortcutCheckBox" Content="WAU Desktop shortcut" Margin="0,0,5,5"
+        <CheckBox Grid.Row="1" Grid.Column="1" x:Name="DesktopShortcutCheckBox" Content="WAU Desktop shortcut" Margin="0,0,5,5"
                 ToolTip="Create/delete 'Run WAU' shortcut on Desktop"/>
-        <CheckBox Grid.Row="2" Grid.Column="2" x:Name="AppInstallerShortcutCheckBox" Content="App Installer Desktop shortcut" Margin="0,0,5,5"
+        <CheckBox Grid.Row="1" Grid.Column="2" x:Name="AppInstallerShortcutCheckBox" Content="App Installer Desktop shortcut" Margin="0,0,5,5"
                 ToolTip="Create/delete shortcut 'WAU App Installer' on Desktop"/>
+        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="UpdatesAtLogonCheckBox" Content="Run at user logon" Margin="0,0,5,5"
+                ToolTip="Run WAU automatically when a user logs in"/>
+        <CheckBox Grid.Row="2" Grid.Column="1" x:Name="UserContextCheckBox" Content="Run in user context" Margin="0,0,5,5"
+                ToolTip="Run WAU also in the current user's context"/>
+        <CheckBox Grid.Row="2" Grid.Column="2" x:Name="BypassListForUsersCheckBox" Content="Bypass list in user context" Margin="0,0,5,5"
+                ToolTip="Ignore the black/white list when running in user context"/>
         <CheckBox Grid.Row="3" Grid.Column="0" x:Name="UseWhiteListCheckBox" Content="Use whitelist" Margin="0,0,5,0"
                 ToolTip="Only update apps that are included in a whitelist"/>
         </Grid>

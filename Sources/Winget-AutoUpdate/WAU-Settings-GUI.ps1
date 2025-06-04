@@ -976,7 +976,19 @@ function Show-WAUSettingsGUI {
     # ESC key handler to close window
     $window.Add_KeyDown({
         if ($_.Key -eq "Escape") {
-            $window.Close()
+            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Foreground = "Green"
+            
+            # Create timer to reset status and close window after 1 seconds
+            $timer = New-Object System.Windows.Threading.DispatcherTimer
+            $timer.Interval = [TimeSpan]::FromSeconds(1)
+            $timer.Add_Tick({
+                $controls.StatusBarText.Text = "Ready"
+                $controls.StatusBarText.Foreground = "Gray"
+                $timer.Stop()
+                $window.Close()
+            })
+            $timer.Start()
         }
     })
     

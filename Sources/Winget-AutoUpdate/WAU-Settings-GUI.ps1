@@ -925,7 +925,7 @@ function Show-WAUSettingsGUI {
     
             # Update status to "Done" after dialog is closed
             $controls.StatusBarText.Text = "Done"
-            $controls.StatusBarText.Foreground = "Green"
+            $controls.StatusBarText.Foreground = "#228B22" # Forest green
             
             # Updating settings in-place
             Update-WAUGUIFromConfig -Controls $controls
@@ -944,10 +944,11 @@ function Show-WAUSettingsGUI {
             $controls.StatusBarText.Foreground = "Gray"
         }
     })
-    
+
+    # Cancel button handler to close window
     $controls.CancelButton.Add_Click({
         $controls.StatusBarText.Text = "Done"
-        $controls.StatusBarText.Foreground = "Green"
+        $controls.StatusBarText.Foreground = "#228B22" # Forest green
         
         # Create timer to reset status and close window after 1 seconds
         $timer = New-Object System.Windows.Threading.DispatcherTimer
@@ -977,7 +978,7 @@ function Show-WAUSettingsGUI {
     $window.Add_KeyDown({
         if ($_.Key -eq "Escape") {
             $controls.StatusBarText.Text = "Done"
-            $controls.StatusBarText.Foreground = "Green"
+            $controls.StatusBarText.Foreground = "#228B22" # Forest green
             
             # Create timer to reset status and close window after 1 seconds
             $timer = New-Object System.Windows.Threading.DispatcherTimer

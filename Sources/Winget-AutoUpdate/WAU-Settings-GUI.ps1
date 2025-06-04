@@ -811,7 +811,7 @@ function Show-WAUSettingsGUI {
     </GroupBox>
     
     <!-- Status Bar -->
-    <TextBlock Grid.Row="8" x:Name="StatusBarText" Text="" FontSize="10" Foreground="Gray" VerticalAlignment="Bottom"/>
+    <TextBlock Grid.Row="8" x:Name="StatusBarText" Text="Ready" FontSize="10" Foreground="Gray" VerticalAlignment="Bottom"/>
     
     <!-- Buttons -->
     <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
@@ -866,12 +866,21 @@ function Show-WAUSettingsGUI {
 
     # Event handlers for controls
     $controls.SaveButton.Add_Click({
+        # Update status to "Saving settings"
+        $controls.StatusBarText.Text = "Saving settings..."
+        $controls.StatusBarText.Foreground = "Orange"
+        
+        # Force UI update
+        [System.Windows.Forms.Application]::DoEvents()
+        
         # Validate time format
         try {
             [datetime]::ParseExact($controls.UpdateTimeTextBox.Text, "HH:mm:ss", $null) | Out-Null
         }
         catch {
             [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm:ss format (e.g., 06:00:00)", "Error", "OK", "Error")
+            $controls.StatusBarText.Text = "Ready"
+            $controls.StatusBarText.Foreground = "Gray"
             return
         }
         
@@ -881,9 +890,11 @@ function Show-WAUSettingsGUI {
         }
         catch {
             [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 00:00)", "Error", "OK", "Error")
+            $controls.StatusBarText.Text = "Ready"
+            $controls.StatusBarText.Foreground = "Gray"
             return
         }
-
+    
         # Prepare settings hashtable
         $newSettings = @{
             WAU_NotificationLevel = $controls.NotificationLevelComboBox.SelectedItem.Tag
@@ -909,18 +920,45 @@ function Show-WAUSettingsGUI {
         
         # Save settings
         if (Set-WAUConfig -Settings $newSettings) {
+            # Show success dialog first
             [System.Windows.MessageBox]::Show("Settings have been saved successfully!", "Success", "OK", "Information")
-
+    
+            # Update status to "Done" after dialog is closed
+            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Foreground = "Green"
+            
             # Updating settings in-place
             Update-WAUGUIFromConfig -Controls $controls
-
+            
+            # Create timer to reset status back to "Ready" after 1 second
+            # Use Invoke-Async to avoid blocking
+            $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                Start-Sleep -Milliseconds 1000
+                $controls.StatusBarText.Text = "Ready"
+                $controls.StatusBarText.Foreground = "Gray"
+            })
+    
         } else {
             [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
+            $controls.StatusBarText.Text = "Ready"
+            $controls.StatusBarText.Foreground = "Gray"
         }
     })
     
     $controls.CancelButton.Add_Click({
-        $window.Close()
+        $controls.StatusBarText.Text = "Done"
+        $controls.StatusBarText.Foreground = "Green"
+        
+        # Create timer to reset status and close window after 1 seconds
+        $timer = New-Object System.Windows.Threading.DispatcherTimer
+        $timer.Interval = [TimeSpan]::FromSeconds(1)
+        $timer.Add_Tick({
+            $controls.StatusBarText.Text = "Ready"
+            $controls.StatusBarText.Foreground = "Gray"
+            $timer.Stop()
+            $window.Close()
+        })
+        $timer.Start()
     })
     
     $controls.RunNowButton.Add_Click({

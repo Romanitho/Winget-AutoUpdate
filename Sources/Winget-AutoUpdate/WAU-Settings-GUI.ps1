@@ -37,6 +37,8 @@ $Script:DESKTOP_WAU_APPINSTALLER = "${env:Public}\Desktop\WAU App Installer.lnk"
 $Script:STARTMENU_WAU_DIR = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
 $Script:COLOR_ENABLED = "#228B22"  # Forest green
 $Script:COLOR_DISABLED = "#FF6666" # Light red
+$Script:COLOR_INACTIVE = "Gray" # Grey
+$Script:STATUS_READY_TEXT = "Ready"
 
 # Get current script directory
 $Script:WorkingDir = $PSScriptRoot
@@ -617,7 +619,7 @@ function Show-WAUSettingsGUI {
             <TextBlock Text="Schedule:" VerticalAlignment="Center" Margin="0,0,10,0"/>
             <TextBlock x:Name="StatusText" Text="Enabled" Foreground="Green" FontWeight="Bold" VerticalAlignment="Center"/>
         </StackPanel>
-        <TextBlock x:Name="StatusDescription" Text="WAU will check for updates according to the schedule below" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
+        <TextBlock x:Name="StatusDescription" Text="WAU will check for updates according to the schedule below" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
         </StackPanel>
     </GroupBox>
     
@@ -639,7 +641,7 @@ function Show-WAUSettingsGUI {
                     <ComboBoxItem Content="Never (Disable)" Tag="Never"/>
                 </ComboBox>
                 <TextBlock Text="How often WAU checks for updates" 
-                           FontSize="10" Foreground="Gray" Margin="0,5,0,0"
+                           FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"
                            TextWrapping="Wrap"/>
             </StackPanel>
             <!-- Notification Level Column -->
@@ -650,7 +652,7 @@ function Show-WAUSettingsGUI {
                     <ComboBoxItem Content="None" Tag="None"/>
                 </ComboBox>
                 <TextBlock Text="Level of notifications" 
-                           FontSize="10" Foreground="Gray" Margin="0,5,0,0"
+                           FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"
                            TextWrapping="Wrap"/>
             </StackPanel>
         </Grid>
@@ -667,17 +669,17 @@ function Show-WAUSettingsGUI {
         <StackPanel Grid.Column="0" Margin="0,0,5,0">
             <StackPanel Orientation="Horizontal">
             <TextBox x:Name="UpdateTimeTextBox" Width="80" Height="25" Text="06:00:00" VerticalContentAlignment="Center"/>
-            <TextBlock Text="(HH:mm:ss format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
+            <TextBlock Text="(HH:mm:ss format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
             </StackPanel>
-            <TextBlock Text="Time of day when updates are checked" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
+            <TextBlock Text="Time of day when updates are checked" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
         </StackPanel>
         <!-- Random Delay Column -->
         <StackPanel Grid.Column="1" Margin="5,0,0,0">
             <StackPanel Orientation="Horizontal">
             <TextBox x:Name="RandomDelayTextBox" Width="60" Height="25" Text="00:00" VerticalContentAlignment="Center"/>
-            <TextBlock Text="(HH:mm format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
+            <TextBlock Text="(HH:mm format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
             </StackPanel>
-            <TextBlock Text="Maximum random delay after scheduled time" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
+            <TextBlock Text="Maximum random delay after scheduled time" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
         </StackPanel>
         </Grid>
     </GroupBox>
@@ -772,9 +774,9 @@ function Show-WAUSettingsGUI {
                     </TextBlock>
                 </ComboBox.ToolTip>
             </ComboBox>
-            <TextBlock Text="(0-99, default 3)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
+            <TextBlock Text="(0-99, default 3)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
             </StackPanel>
-            <TextBlock Text="Number of allowed log files" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
+            <TextBlock Text="Number of allowed log files" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
         </StackPanel>
         <!-- MaxLogSize column -->
         <StackPanel Grid.Column="1" Margin="5,0,0,0">
@@ -796,9 +798,9 @@ function Show-WAUSettingsGUI {
                 <ComboBoxItem Content="9 MB" Tag="9437184"/>
                 <ComboBoxItem Content="10 MB" Tag="10485760"/>
             </ComboBox>
-            <TextBlock Text="(1-10 MB, default 1 MB)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="Gray"/>
+            <TextBlock Text="(1-10 MB, default 1 MB)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
             </StackPanel>
-            <TextBlock Text="Size of the log file before rotating" FontSize="10" Foreground="Gray" Margin="0,5,0,0"/>
+            <TextBlock Text="Size of the log file before rotating" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
         </StackPanel>
         </Grid>
     </GroupBox>
@@ -813,7 +815,7 @@ function Show-WAUSettingsGUI {
     </GroupBox>
     
     <!-- Status Bar -->
-    <TextBlock Grid.Row="8" x:Name="StatusBarText" Text="Ready" FontSize="10" Foreground="Gray" VerticalAlignment="Bottom"/>
+    <TextBlock Grid.Row="8" x:Name="StatusBarText" Text="$Script:STATUS_READY_TEXT" FontSize="10" Foreground="$Script:COLOR_INACTIVE" VerticalAlignment="Bottom"/>
     
     <!-- Buttons -->
     <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
@@ -881,8 +883,8 @@ function Show-WAUSettingsGUI {
         }
         catch {
             [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm:ss format (e.g., 06:00:00)", "Error", "OK", "Error")
-            $controls.StatusBarText.Text = "Ready"
-            $controls.StatusBarText.Foreground = "Gray"
+            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
             return
         }
         
@@ -892,8 +894,8 @@ function Show-WAUSettingsGUI {
         }
         catch {
             [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 00:00)", "Error", "OK", "Error")
-            $controls.StatusBarText.Text = "Ready"
-            $controls.StatusBarText.Foreground = "Gray"
+            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
             return
         }
     
@@ -932,18 +934,18 @@ function Show-WAUSettingsGUI {
             # Updating settings in-place
             Update-WAUGUIFromConfig -Controls $controls
             
-            # Create timer to reset status back to "Ready" after 1 second
+            # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after 1 second
             # Use Invoke-Async to avoid blocking
             $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
                 Start-Sleep -Milliseconds 1000
-                $controls.StatusBarText.Text = "Ready"
-                $controls.StatusBarText.Foreground = "Gray"
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
             })
     
         } else {
             [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
-            $controls.StatusBarText.Text = "Ready"
-            $controls.StatusBarText.Foreground = "Gray"
+            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
         }
     })
 
@@ -956,8 +958,8 @@ function Show-WAUSettingsGUI {
         $timer = New-Object System.Windows.Threading.DispatcherTimer
         $timer.Interval = [TimeSpan]::FromSeconds(1)
         $timer.Add_Tick({
-            $controls.StatusBarText.Text = "Ready"
-            $controls.StatusBarText.Foreground = "Gray"
+            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
             $timer.Stop()
             $window.Close()
         })
@@ -966,6 +968,17 @@ function Show-WAUSettingsGUI {
     
     $controls.RunNowButton.Add_Click({
         Start-WAUManually
+        # Update status to "Done"
+        $controls.StatusBarText.Text = "Done"
+        $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+        
+        # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after 1 second
+        # Use Invoke-Async to avoid blocking
+        $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+            Start-Sleep -Milliseconds 1000
+            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+        })
     })
 
     # Handle Enter key to save settings
@@ -986,8 +999,8 @@ function Show-WAUSettingsGUI {
             $timer = New-Object System.Windows.Threading.DispatcherTimer
             $timer.Interval = [TimeSpan]::FromSeconds(1)
             $timer.Add_Tick({
-                $controls.StatusBarText.Text = "Ready"
-                $controls.StatusBarText.Foreground = "Gray"
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 $timer.Stop()
                 $window.Close()
             })
@@ -1000,6 +1013,17 @@ function Show-WAUSettingsGUI {
             $logPath = Join-Path $currentConfig.InstallLocation "logs"
             if (Test-Path $logPath) {
                 Start-Process "explorer.exe" -ArgumentList $logPath
+                # Update status to "Done"
+                $controls.StatusBarText.Text = "Done"
+                $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+                
+                # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after 1 second
+                # Use Invoke-Async to avoid blocking
+                $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                    Start-Sleep -Milliseconds 1000
+                    $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                    $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                })
             } else {
                 [System.Windows.MessageBox]::Show("Log directory not found: $logPath", "Error", "OK", "Error")
             }

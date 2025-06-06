@@ -409,7 +409,7 @@ function Update-StatusDisplay {
     if ($interval -eq "Never") {
         $controls.StatusText.Text = "Disabled"
         $controls.StatusText.Foreground = "Red"
-        $controls.StatusDescription.Text = "WAU will not check for updates automatically when schedule is disabled"
+        $controls.StatusDescription.Text = "WAU will not check for updates automatically when disabled"
         $controls.UpdateTimeTextBox.IsEnabled = $false
         $controls.RandomDelayTextBox.IsEnabled = $false
     } else {
@@ -629,6 +629,15 @@ function Show-WAUSettingsGUI {
             </StackPanel>
             <!-- Right column: Dev buttons (hidden by default) -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                <!-- Vertical links stack (hidden by default) -->
+                <StackPanel x:Name="LinksStackPanel" Orientation="Vertical" VerticalAlignment="Top" Margin="0,0,15,0" Visibility="Collapsed">
+                    <TextBlock>
+                        <Hyperlink x:Name="ManifestsLink" NavigateUri="https://github.com/microsoft/winget-pkgs/tree/master/manifests" ToolTip="Open WinGet Manifests on GitHub">Manifests</Hyperlink>
+                    </TextBlock>
+                    <TextBlock Margin="0,0,0,0">
+                        <Hyperlink x:Name="IssuesLink" NavigateUri="https://github.com/microsoft/winget-pkgs/issues/new/choose" ToolTip="Create new issue for 'winget-pkgs' on GitHub">Issues</Hyperlink>
+                    </TextBlock>
+                </StackPanel>
                 <Button x:Name="DevTaskButton" Content="Dev_Task" Width="70" Height="25" Visibility="Collapsed" Margin="0,0,10,0"/>
                 <Button x:Name="DevRegButton" Content="Dev_Reg" Width="70" Height="25" Visibility="Collapsed" Margin="0,0,0,0"/>
             </StackPanel>
@@ -880,6 +889,29 @@ function Show-WAUSettingsGUI {
     # Populate current settings
     Update-WAUGUIFromConfig -Controls $controls    
 
+    # Hyperlink event handlers
+    $controls.ManifestsLink.Add_RequestNavigate({
+        param($linkSource, $navEventArgs)
+        try {
+            Start-Process $navEventArgs.Uri.AbsoluteUri
+            $navEventArgs.Handled = $true
+        }
+        catch {
+            [System.Windows.MessageBox]::Show("Failed to open link: $($_.Exception.Message)", "Error", "OK", "Error")
+        }
+    })
+
+    $controls.IssuesLink.Add_RequestNavigate({
+        param($linkSource, $navEventArgs)
+        try {
+            Start-Process $navEventArgs.Uri.AbsoluteUri
+            $navEventArgs.Handled = $true
+        }
+        catch {
+            [System.Windows.MessageBox]::Show("Failed to open link: $($_.Exception.Message)", "Error", "OK", "Error")
+        }
+    })
+
     # Dev button event handlers
     $controls.DevTaskButton.Add_Click({
         try {
@@ -1066,12 +1098,16 @@ function Show-WAUSettingsGUI {
             if ($controls.DevTaskButton.Visibility -eq 'Collapsed') {
                 $controls.DevTaskButton.Visibility = 'Visible'
                 $controls.DevRegButton.Visibility = 'Visible'
+                $controls.LinksStackPanel.Visibility = 'Visible'
+                $window.Title = "WAU Settings (Administrator) - Dev Tools"
             } else {
                 $controls.DevTaskButton.Visibility = 'Collapsed'
                 $controls.DevRegButton.Visibility = 'Collapsed'
+                $controls.LinksStackPanel.Visibility = 'Collapsed'
+                $window.Title = "WAU Settings (Administrator)"
             }
             $_.Handled = $true
-        }
+        }        
     })
 
     # ESC key handler to close window

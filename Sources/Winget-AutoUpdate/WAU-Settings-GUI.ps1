@@ -38,7 +38,7 @@ $Script:STARTMENU_WAU_DIR = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Pro
 $Script:COLOR_ENABLED = "#228B22"  # Forest green
 $Script:COLOR_DISABLED = "#FF6666" # Light red
 $Script:COLOR_INACTIVE = "Gray" # Grey
-$Script:STATUS_READY_TEXT = "Ready"
+$Script:STATUS_READY_TEXT = "Ready (F12: Dev Tools)"
 
 # Get current script directory
 $Script:WorkingDir = $PSScriptRoot

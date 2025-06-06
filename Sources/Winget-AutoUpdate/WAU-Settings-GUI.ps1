@@ -278,9 +278,6 @@ function Set-WAUConfig {
             Update-WAUScheduledTask -Settings $Settings
         }
 
-        # Find current WAU installation icon
-        $icon = $Script:WAU_ICON
-
         # Handle Start Menu shortcuts
         if ($Settings.ContainsKey('WAU_StartMenuShortcut')) {
             $currentStartMenuSetting = $currentConfig.WAU_StartMenuShortcut
@@ -293,10 +290,10 @@ function Set-WAUConfig {
                     if (-not (Test-Path $Script:STARTMENU_WAU_DIR)) {
                         New-Item -Path $Script:STARTMENU_WAU_DIR -ItemType Directory | Out-Null
                     }
-                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\Run WAU.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Run Winget AutoUpdate" "Normal"
+                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\Run WAU.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$Script:WAU_ICON" "Run Winget AutoUpdate" "Normal"
                     Add-Shortcut "$Script:STARTMENU_WAU_DIR\Open Logs.lnk" "$($currentConfig.InstallLocation)logs" "" "" "" "Open WAU Logs" "Normal"
-                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\WAU App Installer.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
-                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\WAU Settings (Administrator).lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
+                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\WAU App Installer.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$Script:WAU_ICON" "Search for and Install WinGet Apps, etc..." "Normal"
+                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\WAU Settings (Administrator).lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$Script:WAU_ICON" "Configure Winget-AutoUpdate settings after installation" "Normal"
                 }
                 else {
                     if (Test-Path $Script:STARTMENU_WAU_DIR) {
@@ -305,7 +302,7 @@ function Set-WAUConfig {
                     
                     # Create desktop shortcut for WAU Settings if Start Menu shortcuts are removed
                     if (-not (Test-Path $Script:DESKTOP_WAU_SETTINGS)) {
-                        Add-Shortcut $Script:DESKTOP_WAU_SETTINGS $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$icon" "Configure Winget-AutoUpdate settings after installation" "Normal"
+                        Add-Shortcut $Script:DESKTOP_WAU_SETTINGS $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$Script:WAU_ICON" "Configure Winget-AutoUpdate settings after installation" "Normal"
                     }
                 }
             }
@@ -320,7 +317,7 @@ function Set-WAUConfig {
                 Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_AppInstallerShortcut' -Value $newAppInstallerSetting -Force
                 
                 if ($newAppInstallerSetting -eq 1) {
-                    Add-Shortcut $Script:DESKTOP_WAU_APPINSTALLER $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$icon" "Search for and Install WinGet Apps, etc..." "Normal"
+                    Add-Shortcut $Script:DESKTOP_WAU_APPINSTALLER $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$Script:WAU_ICON" "Search for and Install WinGet Apps, etc..." "Normal"
                 }
                 else {
                     if (Test-Path $Script:DESKTOP_WAU_APPINSTALLER) {
@@ -339,7 +336,7 @@ function Set-WAUConfig {
                 Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value $newDesktopSetting -Force
                 
                 if ($newDesktopSetting -eq 1) {
-                    Add-Shortcut $Script:DESKTOP_RUN_WAU $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Winget AutoUpdate" "Normal"
+                    Add-Shortcut $Script:DESKTOP_RUN_WAU $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$Script:WAU_ICON" "Winget AutoUpdate" "Normal"
                 }
                 else {
                     if (Test-Path $Script:DESKTOP_RUN_WAU) {
@@ -353,7 +350,7 @@ function Set-WAUConfig {
         if ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -eq 'Never') {
             # Always create if it doesn't exist when schedule is disabled (regardless of desktop shortcut setting)
             if (-not (Test-Path $Script:DESKTOP_RUN_WAU)) {
-                Add-Shortcut $Script:DESKTOP_RUN_WAU $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$icon" "Winget AutoUpdate" "Normal"
+                Add-Shortcut $Script:DESKTOP_RUN_WAU $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$Script:WAU_ICON" "Winget AutoUpdate" "Normal"
                 # Mirror shortcut creation to registry
                 Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value 1 -Force
             }
@@ -1196,7 +1193,7 @@ $Script:WAU_VERSION = if ($Script:WAU_INSTALL_INFO.Count -ge 1) { $Script:WAU_IN
 # Get WinGet version by running 'winget -v'
 try {
     $wingetVersionOutput = winget -v 2>$null
-    $Script:WINGET_VERSION = $wingetVersionOutput.Trim()
+    $Script:WINGET_VERSION = $wingetVersionOutput.Trim().TrimStart("v")
 } catch {
     $Script:WINGET_VERSION = "Unknown"
 }

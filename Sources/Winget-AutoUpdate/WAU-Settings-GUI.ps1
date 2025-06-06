@@ -614,13 +614,25 @@ function Show-WAUSettingsGUI {
     
     <!-- WAU Status -->
     <GroupBox Grid.Row="1" Header="WAU Status" Margin="0,0,0,10">
-        <StackPanel Margin="10">
-        <StackPanel Orientation="Horizontal">
-            <TextBlock Text="Schedule:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-            <TextBlock x:Name="StatusText" Text="Enabled" Foreground="Green" FontWeight="Bold" VerticalAlignment="Center"/>
-        </StackPanel>
-        <TextBlock x:Name="StatusDescription" Text="WAU will check for updates according to the schedule below" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
-        </StackPanel>
+        <Grid Margin="10">
+            <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <!-- Left column: status info -->
+            <StackPanel Grid.Column="0">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Schedule:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                <TextBlock x:Name="StatusText" Text="Enabled" Foreground="Green" FontWeight="Bold" VerticalAlignment="Center"/>
+            </StackPanel>
+            <TextBlock x:Name="StatusDescription" Text="WAU will check for updates according to the schedule below" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
+            </StackPanel>
+            <!-- Right column: Dev buttons (hidden by default) -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+                <Button x:Name="DevTaskButton" Content="Dev_Task" Width="70" Height="25" Visibility="Collapsed" Margin="0,0,10,0"/>
+                <Button x:Name="DevRegButton" Content="Dev_Reg" Width="70" Height="25" Visibility="Collapsed" Margin="0,0,0,0"/>
+            </StackPanel>
+        </Grid>
     </GroupBox>
     
     <!-- Update Interval and Notification Level (Combined) -->
@@ -868,6 +880,68 @@ function Show-WAUSettingsGUI {
     # Populate current settings
     Update-WAUGUIFromConfig -Controls $controls    
 
+    # Dev button event handlers
+    $controls.DevTaskButton.Add_Click({
+        try {
+            # Open Task Scheduler
+            $taskschdPath = "$env:SystemRoot\system32\taskschd.msc"
+            Start-Process $taskschdPath
+
+            # Show message box with instructions
+            [System.Windows.MessageBox]::Show(
+                "Task Scheduler opened.`n`n" +
+                "Navigate to:`n" +
+                "Task Scheduler Library -> WAU",
+                "Information",
+                [System.Windows.MessageBoxButton]::OK,
+                [System.Windows.MessageBoxImage]::Information,
+                [System.Windows.MessageBoxResult]::OK,
+                [System.Windows.MessageBoxOptions]::DefaultDesktopOnly
+            )
+            
+            # Update status to "Done"
+            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+            
+            # Create timer to reset status back to ready after 1 second
+            $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                Start-Sleep -Milliseconds 1000
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+            })
+        }
+        catch {
+            [System.Windows.MessageBox]::Show("Failed to open Task Scheduler: $($_.Exception.Message)", "Error", "OK", "Error")
+        }
+    })
+
+    $controls.DevRegButton.Add_Click({
+        try {
+            # Open Registry Editor and navigate to WAU registry key
+            $regPath = "HKEY_LOCAL_MACHINE\SOFTWARE\Romanitho\Winget-AutoUpdate"
+            
+            # Set the LastKey registry value to navigate to the desired location
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit" -Name "LastKey" -Value $regPath -Force
+            
+            # Open Registry Editor (it will open at the last key location)
+            Start-Process "regedit.exe"
+            
+            # Update status to "Done"
+            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+            
+            # Create timer to reset status back to ready after 1 second
+            $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                Start-Sleep -Milliseconds 1000
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+            })
+        }
+        catch {
+            [System.Windows.MessageBox]::Show("Failed to open Registry Editor: $($_.Exception.Message)", "Error", "OK", "Error")
+        }
+    })
+
     # Event handlers for controls
     $controls.SaveButton.Add_Click({
         # Update status to "Saving settings"
@@ -985,6 +1059,17 @@ function Show-WAUSettingsGUI {
     $window.Add_PreviewKeyDown({
         if ($_.Key -eq 'Return' -or $_.Key -eq 'Enter') {
             $controls.SaveButton.RaiseEvent([Windows.RoutedEventArgs][Windows.Controls.Primitives.ButtonBase]::ClickEvent)
+            $_.Handled = $true
+        }
+        # F12 key handler to toggle dev buttons visibility
+        elseif ($_.Key -eq 'F12') {
+            if ($controls.DevTaskButton.Visibility -eq 'Collapsed') {
+                $controls.DevTaskButton.Visibility = 'Visible'
+                $controls.DevRegButton.Visibility = 'Visible'
+            } else {
+                $controls.DevTaskButton.Visibility = 'Collapsed'
+                $controls.DevRegButton.Visibility = 'Collapsed'
+            }
             $_.Handled = $true
         }
     })

@@ -534,18 +534,18 @@ function Update-WAUGUIFromConfig {
     }
 
     # Update information section
-    $Controls.VersionText.Text = "Version: $($updatedConfig.ProductVersion)"
+    $Controls.VersionText.Text = "Version: $($updatedConfig.ProductVersion) |"
     # Get last run time for the scheduled task 'Winget-AutoUpdate'
     try {
         $task = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction Stop
         $lastRunTime = $task | Get-ScheduledTaskInfo | Select-Object -ExpandProperty LastRunTime
         if ($lastRunTime -and $lastRunTime -ne [datetime]::MinValue) {
-            $Controls.RunDate.Text = "Latest Run: $($lastRunTime.ToString('yyyy-MM-dd HH:mm'))"
+            $Controls.RunDate.Text = " Latest Run: $($lastRunTime.ToString('yyyy-MM-dd HH:mm'))"
         } else {
-            $Controls.RunDate.Text = "Latest Run: Never"
+            $Controls.RunDate.Text = " Latest Run: Never"
         }
     } catch {
-        $Controls.RunDate.Text = "Latest Run: Unknown"
+        $Controls.RunDate.Text = " Latest Run: Unknown"
     }
     $Controls.InstallLocationText.Text = "Install Location: $($updatedConfig.InstallLocation)"
 
@@ -843,14 +843,13 @@ function Show-WAUSettingsGUI {
         <StackPanel Margin="10">
             <StackPanel Orientation="Horizontal">
                 <TextBlock x:Name="VersionText" Text="Version: " FontSize="9"/>
-                <TextBlock Width="20"/>
                 <TextBlock x:Name="RunDate" Text="Latest Run: " FontSize="9"/>
             </StackPanel>
             <TextBlock x:Name="InstallLocationText" Text="Install Location: " FontSize="9"/>
             <TextBlock x:Name="WAUAutoUpdateText" Text="WAU AutoUpdate: " FontSize="9"/>
         </StackPanel>
     </GroupBox>
-    
+
     <!-- Status Bar -->
     <TextBlock Grid.Row="8" x:Name="StatusBarText" Text="$Script:STATUS_READY_TEXT" FontSize="10" Foreground="$Script:COLOR_INACTIVE" VerticalAlignment="Bottom"/>
     

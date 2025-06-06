@@ -1081,7 +1081,9 @@ function Show-WAUSettingsGUI {
         $timer.Add_Tick({
             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-            $timer.Stop()
+            if ($null -ne $timer) {
+                $timer.Stop()
+            }
             $window.Close()
         })
         $timer.Start()
@@ -1137,7 +1139,9 @@ function Show-WAUSettingsGUI {
             $timer.Add_Tick({
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-                $timer.Stop()
+                if ($null -ne $timer) {
+                    $timer.Stop()
+                }
                 $window.Close()
             })
             $timer.Start()

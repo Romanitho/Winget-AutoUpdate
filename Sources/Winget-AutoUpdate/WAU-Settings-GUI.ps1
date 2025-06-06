@@ -1203,7 +1203,5 @@ try {
 $Script:WAU_GUID = if ($Script:WAU_INSTALL_INFO.Count -ge 2) { $Script:WAU_INSTALL_INFO[1] } else { $null }
 $Script:WAU_ICON = "${env:SystemRoot}\Installer\${Script:WAU_GUID}\icon.ico"
 
-#winget -v
-
 # Show the GUI
 Show-WAUSettingsGUI

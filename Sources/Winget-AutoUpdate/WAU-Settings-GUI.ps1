@@ -643,14 +643,15 @@ function Show-WAUSettingsGUI {
                 <!-- Vertical links stack (hidden by default) -->
                 <StackPanel x:Name="LinksStackPanel" Orientation="Vertical" VerticalAlignment="Top" Margin="0,0,15,0" Visibility="Collapsed">
                     <TextBlock>
-                        <Hyperlink x:Name="ManifestsLink" NavigateUri="https://github.com/microsoft/winget-pkgs/tree/master/manifests" ToolTip="Open WinGet Manifests on GitHub">Manifests</Hyperlink>
+                        <Hyperlink x:Name="ManifestsLink" NavigateUri="https://github.com/microsoft/winget-pkgs/tree/master/manifests" ToolTip="open 'winget-pkgs' Manifests on GitHub">[manifests]</Hyperlink>
                     </TextBlock>
                     <TextBlock Margin="0,0,0,0">
-                        <Hyperlink x:Name="IssuesLink" NavigateUri="https://github.com/microsoft/winget-pkgs/issues/new/choose" ToolTip="Create new issue for 'winget-pkgs' on GitHub">Issues</Hyperlink>
+                        <Hyperlink x:Name="IssuesLink" NavigateUri="https://github.com/microsoft/winget-pkgs/issues" ToolTip="open 'winget-pkgs' Issues on GitHub">[issues]</Hyperlink>
                     </TextBlock>
                 </StackPanel>
-                <Button x:Name="DevTaskButton" Content="Dev_Task" Width="70" Height="25" Visibility="Collapsed" Margin="0,0,10,0"/>
-                <Button x:Name="DevRegButton" Content="Dev_Reg" Width="70" Height="25" Visibility="Collapsed" Margin="0,0,0,0"/>
+                <Button x:Name="DevTaskButton" Content="[task]" Width="50" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
+                <Button x:Name="DevRegButton" Content="[reg]" Width="50" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
+                <Button x:Name="DevGUIDButton" Content="[guid]" Width="50" Height="25" Visibility="Collapsed" Margin="0,0,0,0"/>
             </StackPanel>
         </Grid>
     </GroupBox>
@@ -989,6 +990,35 @@ function Show-WAUSettingsGUI {
         }
     })
 
+    $controls.DevGUIDButton.Add_Click({
+        try {
+            # Open Registry Editor and navigate to WAU Installation GUID registry key
+            $GUIDPath = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${Script:WAU_GUID}"
+	    
+            # Set the LastKey registry value to navigate to the desired location
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit" -Name "LastKey" -Value $GUIDPath -Force
+            
+            # Open Registry Editor (it will open at the last key location)
+            Start-Process "regedit.exe"
+
+            Start-Process "explorer.exe" -ArgumentList "${env:SystemRoot}\Installer\${Script:WAU_GUID}"
+
+            # Update status to "Done"
+            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+            
+            # Create timer to reset status back to ready after 1 second
+            $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                Start-Sleep -Milliseconds 1000
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+            })
+        }
+        catch {
+            [System.Windows.MessageBox]::Show("Failed to open GUID Paths: $($_.Exception.Message)", "Error", "OK", "Error")
+        }
+    })
+
     # Event handlers for controls
     $controls.SaveButton.Add_Click({
         # Update status to "Saving settings"
@@ -1115,11 +1145,13 @@ function Show-WAUSettingsGUI {
             if ($controls.DevTaskButton.Visibility -eq 'Collapsed') {
                 $controls.DevTaskButton.Visibility = 'Visible'
                 $controls.DevRegButton.Visibility = 'Visible'
+                $controls.DevGUIDButton.Visibility = 'Visible'
                 $controls.LinksStackPanel.Visibility = 'Visible'
                 $window.Title = "WAU Settings (Administrator) - Dev Tools"
             } else {
                 $controls.DevTaskButton.Visibility = 'Collapsed'
                 $controls.DevRegButton.Visibility = 'Collapsed'
+                $controls.DevGUIDButton.Visibility = 'Collapsed'
                 $controls.LinksStackPanel.Visibility = 'Collapsed'
                 $window.Title = "WAU Settings (Administrator)"
             }

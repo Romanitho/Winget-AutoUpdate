@@ -32,7 +32,8 @@ $Script:CONHOST_EXE = "${env:SystemRoot}\System32\conhost.exe"
 $Script:POWERSHELL_ARGS = "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File"
 $Script:DESKTOP_RUN_WAU = "${env:Public}\Desktop\Run WAU.lnk"
 $Script:USER_RUN_SCRIPT = "User-Run.ps1"
-$Script:DESKTOP_WAU_SETTINGS = "${env:Public}\Desktop\WAU Settings (Administrator).lnk"
+$Script:WAU_TITLE = "WAU Settings (Administrator)"
+$Script:DESKTOP_WAU_SETTINGS = "${env:Public}\Desktop\$Script:WAU_TITLE.lnk"
 $Script:DESKTOP_WAU_APPINSTALLER = "${env:Public}\Desktop\WAU App Installer.lnk"
 $Script:STARTMENU_WAU_DIR = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
 $Script:COLOR_ENABLED = "#228B22"  # Forest green
@@ -51,6 +52,52 @@ function Test-Administrator {
     $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
+Function Start-PopUp ($Message) {
+
+    if (!$PopUpWindow) {
+
+        #Create window
+        $inputXML = @"
+<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WAUSettings"
+        Title="$Script:WAU_TITLE" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Width="280" MinHeight="130" SizeToContent="Height" Topmost="True">
+    <Grid>
+        <TextBlock x:Name="PopUpLabel" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" Margin="20" TextAlignment="Center"/>
+    </Grid>
+</Window>
+"@
+
+        [xml]$XAML = ($inputXML -replace "x:N", "N")
+
+        #Read the form
+        $Reader = (New-Object System.Xml.XmlNodeReader $XAML)
+        $Script:PopUpWindow = [Windows.Markup.XamlReader]::Load($Reader)
+        $PopUpWindow.Icon = $IconBase64
+
+        # Make sure window stays on top (redundant, but ensures behavior)
+        $PopUpWindow.Topmost = $true
+
+        #Store Form Objects In PowerShell
+        $XAML.SelectNodes("//*[@Name]") | ForEach-Object {
+            Set-Variable -Name "$($_.Name)" -Value $PopUpWindow.FindName($_.Name) -Scope Script
+        }
+
+        $PopUpWindow.Show()
+    }
+    #Message to display
+    $PopUpLabel.Text = $Message
+    #Update PopUp
+    $PopUpWindow.Dispatcher.Invoke([action] {}, "Render")
+}
+Function Close-PopUp {
+    $Script:PopUpWindow.Close()
+    $Script:PopUpWindow = $null
+}
+
 function Add-Shortcut ($Shortcut, $Target, $StartIn, $Arguments, $Icon, $Description, $WindowStyle = "Normal") {
     $WScriptShell = New-Object -ComObject WScript.Shell
     $ShortcutObj = $WScriptShell.CreateShortcut($Shortcut)
@@ -293,7 +340,7 @@ function Set-WAUConfig {
                     Add-Shortcut "$Script:STARTMENU_WAU_DIR\Run WAU.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$Script:WAU_ICON" "Run Winget AutoUpdate" "Normal"
                     Add-Shortcut "$Script:STARTMENU_WAU_DIR\Open Logs.lnk" "$($currentConfig.InstallLocation)logs" "" "" "" "Open WAU Logs" "Normal"
                     Add-Shortcut "$Script:STARTMENU_WAU_DIR\WAU App Installer.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Installer-GUI.ps1`"" "$Script:WAU_ICON" "Search for and Install WinGet Apps, etc..." "Normal"
-                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\WAU Settings (Administrator).lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$Script:WAU_ICON" "Configure Winget-AutoUpdate settings after installation" "Normal"
+                    Add-Shortcut "$Script:STARTMENU_WAU_DIR\$Script:WAU_TITLE.lnk" $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)WAU-Settings-GUI.ps1`"" "$Script:WAU_ICON" "Configure Winget-AutoUpdate settings after installation" "Normal"
                 }
                 else {
                     if (Test-Path $Script:STARTMENU_WAU_DIR) {
@@ -588,12 +635,13 @@ function Start-WAUManually {
             Start-Process -FilePath $Script:CONHOST_EXE `
                 -ArgumentList "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" `
                 -ErrorAction Stop
-            [System.Windows.MessageBox]::Show("WAU update task started successfully!", "Success", "OK", "Information")
         } else {
+            Close-PopUp
             [System.Windows.MessageBox]::Show("WAU scheduled task not found!", "Error", "OK", "Error")
         }
     }
     catch {
+        Close-PopUp
         [System.Windows.MessageBox]::Show("Failed to start WAU: $($_.Exception.Message)", "Error", "OK", "Error")
     }
 }
@@ -608,7 +656,7 @@ function Show-WAUSettingsGUI {
     $xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="WAU Settings (Administrator)" Height="820" Width="600" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
+    Title="$Script:WAU_TITLE" Height="820" Width="600" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
     FontSize="11">
     <Grid Margin="10">
     <Grid.RowDefinitions>
@@ -931,22 +979,11 @@ function Show-WAUSettingsGUI {
     # Dev button event handlers
     $controls.DevTaskButton.Add_Click({
         try {
+            Start-PopUp "Task Scheduler opening, look for WAU..."
             # Open Task Scheduler
             $taskschdPath = "$env:SystemRoot\system32\taskschd.msc"
             Start-Process $taskschdPath
 
-            # Show message box with instructions
-            [System.Windows.MessageBox]::Show(
-                "Task Scheduler opened.`n`n" +
-                "Navigate to:`n" +
-                "Task Scheduler Library -> WAU",
-                "Information",
-                [System.Windows.MessageBoxButton]::OK,
-                [System.Windows.MessageBoxImage]::Information,
-                [System.Windows.MessageBoxResult]::OK,
-                [System.Windows.MessageBoxOptions]::DefaultDesktopOnly
-            )
-            
             # Update status to "Done"
             $controls.StatusBarText.Text = "Done"
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
@@ -956,15 +993,18 @@ function Show-WAUSettingsGUI {
                 Start-Sleep -Milliseconds 1000
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                Close-PopUp
             })
         }
         catch {
+            Close-PopUp
             [System.Windows.MessageBox]::Show("Failed to open Task Scheduler: $($_.Exception.Message)", "Error", "OK", "Error")
         }
     })
 
     $controls.DevRegButton.Add_Click({
         try {
+            Start-PopUp "WAU Registry opening..."
             # Open Registry Editor and navigate to WAU registry key
             $regPath = "HKEY_LOCAL_MACHINE\SOFTWARE\Romanitho\Winget-AutoUpdate"
             
@@ -983,15 +1023,18 @@ function Show-WAUSettingsGUI {
                 Start-Sleep -Milliseconds 1000
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                Close-PopUp
             })
         }
         catch {
+            Close-PopUp
             [System.Windows.MessageBox]::Show("Failed to open Registry Editor: $($_.Exception.Message)", "Error", "OK", "Error")
         }
     })
 
     $controls.DevGUIDButton.Add_Click({
         try {
+            Start-PopUp "WAU GUID Paths opening..."
             # Open Registry Editor and navigate to WAU Installation GUID registry key
             $GUIDPath = "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${Script:WAU_GUID}"
 	    
@@ -1012,9 +1055,11 @@ function Show-WAUSettingsGUI {
                 Start-Sleep -Milliseconds 1000
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                Close-PopUp
             })
         }
         catch {
+            Close-PopUp
             [System.Windows.MessageBox]::Show("Failed to open GUID Paths: $($_.Exception.Message)", "Error", "OK", "Error")
         }
     })
@@ -1075,10 +1120,9 @@ function Show-WAUSettingsGUI {
         
         # Save settings
         if (Set-WAUConfig -Settings $newSettings) {
-            # Show success dialog first
-            [System.Windows.MessageBox]::Show("Settings have been saved successfully!", "Success", "OK", "Information")
+            Start-PopUp "Saving WAU settings..."
     
-            # Update status to "Done" after dialog is closed
+            # Update status to "Done"
             $controls.StatusBarText.Text = "Done"
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
@@ -1091,9 +1135,10 @@ function Show-WAUSettingsGUI {
                 Start-Sleep -Milliseconds 1000
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                Close-PopUp
             })
-    
         } else {
+            Close-PopUp
             [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
@@ -1120,6 +1165,7 @@ function Show-WAUSettingsGUI {
     })
     
     $controls.RunNowButton.Add_Click({
+        Start-PopUp "WAU Update task starting..."
         Start-WAUManually
         # Update status to "Done"
         $controls.StatusBarText.Text = "Done"
@@ -1131,6 +1177,7 @@ function Show-WAUSettingsGUI {
             Start-Sleep -Milliseconds 1000
             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+            Close-PopUp
         })
     })
 
@@ -1147,13 +1194,13 @@ function Show-WAUSettingsGUI {
                 $controls.DevRegButton.Visibility = 'Visible'
                 $controls.DevGUIDButton.Visibility = 'Visible'
                 $controls.LinksStackPanel.Visibility = 'Visible'
-                $window.Title = "WAU Settings (Administrator) - Dev Tools"
+                $window.Title = "$Script:WAU_TITLE - Dev Tools"
             } else {
                 $controls.DevTaskButton.Visibility = 'Collapsed'
                 $controls.DevRegButton.Visibility = 'Collapsed'
                 $controls.DevGUIDButton.Visibility = 'Collapsed'
                 $controls.LinksStackPanel.Visibility = 'Collapsed'
-                $window.Title = "WAU Settings (Administrator)"
+                $window.Title = "$Script:WAU_TITLE"
             }
             $_.Handled = $true
         }        
@@ -1182,6 +1229,7 @@ function Show-WAUSettingsGUI {
     
     $controls.OpenLogsButton.Add_Click({
         try {
+            Start-PopUp "WAU Log directory opening..."
             $logPath = Join-Path $currentConfig.InstallLocation "logs"
             if (Test-Path $logPath) {
                 Start-Process "explorer.exe" -ArgumentList $logPath
@@ -1195,15 +1243,20 @@ function Show-WAUSettingsGUI {
                     Start-Sleep -Milliseconds 1000
                     $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                     $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                    Close-PopUp
                 })
             } else {
+                Close-PopUp
                 [System.Windows.MessageBox]::Show("Log directory not found: $logPath", "Error", "OK", "Error")
             }
         }
         catch {
+            Close-PopUp
             [System.Windows.MessageBox]::Show("Failed to open logs: $($_.Exception.Message)", "Error", "OK", "Error")
         }
     })
+
+    Close-PopUp
     
     # Show window
     $window.ShowDialog() | Out-Null
@@ -1222,6 +1275,9 @@ $null = cmd /c ''
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $ProgressPreference = 'SilentlyContinue'
 $IconBase64 = [Convert]::FromBase64String("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")
+
+#Pop "Starting..."
+Start-PopUp "$Script:WAU_TITLE starting..."
 
 # Get WAU installation info once and store as constants
 $Script:WAU_INSTALL_INFO = Test-InstalledWAU -DisplayName "Winget-AutoUpdate"

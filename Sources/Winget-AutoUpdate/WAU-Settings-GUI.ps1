@@ -697,9 +697,10 @@ function Show-WAUSettingsGUI {
                         <Hyperlink x:Name="IssuesLink" NavigateUri="https://github.com/microsoft/winget-pkgs/issues" ToolTip="open 'winget-pkgs' Issues on GitHub">[issues]</Hyperlink>
                     </TextBlock>
                 </StackPanel>
-                <Button x:Name="DevTaskButton" Content="[task]" Width="50" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
-                <Button x:Name="DevRegButton" Content="[reg]" Width="50" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
-                <Button x:Name="DevGUIDButton" Content="[guid]" Width="50" Height="25" Visibility="Collapsed" Margin="0,0,0,0"/>
+                <Button x:Name="DevTaskButton" Content="[task]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
+                <Button x:Name="DevRegButton" Content="[reg]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
+                <Button x:Name="DevGUIDButton" Content="[guid]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
+                <Button x:Name="DevListButton" Content="[list]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,0,0"/>
             </StackPanel>
         </Grid>
     </GroupBox>
@@ -1064,6 +1065,49 @@ function Show-WAUSettingsGUI {
         }
     })
 
+    $controls.DevListButton.Add_Click({
+        try {
+            $updatedConfig = Get-WAUCurrentConfig
+            $installDir = $updatedConfig.InstallLocation
+            if ($updatedConfig.WAU_UseWhiteList -eq 1) {
+                $whiteListFile = Join-Path $installDir 'included_apps.txt'
+                if (Test-Path $whiteListFile) {
+                    Start-PopUp "WAU Whitelist opening..."
+                    Start-Process "explorer.exe" -ArgumentList $whiteListFile
+                } else {
+                    [System.Windows.MessageBox]::Show("'included_apps.txt' not found in $installDir", "File Not Found", "OK", "Warning")
+                }
+            } else {
+                $excludedFile = Join-Path $installDir 'excluded_apps.txt'
+                $defaultExcludedFile = Join-Path $installDir 'config\default_excluded_apps.txt'
+                if (Test-Path $excludedFile) {
+                    Start-PopUp "WAU Blacklist opening..."
+                    Start-Process "explorer.exe" -ArgumentList $excludedFile
+                } elseif (Test-Path $defaultExcludedFile) {
+                    Start-PopUp "WAU Default Blacklist opening..."
+                    Start-Process "explorer.exe" -ArgumentList $defaultExcludedFile
+                } else {
+                    [System.Windows.MessageBox]::Show("No Blacklist found (neither 'excluded_apps.txt' nor 'config\default_excluded_apps.txt').", "File Not Found", "OK", "Warning")
+                }
+            }
+
+            # Update status to "Done"
+            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+            
+            # Create timer to reset status back to ready after 1 second
+            $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                Start-Sleep -Milliseconds 1000
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                Close-PopUp
+            })
+        }
+        catch {
+            [System.Windows.MessageBox]::Show("Failed to open List: $($_.Exception.Message)", "Error", "OK", "Error")
+        }
+    })
+
     # Event handlers for controls
     $controls.SaveButton.Add_Click({
         # Update status to "Saving settings"
@@ -1193,12 +1237,14 @@ function Show-WAUSettingsGUI {
                 $controls.DevTaskButton.Visibility = 'Visible'
                 $controls.DevRegButton.Visibility = 'Visible'
                 $controls.DevGUIDButton.Visibility = 'Visible'
+                $controls.DevListButton.Visibility = 'Visible'
                 $controls.LinksStackPanel.Visibility = 'Visible'
                 $window.Title = "$Script:WAU_TITLE - Dev Tools"
             } else {
                 $controls.DevTaskButton.Visibility = 'Collapsed'
                 $controls.DevRegButton.Visibility = 'Collapsed'
                 $controls.DevGUIDButton.Visibility = 'Collapsed'
+                $controls.DevListButton.Visibility = 'Collapsed'
                 $controls.LinksStackPanel.Visibility = 'Collapsed'
                 $window.Title = "$Script:WAU_TITLE"
             }

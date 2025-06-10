@@ -590,10 +590,58 @@ function Update-WAUGUIFromConfig {
             $Controls.RunDate.Text = "Last Run: Never | "
         }
     } catch {
-        $Controls.RunDate.Text = "Last Run: Unknown | "
+        $Controls.RunDate.Text = "Last Run: Unknown! | "
     }
     $Controls.WinGetVersion.Text = "WinGet Version: $Script:WINGET_VERSION"
-    $Controls.InstallLocationText.Text = "Install Location: $($updatedConfig.InstallLocation)"
+    $Controls.InstallLocationText.Text = "Install Location: $($updatedConfig.InstallLocation) | "
+    try {
+        $installdir = $updatedConfig.InstallLocation
+        if ($updatedConfig.WAU_UseWhiteList -eq 1) {
+            $whiteListFile = Join-Path $installdir 'included_apps.txt'
+            if (Test-Path $whiteListFile) {
+                $Controls.ActiveListText.Inlines.Clear()
+                $Controls.ActiveListText.Inlines.Add("Active List: ")
+                $run = New-Object System.Windows.Documents.Run("'included_apps.txt'")
+                $run.Foreground = $Script:COLOR_ENABLED
+                $Controls.ActiveListText.Inlines.Add($run)
+            } else {
+                $Controls.ActiveListText.Inlines.Clear()
+                $Controls.ActiveListText.Inlines.Add("Missing List: ")
+                $run = New-Object System.Windows.Documents.Run("'included_apps.txt'!")
+                $run.Foreground = $Script:COLOR_DISABLED
+                $Controls.ActiveListText.Inlines.Add($run)
+            }
+        } else {
+            $excludedFile = Join-Path $installdir 'excluded_apps.txt'
+            $defaultExcludedFile = Join-Path $installdir 'config\default_excluded_apps.txt'
+            if (Test-Path $excludedFile) {
+                $Controls.ActiveListText.Inlines.Clear()
+                $Controls.ActiveListText.Inlines.Add("Active List: ")
+                $run = New-Object System.Windows.Documents.Run("'excluded_apps.txt'")
+                $run.Foreground = $Script:COLOR_ENABLED
+                $Controls.ActiveListText.Inlines.Add($run)
+            } elseif (Test-Path $defaultExcludedFile) {
+                $Controls.ActiveListText.Inlines.Clear()
+                $Controls.ActiveListText.Inlines.Add("Active List: ")
+                $run = New-Object System.Windows.Documents.Run("'config\default_excluded_apps.txt'")
+                $run.Foreground = "Orange"
+                $Controls.ActiveListText.Inlines.Add($run)
+            } else {
+                $Controls.ActiveListText.Inlines.Clear()
+                $Controls.ActiveListText.Inlines.Add("Missing Lists: ")
+                $run = New-Object System.Windows.Documents.Run("'excluded_apps.txt' and 'config\default_excluded_apps.txt'!")
+                $run.Foreground = $Script:COLOR_DISABLED
+                $Controls.ActiveListText.Inlines.Add($run)
+            }
+        }
+    }
+    catch {
+        $Controls.ActiveListText.Inlines.Clear()
+        $Controls.ActiveListText.Inlines.Add("Active List: ")
+        $run = New-Object System.Windows.Documents.Run("Unknown!")
+        $run.Foreground = $Script:COLOR_INACTIVE
+        $Controls.ActiveListText.Inlines.Add($run)
+    }
 
     # Update WAU AutoUpdate status
     $wauAutoUpdateDisabled = ($updatedConfig.WAU_DisableAutoUpdate -eq 1)
@@ -895,7 +943,11 @@ function Show-WAUSettingsGUI {
                 <TextBlock x:Name="RunDate" Text="Last Run: " FontSize="9"/>
                 <TextBlock x:Name="WinGetVersion" Text="WinGet Version: " FontSize="9"/>
             </StackPanel>
-            <TextBlock x:Name="InstallLocationText" Text="Install Location: " FontSize="9"/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="InstallLocationText" Text="Install Location: " FontSize="9"/>
+                <TextBlock x:Name="ActiveListText" Text="Active List: " FontSize="9"/>
+            </StackPanel>
+            
             <TextBlock x:Name="WAUAutoUpdateText" Text="WAU AutoUpdate: " FontSize="9"/>
         </StackPanel>
     </GroupBox>
@@ -1068,26 +1120,28 @@ function Show-WAUSettingsGUI {
     $controls.DevListButton.Add_Click({
         try {
             $updatedConfig = Get-WAUCurrentConfig
-            $installDir = $updatedConfig.InstallLocation
+            $installdir = $updatedConfig.InstallLocation
             if ($updatedConfig.WAU_UseWhiteList -eq 1) {
-                $whiteListFile = Join-Path $installDir 'included_apps.txt'
+                $whiteListFile = Join-Path $installdir 'included_apps.txt'
                 if (Test-Path $whiteListFile) {
-                    Start-PopUp "WAU Whitelist opening..."
+                    Start-PopUp "WAU Included Apps List opening..."
                     Start-Process "explorer.exe" -ArgumentList $whiteListFile
                 } else {
-                    [System.Windows.MessageBox]::Show("'included_apps.txt' not found in $installDir", "File Not Found", "OK", "Warning")
+                    [System.Windows.MessageBox]::Show("No Included Apps List found ('included_apps.txt')", "File Not Found", "OK", "Warning")
+                    return
                 }
             } else {
-                $excludedFile = Join-Path $installDir 'excluded_apps.txt'
-                $defaultExcludedFile = Join-Path $installDir 'config\default_excluded_apps.txt'
+                $excludedFile = Join-Path $installdir 'excluded_apps.txt'
+                $defaultExcludedFile = Join-Path $installdir 'config\default_excluded_apps.txt'
                 if (Test-Path $excludedFile) {
-                    Start-PopUp "WAU Blacklist opening..."
+                    Start-PopUp "WAU Excluded Apps List opening..."
                     Start-Process "explorer.exe" -ArgumentList $excludedFile
                 } elseif (Test-Path $defaultExcludedFile) {
-                    Start-PopUp "WAU Default Blacklist opening..."
+                    Start-PopUp "WAU Default Excluded Apps List opening..."
                     Start-Process "explorer.exe" -ArgumentList $defaultExcludedFile
                 } else {
-                    [System.Windows.MessageBox]::Show("No Blacklist found (neither 'excluded_apps.txt' nor 'config\default_excluded_apps.txt').", "File Not Found", "OK", "Warning")
+                    [System.Windows.MessageBox]::Show("No Excluded Apps List found (neither 'excluded_apps.txt' nor 'config\default_excluded_apps.txt').", "File Not Found", "OK", "Warning")
+                    return
                 }
             }
 
@@ -1104,12 +1158,14 @@ function Show-WAUSettingsGUI {
             })
         }
         catch {
+            Close-PopUp
             [System.Windows.MessageBox]::Show("Failed to open List: $($_.Exception.Message)", "Error", "OK", "Error")
         }
     })
 
     # Event handlers for controls
     $controls.SaveButton.Add_Click({
+        Start-PopUp "Saving WAU settings..."
         # Update status to "Saving settings"
         $controls.StatusBarText.Text = "Saving settings..."
         $controls.StatusBarText.Foreground = "Orange"
@@ -1122,6 +1178,7 @@ function Show-WAUSettingsGUI {
             [datetime]::ParseExact($controls.UpdateTimeTextBox.Text, "HH:mm:ss", $null) | Out-Null
         }
         catch {
+            Close-PopUp
             [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm:ss format (e.g., 06:00:00)", "Error", "OK", "Error")
             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
@@ -1133,6 +1190,7 @@ function Show-WAUSettingsGUI {
             [datetime]::ParseExact($controls.RandomDelayTextBox.Text, "HH:mm", $null) | Out-Null
         }
         catch {
+            Close-PopUp
             [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 00:00)", "Error", "OK", "Error")
             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
@@ -1164,7 +1222,6 @@ function Show-WAUSettingsGUI {
         
         # Save settings
         if (Set-WAUConfig -Settings $newSettings) {
-            Start-PopUp "Saving WAU settings..."
     
             # Update status to "Done"
             $controls.StatusBarText.Text = "Done"

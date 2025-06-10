@@ -594,53 +594,66 @@ function Update-WAUGUIFromConfig {
     }
     $Controls.WinGetVersion.Text = "WinGet Version: $Script:WINGET_VERSION"
     $Controls.InstallLocationText.Text = "Install Location: $($updatedConfig.InstallLocation) | "
-    try {
-        $installdir = $updatedConfig.InstallLocation
+    if ($updatedConfig.WAU_ListPath -eq "GPO") {
+        $Controls.LocalListText.Inlines.Clear()
+        $Controls.LocalListText.Inlines.Add("Local List: ")
         if ($updatedConfig.WAU_UseWhiteList -eq 1) {
-            $whiteListFile = Join-Path $installdir 'included_apps.txt'
-            if (Test-Path $whiteListFile) {
-                $Controls.ActiveListText.Inlines.Clear()
-                $Controls.ActiveListText.Inlines.Add("Active List: ")
-                $run = New-Object System.Windows.Documents.Run("'included_apps.txt'")
-                $run.Foreground = $Script:COLOR_ENABLED
-                $Controls.ActiveListText.Inlines.Add($run)
-            } else {
-                $Controls.ActiveListText.Inlines.Clear()
-                $Controls.ActiveListText.Inlines.Add("Missing List: ")
-                $run = New-Object System.Windows.Documents.Run("'included_apps.txt'!")
-                $run.Foreground = $Script:COLOR_DISABLED
-                $Controls.ActiveListText.Inlines.Add($run)
-            }
+            $run = New-Object System.Windows.Documents.Run("'GPO (Included Apps)'")
         } else {
-            $excludedFile = Join-Path $installdir 'excluded_apps.txt'
-            $defaultExcludedFile = Join-Path $installdir 'config\default_excluded_apps.txt'
-            if (Test-Path $excludedFile) {
-                $Controls.ActiveListText.Inlines.Clear()
-                $Controls.ActiveListText.Inlines.Add("Active List: ")
-                $run = New-Object System.Windows.Documents.Run("'excluded_apps.txt'")
-                $run.Foreground = $Script:COLOR_ENABLED
-                $Controls.ActiveListText.Inlines.Add($run)
-            } elseif (Test-Path $defaultExcludedFile) {
-                $Controls.ActiveListText.Inlines.Clear()
-                $Controls.ActiveListText.Inlines.Add("Active List: ")
-                $run = New-Object System.Windows.Documents.Run("'config\default_excluded_apps.txt'")
-                $run.Foreground = "Orange"
-                $Controls.ActiveListText.Inlines.Add($run)
+            $run = New-Object System.Windows.Documents.Run("'GPO (Excluded Apps)'")
+        }   
+        $run.Foreground = $Script:COLOR_ENABLED
+        $Controls.LocalListText.Inlines.Add($run)
+    }
+    else {
+        try {
+            $installdir = $updatedConfig.InstallLocation
+            if ($updatedConfig.WAU_UseWhiteList -eq 1) {
+                $whiteListFile = Join-Path $installdir 'included_apps.txt'
+                if (Test-Path $whiteListFile) {
+                    $Controls.LocalListText.Inlines.Clear()
+                    $Controls.LocalListText.Inlines.Add("Local List: ")
+                    $run = New-Object System.Windows.Documents.Run("'included_apps.txt'")
+                    $run.Foreground = $Script:COLOR_ENABLED
+                    $Controls.LocalListText.Inlines.Add($run)
+                } else {
+                    $Controls.LocalListText.Inlines.Clear()
+                    $Controls.LocalListText.Inlines.Add("Missing Local List: ")
+                    $run = New-Object System.Windows.Documents.Run("'included_apps.txt'")
+                    $run.Foreground = $Script:COLOR_DISABLED
+                    $Controls.LocalListText.Inlines.Add($run)
+                }
             } else {
-                $Controls.ActiveListText.Inlines.Clear()
-                $Controls.ActiveListText.Inlines.Add("Missing Lists: ")
-                $run = New-Object System.Windows.Documents.Run("'excluded_apps.txt' and 'config\default_excluded_apps.txt'!")
-                $run.Foreground = $Script:COLOR_DISABLED
-                $Controls.ActiveListText.Inlines.Add($run)
+                $excludedFile = Join-Path $installdir 'excluded_apps.txt'
+                $defaultExcludedFile = Join-Path $installdir 'config\default_excluded_apps.txt'
+                if (Test-Path $excludedFile) {
+                    $Controls.LocalListText.Inlines.Clear()
+                    $Controls.LocalListText.Inlines.Add("Local List: ")
+                    $run = New-Object System.Windows.Documents.Run("'excluded_apps.txt'")
+                    $run.Foreground = $Script:COLOR_ENABLED
+                    $Controls.LocalListText.Inlines.Add($run)
+                } elseif (Test-Path $defaultExcludedFile) {
+                    $Controls.LocalListText.Inlines.Clear()
+                    $Controls.LocalListText.Inlines.Add("Local List: ")
+                    $run = New-Object System.Windows.Documents.Run("'config\default_excluded_apps.txt'")
+                    $run.Foreground = "Orange"
+                    $Controls.LocalListText.Inlines.Add($run)
+                } else {
+                    $Controls.LocalListText.Inlines.Clear()
+                    $Controls.LocalListText.Inlines.Add("Missing Local Lists: ")
+                    $run = New-Object System.Windows.Documents.Run("'excluded_apps.txt' and 'config\default_excluded_apps.txt'")
+                    $run.Foreground = $Script:COLOR_DISABLED
+                    $Controls.LocalListText.Inlines.Add($run)
+                }
             }
         }
-    }
-    catch {
-        $Controls.ActiveListText.Inlines.Clear()
-        $Controls.ActiveListText.Inlines.Add("Active List: ")
-        $run = New-Object System.Windows.Documents.Run("Unknown!")
-        $run.Foreground = $Script:COLOR_INACTIVE
-        $Controls.ActiveListText.Inlines.Add($run)
+        catch {
+            $Controls.LocalListText.Inlines.Clear()
+            $Controls.LocalListText.Inlines.Add("Local List: ")
+            $run = New-Object System.Windows.Documents.Run("'Unknown'")
+            $run.Foreground = $Script:COLOR_INACTIVE
+            $Controls.LocalListText.Inlines.Add($run)
+        }
     }
 
     # Update WAU AutoUpdate status
@@ -945,7 +958,7 @@ function Show-WAUSettingsGUI {
             </StackPanel>
             <StackPanel Orientation="Horizontal">
                 <TextBlock x:Name="InstallLocationText" Text="Install Location: " FontSize="9"/>
-                <TextBlock x:Name="ActiveListText" Text="Active List: " FontSize="9"/>
+                <TextBlock x:Name="LocalListText" Text="Local List: " FontSize="9"/>
             </StackPanel>
             
             <TextBlock x:Name="WAUAutoUpdateText" Text="WAU AutoUpdate: " FontSize="9"/>

@@ -38,8 +38,10 @@ $Script:DESKTOP_WAU_APPINSTALLER = "${env:Public}\Desktop\WAU App Installer.lnk"
 $Script:STARTMENU_WAU_DIR = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
 $Script:COLOR_ENABLED = "#228B22"  # Forest green
 $Script:COLOR_DISABLED = "#FF6666" # Light red
+$Script:COLOR_ACTIVE = "Orange"
 $Script:COLOR_INACTIVE = "Gray" # Grey
 $Script:STATUS_READY_TEXT = "Ready (F12: Dev Tools)"
+$Script:WAIT_TIME = 1000 # 1 second wait time for UI updates
 
 # Get current script directory
 $Script:WorkingDir = $PSScriptRoot
@@ -155,6 +157,29 @@ function Test-InstalledWAU {
 }
 
 # 2. Configuration functions
+function Get-DisplayValue {
+    param (
+        [string]$PropertyName,
+        $Config,
+        $Policies
+    )
+    
+    # Check if GPO management is active
+    $isGPOManaged = ($Policies.WAU_ActivateGPOManagement -eq 1 -and $Config.WAU_RunGPOManagement -eq 1)
+    
+    # These properties are always editable and taken from local config, even in GPO mode
+    $alwaysFromConfig = @('WAU_AppInstallerShortcut', 'WAU_DesktopShortcut', 'WAU_StartMenuShortcut')
+    
+    # If GPO managed and this property exists in policies and it's not in the exceptions list
+    if ($isGPOManaged -and 
+        $Policies.PSObject.Properties.Name -contains $PropertyName -and
+        $PropertyName -notin $alwaysFromConfig) {
+        return $Policies.$PropertyName
+    }
+    
+    # Otherwise use the local config value
+    return $Config.$PropertyName
+}
 function Get-WAUCurrentConfig {
     try {
         $config = Get-ItemProperty -Path $Script:WAU_REGISTRY_PATH -ErrorAction SilentlyContinue
@@ -484,13 +509,11 @@ function Update-PreReleaseCheckBoxState {
         $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
     }
 }
-function Update-WAUGUIFromConfig {
-    param($controls)
+function Update-GPOManagementState {
+    param($controls, $skipPopup = $false)
     
-    # Get updated config from registry
+    # Get updated config and policies
     $updatedConfig = Get-WAUCurrentConfig
-    
-    # Get GPO policies from registry
     $updatedPolicies = $null
     try {
         $updatedPolicies = Get-ItemProperty -Path $Script:WAU_POLICIES_PATH -ErrorAction SilentlyContinue
@@ -499,9 +522,125 @@ function Update-WAUGUIFromConfig {
         # GPO registry key doesn't exist or can't be read
     }
 
+    $wauActivateGPOManagementEnabled = ($updatedPolicies.WAU_ActivateGPOManagement -eq 1)
+    $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
+    
+    # Check if both GPO settings are enabled
+    $gpoControlsActive = $wauActivateGPOManagementEnabled -and $wauRunGPOManagementEnabled
+    
+    if ($gpoControlsActive) {
+         # Show popup only if not skipped (i.e., when window first opens)
+        if (-not $skipPopup) {
+            # Update status bar to show GPO is controlling settings
+            $controls.StatusBarText.Text = "Settings controlled by GPO"
+            $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
+            
+            # Show popup when GPO is controlling settings with delay to ensure main window is visible first
+            $controls.StatusBarText.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)  # Small delay to ensure main window is rendered
+                Start-PopUp "Only shortcut settings can be modified when GPO Management is active..."
+                
+                # Close the popup after showing it for 3 standard wait times
+                Start-Sleep -Milliseconds ($Script:WAIT_TIME * 3)
+                Close-PopUp
+            })
+        }
+
+        # Disable most controls except shortcut checkboxes in second row
+        $controls.NotificationLevelComboBox.IsEnabled = $false
+        $controls.UpdateIntervalComboBox.IsEnabled = $false
+        $controls.UpdateTimeTextBox.IsEnabled = $false
+        $controls.RandomDelayTextBox.IsEnabled = $false
+        $controls.ListPathTextBox.IsEnabled = $false
+        $controls.ModsPathTextBox.IsEnabled = $false
+        $controls.AzureBlobSASURLTextBox.IsEnabled = $false
+        $controls.MaxLogFilesComboBox.IsEnabled = $false
+        $controls.MaxLogSizeComboBox.IsEnabled = $false
+        
+        # Disable first row of additional options
+        $controls.DisableAutoUpdateCheckBox.IsEnabled = $false
+        $controls.UpdatePreReleaseCheckBox.IsEnabled = $false
+        $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $false
+        
+        # Keep second row shortcuts enabled (these should remain enabled)
+        $controls.StartMenuShortcutCheckBox.IsEnabled = $true
+        $controls.DesktopShortcutCheckBox.IsEnabled = $true
+        $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
+        
+        # Disable third row of additional options
+        $controls.UpdatesAtLogonCheckBox.IsEnabled = $false
+        $controls.UserContextCheckBox.IsEnabled = $false
+        $controls.BypassListForUsersCheckBox.IsEnabled = $false
+        
+        # Disable fourth row
+        $controls.UseWhiteListCheckBox.IsEnabled = $false
+        
+    } else {
+        # Enable all controls
+        $controls.NotificationLevelComboBox.IsEnabled = $true
+        $controls.UpdateIntervalComboBox.IsEnabled = $true
+        $controls.UpdateTimeTextBox.IsEnabled = $true
+        $controls.RandomDelayTextBox.IsEnabled = $true
+        $controls.ListPathTextBox.IsEnabled = $true
+        $controls.ModsPathTextBox.IsEnabled = $true
+        $controls.AzureBlobSASURLTextBox.IsEnabled = $true
+        $controls.MaxLogFilesComboBox.IsEnabled = $true
+        $controls.MaxLogSizeComboBox.IsEnabled = $true
+        
+        $controls.DisableAutoUpdateCheckBox.IsEnabled = $true
+        $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
+        $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $true
+        $controls.StartMenuShortcutCheckBox.IsEnabled = $true
+        $controls.DesktopShortcutCheckBox.IsEnabled = $true
+        $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
+        $controls.UpdatesAtLogonCheckBox.IsEnabled = $true
+        $controls.UserContextCheckBox.IsEnabled = $true
+        $controls.BypassListForUsersCheckBox.IsEnabled = $true
+        $controls.UseWhiteListCheckBox.IsEnabled = $true
+        
+        # Reset status bar if it was showing GPO message
+        if ($controls.StatusBarText.Text -eq "Settings controlled by GPO") {
+            $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
+            $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
+        }
+
+        # Make sure any popup is closed when GPO is not active
+        try {
+            if ($null -ne $Script:PopUpWindow) {
+                Close-PopUp
+            }
+        }
+        catch {
+            # Popup might already be closed
+        }
+        
+        # Re-apply other state updates
+        Update-StatusDisplay -Controls $controls
+        Update-MaxLogSizeState -Controls $controls
+        Update-PreReleaseCheckBoxState -Controls $controls
+    }
+    
+    return $gpoControlsActive
+}
+function Update-WAUGUIFromConfig {
+    param($controls)
+    
+    # Get updated config and policies
+    $updatedConfig = Get-WAUCurrentConfig
+    $updatedPolicies = $null
+    try {
+        $updatedPolicies = Get-ItemProperty -Path $Script:WAU_POLICIES_PATH -ErrorAction SilentlyContinue
+    }
+    catch {
+        # GPO registry key doesn't exist or can't be read
+    }
+
+    $wauActivateGPOManagementEnabled = ($updatedPolicies.WAU_ActivateGPOManagement -eq 1)
+    $wauGPOListPathEnabled = ($updatedPolicies.WAU_ListPath -eq "GPO")
+    $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
 
     # Update Notification Level
-    $notifLevel = if ($updatedConfig.WAU_NotificationLevel) { $updatedConfig.WAU_NotificationLevel } else { "Full" }
+    $notifLevel = Get-DisplayValue -PropertyName "WAU_NotificationLevel" -Config $updatedConfig -Policies $updatedPolicies
     $Controls.NotificationLevelComboBox.SelectedIndex = switch ($notifLevel) {
         "Full" { 0 }
         "SuccessOnly" { 1 }
@@ -510,7 +649,7 @@ function Update-WAUGUIFromConfig {
     }
     
     # Update Update Interval
-    $updateInterval = if ($updatedConfig.WAU_UpdatesInterval) { $updatedConfig.WAU_UpdatesInterval } else { "Never" }
+    $updateInterval = Get-DisplayValue -PropertyName "WAU_UpdatesInterval" -Config $updatedConfig -Policies $updatedPolicies
     $Controls.UpdateIntervalComboBox.SelectedIndex = switch ($updateInterval) {
         "Daily" { 0 }
         "BiDaily" { 1 }
@@ -522,28 +661,28 @@ function Update-WAUGUIFromConfig {
     }
     
     # Update time and delay
-    $Controls.UpdateTimeTextBox.Text = if ($updatedConfig.WAU_UpdatesAtTime) { $updatedConfig.WAU_UpdatesAtTime } else { "06:00:00" }
-    $Controls.RandomDelayTextBox.Text = if ($updatedConfig.WAU_UpdatesTimeDelay) { $updatedConfig.WAU_UpdatesTimeDelay } else { "00:00" }
+    $Controls.UpdateTimeTextBox.Text = (Get-DisplayValue -PropertyName "WAU_UpdatesAtTime" -Config $updatedConfig -Policies $updatedPolicies).ToString()
+    $Controls.RandomDelayTextBox.Text = (Get-DisplayValue -PropertyName "WAU_UpdatesTimeDelay" -Config $updatedConfig -Policies $updatedPolicies).ToString()
     
     # Update paths
-    $Controls.ListPathTextBox.Text = if ($updatedConfig.WAU_ListPath) { $updatedConfig.WAU_ListPath } else { "" }
-    $Controls.ModsPathTextBox.Text = if ($updatedConfig.WAU_ModsPath) { $updatedConfig.WAU_ModsPath } else { "" }
-    $Controls.AzureBlobSASURLTextBox.Text = if ($updatedConfig.WAU_AzureBlobSASURL) { $updatedConfig.WAU_AzureBlobSASURL } else { "" }
+    $Controls.ListPathTextBox.Text = (Get-DisplayValue -PropertyName "WAU_ListPath" -Config $updatedConfig -Policies $updatedPolicies).ToString()
+    $Controls.ModsPathTextBox.Text = (Get-DisplayValue -PropertyName "WAU_ModsPath" -Config $updatedConfig -Policies $updatedPolicies).ToString()
+    $Controls.AzureBlobSASURLTextBox.Text = (Get-DisplayValue -PropertyName "WAU_AzureBlobSASURL" -Config $updatedConfig -Policies $updatedPolicies).ToString()
     
     # Update checkboxes
-    $Controls.UpdatesAtLogonCheckBox.IsChecked = ($updatedConfig.WAU_UpdatesAtLogon -eq 1)
-    $Controls.DoNotRunOnMeteredCheckBox.IsChecked = ($updatedConfig.WAU_DoNotRunOnMetered -eq 1)
-    $Controls.UserContextCheckBox.IsChecked = ($updatedConfig.WAU_UserContext -eq 1)
-    $Controls.BypassListForUsersCheckBox.IsChecked = ($updatedConfig.WAU_BypassListForUsers -eq 1)
-    $Controls.DisableAutoUpdateCheckBox.IsChecked = ($updatedConfig.WAU_DisableAutoUpdate -eq 1)
-    $Controls.UpdatePreReleaseCheckBox.IsChecked = ($updatedConfig.WAU_UpdatePreRelease -eq 1)
-    $Controls.UseWhiteListCheckBox.IsChecked = ($updatedConfig.WAU_UseWhiteList -eq 1)
-    $Controls.AppInstallerShortcutCheckBox.IsChecked = ($updatedConfig.WAU_AppInstallerShortcut -eq 1)
-    $Controls.DesktopShortcutCheckBox.IsChecked = ($updatedConfig.WAU_DesktopShortcut -eq 1)
-    $Controls.StartMenuShortcutCheckBox.IsChecked = ($updatedConfig.WAU_StartMenuShortcut -eq 1)
+    $Controls.UpdatesAtLogonCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_UpdatesAtLogon" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.DoNotRunOnMeteredCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_DoNotRunOnMetered" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.UserContextCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_UserContext" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.BypassListForUsersCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_BypassListForUsers" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.DisableAutoUpdateCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_DisableAutoUpdate" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.UpdatePreReleaseCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_UpdatePrerelease" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.UseWhiteListCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_UseWhiteList" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.AppInstallerShortcutCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_AppInstallerShortcut" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.DesktopShortcutCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_DesktopShortcut" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.StartMenuShortcutCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_StartMenuShortcut" -Config $updatedConfig -Policies $updatedPolicies)
     
     # Update log settings
-    $maxLogFiles = if ($null -ne $updatedConfig.WAU_MaxLogFiles) { $updatedConfig.WAU_MaxLogFiles } else { "3" }
+    $maxLogFiles = (Get-DisplayValue -PropertyName "WAU_MaxLogFiles" -Config $updatedConfig -Policies $updatedPolicies).ToString()
     try {
         $maxLogFilesInt = [int]$maxLogFiles
         if ($maxLogFilesInt -ge 0 -and $maxLogFilesInt -le 99) {
@@ -556,7 +695,7 @@ function Update-WAUGUIFromConfig {
     }
 
     # Update log size
-    $maxLogSize = if ($updatedConfig.WAU_MaxLogSize) { $updatedConfig.WAU_MaxLogSize } else { "1048576" }
+    $maxLogSize = (Get-DisplayValue -PropertyName "WAU_MaxLogSize" -Config $updatedConfig -Policies $updatedPolicies).ToString()
     $logSizeIndex = -1
     try {
         for ($i = 0; $i -lt $Controls.MaxLogSizeComboBox.Items.Count; $i++) {
@@ -578,8 +717,7 @@ function Update-WAUGUIFromConfig {
 
     # Update information section
     $Controls.VersionText.Text = "WAU Version: $Script:WAU_VERSION | "
-    #$Controls.VersionText.Text = "WAU Version: $($updatedConfig.ProductVersion) | "
-
+ 
     # Get last run time for the scheduled task 'Winget-AutoUpdate'
     try {
         $task = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction Stop
@@ -594,10 +732,10 @@ function Update-WAUGUIFromConfig {
     }
     $Controls.WinGetVersion.Text = "WinGet Version: $Script:WINGET_VERSION"
     $Controls.InstallLocationText.Text = "Install Location: $($updatedConfig.InstallLocation) | "
-    if ($updatedConfig.WAU_ListPath -eq "GPO") {
+    if ($wauGPOListPathEnabled -and $wauActivateGPOManagementEnabled) {
         $Controls.LocalListText.Inlines.Clear()
         $Controls.LocalListText.Inlines.Add("Local List: ")
-        if ($updatedConfig.WAU_UseWhiteList -eq 1) {
+        if ($updatedPolicies.WAU_UseWhiteList -eq 1) {
             $run = New-Object System.Windows.Documents.Run("'GPO (Included Apps)'")
         } else {
             $run = New-Object System.Windows.Documents.Run("'GPO (Excluded Apps)'")
@@ -608,7 +746,7 @@ function Update-WAUGUIFromConfig {
     else {
         try {
             $installdir = $updatedConfig.InstallLocation
-            if ($updatedConfig.WAU_UseWhiteList -eq 1) {
+            if ($updatedConfig.WAU_UseWhiteList -eq 1 -or ($updatedPolicies.WAU_UseWhiteList -eq 1 -and $wauActivateGPOManagementEnabled)) {
                 $whiteListFile = Join-Path $installdir 'included_apps.txt'
                 if (Test-Path $whiteListFile) {
                     $Controls.LocalListText.Inlines.Clear()
@@ -636,7 +774,7 @@ function Update-WAUGUIFromConfig {
                     $Controls.LocalListText.Inlines.Clear()
                     $Controls.LocalListText.Inlines.Add("Local List: ")
                     $run = New-Object System.Windows.Documents.Run("'config\default_excluded_apps.txt'")
-                    $run.Foreground = "Orange"
+                    $run.Foreground = $Script:COLOR_ACTIVE
                     $Controls.LocalListText.Inlines.Add($run)
                 } else {
                     $Controls.LocalListText.Inlines.Clear()
@@ -657,8 +795,8 @@ function Update-WAUGUIFromConfig {
     }
 
     # Update WAU AutoUpdate status
-    $wauAutoUpdateDisabled = ($updatedConfig.WAU_DisableAutoUpdate -eq 1)
-    $wauPreReleaseEnabled = ($updatedConfig.WAU_UpdatePreRelease -eq 1)
+    $wauAutoUpdateDisabled = [bool](Get-DisplayValue -PropertyName "WAU_DisableAutoUpdate" -Config $updatedConfig -Policies $updatedPolicies)
+    $wauPreReleaseEnabled = [bool](Get-DisplayValue -PropertyName "WAU_UpdatePrerelease" -Config $updatedConfig -Policies $updatedPolicies)
     $wauActivateGPOManagementEnabled = ($updatedPolicies.WAU_ActivateGPOManagement -eq 1)
     $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
 
@@ -685,6 +823,30 @@ function Update-WAUGUIFromConfig {
     Update-StatusDisplay -Controls $controls
     Update-MaxLogSizeState -Controls $controls
     Update-PreReleaseCheckBoxState -Controls $controls
+
+    # Check if we're being called from a save operation by checking if we're in GPO mode
+    $wauActivateGPOManagementEnabled = ($updatedPolicies.WAU_ActivateGPOManagement -eq 1)
+    $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
+    $gpoControlsActive = $wauActivateGPOManagementEnabled -and $wauRunGPOManagementEnabled
+    
+    # Only show popup when window first opens, not when updating after save
+    $skipPopupForInitialLoad = $false
+    
+    # Update GPO management state
+    Update-GPOManagementState -Controls $controls -skipPopup $skipPopupForInitialLoad
+
+    # Close the initial "Gathering Data..." popup if it's still open
+    # ONLY do this if we're not in GPO mode (to avoid interfering with GPO popup)
+    if (-not $gpoControlsActive) {
+        try {
+            if ($null -ne $Script:PopUpWindow) {
+                Close-PopUp
+            }
+        }
+        catch {
+            # Popup might already be closed
+        }
+    }
 }
 
 # 5. Manual start function
@@ -1054,9 +1216,9 @@ function Show-WAUSettingsGUI {
             $controls.StatusBarText.Text = "Done"
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
-            # Create timer to reset status back to ready after 1 second
+            # Create timer to reset status back to ready after standard wait time
             $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-                Start-Sleep -Milliseconds 1000
+                Start-Sleep -Milliseconds $Script:WAIT_TIME
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 Close-PopUp
@@ -1084,9 +1246,9 @@ function Show-WAUSettingsGUI {
             $controls.StatusBarText.Text = "Done"
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
-            # Create timer to reset status back to ready after 1 second
+            # Create timer to reset status back to ready after standard wait time
             $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-                Start-Sleep -Milliseconds 1000
+                Start-Sleep -Milliseconds $Script:WAIT_TIME
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 Close-PopUp
@@ -1116,9 +1278,9 @@ function Show-WAUSettingsGUI {
             $controls.StatusBarText.Text = "Done"
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
-            # Create timer to reset status back to ready after 1 second
+            # Create timer to reset status back to ready after standard wait time
             $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-                Start-Sleep -Milliseconds 1000
+                Start-Sleep -Milliseconds $Script:WAIT_TIME
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 Close-PopUp
@@ -1132,9 +1294,17 @@ function Show-WAUSettingsGUI {
 
     $controls.DevListButton.Add_Click({
         try {
+            # Get updated config and policies
             $updatedConfig = Get-WAUCurrentConfig
+            $updatedPolicies = $null
+            try {
+                $updatedPolicies = Get-ItemProperty -Path $Script:WAU_POLICIES_PATH -ErrorAction SilentlyContinue
+            }
+            catch {
+                # GPO registry key doesn't exist or can't be read
+            }
             $installdir = $updatedConfig.InstallLocation
-            if ($updatedConfig.WAU_UseWhiteList -eq 1) {
+            if ($updatedConfig.WAU_UseWhiteList -eq 1 -or $updatedPolicies.WAU_UseWhiteList -eq 1) {
                 $whiteListFile = Join-Path $installdir 'included_apps.txt'
                 if (Test-Path $whiteListFile) {
                     Start-PopUp "WAU Included Apps List opening..."
@@ -1162,9 +1332,9 @@ function Show-WAUSettingsGUI {
             $controls.StatusBarText.Text = "Done"
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
-            # Create timer to reset status back to ready after 1 second
+            # Create timer to reset status back to ready after standard wait time
             $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-                Start-Sleep -Milliseconds 1000
+                Start-Sleep -Milliseconds $Script:WAIT_TIME
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 Close-PopUp
@@ -1178,85 +1348,133 @@ function Show-WAUSettingsGUI {
 
     # Event handlers for controls
     $controls.SaveButton.Add_Click({
-        Start-PopUp "Saving WAU settings..."
-        # Update status to "Saving settings"
-        $controls.StatusBarText.Text = "Saving settings..."
-        $controls.StatusBarText.Foreground = "Orange"
-        
-        # Force UI update
-        [System.Windows.Forms.Application]::DoEvents()
-        
-        # Validate time format
+        # Check if settings are controlled by GPO
+        $updatedConfig = Get-WAUCurrentConfig
+        $updatedPolicies = $null
         try {
-            [datetime]::ParseExact($controls.UpdateTimeTextBox.Text, "HH:mm:ss", $null) | Out-Null
+            $updatedPolicies = Get-ItemProperty -Path $Script:WAU_POLICIES_PATH -ErrorAction SilentlyContinue
         }
         catch {
-            Close-PopUp
-            [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm:ss format (e.g., 06:00:00)", "Error", "OK", "Error")
-            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-            return
+            # GPO registry key doesn't exist or can't be read
         }
+
+        $wauActivateGPOManagementEnabled = ($updatedPolicies.WAU_ActivateGPOManagement -eq 1)
+        $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
         
-        # Validate random delay format
-        try {
-            [datetime]::ParseExact($controls.RandomDelayTextBox.Text, "HH:mm", $null) | Out-Null
-        }
-        catch {
-            Close-PopUp
-            [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 00:00)", "Error", "OK", "Error")
-            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-            return
-        }
-    
-        # Prepare settings hashtable
-        $newSettings = @{
-            WAU_NotificationLevel = $controls.NotificationLevelComboBox.SelectedItem.Tag
-            WAU_UpdatesInterval = $controls.UpdateIntervalComboBox.SelectedItem.Tag
-            WAU_UpdatesAtTime = $controls.UpdateTimeTextBox.Text
-            WAU_UpdatesTimeDelay = $controls.RandomDelayTextBox.Text
-            WAU_ListPath = $controls.ListPathTextBox.Text
-            WAU_ModsPath = $controls.ModsPathTextBox.Text
-            WAU_AzureBlobSASURL = $controls.AzureBlobSASURLTextBox.Text
-            WAU_MaxLogFiles = $controls.MaxLogFilesComboBox.SelectedItem.Content
-            WAU_MaxLogSize = if ($controls.MaxLogSizeComboBox.SelectedItem -and $controls.MaxLogSizeComboBox.SelectedItem.Tag) { $controls.MaxLogSizeComboBox.SelectedItem.Tag } else { $controls.MaxLogSizeComboBox.Text }
-            WAU_UpdatesAtLogon = if ($controls.UpdatesAtLogonCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_DoNotRunOnMetered = if ($controls.DoNotRunOnMeteredCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_UserContext = if ($controls.UserContextCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_BypassListForUsers = if ($controls.BypassListForUsersCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_DisableAutoUpdate = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_UpdatePreRelease = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 0 } elseif ($controls.UpdatePreReleaseCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_UseWhiteList = if ($controls.UseWhiteListCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_AppInstallerShortcut = if ($controls.AppInstallerShortcutCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_DesktopShortcut = if ($controls.DesktopShortcutCheckBox.IsChecked) { 1 } else { 0 }
-            WAU_StartMenuShortcut = if ($controls.StartMenuShortcutCheckBox.IsChecked) { 1 } else { 0 }
-        }
-        
-        # Save settings
-        if (Set-WAUConfig -Settings $newSettings) {
-    
-            # Update status to "Done"
-            $controls.StatusBarText.Text = "Done"
-            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+        if ($wauActivateGPOManagementEnabled -and $wauRunGPOManagementEnabled) {
+            # For GPO mode - show popup immediately without delay
+            Start-PopUp "Saving WAU settings..."
+            # Update status to "Saving settings"
+            $controls.StatusBarText.Text = "Saving settings..."
+            $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
+
+            # Only allow saving shortcut settings
+            $newSettings = @{
+                WAU_AppInstallerShortcut = if ($controls.AppInstallerShortcutCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_DesktopShortcut = if ($controls.DesktopShortcutCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_StartMenuShortcut = if ($controls.StartMenuShortcutCheckBox.IsChecked) { 1 } else { 0 }
+            }
             
-            # Updating settings in-place
-            Update-WAUGUIFromConfig -Controls $controls
+            # Save settings and close popup after a short delay
+            if (Set-WAUConfig -Settings $newSettings) {
+                # Close popup after default wait time and update GUI
+                $controls.StatusBarText.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                    Start-Sleep -Milliseconds $Script:WAIT_TIME
+                    # Update status to "Done"
+                    $controls.StatusBarText.Text = "Done"
+                    $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+                    Close-PopUp
+                    
+                    # Update GUI settings
+                    $updatedConfigAfterSave = Get-WAUCurrentConfig
+
+                    # Update only the shortcut checkboxes since that's all we saved
+                    $controls.AppInstallerShortcutCheckBox.IsChecked = ($updatedConfigAfterSave.WAU_AppInstallerShortcut -eq 1)
+                    $controls.DesktopShortcutCheckBox.IsChecked = ($updatedConfigAfterSave.WAU_DesktopShortcut -eq 1)
+                    $controls.StartMenuShortcutCheckBox.IsChecked = ($updatedConfigAfterSave.WAU_StartMenuShortcut -eq 1)
+                    
+                    # Update GPO management state but SKIP the popup since we're updating after save
+                    Update-GPOManagementState -Controls $controls -skipPopup $true
+                })
+            } else {
+                Close-PopUp
+                [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
+            }
+        } else {
+            Start-PopUp "Saving WAU settings..."
+            # Update status to "Saving settings"
+            $controls.StatusBarText.Text = "Saving settings..."
+            $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
             
-            # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after 1 second
-            # Use Invoke-Async to avoid blocking
-            $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-                Start-Sleep -Milliseconds 1000
+            # Force UI update
+            [System.Windows.Forms.Application]::DoEvents()
+            
+            # Validate time format
+            try {
+                [datetime]::ParseExact($controls.UpdateTimeTextBox.Text, "HH:mm:ss", $null) | Out-Null
+            }
+            catch {
+                Close-PopUp
+                [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm:ss format (e.g., 06:00:00)", "Error", "OK", "Error")
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                return
+            }
+            
+            # Validate random delay format
+            try {
+                [datetime]::ParseExact($controls.RandomDelayTextBox.Text, "HH:mm", $null) | Out-Null
+            }
+            catch {
                 Close-PopUp
-            })
-        } else {
-            Close-PopUp
-            [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
+                [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 00:00)", "Error", "OK", "Error")
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                return
+            }
+        
+            # Prepare settings hashtable
+            $newSettings = @{
+                WAU_NotificationLevel = $controls.NotificationLevelComboBox.SelectedItem.Tag
+                WAU_UpdatesInterval = $controls.UpdateIntervalComboBox.SelectedItem.Tag
+                WAU_UpdatesAtTime = $controls.UpdateTimeTextBox.Text
+                WAU_UpdatesTimeDelay = $controls.RandomDelayTextBox.Text
+                WAU_ListPath = $controls.ListPathTextBox.Text
+                WAU_ModsPath = $controls.ModsPathTextBox.Text
+                WAU_AzureBlobSASURL = $controls.AzureBlobSASURLTextBox.Text
+                WAU_MaxLogFiles = $controls.MaxLogFilesComboBox.SelectedItem.Content
+                WAU_MaxLogSize = if ($controls.MaxLogSizeComboBox.SelectedItem -and $controls.MaxLogSizeComboBox.SelectedItem.Tag) { $controls.MaxLogSizeComboBox.SelectedItem.Tag } else { $controls.MaxLogSizeComboBox.Text }
+                WAU_UpdatesAtLogon = if ($controls.UpdatesAtLogonCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_DoNotRunOnMetered = if ($controls.DoNotRunOnMeteredCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_UserContext = if ($controls.UserContextCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_BypassListForUsers = if ($controls.BypassListForUsersCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_DisableAutoUpdate = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_UpdatePreRelease = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 0 } elseif ($controls.UpdatePreReleaseCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_UseWhiteList = if ($controls.UseWhiteListCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_AppInstallerShortcut = if ($controls.AppInstallerShortcutCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_DesktopShortcut = if ($controls.DesktopShortcutCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_StartMenuShortcut = if ($controls.StartMenuShortcutCheckBox.IsChecked) { 1 } else { 0 }
+            }
+            
+            # Save settings
+            if (Set-WAUConfig -Settings $newSettings) {
+                # Update status to "Done"
+                $controls.StatusBarText.Text = "Done"
+                $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+                
+                # Update GUI settings without popup (skip popup for normal mode too when updating after save)
+                Update-WAUGUIFromConfig -Controls $controls
+            } else {
+                Close-PopUp
+                [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
+            }
+        }
+        # Create timer to reset status back to ready after half standard wait time
+        $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+            Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-        }
+        })
     })
 
     # Cancel button handler to close window
@@ -1285,10 +1503,10 @@ function Show-WAUSettingsGUI {
         $controls.StatusBarText.Text = "Done"
         $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
         
-        # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after 1 second
+        # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after standard wait time
         # Use Invoke-Async to avoid blocking
         $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-            Start-Sleep -Milliseconds 1000
+            Start-Sleep -Milliseconds $Script:WAIT_TIME
             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
             Close-PopUp
@@ -1353,10 +1571,10 @@ function Show-WAUSettingsGUI {
                 $controls.StatusBarText.Text = "Done"
                 $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
                 
-                # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after 1 second
+                # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after standard wait time
                 # Use Invoke-Async to avoid blocking
                 $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-                    Start-Sleep -Milliseconds 1000
+                    Start-Sleep -Milliseconds $Script:WAIT_TIME
                     $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                     $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                     Close-PopUp
@@ -1373,6 +1591,15 @@ function Show-WAUSettingsGUI {
     })
 
     Close-PopUp
+
+    # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after STANDARD wait time
+    # Use Invoke-Async to avoid blocking
+    $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+        Start-Sleep -Milliseconds $Script:WAIT_TIME
+        $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+        $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+
+   })
     
     # Show window
     $window.ShowDialog() | Out-Null

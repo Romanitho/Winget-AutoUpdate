@@ -488,6 +488,78 @@ function Update-StatusDisplay {
         $controls.RandomDelayTextBox.IsEnabled = $true
     }
 }
+function Set-ControlsState {
+    param(
+        $parentControl,
+        [bool]$enabled = $true,
+        [string]$excludePattern = $null
+    )
+
+    $alwaysEnabledControls = @(
+        'SaveButton', 'CancelButton', 'RunNowButton', 'OpenLogsButton',
+        'DevTaskButton', 'DevRegButton', 'DevGUIDButton', 'DevListButton'
+    )
+
+    function Get-Children($control) {
+        if ($null -eq $control) { return @() }
+        $children = @()
+        if ($control -is [System.Windows.Controls.Panel]) {
+            $children = $control.Children
+        } elseif ($control -is [System.Windows.Controls.ContentControl]) {
+            if ($control.Content -and $control.Content -isnot [string]) {
+                $children = @($control.Content)
+            }
+        } elseif ($control -is [System.Windows.Controls.ItemsControl]) {
+            $children = $control.Items
+        }
+        return $children
+    }
+
+    function Test-ExceptionChild($control) {
+        $children = Get-Children $control
+        foreach ($child in $children) {
+            $childName = $null
+            try { $childName = $child.GetValue([System.Windows.FrameworkElement]::NameProperty) } catch {}
+            if (
+                ($childName -and $childName -in $alwaysEnabledControls) -or
+                ($excludePattern -and $childName -and $childName -like "*$excludePattern*")
+            ) {
+                return $true
+            }
+            if (Test-ExceptionChild $child) { return $true }
+        }
+        return $false
+    }
+
+    $hasException = Test-ExceptionChild $parentControl
+
+    # Only set IsEnabled=$false if there are NO exceptions in the child tree
+    if ($parentControl -is [System.Windows.Controls.Control] -and $parentControl.GetType().Name -ne 'Window') {
+        if ($hasException) {
+            $parentControl.IsEnabled = $true
+        } else {
+            $parentControl.IsEnabled = $enabled
+        }
+    }
+
+    $children = Get-Children $parentControl
+    foreach ($control in $children) {
+        $controlName = $null
+        try { $controlName = $control.GetValue([System.Windows.FrameworkElement]::NameProperty) } catch {}
+
+        $isAlwaysEnabled = $controlName -and $controlName -in $alwaysEnabledControls
+        $isExcluded = $excludePattern -and $controlName -and $controlName -like "*$excludePattern*"
+
+        if ($isAlwaysEnabled -or $isExcluded) {
+            if ($control -is [System.Windows.Controls.Control]) {
+                $control.IsEnabled = $true
+            }
+            Set-ControlsState -parentControl $control -enabled $true -excludePattern $excludePattern
+        } else {
+            Set-ControlsState -parentControl $control -enabled $enabled -excludePattern $excludePattern
+        }
+    }
+}
 function Update-MaxLogSizeState {
     param($controls)
 
@@ -532,7 +604,7 @@ function Update-GPOManagementState {
          # Show popup only if not skipped (i.e., when window first opens)
         if (-not $skipPopup) {
             # Update status bar to show GPO is controlling settings
-            $controls.StatusBarText.Text = "Settings controlled by GPO"
+            $controls.StatusBarText.Text = "Settings Managed by GPO"
             $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
             
             # Show popup when GPO is controlling settings with delay to ensure main window is visible first
@@ -546,60 +618,15 @@ function Update-GPOManagementState {
             })
         }
 
-        # Disable most controls except shortcut checkboxes in second row
-        $controls.NotificationLevelComboBox.IsEnabled = $false
-        $controls.UpdateIntervalComboBox.IsEnabled = $false
-        $controls.UpdateTimeTextBox.IsEnabled = $false
-        $controls.RandomDelayTextBox.IsEnabled = $false
-        $controls.ListPathTextBox.IsEnabled = $false
-        $controls.ModsPathTextBox.IsEnabled = $false
-        $controls.AzureBlobSASURLTextBox.IsEnabled = $false
-        $controls.MaxLogFilesComboBox.IsEnabled = $false
-        $controls.MaxLogSizeComboBox.IsEnabled = $false
-        
-        # Disable first row of additional options
-        $controls.DisableAutoUpdateCheckBox.IsEnabled = $false
-        $controls.UpdatePreReleaseCheckBox.IsEnabled = $false
-        $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $false
-        
-        # Keep second row shortcuts enabled (these should remain enabled)
-        $controls.StartMenuShortcutCheckBox.IsEnabled = $true
-        $controls.DesktopShortcutCheckBox.IsEnabled = $true
-        $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
-        
-        # Disable third row of additional options
-        $controls.UpdatesAtLogonCheckBox.IsEnabled = $false
-        $controls.UserContextCheckBox.IsEnabled = $false
-        $controls.BypassListForUsersCheckBox.IsEnabled = $false
-        
-        # Disable fourth row
-        $controls.UseWhiteListCheckBox.IsEnabled = $false
-        
+        # Disable all except Shortcut controls
+        Set-ControlsState -parentControl $window -enabled $false -excludePattern "*Shortcut*"
+
     } else {
         # Enable all controls
-        $controls.NotificationLevelComboBox.IsEnabled = $true
-        $controls.UpdateIntervalComboBox.IsEnabled = $true
-        $controls.UpdateTimeTextBox.IsEnabled = $true
-        $controls.RandomDelayTextBox.IsEnabled = $true
-        $controls.ListPathTextBox.IsEnabled = $true
-        $controls.ModsPathTextBox.IsEnabled = $true
-        $controls.AzureBlobSASURLTextBox.IsEnabled = $true
-        $controls.MaxLogFilesComboBox.IsEnabled = $true
-        $controls.MaxLogSizeComboBox.IsEnabled = $true
-        
-        $controls.DisableAutoUpdateCheckBox.IsEnabled = $true
-        $controls.UpdatePreReleaseCheckBox.IsEnabled = $true
-        $controls.DoNotRunOnMeteredCheckBox.IsEnabled = $true
-        $controls.StartMenuShortcutCheckBox.IsEnabled = $true
-        $controls.DesktopShortcutCheckBox.IsEnabled = $true
-        $controls.AppInstallerShortcutCheckBox.IsEnabled = $true
-        $controls.UpdatesAtLogonCheckBox.IsEnabled = $true
-        $controls.UserContextCheckBox.IsEnabled = $true
-        $controls.BypassListForUsersCheckBox.IsEnabled = $true
-        $controls.UseWhiteListCheckBox.IsEnabled = $true
+        Set-ControlsState -parentControl $window -enabled $true
         
         # Reset status bar if it was showing GPO message
-        if ($controls.StatusBarText.Text -eq "Settings controlled by GPO") {
+        if ($controls.StatusBarText.Text -eq "Settings Managed by GPO") {
             $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
             $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
         }
@@ -943,7 +970,7 @@ function Show-WAUSettingsGUI {
                     <ComboBoxItem Content="Weekly" Tag="Weekly"/>
                     <ComboBoxItem Content="Every 2 Weeks" Tag="BiWeekly"/>
                     <ComboBoxItem Content="Monthly" Tag="Monthly"/>
-                    <ComboBoxItem Content="Never (Disable)" Tag="Never"/>
+                    <ComboBoxItem Content="Never" Tag="Never"/>
                 </ComboBox>
                 <TextBlock Text="How often WAU checks for updates" 
                            FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"

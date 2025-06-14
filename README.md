@@ -158,6 +158,11 @@ Default value Never. Specify the update frequency: Daily, BiDaily, Weekly, BiWee
 ### UPDATESATTIME
 Default value 6AM (06:00:00). Specify the time of the update interval execution time. Example `UPDATESATTIME="11:00:00"`
 
+### UPDATESATTIMEDELAY
+Default value is none (00:00). This setting specifies the delay for the scheduled task.
+A scheduled task random delay adds a random amount of wait time (up to the specified maximum) before the task starts. 
+This helps prevent many devices from running the task at the exact same time. This is not applicable to "on logon" triggers.
+
 ### DONOTRUNONMETERED
 Default value 1. Set `DONOTRUNONMETERED=0` to force WAU to run on metered connections. May add cellular data costs on shared connexion from smartphone for example.
 

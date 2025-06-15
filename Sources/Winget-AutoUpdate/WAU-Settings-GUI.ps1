@@ -58,20 +58,18 @@ Function Start-PopUp ($Message) {
 
     if (!$PopUpWindow) {
 
-        #Create window
-        $inputXML = @"
-<Window
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WAUSettings"
-        Title="$Script:WAU_TITLE" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Width="280" MinHeight="130" SizeToContent="Height" Topmost="True">
-    <Grid>
-        <TextBlock x:Name="PopUpLabel" HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" Margin="20" TextAlignment="Center"/>
-    </Grid>
-</Window>
-"@
+        # Load XAML from config file
+        $xamlConfigPath = Join-Path $Script:WorkingDir "config\xaml-popup.txt"
+        if (Test-Path $xamlConfigPath) {
+            $inputXML = Get-Content $xamlConfigPath -Raw
+            
+            # Replace PowerShell variables with actual values
+            $inputXML = $inputXML -replace '\$Script:WAU_TITLE', $Script:WAU_TITLE
+        } else {
+            Write-Error "XAML config file not found: $xamlConfigPath"
+            return
+        }
+
 
         [xml]$XAML = ($inputXML -replace "x:N", "N")
 
@@ -96,8 +94,10 @@ Function Start-PopUp ($Message) {
     $PopUpWindow.Dispatcher.Invoke([action] {}, "Render")
 }
 Function Close-PopUp {
-    $Script:PopUpWindow.Close()
-    $Script:PopUpWindow = $null
+    if ($null -ne $Script:PopUpWindow) {
+        $Script:PopUpWindow.Close()
+        $Script:PopUpWindow = $null
+    }
 }
 
 function Add-Shortcut ($Shortcut, $Target, $StartIn, $Arguments, $Icon, $Description, $WindowStyle = "Normal") {
@@ -332,7 +332,7 @@ function Set-WAUConfig {
             
             # Compare current value with new value
             if ($currentValue -ne $newValue) {
-                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name $key -Value $newValue -Force
+                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name $key -Value $newValue -Force | Out-Null
             }
         }
         
@@ -615,7 +615,7 @@ function Update-GPOManagementState {
                 # Close the popup after showing it for 3 standard wait times
                 Start-Sleep -Milliseconds ($Script:WAIT_TIME * 3)
                 Close-PopUp
-            })
+            }) | Out-Null
         }
 
         # Disable all except Shortcut controls
@@ -902,273 +902,25 @@ function Show-WAUSettingsGUI {
     # Get current configuration
     $currentConfig = Get-WAUCurrentConfig
     
-    # Create XAML for the form
-    $xaml = @"
-<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" 
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    Title="$Script:WAU_TITLE" Height="820" Width="600" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
-    FontSize="11">
-    <Grid Margin="10">
-    <Grid.RowDefinitions>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="Auto"/>
-        <RowDefinition Height="*"/>
-        <RowDefinition Height="Auto"/>
-    </Grid.RowDefinitions>
-    
-    <!-- WAU Status -->
-    <GroupBox Grid.Row="1" Header="WAU Status" Margin="0,0,0,10">
-        <Grid Margin="10">
-            <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <!-- Left column: status info -->
-            <StackPanel Grid.Column="0">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Schedule:" VerticalAlignment="Center" Margin="0,0,10,0"/>
-                <TextBlock x:Name="StatusText" Text="Enabled" Foreground="Green" FontWeight="Bold" VerticalAlignment="Center"/>
-            </StackPanel>
-            <TextBlock x:Name="StatusDescription" Text="WAU will check for updates according to the schedule below" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
-            </StackPanel>
-            <!-- Right column: Dev buttons (hidden by default) -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                <!-- Vertical links stack (hidden by default) -->
-                <StackPanel x:Name="LinksStackPanel" Orientation="Vertical" VerticalAlignment="Top" Margin="0,0,15,0" Visibility="Collapsed">
-                    <TextBlock>
-                        <Hyperlink x:Name="ManifestsLink" NavigateUri="https://github.com/microsoft/winget-pkgs/tree/master/manifests" ToolTip="open 'winget-pkgs' Manifests on GitHub">[manifests]</Hyperlink>
-                    </TextBlock>
-                    <TextBlock Margin="0,0,0,0">
-                        <Hyperlink x:Name="IssuesLink" NavigateUri="https://github.com/microsoft/winget-pkgs/issues" ToolTip="open 'winget-pkgs' Issues on GitHub">[issues]</Hyperlink>
-                    </TextBlock>
-                </StackPanel>
-                <Button x:Name="DevTaskButton" Content="[task]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
-                <Button x:Name="DevRegButton" Content="[reg]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
-                <Button x:Name="DevGUIDButton" Content="[guid]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
-                <Button x:Name="DevListButton" Content="[list]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,0,0"/>
-            </StackPanel>
-        </Grid>
-    </GroupBox>
-    
-    <!-- Update Interval and Notification Level (Combined) -->
-    <GroupBox Grid.Row="2" Header="Update Interval &amp; Notifications" Margin="0,0,0,10">
-        <Grid Margin="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <!-- Update Interval Column -->
-            <StackPanel Grid.Column="0" Margin="0,0,5,0">
-                <ComboBox x:Name="UpdateIntervalComboBox" Height="25" Width="Auto">
-                    <ComboBoxItem Content="Daily" Tag="Daily"/>
-                    <ComboBoxItem Content="Every 2 Days" Tag="BiDaily"/>
-                    <ComboBoxItem Content="Weekly" Tag="Weekly"/>
-                    <ComboBoxItem Content="Every 2 Weeks" Tag="BiWeekly"/>
-                    <ComboBoxItem Content="Monthly" Tag="Monthly"/>
-                    <ComboBoxItem Content="Never" Tag="Never"/>
-                </ComboBox>
-                <TextBlock Text="How often WAU checks for updates" 
-                           FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"
-                           TextWrapping="Wrap"/>
-            </StackPanel>
-            <!-- Notification Level Column -->
-            <StackPanel Grid.Column="1" Margin="5,0,0,0">
-                <ComboBox x:Name="NotificationLevelComboBox" Height="25" Width="Auto">
-                    <ComboBoxItem Content="Full" Tag="Full"/>
-                    <ComboBoxItem Content="Success Only" Tag="SuccessOnly"/>
-                    <ComboBoxItem Content="None" Tag="None"/>
-                </ComboBox>
-                <TextBlock Text="Level of notifications" 
-                           FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"
-                           TextWrapping="Wrap"/>
-            </StackPanel>
-        </Grid>
-    </GroupBox>
+    # Load XAML from config file
+    $xamlConfigPath = Join-Path $Script:WorkingDir "config\xaml-window.txt"
+    if (Test-Path $xamlConfigPath) {
+        $inputXML = Get-Content $xamlConfigPath -Raw
+        
+        # Replace PowerShell variables with actual values
+        $inputXML = $inputXML -replace '\$Script:WAU_TITLE', $Script:WAU_TITLE
+        $inputXML = $inputXML -replace '\$Script:COLOR_ENABLED', $Script:COLOR_ENABLED
+        $inputXML = $inputXML -replace '\$Script:COLOR_DISABLED', $Script:COLOR_DISABLED
+        $inputXML = $inputXML -replace '\$Script:COLOR_ACTIVE', $Script:COLOR_ACTIVE
+        $inputXML = $inputXML -replace '\$Script:COLOR_INACTIVE', $Script:COLOR_INACTIVE
+        $inputXML = $inputXML -replace '\$Script:STATUS_READY_TEXT', $Script:STATUS_READY_TEXT
+    } else {
+        [System.Windows.MessageBox]::Show("XAML config file not found: $xamlConfigPath", "$Script:WAU_TITLE", "OK", "Warning")
+        exit 1
+    }
 
-    <!-- Update Time and Random Delay -->
-    <GroupBox Grid.Row="3" Header="Update Time &amp; Random Delay" Margin="0,0,0,10">
-        <Grid Margin="10">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <!-- Update Time Column -->
-        <StackPanel Grid.Column="0" Margin="0,0,5,0">
-            <StackPanel Orientation="Horizontal">
-            <TextBox x:Name="UpdateTimeTextBox" Width="80" Height="25" Text="06:00:00" VerticalContentAlignment="Center"/>
-            <TextBlock Text="(HH:mm:ss format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
-            </StackPanel>
-            <TextBlock Text="Time of day when updates are checked" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
-        </StackPanel>
-        <!-- Random Delay Column -->
-        <StackPanel Grid.Column="1" Margin="5,0,0,0">
-            <StackPanel Orientation="Horizontal">
-            <TextBox x:Name="RandomDelayTextBox" Width="60" Height="25" Text="00:00" VerticalContentAlignment="Center"/>
-            <TextBlock Text="(HH:mm format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
-            </StackPanel>
-            <TextBlock Text="Maximum random delay after scheduled time" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
-        </StackPanel>
-        </Grid>
-    </GroupBox>
-    
-    <!-- List and Mods Definitions -->
-    <GroupBox Grid.Row="4" Header="List &amp; Mods Definitions" Margin="0,0,0,10">
-        <StackPanel Margin="10,10,10,10">
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-            <TextBlock Text="External List Path (dir only):" Width="160" VerticalAlignment="Center"/>
-            <TextBox x:Name="ListPathTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
-            <TextBox.ToolTip>
-                <TextBlock>
-                Path for external list files. Can be URL, UNC path, local path or 'GPO'. If set to 'GPO', ensure you also configure the list/lists in GPO!
-                </TextBlock>
-            </TextBox.ToolTip>
-            </TextBox>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-            <TextBlock Text="External Mods Path:" Width="160" VerticalAlignment="Center"/>
-            <TextBox x:Name="ModsPathTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
-            <TextBox.ToolTip>
-                <TextBlock>
-                Path for external mods. Can be URL, UNC path, local path or 'AzureBlob'. If set to 'AzureBlob', ensure you also configure 'Azure Blob SAS URL' below!
-                </TextBlock>
-            </TextBox.ToolTip>
-            </TextBox>
-        </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,0,0,0">
-            <TextBlock Text="Azure Blob SAS URL:" Width="160" VerticalAlignment="Center"/>
-            <TextBox x:Name="AzureBlobSASURLTextBox" Width="372" Height="25" VerticalContentAlignment="Center">
-            <TextBox.ToolTip>
-                <TextBlock>
-                Azure Storage Blob URL with SAS token for use with the 'Mods' feature. The URL must include the SAS token and have 'read' and 'list' permissions.
-                </TextBlock>
-            </TextBox.ToolTip>
-            </TextBox>
-        </StackPanel>
-        </StackPanel>
-    </GroupBox>
-
-    <!-- Additional Options -->
-    <GroupBox Grid.Row="5" Header="Additional Options" Margin="0,0,0,10">
-        <Grid Margin="10">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <CheckBox Grid.Row="0" Grid.Column="0" x:Name="DisableAutoUpdateCheckBox" Content="Disable WAU AutoUpdate" Margin="0,0,5,5"
-                ToolTip="Disable automatic updating of WAU itself"/>
-        <CheckBox Grid.Row="0" Grid.Column="1" x:Name="UpdatePreReleaseCheckBox" Content="Update WAU to PreRelease" Margin="0,0,5,5"
-                ToolTip="Allow WAU to update itself to pre-release versions"/>
-        <CheckBox Grid.Row="0" Grid.Column="2" x:Name="DoNotRunOnMeteredCheckBox" Content="Don't run on data plan" Margin="0,0,5,5"
-                ToolTip="Prevent WAU from running when connected to a metered network"/>
-        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5"
-                ToolTip="Create/delete Start menu shortcuts ('WAU Settings' will be created on Desktop if deleted!)"/>
-        <CheckBox Grid.Row="1" Grid.Column="1" x:Name="DesktopShortcutCheckBox" Content="WAU Desktop shortcut" Margin="0,0,5,5"
-                ToolTip="Create/delete 'Run WAU' shortcut on Desktop"/>
-        <CheckBox Grid.Row="1" Grid.Column="2" x:Name="AppInstallerShortcutCheckBox" Content="App Installer Desktop shortcut" Margin="0,0,5,5"
-                ToolTip="Create/delete shortcut 'WAU App Installer' on Desktop"/>
-        <CheckBox Grid.Row="2" Grid.Column="0" x:Name="UpdatesAtLogonCheckBox" Content="Run at user logon" Margin="0,0,5,5"
-                ToolTip="Run WAU automatically when a user logs in"/>
-        <CheckBox Grid.Row="2" Grid.Column="1" x:Name="UserContextCheckBox" Content="Run in user context" Margin="0,0,5,5"
-                ToolTip="Run WAU also in the current user's context"/>
-        <CheckBox Grid.Row="2" Grid.Column="2" x:Name="BypassListForUsersCheckBox" Content="Bypass list in user context" Margin="0,0,5,5"
-                ToolTip="Ignore the black/white list when running in user context"/>
-        <CheckBox Grid.Row="3" Grid.Column="0" x:Name="UseWhiteListCheckBox" Content="Use whitelist" Margin="0,0,5,0"
-                ToolTip="Only update apps that are included in a whitelist"/>
-        </Grid>
-    </GroupBox>
-    
-    <!-- Log Files Management -->
-    <GroupBox Grid.Row="6" Header="Log Files Management" Margin="0,0,0,10">
-        <Grid Margin="10">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        <!-- MaxLogFiles column -->
-        <StackPanel Grid.Column="0" Margin="0,0,5,0">
-            <StackPanel Orientation="Horizontal">
-            <ComboBox x:Name="MaxLogFilesComboBox" Width="60" Height="25" SelectedIndex="3" VerticalContentAlignment="Center">
-                <ComboBox.ToolTip>
-                    <TextBlock>
-                        Set to '0' to never delete old logs, '1' to keep only the original and let it grow
-                    </TextBlock>
-                </ComboBox.ToolTip>
-            </ComboBox>
-            <TextBlock Text="(0-99, default 3)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
-            </StackPanel>
-            <TextBlock Text="Number of allowed log files" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
-        </StackPanel>
-        <!-- MaxLogSize column -->
-        <StackPanel Grid.Column="1" Margin="5,0,0,0">
-            <StackPanel Orientation="Horizontal">
-            <ComboBox x:Name="MaxLogSizeComboBox" Width="70" Height="25" SelectedIndex="0" VerticalContentAlignment="Center" IsEditable="True">
-                <ComboBox.ToolTip>
-                    <TextBlock>
-                        Maximum size of each log file before rotation occurs (Bytes if manually entered!)
-                    </TextBlock>
-                </ComboBox.ToolTip>
-                <ComboBoxItem Content="1 MB" Tag="1048576"/>
-                <ComboBoxItem Content="2 MB" Tag="2097152"/>
-                <ComboBoxItem Content="3 MB" Tag="3145728"/>
-                <ComboBoxItem Content="4 MB" Tag="4194304"/>
-                <ComboBoxItem Content="5 MB" Tag="5242880"/>
-                <ComboBoxItem Content="6 MB" Tag="6291456"/>
-                <ComboBoxItem Content="7 MB" Tag="7340032"/>
-                <ComboBoxItem Content="8 MB" Tag="8388608"/>
-                <ComboBoxItem Content="9 MB" Tag="9437184"/>
-                <ComboBoxItem Content="10 MB" Tag="10485760"/>
-            </ComboBox>
-            <TextBlock Text="(1-10 MB, default 1 MB)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
-            </StackPanel>
-            <TextBlock Text="Size of the log file before rotating" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
-        </StackPanel>
-        </Grid>
-    </GroupBox>
-
-    <!-- Information -->
-    <GroupBox Grid.Row="7" Header="Information" Margin="0,0,0,10">
-        <StackPanel Margin="10">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="VersionText" Text="WAU Version: " FontSize="9"/>
-                <TextBlock x:Name="RunDate" Text="Last Run: " FontSize="9"/>
-                <TextBlock x:Name="WinGetVersion" Text="WinGet Version: " FontSize="9"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="InstallLocationText" Text="Install Location: " FontSize="9"/>
-                <TextBlock x:Name="LocalListText" Text="Local List: " FontSize="9"/>
-            </StackPanel>
-            
-            <TextBlock x:Name="WAUAutoUpdateText" Text="WAU AutoUpdate: " FontSize="9"/>
-        </StackPanel>
-    </GroupBox>
-
-    <!-- Status Bar -->
-    <TextBlock Grid.Row="8" x:Name="StatusBarText" Text="$Script:STATUS_READY_TEXT" FontSize="10" Foreground="$Script:COLOR_INACTIVE" VerticalAlignment="Bottom"/>
-    
-    <!-- Buttons -->
-    <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-        <Button x:Name="RunNowButton" Content="Run WAU" Width="100" Height="30" Margin="0,0,10,0"/>
-        <Button x:Name="OpenLogsButton" Content="Open Logs" Width="100" Height="30" Margin="0,0,20,0"/>
-        <Button x:Name="SaveButton" Content="Save Settings" Width="100" Height="30" Margin="0,0,10,0" IsDefault="True"/>
-        <Button x:Name="CancelButton" Content="Cancel" Width="80" Height="30"/>
-    </StackPanel>
-    </Grid>
-</Window>
-"@
     # Load XAML
-    [xml]$xamlXML = $xaml -replace 'x:N', 'N'
+    [xml]$xamlXML = $inputXML -replace 'x:N', 'N'
     $reader = (New-Object System.Xml.XmlNodeReader $xamlXML)
     $window = [Windows.Markup.XamlReader]::Load($reader)
     $window.Icon = $IconBase64
@@ -1249,7 +1001,7 @@ function Show-WAUSettingsGUI {
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 Close-PopUp
-            })
+            }) | Out-Null
         }
         catch {
             Close-PopUp
@@ -1279,7 +1031,7 @@ function Show-WAUSettingsGUI {
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 Close-PopUp
-            })
+            }) | Out-Null
         }
         catch {
             Close-PopUp
@@ -1311,7 +1063,7 @@ function Show-WAUSettingsGUI {
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 Close-PopUp
-            })
+            }) | Out-Null
         }
         catch {
             Close-PopUp
@@ -1365,7 +1117,7 @@ function Show-WAUSettingsGUI {
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 Close-PopUp
-            })
+            }) | Out-Null
         }
         catch {
             Close-PopUp
@@ -1422,7 +1174,7 @@ function Show-WAUSettingsGUI {
                     
                     # Update GPO management state but SKIP the popup since we're updating after save
                     Update-GPOManagementState -Controls $controls -skipPopup $true
-                })
+                }) | Out-Null
             } else {
                 Close-PopUp
                 [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
@@ -1501,7 +1253,7 @@ function Show-WAUSettingsGUI {
             Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-        })
+        }) | Out-Null
     })
 
     # Cancel button handler to close window
@@ -1537,7 +1289,7 @@ function Show-WAUSettingsGUI {
             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
             Close-PopUp
-        })
+        }) | Out-Null
     })
 
     # Handle Enter key to save settings
@@ -1605,7 +1357,7 @@ function Show-WAUSettingsGUI {
                     $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                     $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                     Close-PopUp
-                })
+                }) | Out-Null
             } else {
                 Close-PopUp
                 [System.Windows.MessageBox]::Show("Log directory not found: $logPath", "Error", "OK", "Error")
@@ -1626,7 +1378,7 @@ function Show-WAUSettingsGUI {
         $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
         $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
 
-   })
+   }) | Out-Null
     
     # Show window
     $window.ShowDialog() | Out-Null
@@ -1644,7 +1396,16 @@ if (-not (Test-Administrator)) {
 $null = cmd /c ''
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $ProgressPreference = 'SilentlyContinue'
-$IconBase64 = [Convert]::FromBase64String("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")
+
+# Load icon from config file
+$iconConfigPath = Join-Path $Script:WorkingDir "config\icon.txt"
+if (Test-Path $iconConfigPath) {
+    $Script:IconBase64 = [Convert]::FromBase64String((Get-Content $iconConfigPath -Raw).Trim())
+} else {
+    # Fallback to default or show error
+    Write-Warning "Icon config file not found: $iconConfigPath"
+    $Script:IconBase64 = $null
+}
 
 #Pop "Starting..."
 Start-PopUp "Gathering Data..."

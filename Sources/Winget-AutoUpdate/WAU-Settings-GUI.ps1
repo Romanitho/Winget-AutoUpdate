@@ -58,20 +58,7 @@ Function Start-PopUp ($Message) {
 
     if (!$PopUpWindow) {
 
-        # Load XAML from config file
-        $xamlConfigPath = Join-Path $Script:WorkingDir "config\settings-popup.xaml"
-        if (Test-Path $xamlConfigPath) {
-            $inputXML = Get-Content $xamlConfigPath -Raw
-            
-            # Replace PowerShell variables with actual values
-            $inputXML = $inputXML -replace '\$Script:WAU_TITLE', $Script:WAU_TITLE
-        } else {
-            Write-Error "XAML config file not found: $xamlConfigPath"
-            return
-        }
-
-
-        [xml]$XAML = ($inputXML -replace "x:N", "N")
+        [xml]$XAML = ($Script:POPUP_XAML -replace "x:N", "N")
 
         #Read the form
         $Reader = (New-Object System.Xml.XmlNodeReader $XAML)
@@ -902,25 +889,8 @@ function Show-WAUSettingsGUI {
     # Get current configuration
     $currentConfig = Get-WAUCurrentConfig
     
-    # Load XAML from config file
-    $xamlConfigPath = Join-Path $Script:WorkingDir "config\settings-window.xaml"
-    if (Test-Path $xamlConfigPath) {
-        $inputXML = Get-Content $xamlConfigPath -Raw
-        
-        # Replace PowerShell variables with actual values
-        $inputXML = $inputXML -replace '\$Script:WAU_TITLE', $Script:WAU_TITLE
-        $inputXML = $inputXML -replace '\$Script:COLOR_ENABLED', $Script:COLOR_ENABLED
-        $inputXML = $inputXML -replace '\$Script:COLOR_DISABLED', $Script:COLOR_DISABLED
-        $inputXML = $inputXML -replace '\$Script:COLOR_ACTIVE', $Script:COLOR_ACTIVE
-        $inputXML = $inputXML -replace '\$Script:COLOR_INACTIVE', $Script:COLOR_INACTIVE
-        $inputXML = $inputXML -replace '\$Script:STATUS_READY_TEXT', $Script:STATUS_READY_TEXT
-    } else {
-        [System.Windows.MessageBox]::Show("XAML config file not found: $xamlConfigPath", "$Script:WAU_TITLE", "OK", "Warning")
-        exit 1
-    }
-
     # Load XAML
-    [xml]$xamlXML = $inputXML -replace 'x:N', 'N'
+    [xml]$xamlXML = $Script:WINDOW_XAML -replace 'x:N', 'N'
     $reader = (New-Object System.Xml.XmlNodeReader $xamlXML)
     $window = [Windows.Markup.XamlReader]::Load($reader)
     $window.Icon = $IconBase64
@@ -1405,6 +1375,37 @@ if (Test-Path $iconConfigPath) {
     # Fallback to default or show error
     Write-Warning "Icon config file not found: $iconConfigPath"
     $Script:IconBase64 = $null
+}
+
+# Load PopUp XAML from config file and store as constant
+$xamlConfigPath = Join-Path $Script:WorkingDir "config\settings-popup.xaml"
+if (Test-Path $xamlConfigPath) {
+    $inputXML = Get-Content $xamlConfigPath -Raw
+    
+    # Replace PowerShell variables with actual values
+    $inputXML = $inputXML -replace '\$Script:WAU_TITLE', $Script:WAU_TITLE
+    $Script:POPUP_XAML = $inputXML.Trim()
+} else {
+    [System.Windows.MessageBox]::Show("PopUp XAML config file not found: $xamlConfigPath", "$Script:WAU_TITLE", "OK", "Warning")
+    exit 1
+}
+
+# Load Window XAML from config file and store as constant
+$xamlConfigPath = Join-Path $Script:WorkingDir "config\settings-window.xaml"
+if (Test-Path $xamlConfigPath) {
+    $inputXML = Get-Content $xamlConfigPath -Raw
+    
+    # Replace PowerShell variables with actual values
+    $inputXML = $inputXML -replace '\$Script:WAU_TITLE', $Script:WAU_TITLE
+    $inputXML = $inputXML -replace '\$Script:COLOR_ENABLED', $Script:COLOR_ENABLED
+    $inputXML = $inputXML -replace '\$Script:COLOR_DISABLED', $Script:COLOR_DISABLED
+    $inputXML = $inputXML -replace '\$Script:COLOR_ACTIVE', $Script:COLOR_ACTIVE
+    $inputXML = $inputXML -replace '\$Script:COLOR_INACTIVE', $Script:COLOR_INACTIVE
+    $inputXML = $inputXML -replace '\$Script:STATUS_READY_TEXT', $Script:STATUS_READY_TEXT
+    $Script:WINDOW_XAML = $inputXML.Trim()
+} else {
+    [System.Windows.MessageBox]::Show("Window XAML config file not found: $xamlConfigPath", "$Script:WAU_TITLE", "OK", "Warning")
+    exit 1
 }
 
 #Pop "Starting..."

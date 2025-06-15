@@ -166,8 +166,15 @@
                 ToolTip="Allow WAU to update itself to pre-release versions"/>
         <CheckBox Grid.Row="0" Grid.Column="2" x:Name="DoNotRunOnMeteredCheckBox" Content="Don't run on data plan" Margin="0,0,5,5"
                 ToolTip="Prevent WAU from running when connected to a metered network"/>
-        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5"
-                ToolTip="Create/delete Start menu shortcuts (Settings Shortcut will be created on active User Desktop if deleted)"/>
+        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5">
+            <CheckBox.ToolTip>
+            <TextBlock>
+                Create/delete Start menu shortcuts:
+                <LineBreak/>
+                '$Script:WAU_TITLE' Shortcut will be created on active User Desktop if deleted.
+            </TextBlock>
+            </CheckBox.ToolTip>
+        </CheckBox>
         <CheckBox Grid.Row="1" Grid.Column="1" x:Name="DesktopShortcutCheckBox" Content="WAU Desktop shortcut" Margin="0,0,5,5"
                 ToolTip="Create/delete 'Run WAU' shortcut on Desktop"/>
         <CheckBox Grid.Row="1" Grid.Column="2" x:Name="AppInstallerShortcutCheckBox" Content="App Installer Desktop shortcut" Margin="0,0,5,5"

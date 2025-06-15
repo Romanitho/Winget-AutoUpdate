@@ -405,24 +405,6 @@ function Set-WAUConfig {
             }
         }
 
-        # Check if WAU schedule is disabled and create Run WAU desktop shortcut if needed
-        if ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -eq 'Never') {
-            # Always create if it doesn't exist when schedule is disabled (regardless of desktop shortcut setting)
-            if (-not (Test-Path $Script:DESKTOP_RUN_WAU)) {
-                Add-Shortcut $Script:DESKTOP_RUN_WAU $Script:CONHOST_EXE "$($currentConfig.InstallLocation)" "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" "$Script:WAU_ICON" "Winget AutoUpdate" "Normal"
-                # Mirror shortcut creation to registry
-                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value 1 -Force
-            }
-        }
-        # Remove Run WAU desktop shortcut if schedule is enabled and desktop shortcuts are disabled
-        elseif ($Settings.ContainsKey('WAU_UpdatesInterval') -and $Settings['WAU_UpdatesInterval'] -ne 'Never' -and $Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
-            if (Test-Path $Script:DESKTOP_RUN_WAU) {
-                Remove-Item -Path $Script:DESKTOP_RUN_WAU -Force
-                # Mirror shortcut removal to registry
-                Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value 0 -Force
-            }
-        }
-
         # Remove WAU Settings desktop shortcut if Start Menu shortcuts are created
         if ($Settings.ContainsKey('WAU_StartMenuShortcut') -and $Settings['WAU_StartMenuShortcut'] -eq 1) {
             if (Test-Path $Script:DESKTOP_WAU_SETTINGS) {

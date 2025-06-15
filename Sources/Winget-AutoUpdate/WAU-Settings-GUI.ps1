@@ -59,7 +59,7 @@ Function Start-PopUp ($Message) {
     if (!$PopUpWindow) {
 
         # Load XAML from config file
-        $xamlConfigPath = Join-Path $Script:WorkingDir "config\xaml-popup.txt"
+        $xamlConfigPath = Join-Path $Script:WorkingDir "config\xaml-settings-popup.txt"
         if (Test-Path $xamlConfigPath) {
             $inputXML = Get-Content $xamlConfigPath -Raw
             
@@ -903,7 +903,7 @@ function Show-WAUSettingsGUI {
     $currentConfig = Get-WAUCurrentConfig
     
     # Load XAML from config file
-    $xamlConfigPath = Join-Path $Script:WorkingDir "config\xaml-window.txt"
+    $xamlConfigPath = Join-Path $Script:WorkingDir "config\xaml-settings-window.txt"
     if (Test-Path $xamlConfigPath) {
         $inputXML = Get-Content $xamlConfigPath -Raw
         

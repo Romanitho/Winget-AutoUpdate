@@ -1393,6 +1393,7 @@ if (Test-Path $wauIconPath) {
     $systemTemp = [System.Environment]::GetEnvironmentVariable("TEMP", [System.EnvironmentVariableTarget]::Machine)
     if (-not $systemTemp) { $systemTemp = "$env:SystemRoot\Temp" }
     $iconDest = Join-Path $systemTemp "icon.ico"
+    # Only extract if the icon doesn't already exist
     if (-not (Test-Path $iconDest)) {
         $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($iconSource)
         $fs = [System.IO.File]::Open($iconDest, [System.IO.FileMode]::Create)

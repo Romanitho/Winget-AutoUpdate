@@ -171,7 +171,7 @@
             <TextBlock>
                 Create/delete Start menu shortcuts:
                 <LineBreak/>
-                '$Script:WAU_TITLE' Shortcut will be created on active User Desktop if deleted.
+                '$Script:WAU_TITLE' shortcut will be created on active User Desktop if deleted.
             </TextBlock>
             </CheckBox.ToolTip>
         </CheckBox>

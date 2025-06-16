@@ -63,7 +63,7 @@ Function Start-PopUp ($Message) {
         #Read the form
         $Reader = (New-Object System.Xml.XmlNodeReader $XAML)
         $Script:PopUpWindow = [Windows.Markup.XamlReader]::Load($Reader)
-        $PopUpWindow.Icon = $IconBase64
+        $PopUpWindow.Icon = $Script:WAU_ICON
 
         # Make sure window stays on top (redundant, but ensures behavior)
         $PopUpWindow.Topmost = $true
@@ -875,7 +875,7 @@ function Show-WAUSettingsGUI {
     [xml]$xamlXML = $Script:WINDOW_XAML -replace 'x:N', 'N'
     $reader = (New-Object System.Xml.XmlNodeReader $xamlXML)
     $window = [Windows.Markup.XamlReader]::Load($reader)
-    $window.Icon = $IconBase64
+    $window.Icon = $Script:WAU_ICON
     
     # Get controls
     $controls = @{}
@@ -1349,16 +1349,6 @@ $null = cmd /c ''
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $ProgressPreference = 'SilentlyContinue'
 
-# Load icon from config file
-$iconConfigPath = Join-Path $Script:WorkingDir "config\icon.txt"
-if (Test-Path $iconConfigPath) {
-    $Script:IconBase64 = [Convert]::FromBase64String((Get-Content $iconConfigPath -Raw).Trim())
-} else {
-    # Fallback to default or show error
-    Write-Warning "Icon config file not found: $iconConfigPath"
-    $Script:IconBase64 = $null
-}
-
 # Load PopUp XAML from config file and store as constant
 $xamlConfigPath = Join-Path $Script:WorkingDir "config\settings-popup.xaml"
 if (Test-Path $xamlConfigPath) {
@@ -1390,12 +1380,15 @@ if (Test-Path $xamlConfigPath) {
     exit 1
 }
 
-#Pop "Starting..."
-Start-PopUp "Gathering Data..."
-
 # Get WAU installation info once and store as constants
 $Script:WAU_INSTALL_INFO = Test-InstalledWAU -DisplayName "Winget-AutoUpdate"
 $Script:WAU_VERSION = if ($Script:WAU_INSTALL_INFO.Count -ge 1) { $Script:WAU_INSTALL_INFO[0] } else { "Unknown" }
+$Script:WAU_GUID = if ($Script:WAU_INSTALL_INFO.Count -ge 2) { $Script:WAU_INSTALL_INFO[1] } else { $null }
+$Script:WAU_ICON = "${env:SystemRoot}\Installer\${Script:WAU_GUID}\icon.ico"
+
+#Pop "Starting..."
+Start-PopUp "Gathering Data..."
+
 # Get WinGet version by running 'winget -v'
 try {
     $wingetVersionOutput = winget -v 2>$null
@@ -1403,8 +1396,6 @@ try {
 } catch {
     $Script:WINGET_VERSION = "Unknown"
 }
-$Script:WAU_GUID = if ($Script:WAU_INSTALL_INFO.Count -ge 2) { $Script:WAU_INSTALL_INFO[1] } else { $null }
-$Script:WAU_ICON = "${env:SystemRoot}\Installer\${Script:WAU_GUID}\icon.ico"
 
 # Show the GUI
 Show-WAUSettingsGUI

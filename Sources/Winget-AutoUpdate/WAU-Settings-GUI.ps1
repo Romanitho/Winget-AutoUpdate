@@ -1384,7 +1384,21 @@ if (Test-Path $xamlConfigPath) {
 $Script:WAU_INSTALL_INFO = Test-InstalledWAU -DisplayName "Winget-AutoUpdate"
 $Script:WAU_VERSION = if ($Script:WAU_INSTALL_INFO.Count -ge 1) { $Script:WAU_INSTALL_INFO[0] } else { "Unknown" }
 $Script:WAU_GUID = if ($Script:WAU_INSTALL_INFO.Count -ge 2) { $Script:WAU_INSTALL_INFO[1] } else { $null }
-$Script:WAU_ICON = "${env:SystemRoot}\Installer\${Script:WAU_GUID}\icon.ico"
+$wauIconPath = "${env:SystemRoot}\Installer\${Script:WAU_GUID}\icon.ico"
+if (Test-Path $wauIconPath) {
+    $Script:WAU_ICON = $wauIconPath
+} else {
+    # If missing, fallback and extract icon from PowerShell.exe and save as icon.ico in SYSTEM TEMP
+    $iconSource = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
+    $systemTemp = [System.Environment]::GetEnvironmentVariable("TEMP", [System.EnvironmentVariableTarget]::Machine)
+    if (-not $systemTemp) { $systemTemp = "$env:SystemRoot\Temp" }
+    $iconDest = Join-Path $systemTemp "icon.ico"
+    $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($iconSource)
+    $fs = [System.IO.File]::Open($iconDest, [System.IO.FileMode]::Create)
+    $icon.Save($fs)
+    $fs.Close()
+    $Script:WAU_ICON = $iconDest
+}
 
 #Pop "Starting..."
 Start-PopUp "Gathering Data..."

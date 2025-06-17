@@ -657,7 +657,8 @@ function Update-WAUGUIFromConfig {
     }
     
     # Update time and delay
-    $Controls.UpdateTimeTextBox.Text = (Get-DisplayValue -PropertyName "WAU_UpdatesAtTime" -Config $updatedConfig -Policies $updatedPolicies).ToString()
+    $updateTime = (Get-DisplayValue -PropertyName "WAU_UpdatesAtTime" -Config $updatedConfig -Policies $updatedPolicies).ToString()
+    $Controls.UpdateTimeTextBox.Text = $updateTime.Substring(0, $updateTime.Length - 3)
     $Controls.RandomDelayTextBox.Text = (Get-DisplayValue -PropertyName "WAU_UpdatesTimeDelay" -Config $updatedConfig -Policies $updatedPolicies).ToString()
     
     # Update paths
@@ -1142,11 +1143,11 @@ function Show-WAUSettingsGUI {
             
             # Validate time format
             try {
-                [datetime]::ParseExact($controls.UpdateTimeTextBox.Text, "HH:mm:ss", $null) | Out-Null
+                [datetime]::ParseExact($controls.UpdateTimeTextBox.Text, "HH:mm", $null) | Out-Null
             }
             catch {
                 Close-PopUp
-                [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm:ss format (e.g., 06:00:00)", "Error", "OK", "Error")
+                [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 06:00)", "Error", "OK", "Error")
                 $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
                 return
@@ -1168,7 +1169,7 @@ function Show-WAUSettingsGUI {
             $newSettings = @{
                 WAU_NotificationLevel = $controls.NotificationLevelComboBox.SelectedItem.Tag
                 WAU_UpdatesInterval = $controls.UpdateIntervalComboBox.SelectedItem.Tag
-                WAU_UpdatesAtTime = $controls.UpdateTimeTextBox.Text
+                WAU_UpdatesAtTime = "$($controls.UpdateTimeTextBox.Text):00"
                 WAU_UpdatesTimeDelay = $controls.RandomDelayTextBox.Text
                 WAU_ListPath = $controls.ListPathTextBox.Text
                 WAU_ModsPath = $controls.ModsPathTextBox.Text

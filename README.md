@@ -78,7 +78,7 @@ By default, scripts and components will be placed in "Program Files" location (i
 Post installation: all settings can be managed via the **WAU Settings (Administrator)** shortcut installed if `STARTMENUSHORTCUT=1` is set during installation (if not set `WAU-Settings-GUI.ps1` can be run manually as an **Administrator**)
 
 Managed by Registry (local):
-![image](https://github.com/user-attachments/assets/260ac393-4a09-4e99-b64c-60b9df49c206)
+![image](https://github.com/user-attachments/assets/75b117ab-886e-43c3-9858-1da51cea2d4f)
 
 Dev Tools (F12):
 ![image](https://github.com/user-attachments/assets/1acb6e19-a58d-41a7-a468-50136373b7a2)

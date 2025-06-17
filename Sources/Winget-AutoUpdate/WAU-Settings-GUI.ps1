@@ -41,6 +41,7 @@ $Script:COLOR_DISABLED = "#FF6666" # Light red
 $Script:COLOR_ACTIVE = "Orange"
 $Script:COLOR_INACTIVE = "Gray" # Grey
 $Script:STATUS_READY_TEXT = "Ready (F12: Dev Tools)"
+$Script:STATUS_DONE_TEXT = "Done"
 $Script:WAIT_TIME = 1000 # 1 second wait time for UI updates
 
 # Get current script directory
@@ -945,7 +946,7 @@ function Show-WAUSettingsGUI {
             Start-Process $taskschdPath
 
             # Update status to "Done"
-            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
             # Create timer to reset status back to ready after standard wait time
@@ -975,7 +976,7 @@ function Show-WAUSettingsGUI {
             Start-Process "regedit.exe"
             
             # Update status to "Done"
-            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
             # Create timer to reset status back to ready after standard wait time
@@ -1007,7 +1008,7 @@ function Show-WAUSettingsGUI {
             Start-Process "explorer.exe" -ArgumentList "${env:SystemRoot}\Installer\${Script:WAU_GUID}"
 
             # Update status to "Done"
-            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
             # Create timer to reset status back to ready after standard wait time
@@ -1061,7 +1062,7 @@ function Show-WAUSettingsGUI {
             }
 
             # Update status to "Done"
-            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
             # Create timer to reset status back to ready after standard wait time
@@ -1113,7 +1114,7 @@ function Show-WAUSettingsGUI {
                 $controls.StatusBarText.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
                     Start-Sleep -Milliseconds $Script:WAIT_TIME
                     # Update status to "Done"
-                    $controls.StatusBarText.Text = "Done"
+                    $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
                     $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
                     Close-PopUp
                     
@@ -1191,7 +1192,7 @@ function Show-WAUSettingsGUI {
             # Save settings
             if (Set-WAUConfig -Settings $newSettings) {
                 # Update status to "Done"
-                $controls.StatusBarText.Text = "Done"
+                $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
                 $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
                 
                 # Update GUI settings without popup (skip popup for normal mode too when updating after save)
@@ -1211,7 +1212,7 @@ function Show-WAUSettingsGUI {
 
     # Cancel button handler to close window
     $controls.CancelButton.Add_Click({
-        $controls.StatusBarText.Text = "Done"
+        $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
         $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
         
         # Create timer to reset status and close window after 1 seconds
@@ -1232,7 +1233,7 @@ function Show-WAUSettingsGUI {
         Start-PopUp "WAU Update task starting..."
         Start-WAUManually
         # Update status to "Done"
-        $controls.StatusBarText.Text = "Done"
+        $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
         $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
         
         # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after standard wait time
@@ -1249,6 +1250,30 @@ function Show-WAUSettingsGUI {
     $window.Add_PreviewKeyDown({
         if ($_.Key -eq 'Return' -or $_.Key -eq 'Enter') {
             $controls.SaveButton.RaiseEvent([Windows.RoutedEventArgs][Windows.Controls.Primitives.ButtonBase]::ClickEvent)
+            $_.Handled = $true
+        }
+        # F5 key handler to refresh settings from config
+        elseif ($_.Key -eq 'F5') {
+            # Update status to "Refreshing"
+            $controls.StatusBarText.Text = "Refreshing..."
+            $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
+            Start-PopUp "Refreshing settings..."
+            
+            # Refresh all settings from config
+            Update-WAUGUIFromConfig -Controls $controls
+
+            # Reset status to "Done"
+            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+
+            # Create timer to reset status back to ready after half standard wait time
+            $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
+                $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
+                $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
+                Close-PopUp
+            }) | Out-Null
+            
             $_.Handled = $true
         }
         # F12 key handler to toggle dev buttons visibility
@@ -1271,11 +1296,11 @@ function Show-WAUSettingsGUI {
             $_.Handled = $true
         }        
     })
-
+    
     # ESC key handler to close window
     $window.Add_KeyDown({
         if ($_.Key -eq "Escape") {
-            $controls.StatusBarText.Text = "Done"
+            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
             $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
             # Create timer to reset status and close window after 1 seconds
@@ -1300,7 +1325,7 @@ function Show-WAUSettingsGUI {
             if (Test-Path $logPath) {
                 Start-Process "explorer.exe" -ArgumentList $logPath
                 # Update status to "Done"
-                $controls.StatusBarText.Text = "Done"
+                $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
                 $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
                 
                 # Create timer to reset status back to "$Script:STATUS_READY_TEXT" after standard wait time

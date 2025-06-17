@@ -84,7 +84,7 @@ Dev Tools (F12):
 ![image](https://github.com/user-attachments/assets/1acb6e19-a58d-41a7-a468-50136373b7a2)
 
 Managed by GPO (central/local):
-![image](https://github.com/user-attachments/assets/0e3be662-b2f1-4d62-9bcc-ed0cf3965b83)
+![image](https://github.com/user-attachments/assets/7d462619-89b7-4b45-8d18-11b441f7352b)
 
 
 ## Update WAU

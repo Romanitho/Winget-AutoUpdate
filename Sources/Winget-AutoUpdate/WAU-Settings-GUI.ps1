@@ -40,7 +40,7 @@ $Script:COLOR_ENABLED = "#228B22"  # Forest green
 $Script:COLOR_DISABLED = "#FF6666" # Light red
 $Script:COLOR_ACTIVE = "Orange"
 $Script:COLOR_INACTIVE = "Gray" # Grey
-$Script:STATUS_READY_TEXT = "Ready (F12: Dev Tools)"
+$Script:STATUS_READY_TEXT = "Ready (F5 Load/F12 Dev)"
 $Script:STATUS_DONE_TEXT = "Done"
 $Script:WAIT_TIME = 1000 # 1 second wait time for UI updates
 
@@ -87,7 +87,6 @@ Function Close-PopUp {
         $Script:PopUpWindow = $null
     }
 }
-
 function Add-Shortcut ($Shortcut, $Target, $StartIn, $Arguments, $Icon, $Description, $WindowStyle = "Normal") {
     $WScriptShell = New-Object -ComObject WScript.Shell
     $ShortcutObj = $WScriptShell.CreateShortcut($Shortcut)
@@ -297,8 +296,6 @@ function Update-WAUScheduledTask {
         [System.Windows.MessageBox]::Show("Failed to update scheduled task: $($_.Exception.Message)", "Error", "OK", "Error")
     }
 }
-
-# 3. Main configuration function (depends on above)
 function Set-WAUConfig {
     param(
         [hashtable]$Settings
@@ -439,6 +436,240 @@ function Set-WAUConfig {
     }
 }
 
+# 3. WAU operation functions (depends on config functions)
+function New-WAUTransformFile {
+    param($controls)
+    try {
+        Start-PopUp "Locate WAU MSI..."
+
+        # Open a file selection dialog to choose a location for WAU.msi
+        $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+        $openFileDialog.Title = "Locate WAU.msi"
+        $openFileDialog.Filter = "WAU.msi|WAU.msi"
+        $openFileDialog.FileName = "WAU.msi"
+        $openFileDialog.RestoreDirectory = $true
+        
+        if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            $selectedFile = $openFileDialog.FileName
+            
+            Close-PopUp
+            
+            try {
+                # Create a Windows Installer object
+                $installer = New-Object -ComObject WindowsInstaller.Installer
+                $database = $installer.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $installer, @($selectedFile, 0))
+                
+                # Extract GUID from WAU.msi
+                $view = $database.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $database, "SELECT Value FROM Property WHERE Property = 'ProductCode'")
+                $view.GetType().InvokeMember("Execute", "InvokeMethod", $null, $view, $null)
+                
+                $record = $view.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $view, $null)
+                $guid = $null
+                if ($record) {
+                    $guid = $record.GetType().InvokeMember("StringData", "GetProperty", $null, $record, 1)
+                    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($record) | Out-Null
+                }
+                
+                $view.GetType().InvokeMember("Close", "InvokeMethod", $null, $view, $null)
+                [System.Runtime.InteropServices.Marshal]::ReleaseComObject($view) | Out-Null
+                
+                if ($guid) {
+                    # Create transform file name by removing from '(' to end and trimming
+                    $transformName = if ($Script:WAU_TITLE -match '^(.+?)\s*\(') {
+                        $matches[1].Trim() + '.mst'
+                    } else {
+                        $Script:WAU_TITLE.Trim() + '.mst'
+                    }
+                    
+                    # Get directory of the selected MSI file
+                    $msiDirectory = [System.IO.Path]::GetDirectoryName($selectedFile)
+                    $transformPath = [System.IO.Path]::Combine($msiDirectory, $transformName)
+                    
+                    # Create a copy of the MSI to modify
+                    $tempPath = [System.IO.Path]::GetTempFileName()
+                    Copy-Item $selectedFile $tempPath -Force
+                    $modifiedDb = $installer.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $installer, @($tempPath, 1))
+                    
+                    # Collect all properties from form controls
+                    $properties = @{
+                        'REBOOT' = 'R'  # Always set REBOOT=R
+                    }
+                    
+                    # Map control values to MSI properties (ALL PROPERTIES IN UPPERCASE)
+                    # Always add properties, even if empty/default
+                    
+                    # ComboBox selections
+                    $properties['UPDATESINTERVAL'] = if ($controls.UpdateIntervalComboBox.SelectedItem) { 
+                        $controls.UpdateIntervalComboBox.SelectedItem.Tag 
+                    } else { 
+                        'Never'  # Default value
+                    }
+                    
+                    $properties['NOTIFICATIONLEVEL'] = if ($controls.NotificationLevelComboBox.SelectedItem) { 
+                        $controls.NotificationLevelComboBox.SelectedItem.Tag 
+                    } else { 
+                        'Full'  # Default value
+                    }
+                    
+                    # Time settings - always include even if empty
+                    $properties['UPDATESATTIME'] = if (![string]::IsNullOrWhiteSpace($controls.UpdateTimeTextBox.Text)) {
+                        "$($controls.UpdateTimeTextBox.Text):00"
+                    } else {
+                        "06:00:00"  # Default time
+                    }
+                    
+                    $properties['UPDATESTIMEDELAY'] = if (![string]::IsNullOrWhiteSpace($controls.RandomDelayTextBox.Text)) {
+                        $controls.RandomDelayTextBox.Text
+                    } else {
+                        "00:00"  # Default delay
+                    }
+                    
+                    # Path settings - always include even if empty
+                    $properties['LISTPATH'] = if (![string]::IsNullOrWhiteSpace($controls.ListPathTextBox.Text)) {
+                        $controls.ListPathTextBox.Text
+                    } else {
+                        ""  # Empty string
+                    }
+                    
+                    $properties['MODSPATH'] = if (![string]::IsNullOrWhiteSpace($controls.ModsPathTextBox.Text)) {
+                        $controls.ModsPathTextBox.Text
+                    } else {
+                        ""  # Empty string
+                    }
+                    
+                    $properties['AZUREBLOBSASURL'] = if (![string]::IsNullOrWhiteSpace($controls.AzureBlobSASURLTextBox.Text)) {
+                        $controls.AzureBlobSASURLTextBox.Text
+                    } else {
+                        ""  # Empty string
+                    }
+                    
+                    # Checkbox properties - always include (1 for checked, 0 for unchecked)
+                    $properties['DISABLEAUTOUPDATE'] = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['UPDATEPRERELEASE'] = if ($controls.UpdatePreReleaseCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['DONOTRUNONMETERED'] = if ($controls.DoNotRunOnMeteredCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['STARTMENUSHORTCUT'] = if ($controls.StartMenuShortcutCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['DESKTOPSHORTCUT'] = if ($controls.DesktopShortcutCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['APPINSTALLERSHORTCUT'] = if ($controls.AppInstallerShortcutCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['UPDATESATLOGON'] = if ($controls.UpdatesAtLogonCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['USERCONTEXT'] = if ($controls.UserContextCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['BYPASSLISTFORUSERS'] = if ($controls.BypassListForUsersCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['USEWHITELIST'] = if ($controls.UseWhiteListCheckBox.IsChecked) { '1' } else { '0' }
+                    
+                    # Log settings - always include
+                    $properties['MAXLOGFILES'] = if ($controls.MaxLogFilesComboBox.SelectedItem) {
+                        $controls.MaxLogFilesComboBox.SelectedItem.Content
+                    } else {
+                        '3'  # Default value
+                    }
+                    
+                    $properties['MAXLOGSIZE'] = if ($controls.MaxLogSizeComboBox.SelectedItem -and $controls.MaxLogSizeComboBox.SelectedItem.Tag) {
+                        $controls.MaxLogSizeComboBox.SelectedItem.Tag
+                    } elseif (![string]::IsNullOrWhiteSpace($controls.MaxLogSizeComboBox.Text)) {
+                        $controls.MaxLogSizeComboBox.Text
+                    } else {
+                        '1048576'  # Default 1MB in bytes
+                    }
+                    
+                    # Add/Update all properties in the modified database
+                    foreach ($propName in $properties.Keys) {
+                        $propValue = $properties[$propName]
+                        
+                        try {
+                            # Try to update existing property first
+                            $updateView = $modifiedDb.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $modifiedDb, "UPDATE Property SET Value = '$propValue' WHERE Property = '$propName'")
+                            $updateView.GetType().InvokeMember("Execute", "InvokeMethod", $null, $updateView, $null)
+                            $updateView.GetType().InvokeMember("Close", "InvokeMethod", $null, $updateView, $null)
+                            [System.Runtime.InteropServices.Marshal]::ReleaseComObject($updateView) | Out-Null
+                            
+                            # If UPDATE didn't work, try INSERT
+                            $insertView = $modifiedDb.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $modifiedDb, "INSERT INTO Property (Property, Value) VALUES ('$propName', '$propValue')")
+                            try {
+                                $insertView.GetType().InvokeMember("Execute", "InvokeMethod", $null, $insertView, $null)
+                            }
+                            catch {
+                                # Property already exists or other issue, continue
+                            }
+                            $insertView.GetType().InvokeMember("Close", "InvokeMethod", $null, $insertView, $null)
+                            [System.Runtime.InteropServices.Marshal]::ReleaseComObject($insertView) | Out-Null
+                        }
+                        catch {
+                            # Continue even if property update fails
+                            Write-Warning "Failed to set property $propName = $propValue"
+                        }
+                    }
+                    
+                    # Commit changes to modified database
+                    $modifiedDb.GetType().InvokeMember("Commit", "InvokeMethod", $null, $modifiedDb, $null)
+                    
+                    # Generate transform between original and modified databases
+                    $modifiedDb.GetType().InvokeMember("GenerateTransform", "InvokeMethod", $null, $modifiedDb, @($database, $transformPath))
+                    
+                    # Create transform summary info to make it valid
+                    $modifiedDb.GetType().InvokeMember("CreateTransformSummaryInfo", "InvokeMethod", $null, $modifiedDb, @($database, $transformPath, 0, 0))
+                    
+                    # Copy GUID to clipboard
+                    Set-Clipboard -Value $guid
+                    
+                    # Create summary of properties set (exclude empty values from display)
+                    $propertiesSummary = ($properties.GetEnumerator() | Where-Object { $_.Value -ne "" } | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join "`n"
+
+                    # Create a .cmd file with the same name as the .mst but with 'Install' appended
+                    $cmdFileName = [System.IO.Path]::GetFileNameWithoutExtension($transformName) + "-Install.cmd"
+                    $cmdFilePath = [System.IO.Path]::Combine($msiDirectory, $cmdFileName)
+                    $msiFileName = [System.IO.Path]::GetFileName($selectedFile)
+                    $cmdContent = "msiexec /i `"%~dp0$msiFileName`" TRANSFORMS=`"%~dp0$transformName`" /qn"
+                    Set-Content -Path $cmdFilePath -Value $cmdContent -Encoding ASCII
+
+                    [System.Windows.MessageBox]::Show("Transform file created successfully!`n`nTransform File: $transformName`nLocation: $transformPath`n`nInstall script created: $cmdFileName`n`nProperties Set:`n$propertiesSummary`n`nProduct Code: $guid`nThe Product Code has been copied to your clipboard.", "Transform Created", "OK", "Information")
+                } else {
+                    [System.Windows.MessageBox]::Show("Could not extract Product Code from the MSI file.", "Error", "OK", "Error")
+                }
+                
+                # Clean up temp file
+                if (Test-Path $tempPath) {
+                    Remove-Item $tempPath -Force -ErrorAction SilentlyContinue
+                }
+            }
+            catch {
+                [System.Windows.MessageBox]::Show("Failed to process MSI file: $($_.Exception.Message)", "Error", "OK", "Error")
+            }
+            finally {
+                # Clean up all COM objects once at the end
+                if ($modifiedDb) { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($modifiedDb) | Out-Null }
+                if ($database) { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($database) | Out-Null }
+                if ($installer) { [System.Runtime.InteropServices.Marshal]::ReleaseComObject($installer) | Out-Null }
+            }
+        } else {
+            Close-PopUp
+        }
+        
+        return $true
+    }
+    catch {
+        Close-PopUp
+        [System.Windows.MessageBox]::Show("Failed to process MSI file: $($_.Exception.Message)", "Error", "OK", "Error")
+        return $false
+    }
+}
+function Start-WAUManually {
+    try {
+        $currentConfig = Get-WAUCurrentConfig
+        $task = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue
+        if ($task) {
+            Start-Process -FilePath $Script:CONHOST_EXE `
+                -ArgumentList "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" `
+                -ErrorAction Stop
+        } else {
+            Close-PopUp
+            [System.Windows.MessageBox]::Show("WAU scheduled task not found!", "Error", "OK", "Error")
+        }
+    }
+    catch {
+        Close-PopUp
+        [System.Windows.MessageBox]::Show("Failed to start WAU: $($_.Exception.Message)", "Error", "OK", "Error")
+    }
+}
+
 # 4. GUI helper functions (depends on config functions)
 function Update-StatusDisplay {
     param($controls)
@@ -467,7 +698,7 @@ function Set-ControlsState {
 
     $alwaysEnabledControls = @(
         'SaveButton', 'CancelButton', 'RunNowButton', 'OpenLogsButton',
-        'DevTaskButton', 'DevRegButton', 'DevGUIDButton', 'DevListButton'
+        'DevTaskButton', 'DevRegButton', 'DevGUIDButton', 'DevListButton', 'DevMSTButton'
     )
 
     function Get-Children($control) {
@@ -580,10 +811,10 @@ function Update-GPOManagementState {
             # Show popup when GPO is controlling settings with delay to ensure main window is visible first
             $controls.StatusBarText.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
                 Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)  # Small delay to ensure main window is rendered
-                Start-PopUp "Only shortcut settings can be modified when GPO Management is active..."
+                Start-PopUp "Only Shortcut Settings can be modified when GPO Management is active..."
                 
-                # Close the popup after showing it for 3 standard wait times
-                Start-Sleep -Milliseconds ($Script:WAIT_TIME * 3)
+                # Close the popup after showing it for 2 standard wait times
+                Start-Sleep -Milliseconds ($Script:WAIT_TIME * 2)
                 Close-PopUp
             }) | Out-Null
         }
@@ -847,27 +1078,246 @@ function Update-WAUGUIFromConfig {
     }
 }
 
-# 5. Manual start function
-function Start-WAUManually {
-    try {
-        $currentConfig = Get-WAUCurrentConfig
-        $task = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue
-        if ($task) {
-            Start-Process -FilePath $Script:CONHOST_EXE `
-                -ArgumentList "$Script:POWERSHELL_ARGS `"$($currentConfig.InstallLocation)$Script:USER_RUN_SCRIPT`"" `
-                -ErrorAction Stop
+# 5. GUI action functions (depends on config + GUI helper functions)
+function Save-WAUSettings {
+    param($controls)
+
+        # Check if settings are controlled by GPO
+        $updatedConfig = Get-WAUCurrentConfig
+        $updatedPolicies = $null
+        try {
+            $updatedPolicies = Get-ItemProperty -Path $Script:WAU_POLICIES_PATH -ErrorAction SilentlyContinue
+        }
+        catch {
+            # GPO registry key doesn't exist or can't be read
+        }
+
+        $wauActivateGPOManagementEnabled = ($updatedPolicies.WAU_ActivateGPOManagement -eq 1)
+        $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
+        
+        if ($wauActivateGPOManagementEnabled -and $wauRunGPOManagementEnabled) {
+            # For GPO mode - show popup immediately without delay
+            Start-PopUp "Saving WAU Settings..."
+            # Update status to "Saving..."
+            $controls.StatusBarText.Text = "Saving..."
+            $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
+
+            # Only allow saving shortcut settings
+            $newSettings = @{
+                WAU_AppInstallerShortcut = if ($controls.AppInstallerShortcutCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_DesktopShortcut = if ($controls.DesktopShortcutCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_StartMenuShortcut = if ($controls.StartMenuShortcutCheckBox.IsChecked) { 1 } else { 0 }
+            }
+            
+            # Save settings and close popup after a short delay
+            if (Set-WAUConfig -Settings $newSettings) {
+                # Close popup after default wait time and update GUI
+                $controls.StatusBarText.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                    Start-Sleep -Milliseconds $Script:WAIT_TIME
+                    # Update status to "Done"
+                    $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+                    $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+                    Close-PopUp
+                    
+                    # Update GUI settings
+                    $updatedConfigAfterSave = Get-WAUCurrentConfig
+
+                    # Update only the shortcut checkboxes since that's all we saved
+                    $controls.AppInstallerShortcutCheckBox.IsChecked = ($updatedConfigAfterSave.WAU_AppInstallerShortcut -eq 1)
+                    $controls.DesktopShortcutCheckBox.IsChecked = ($updatedConfigAfterSave.WAU_DesktopShortcut -eq 1)
+                    $controls.StartMenuShortcutCheckBox.IsChecked = ($updatedConfigAfterSave.WAU_StartMenuShortcut -eq 1)
+                    
+                    # Update GPO management state but SKIP the popup since we're updating after save
+                    Update-GPOManagementState -Controls $controls -skipPopup $true
+                }) | Out-Null
+            } else {
+                Close-PopUp
+                [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
+            }
         } else {
-            Close-PopUp
-            [System.Windows.MessageBox]::Show("WAU scheduled task not found!", "Error", "OK", "Error")
+            Start-PopUp "Saving WAU Settings..."
+            # Update status to "Saving..."
+            $controls.StatusBarText.Text = "Saving..."
+            $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
+            
+            # Force UI update
+            [System.Windows.Forms.Application]::DoEvents()
+            
+            # Validate time format
+            try {
+                [datetime]::ParseExact($controls.UpdateTimeTextBox.Text, "HH:mm", $null) | Out-Null
+            }
+            catch {
+                Close-PopUp
+                [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 06:00)", "Error", "OK", "Error")
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                return
+            }
+            
+            # Validate random delay format
+            try {
+                [datetime]::ParseExact($controls.RandomDelayTextBox.Text, "HH:mm", $null) | Out-Null
+            }
+            catch {
+                Close-PopUp
+                [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 00:00)", "Error", "OK", "Error")
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                return
+            }
+        
+            # Prepare settings hashtable
+            $newSettings = @{
+                WAU_UpdatesInterval = $controls.UpdateIntervalComboBox.SelectedItem.Tag
+                WAU_NotificationLevel = $controls.NotificationLevelComboBox.SelectedItem.Tag
+                WAU_UpdatesAtTime = "$($controls.UpdateTimeTextBox.Text):00"
+                WAU_UpdatesTimeDelay = $controls.RandomDelayTextBox.Text
+                WAU_ListPath = $controls.ListPathTextBox.Text
+                WAU_ModsPath = $controls.ModsPathTextBox.Text
+                WAU_AzureBlobSASURL = $controls.AzureBlobSASURLTextBox.Text
+                WAU_DisableAutoUpdate = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_UpdatePreRelease = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 0 } elseif ($controls.UpdatePreReleaseCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_DoNotRunOnMetered = if ($controls.DoNotRunOnMeteredCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_StartMenuShortcut = if ($controls.StartMenuShortcutCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_DesktopShortcut = if ($controls.DesktopShortcutCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_AppInstallerShortcut = if ($controls.AppInstallerShortcutCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_UpdatesAtLogon = if ($controls.UpdatesAtLogonCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_UserContext = if ($controls.UserContextCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_BypassListForUsers = if ($controls.BypassListForUsersCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_UseWhiteList = if ($controls.UseWhiteListCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_MaxLogFiles = $controls.MaxLogFilesComboBox.SelectedItem.Content
+                WAU_MaxLogSize = if ($controls.MaxLogSizeComboBox.SelectedItem -and $controls.MaxLogSizeComboBox.SelectedItem.Tag) { $controls.MaxLogSizeComboBox.SelectedItem.Tag } else { $controls.MaxLogSizeComboBox.Text }
+            }
+            
+            # Save settings
+            if (Set-WAUConfig -Settings $newSettings) {
+                # Update status to "Done"
+                $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+                $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+                
+                # Update GUI settings without popup (skip popup for normal mode too when updating after save)
+                Update-WAUGUIFromConfig -Controls $controls
+            } else {
+                Close-PopUp
+                [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
+            }
+        }
+        # Create timer to reset status back to ready after half standard wait time
+        $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+            Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
+            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+        }) | Out-Null
+}
+function Test-WindowKeyPress {
+    param($controls, $window, $keyEventArgs)
+    
+    switch ($keyEventArgs.Key) {
+        'F5' { 
+            Invoke-SettingsLoad -controls $controls
+            $keyEventArgs.Handled = $true
+        }
+        'F12' { 
+            Set-DevToolsVisibility -controls $controls -window $window
+            $keyEventArgs.Handled = $true
+        }
+        'Enter' { 
+            if ($keyEventArgs.KeyboardDevice.Modifiers -eq [System.Windows.Input.ModifierKeys]::None) {
+                Save-WAUSettings -controls $controls
+                $keyEventArgs.Handled = $true
+            }
+        }
+        'Escape' { 
+            Close-WindowGracefully -controls $controls -window $window
+            $keyEventArgs.Handled = $true
         }
     }
+}
+function Invoke-SettingsLoad {
+    param($controls)
+    # Update status to "Loading"
+    $controls.StatusBarText.Text = "Loading..."
+    $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
+    Start-PopUp "Loading WAU Data..."
+    try {
+        # Refresh all settings from config and policies
+        Update-WAUGUIFromConfig -Controls $controls
+        Update-GPOManagementState -controls $controls -skipPopup $true
+
+        # Reset status to "Done"
+        $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+        $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+    }
     catch {
+        $controls.StatusBarText.Text = "Load failed"
+        $controls.StatusBarText.Foreground = $Script:COLOR_DISABLED
+    }
+    # Create timer to reset status back to ready after half standard wait time
+    $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+        Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
+        $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
+        $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
         Close-PopUp
-        [System.Windows.MessageBox]::Show("Failed to start WAU: $($_.Exception.Message)", "Error", "OK", "Error")
+    }) | Out-Null
+}
+function Set-DevToolsVisibility {
+    param($controls, $window)
+    if ($controls.DevTaskButton.Visibility -eq 'Collapsed') {
+        $controls.DevTaskButton.Visibility = 'Visible'
+        $controls.DevRegButton.Visibility = 'Visible'
+        $controls.DevGUIDButton.Visibility = 'Visible'
+        $controls.DevListButton.Visibility = 'Visible'
+        $controls.DevMSTButton.Visibility = 'Visible'
+        $controls.LinksStackPanel.Visibility = 'Visible'
+        $window.Title = "$Script:WAU_TITLE - Dev Tools"
+    } else {
+        $controls.DevTaskButton.Visibility = 'Collapsed'
+        $controls.DevRegButton.Visibility = 'Collapsed'
+        $controls.DevGUIDButton.Visibility = 'Collapsed'
+        $controls.DevListButton.Visibility = 'Collapsed'
+        $controls.DevMSTButton.Visibility = 'Collapsed'
+        $controls.LinksStackPanel.Visibility = 'Collapsed'
+        $window.Title = "$Script:WAU_TITLE"
+    }
+
+    # Reset status to "Done"
+    $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+    $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+
+    # Create timer to reset status back to ready after half standard wait time
+    $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+        Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
+        $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
+        $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
+    }) | Out-Null
+}
+function Close-WindowGracefully {
+    param($controls, $window)
+    try {
+        $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+        $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+        
+        # Create timer to reset status and close window after half standard wait time
+        $timer = New-Object System.Windows.Threading.DispatcherTimer
+        $timer.Interval = [TimeSpan]::FromMilliseconds($Script:WAIT_TIME / 2)
+        $timer.Add_Tick({
+            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+            if ($null -ne $timer) {
+                $timer.Stop()
+            }
+            $window.Close()
+        })
+        $timer.Start()
+    }
+    catch {
+        # Fallback force close
+        $window.DialogResult = $false
     }
 }
 
-# 6. GUI function (depends on most others)
+# 6. Main GUI function (depends on all above)
 function Show-WAUSettingsGUI {
     
     # Get current configuration
@@ -1079,154 +1529,29 @@ function Show-WAUSettingsGUI {
         }
     })
 
-    # Event handlers for controls
+    $controls.DevMSTButton.Add_Click({
+        if (New-WAUTransformFile -controls $controls) {
+            # Update status to "Done"
+            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+            
+            # Create timer to reset status back to ready after standard wait time
+            $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                Start-Sleep -Milliseconds $Script:WAIT_TIME
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+            }) | Out-Null
+        }
+    })
+
+    # Save button handler to save settings
     $controls.SaveButton.Add_Click({
-        # Check if settings are controlled by GPO
-        $updatedConfig = Get-WAUCurrentConfig
-        $updatedPolicies = $null
-        try {
-            $updatedPolicies = Get-ItemProperty -Path $Script:WAU_POLICIES_PATH -ErrorAction SilentlyContinue
-        }
-        catch {
-            # GPO registry key doesn't exist or can't be read
-        }
-
-        $wauActivateGPOManagementEnabled = ($updatedPolicies.WAU_ActivateGPOManagement -eq 1)
-        $wauRunGPOManagementEnabled = ($updatedConfig.WAU_RunGPOManagement -eq 1)
-        
-        if ($wauActivateGPOManagementEnabled -and $wauRunGPOManagementEnabled) {
-            # For GPO mode - show popup immediately without delay
-            Start-PopUp "Saving WAU settings..."
-            # Update status to "Saving settings"
-            $controls.StatusBarText.Text = "Saving settings..."
-            $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
-
-            # Only allow saving shortcut settings
-            $newSettings = @{
-                WAU_AppInstallerShortcut = if ($controls.AppInstallerShortcutCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_DesktopShortcut = if ($controls.DesktopShortcutCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_StartMenuShortcut = if ($controls.StartMenuShortcutCheckBox.IsChecked) { 1 } else { 0 }
-            }
-            
-            # Save settings and close popup after a short delay
-            if (Set-WAUConfig -Settings $newSettings) {
-                # Close popup after default wait time and update GUI
-                $controls.StatusBarText.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-                    Start-Sleep -Milliseconds $Script:WAIT_TIME
-                    # Update status to "Done"
-                    $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
-                    $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
-                    Close-PopUp
-                    
-                    # Update GUI settings
-                    $updatedConfigAfterSave = Get-WAUCurrentConfig
-
-                    # Update only the shortcut checkboxes since that's all we saved
-                    $controls.AppInstallerShortcutCheckBox.IsChecked = ($updatedConfigAfterSave.WAU_AppInstallerShortcut -eq 1)
-                    $controls.DesktopShortcutCheckBox.IsChecked = ($updatedConfigAfterSave.WAU_DesktopShortcut -eq 1)
-                    $controls.StartMenuShortcutCheckBox.IsChecked = ($updatedConfigAfterSave.WAU_StartMenuShortcut -eq 1)
-                    
-                    # Update GPO management state but SKIP the popup since we're updating after save
-                    Update-GPOManagementState -Controls $controls -skipPopup $true
-                }) | Out-Null
-            } else {
-                Close-PopUp
-                [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
-            }
-        } else {
-            Start-PopUp "Saving WAU settings..."
-            # Update status to "Saving settings"
-            $controls.StatusBarText.Text = "Saving settings..."
-            $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
-            
-            # Force UI update
-            [System.Windows.Forms.Application]::DoEvents()
-            
-            # Validate time format
-            try {
-                [datetime]::ParseExact($controls.UpdateTimeTextBox.Text, "HH:mm", $null) | Out-Null
-            }
-            catch {
-                Close-PopUp
-                [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 06:00)", "Error", "OK", "Error")
-                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-                return
-            }
-            
-            # Validate random delay format
-            try {
-                [datetime]::ParseExact($controls.RandomDelayTextBox.Text, "HH:mm", $null) | Out-Null
-            }
-            catch {
-                Close-PopUp
-                [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 00:00)", "Error", "OK", "Error")
-                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-                return
-            }
-        
-            # Prepare settings hashtable
-            $newSettings = @{
-                WAU_NotificationLevel = $controls.NotificationLevelComboBox.SelectedItem.Tag
-                WAU_UpdatesInterval = $controls.UpdateIntervalComboBox.SelectedItem.Tag
-                WAU_UpdatesAtTime = "$($controls.UpdateTimeTextBox.Text):00"
-                WAU_UpdatesTimeDelay = $controls.RandomDelayTextBox.Text
-                WAU_ListPath = $controls.ListPathTextBox.Text
-                WAU_ModsPath = $controls.ModsPathTextBox.Text
-                WAU_AzureBlobSASURL = $controls.AzureBlobSASURLTextBox.Text
-                WAU_MaxLogFiles = $controls.MaxLogFilesComboBox.SelectedItem.Content
-                WAU_MaxLogSize = if ($controls.MaxLogSizeComboBox.SelectedItem -and $controls.MaxLogSizeComboBox.SelectedItem.Tag) { $controls.MaxLogSizeComboBox.SelectedItem.Tag } else { $controls.MaxLogSizeComboBox.Text }
-                WAU_UpdatesAtLogon = if ($controls.UpdatesAtLogonCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_DoNotRunOnMetered = if ($controls.DoNotRunOnMeteredCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_UserContext = if ($controls.UserContextCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_BypassListForUsers = if ($controls.BypassListForUsersCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_DisableAutoUpdate = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_UpdatePreRelease = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 0 } elseif ($controls.UpdatePreReleaseCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_UseWhiteList = if ($controls.UseWhiteListCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_AppInstallerShortcut = if ($controls.AppInstallerShortcutCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_DesktopShortcut = if ($controls.DesktopShortcutCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_StartMenuShortcut = if ($controls.StartMenuShortcutCheckBox.IsChecked) { 1 } else { 0 }
-            }
-            
-            # Save settings
-            if (Set-WAUConfig -Settings $newSettings) {
-                # Update status to "Done"
-                $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
-                $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
-                
-                # Update GUI settings without popup (skip popup for normal mode too when updating after save)
-                Update-WAUGUIFromConfig -Controls $controls
-            } else {
-                Close-PopUp
-                [System.Windows.MessageBox]::Show("Failed to save settings.", "Error", "OK", "Error")
-            }
-        }
-        # Create timer to reset status back to ready after half standard wait time
-        $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-            Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
-            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-        }) | Out-Null
+        Save-WAUSettings -controls $controls
     })
 
     # Cancel button handler to close window
     $controls.CancelButton.Add_Click({
-        $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
-        $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
-        
-        # Create timer to reset status and close window after 1 seconds
-        $timer = New-Object System.Windows.Threading.DispatcherTimer
-        $timer.Interval = [TimeSpan]::FromSeconds(1)
-        $timer.Add_Tick({
-            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-            if ($null -ne $timer) {
-                $timer.Stop()
-            }
-            $window.Close()
-        })
-        $timer.Start()
+        Close-WindowGracefully -controls $controls -window $window
     })
     
     $controls.RunNowButton.Add_Click({
@@ -1248,75 +1573,79 @@ function Show-WAUSettingsGUI {
 
     # Handle Enter key to save settings
     $window.Add_PreviewKeyDown({
-        if ($_.Key -eq 'Return' -or $_.Key -eq 'Enter') {
-            $controls.SaveButton.RaiseEvent([Windows.RoutedEventArgs][Windows.Controls.Primitives.ButtonBase]::ClickEvent)
-            $_.Handled = $true
-        }
-        # F5 key handler to refresh settings from config
-        elseif ($_.Key -eq 'F5') {
-            # Update status to "Refreshing"
-            $controls.StatusBarText.Text = "Refreshing..."
-            $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
-            Start-PopUp "Refreshing settings..."
-            
-            # Refresh all settings from config
-            Update-WAUGUIFromConfig -Controls $controls
+        Test-WindowKeyPress -controls $controls -window $window -keyEventArgs $_
 
-            # Reset status to "Done"
-            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
-            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
-
-            # Create timer to reset status back to ready after half standard wait time
-            $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-                Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
-                $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
-                $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
-                Close-PopUp
-            }) | Out-Null
+        # if ($_.Key -eq 'Return' -or $_.Key -eq 'Enter') {
+        #     $controls.SaveButton.RaiseEvent([Windows.RoutedEventArgs][Windows.Controls.Primitives.ButtonBase]::ClickEvent)
+        #     $_.Handled = $true
+        # }
+        # # F5 key handler to refresh settings from config
+        # elseif ($_.Key -eq 'F5') {
+        #     # Update status to "Loading"
+        #     $controls.StatusBarText.Text = "Loading..."
+        #     $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
+        #     Start-PopUp "Loading WAU Data..."
             
-            $_.Handled = $true
-        }
-        # F12 key handler to toggle dev buttons visibility
-        elseif ($_.Key -eq 'F12') {
-            if ($controls.DevTaskButton.Visibility -eq 'Collapsed') {
-                $controls.DevTaskButton.Visibility = 'Visible'
-                $controls.DevRegButton.Visibility = 'Visible'
-                $controls.DevGUIDButton.Visibility = 'Visible'
-                $controls.DevListButton.Visibility = 'Visible'
-                $controls.LinksStackPanel.Visibility = 'Visible'
-                $window.Title = "$Script:WAU_TITLE - Dev Tools"
-            } else {
-                $controls.DevTaskButton.Visibility = 'Collapsed'
-                $controls.DevRegButton.Visibility = 'Collapsed'
-                $controls.DevGUIDButton.Visibility = 'Collapsed'
-                $controls.DevListButton.Visibility = 'Collapsed'
-                $controls.LinksStackPanel.Visibility = 'Collapsed'
-                $window.Title = "$Script:WAU_TITLE"
-            }
-            $_.Handled = $true
-        }        
+        #     # Refresh all settings from config
+        #     Update-WAUGUIFromConfig -Controls $controls
+
+        #     # Reset status to "Done"
+        #     $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+        #     $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+
+        #     # Create timer to reset status back to ready after half standard wait time
+        #     $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+        #         Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
+        #         $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
+        #         $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
+        #         Close-PopUp
+        #     }) | Out-Null
+            
+        #     $_.Handled = $true
+        # }
+        # # F12 key handler to toggle dev buttons visibility
+        # if ($_.Key -eq 'F12') {
+        #     if ($controls.DevTaskButton.Visibility -eq 'Collapsed') {
+        #         $controls.DevTaskButton.Visibility = 'Visible'
+        #         $controls.DevRegButton.Visibility = 'Visible'
+        #         $controls.DevGUIDButton.Visibility = 'Visible'
+        #         $controls.DevListButton.Visibility = 'Visible'
+        #         $controls.DevMSTButton.Visibility = 'Visible'
+        #         $controls.LinksStackPanel.Visibility = 'Visible'
+        #         $window.Title = "$Script:WAU_TITLE - Dev Tools"
+        #     } else {
+        #         $controls.DevTaskButton.Visibility = 'Collapsed'
+        #         $controls.DevRegButton.Visibility = 'Collapsed'
+        #         $controls.DevGUIDButton.Visibility = 'Collapsed'
+        #         $controls.DevListButton.Visibility = 'Collapsed'
+        #         $controls.DevMSTButton.Visibility = 'Collapsed'
+        #         $controls.LinksStackPanel.Visibility = 'Collapsed'
+        #         $window.Title = "$Script:WAU_TITLE"
+        #     }
+        #     $_.Handled = $true
+        # }        
     })
     
     # ESC key handler to close window
-    $window.Add_KeyDown({
-        if ($_.Key -eq "Escape") {
-            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
-            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+    # $window.Add_KeyDown({
+    #     if ($_.Key -eq "Escape") {
+    #         $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+    #         $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
             
-            # Create timer to reset status and close window after 1 seconds
-            $timer = New-Object System.Windows.Threading.DispatcherTimer
-            $timer.Interval = [TimeSpan]::FromSeconds(1)
-            $timer.Add_Tick({
-                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-                if ($null -ne $timer) {
-                    $timer.Stop()
-                }
-                $window.Close()
-            })
-            $timer.Start()
-        }
-    })
+    #         # Create timer to reset status and close window after half standard wait time
+    #         $timer = New-Object System.Windows.Threading.DispatcherTimer
+    #         $timer.Interval = [TimeSpan]::FromMilliseconds($Script:WAIT_TIME / 2)
+    #         $timer.Add_Tick({
+    #             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+    #             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+    #             if ($null -ne $timer) {
+    #                 $timer.Stop()
+    #             }
+    #             $window.Close()
+    #         })
+    #         $timer.Start()
+    #     }
+    # })
     
     $controls.OpenLogsButton.Add_Click({
         try {
@@ -1430,7 +1759,7 @@ if (Test-Path $wauIconPath) {
 }
 
 #Pop "Starting..."
-Start-PopUp "Gathering Data..."
+Start-PopUp "Gathering WAU Data..."
 
 # Get WinGet version by running 'winget -v'
 try {

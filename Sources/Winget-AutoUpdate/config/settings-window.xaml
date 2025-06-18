@@ -33,7 +33,7 @@
             <!-- Right column: Dev buttons (hidden by default) -->
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
                 <!-- Vertical links stack (hidden by default) -->
-                <StackPanel x:Name="LinksStackPanel" Orientation="Vertical" VerticalAlignment="Top" Margin="0,0,15,0" Visibility="Collapsed">
+                <StackPanel x:Name="LinksStackPanel" Orientation="Vertical" VerticalAlignment="Top" Margin="0,0,10,0" Visibility="Collapsed">
                     <TextBlock>
                         <Hyperlink x:Name="ManifestsLink" NavigateUri="https://github.com/microsoft/winget-pkgs/tree/master/manifests" ToolTip="open 'winget-pkgs' Manifests on GitHub">[manifests]</Hyperlink>
                     </TextBlock>
@@ -41,10 +41,16 @@
                         <Hyperlink x:Name="IssuesLink" NavigateUri="https://github.com/microsoft/winget-pkgs/issues" ToolTip="open 'winget-pkgs' Issues on GitHub">[issues]</Hyperlink>
                     </TextBlock>
                 </StackPanel>
-                <Button x:Name="DevTaskButton" Content="[task]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
-                <Button x:Name="DevRegButton" Content="[reg]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
-                <Button x:Name="DevGUIDButton" Content="[guid]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,5,0"/>
-                <Button x:Name="DevListButton" Content="[list]" Width="40" Height="25" Visibility="Collapsed" Margin="0,0,0,0"/>
+                <Button x:Name="DevTaskButton" Content="[task]" Width="36" Height="25" Visibility="Collapsed" Margin="0,0,3,0"
+                    ToolTip="open the task scheduler"/>
+                <Button x:Name="DevRegButton" Content="[reg]" Width="36" Height="25" Visibility="Collapsed" Margin="0,0,3,0"
+                    ToolTip="open the WAU settings path in registry"/>
+                <Button x:Name="DevGUIDButton" Content="[guid]" Width="36" Height="25" Visibility="Collapsed" Margin="0,0,3,0"
+                    ToolTip="open the GUID path to registry/installer folder"/>
+                <Button x:Name="DevListButton" Content="[list]" Width="36" Height="25" Visibility="Collapsed" Margin="0,0,3,0"
+                    ToolTip="open the current local list"/>
+                <Button x:Name="DevMSTButton" Content="[mst]" Width="36" Height="25" Visibility="Collapsed" Margin="0,0,0,0"
+                    ToolTip="create a transform file for 'WAU.msi' using the current visible settings"/>
             </StackPanel>
         </Grid>
     </GroupBox>
@@ -166,10 +172,10 @@
                 ToolTip="Allow WAU to update itself to pre-release versions"/>
         <CheckBox Grid.Row="0" Grid.Column="2" x:Name="DoNotRunOnMeteredCheckBox" Content="Don't run on data plan" Margin="0,0,5,5"
                 ToolTip="Prevent WAU from running when connected to a metered network"/>
-        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="StartMenuShortcutCheckBox" Content="Start menu shortcuts" Margin="0,0,5,5">
+        <CheckBox Grid.Row="1" Grid.Column="0" x:Name="StartMenuShortcutCheckBox" Content="Start Menu shortcuts" Margin="0,0,5,5">
             <CheckBox.ToolTip>
             <TextBlock>
-                Create/delete Start menu shortcuts:
+                Create/delete Start Menu shortcuts:
                 <LineBreak/>
                 '$Script:WAU_TITLE' shortcut will be created on active User Desktop if deleted.
             </TextBlock>

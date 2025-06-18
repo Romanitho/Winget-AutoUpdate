@@ -1571,81 +1571,10 @@ function Show-WAUSettingsGUI {
         }) | Out-Null
     })
 
-    # Handle Enter key to save settings
+    # Key Handlers
     $window.Add_PreviewKeyDown({
         Test-WindowKeyPress -controls $controls -window $window -keyEventArgs $_
-
-        # if ($_.Key -eq 'Return' -or $_.Key -eq 'Enter') {
-        #     $controls.SaveButton.RaiseEvent([Windows.RoutedEventArgs][Windows.Controls.Primitives.ButtonBase]::ClickEvent)
-        #     $_.Handled = $true
-        # }
-        # # F5 key handler to refresh settings from config
-        # elseif ($_.Key -eq 'F5') {
-        #     # Update status to "Loading"
-        #     $controls.StatusBarText.Text = "Loading..."
-        #     $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
-        #     Start-PopUp "Loading WAU Data..."
-            
-        #     # Refresh all settings from config
-        #     Update-WAUGUIFromConfig -Controls $controls
-
-        #     # Reset status to "Done"
-        #     $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
-        #     $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
-
-        #     # Create timer to reset status back to ready after half standard wait time
-        #     $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-        #         Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
-        #         $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
-        #         $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
-        #         Close-PopUp
-        #     }) | Out-Null
-            
-        #     $_.Handled = $true
-        # }
-        # # F12 key handler to toggle dev buttons visibility
-        # if ($_.Key -eq 'F12') {
-        #     if ($controls.DevTaskButton.Visibility -eq 'Collapsed') {
-        #         $controls.DevTaskButton.Visibility = 'Visible'
-        #         $controls.DevRegButton.Visibility = 'Visible'
-        #         $controls.DevGUIDButton.Visibility = 'Visible'
-        #         $controls.DevListButton.Visibility = 'Visible'
-        #         $controls.DevMSTButton.Visibility = 'Visible'
-        #         $controls.LinksStackPanel.Visibility = 'Visible'
-        #         $window.Title = "$Script:WAU_TITLE - Dev Tools"
-        #     } else {
-        #         $controls.DevTaskButton.Visibility = 'Collapsed'
-        #         $controls.DevRegButton.Visibility = 'Collapsed'
-        #         $controls.DevGUIDButton.Visibility = 'Collapsed'
-        #         $controls.DevListButton.Visibility = 'Collapsed'
-        #         $controls.DevMSTButton.Visibility = 'Collapsed'
-        #         $controls.LinksStackPanel.Visibility = 'Collapsed'
-        #         $window.Title = "$Script:WAU_TITLE"
-        #     }
-        #     $_.Handled = $true
-        # }        
     })
-    
-    # ESC key handler to close window
-    # $window.Add_KeyDown({
-    #     if ($_.Key -eq "Escape") {
-    #         $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
-    #         $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
-            
-    #         # Create timer to reset status and close window after half standard wait time
-    #         $timer = New-Object System.Windows.Threading.DispatcherTimer
-    #         $timer.Interval = [TimeSpan]::FromMilliseconds($Script:WAIT_TIME / 2)
-    #         $timer.Add_Tick({
-    #             $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-    #             $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-    #             if ($null -ne $timer) {
-    #                 $timer.Stop()
-    #             }
-    #             $window.Close()
-    #         })
-    #         $timer.Start()
-    #     }
-    # })
     
     $controls.OpenLogsButton.Add_Click({
         try {

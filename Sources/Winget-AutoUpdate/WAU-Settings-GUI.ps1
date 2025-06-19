@@ -567,13 +567,13 @@ function New-WAUTransformFile {
                     } else {
                         ""  # Empty string
                     }
-                    
+
                     $properties['MODSPATH'] = if (![string]::IsNullOrWhiteSpace($controls.ModsPathTextBox.Text)) {
                         $controls.ModsPathTextBox.Text
                     } else {
                         ""  # Empty string
                     }
-                    
+
                     $properties['AZUREBLOBSASURL'] = if (![string]::IsNullOrWhiteSpace($controls.AzureBlobSASURLTextBox.Text)) {
                         $controls.AzureBlobSASURLTextBox.Text
                     } else {
@@ -611,26 +611,32 @@ function New-WAUTransformFile {
                     foreach ($propName in $properties.Keys) {
                         $propValue = $properties[$propName]
                         
+                        # Ensure empty strings are handled properly for MSI
+                        if ([string]::IsNullOrEmpty($propValue)) {
+                            $propValue = ""
+                        }
+                        
                         try {
-                            # Try to update existing property first
-                            $updateView = $modifiedDb.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $modifiedDb, "UPDATE Property SET Value = '$propValue' WHERE Property = '$propName'")
-                            $updateView.GetType().InvokeMember("Execute", "InvokeMethod", $null, $updateView, $null)
-                            $updateView.GetType().InvokeMember("Close", "InvokeMethod", $null, $updateView, $null)
-                            [System.Runtime.InteropServices.Marshal]::ReleaseComObject($updateView) | Out-Null
-                            
-                            # If UPDATE didn't work, try INSERT
+                            # Try INSERT first, then UPDATE if it fails
                             $insertView = $modifiedDb.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $modifiedDb, "INSERT INTO Property (Property, Value) VALUES ('$propName', '$propValue')")
                             try {
                                 $insertView.GetType().InvokeMember("Execute", "InvokeMethod", $null, $insertView, $null)
                             }
                             catch {
-                                # Property already exists or other issue, continue
+                                # Property might already exist, try UPDATE instead
+                                $insertView.GetType().InvokeMember("Close", "InvokeMethod", $null, $insertView, $null)
+                                [System.Runtime.InteropServices.Marshal]::ReleaseComObject($insertView) | Out-Null
+                                
+                                $updateView = $modifiedDb.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $modifiedDb, "UPDATE Property SET Value = '$propValue' WHERE Property = '$propName'")
+                                $updateView.GetType().InvokeMember("Execute", "InvokeMethod", $null, $updateView, $null)
+                                $updateView.GetType().InvokeMember("Close", "InvokeMethod", $null, $updateView, $null)
+                                [System.Runtime.InteropServices.Marshal]::ReleaseComObject($updateView) | Out-Null
+                                continue
                             }
                             $insertView.GetType().InvokeMember("Close", "InvokeMethod", $null, $insertView, $null)
                             [System.Runtime.InteropServices.Marshal]::ReleaseComObject($insertView) | Out-Null
                         }
                         catch {
-                            # Continue even if property update fails
                             Write-Warning "Failed to set property $propName = $propValue"
                         }
                     }
@@ -647,8 +653,25 @@ function New-WAUTransformFile {
                     # Copy GUID to clipboard
                     Set-Clipboard -Value $guid
                     
-                    # Create summary of properties set (exclude empty values from display)
-                    $propertiesSummary = ($properties.GetEnumerator() | Where-Object { $_.Value -ne "" } | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join "`n"
+                    # Sort properties for display according to the form order
+                    $propertyOrder = @(
+                        'UPDATESINTERVAL', 'NOTIFICATIONLEVEL', 'UPDATESATTIME', 'UPDATESTIMEDELAY',
+                        'LISTPATH', 'MODSPATH', 'AZUREBLOBSASURL',
+                        'DISABLEAUTOUPDATE', 'UPDATEPRERELEASE', 'DONOTRUNONMETERED',
+                        'STARTMENUSHORTCUT', 'DESKTOPSHORTCUT', 'APPINSTALLERSHORTCUT',
+                        'UPDATESATLOGON', 'USERCONTEXT', 'BYPASSLISTFORUSERS', 'USEWHITELIST',
+                        'MAXLOGFILES', 'MAXLOGSIZE', 'REBOOT'
+                    )
+                    # Create summary of properties set (in form order, show ALL values including empty ones)
+                    $propertiesSummary = ($propertyOrder | ForEach-Object {
+                        if ($properties.ContainsKey($_)) {
+                            if ($properties[$_] -eq "") {
+                                "$_=(empty)"
+                            } else {
+                                "$_=$($properties[$_])"
+                            }
+                        }
+                    }) -join "`n"
 
                     # Create a .cmd file with the same name as the .mst but with 'Install' appended
                     $cmdFileName = [System.IO.Path]::GetFileNameWithoutExtension($transformName) + "-Install.cmd"

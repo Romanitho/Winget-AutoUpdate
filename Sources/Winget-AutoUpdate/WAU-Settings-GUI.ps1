@@ -440,6 +440,42 @@ function Set-WAUConfig {
 function New-WAUTransformFile {
     param($controls)
     try {
+
+        # Configuration
+        $TempPath = "$env:TEMP\WAU_Settings"
+        $GitHubRepo = "Romanitho/Winget-AutoUpdate"
+
+        # Create temp directory
+        if (!(Test-Path $TempPath)) {
+            New-Item -ItemType Directory -Path $TempPath -Force | Out-Null
+        }
+        # Check if WAU.msi exists in temp directory, if not, download it
+        $msiFilePath = Join-Path $TempPath "WAU.msi"
+        if (-not (Test-Path $msiFilePath)) {
+            Start-PopUp "Downloading WAU MSI..."
+        try {
+            # Get latest release info from GitHub API
+            $ApiUrl = "https://api.github.com/repos/$GitHubRepo/releases/latest"
+            $Release = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing
+
+            # Find MSI download URL
+            $MsiAsset = $Release.assets | Where-Object { $_.name -like "*.msi" }
+            if (!$MsiAsset) {
+                throw "MSI file not found in latest release"
+            }
+            
+            $MsiUrl = $MsiAsset.browser_download_url
+            $MsiPath = Join-Path $TempPath $MsiAsset.name
+            
+            Start-PopUp "Downloading MSI: $($MsiAsset.name)..."
+            Invoke-WebRequest -Uri $MsiUrl -OutFile $MsiPath -UseBasicParsing
+            } catch {
+                Close-PopUp
+                [System.Windows.MessageBox]::Show("MSI file not found in $GitHubRepo latest release", "Error", "OK", "Error")
+            }
+            Close-PopUp
+        }
+
         Start-PopUp "Locate WAU MSI..."
 
         # Open a file selection dialog to choose a location for WAU.msi
@@ -447,6 +483,7 @@ function New-WAUTransformFile {
         $openFileDialog.Title = "Locate WAU.msi"
         $openFileDialog.Filter = "WAU.msi|WAU.msi"
         $openFileDialog.FileName = "WAU.msi"
+        $openFileDialog.InitialDirectory = $TempPath
         $openFileDialog.RestoreDirectory = $true
         
         if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -621,6 +658,7 @@ function New-WAUTransformFile {
                     Set-Content -Path $cmdFilePath -Value $cmdContent -Encoding ASCII
 
                     [System.Windows.MessageBox]::Show("Transform file created successfully!`n`nTransform File: $transformName`nLocation: $transformPath`n`nInstall script created: $cmdFileName`n`nProperties Set:`n$propertiesSummary`n`nProduct Code: $guid`nThe Product Code has been copied to your clipboard.", "Transform Created", "OK", "Information")
+                    Start-Process "explorer.exe" -ArgumentList "$msiDirectory"
                 } else {
                     [System.Windows.MessageBox]::Show("Could not extract Product Code from the MSI file.", "Error", "OK", "Error")
                 }

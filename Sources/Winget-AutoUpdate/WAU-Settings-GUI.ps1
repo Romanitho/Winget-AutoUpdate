@@ -413,8 +413,6 @@ function Set-WAUConfig {
             if ($Settings.ContainsKey('WAU_DesktopShortcut') -and $Settings['WAU_DesktopShortcut'] -eq 0) {
                 if (Test-Path $Script:DESKTOP_RUN_WAU) {
                     Remove-Item -Path $Script:DESKTOP_RUN_WAU -Force
-                    # Mirror shortcut removal to registry
-                    Set-ItemProperty -Path $Script:WAU_REGISTRY_PATH -Name 'WAU_DesktopShortcut' -Value 0 -Force
                 }
             }
         }

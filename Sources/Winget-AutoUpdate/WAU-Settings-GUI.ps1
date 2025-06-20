@@ -449,47 +449,36 @@ function New-WAUTransformFile {
         }
         
         # Check if there is an MSI file in the temp folder
-        $msiFilePath = Get-ChildItem -Path $TempPath -Filter "*.msi" -File -ErrorAction SilentlyContinue | Select-Object -First 1
+        $MsiAsset = @{ name = Get-ChildItem -Path $TempPath -Filter "*.msi" -File -ErrorAction SilentlyContinue | Select-Object -First 1 }
 
-        # If no MSI file was found, set $msiFilePath to $null
-        if ($null -eq $msiFilePath) {
-            $msiFilePath = $null
+        # If no MSI file was found download the latest MSI from GitHub
+        if ([string]::IsNullOrEmpty($MsiAsset.name)) {
+            try {
+            # Get latest release info from GitHub API
+            $ApiUrl = "https://api.github.com/repos/$GitHubRepo/releases/latest"
+            $Release = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing
+
+            # Find MSI download URL
+            $MsiAsset = $Release.assets | Where-Object { $_.name -like "*.msi" }
+            if (!$MsiAsset) {
+                throw "MSI file not found in latest release"
+            }
+            Start-PopUp "Downloading MSI: $($MsiAsset.name)..."
+            
+            $MsiUrl = $MsiAsset.browser_download_url
+            $msiFilePath = Join-Path $TempPath $MsiAsset.name
+            
+            Invoke-WebRequest -Uri $MsiUrl -OutFile $msiFilePath -UseBasicParsing
+            } catch {
+                Close-PopUp
+                [System.Windows.MessageBox]::Show("No MSI file found in $GitHubRepo latest release", "Error", "OK", "Error")
+                $MsiAsset = @{ name = '*.msi' }
+                Start-PopUp "Locate $($MsiAsset.name)..."
+            }
         } else {
-            $msiFilePath = $msiFilePath.FullName
+            Start-PopUp "Locate $($MsiAsset.name)..."
         }
         
-        if ($null -eq $msiFilePath -or -not (Test-Path $msiFilePath)) {
-            try {
-                # Get latest release info from GitHub API
-                $ApiUrl = "https://api.github.com/repos/$GitHubRepo/releases/latest"
-                $Release = Invoke-RestMethod -Uri $ApiUrl -UseBasicParsing
-
-                # Find MSI download URL
-                $MsiAsset = $Release.assets | Where-Object { $_.name -like "*.msi" }
-                if (!$MsiAsset) {
-                    throw "MSI file not found in latest release"
-                }
-                Start-PopUp "Downloading MSI from GitHup Repo..."
-                
-                $MsiUrl = $MsiAsset.browser_download_url
-                $msiFilePath = Join-Path $TempPath $MsiAsset.name
-                
-                Start-PopUp "Downloading MSI: $($MsiAsset.name)..."
-                Invoke-WebRequest -Uri $MsiUrl -OutFile $msiFilePath -UseBasicParsing
-                } catch {
-                    Close-PopUp
-                    [System.Windows.MessageBox]::Show("MSI file not found in $GitHubRepo latest release", "Error", "OK", "Error")
-                }
-                Close-PopUp
-        }
-
-        if ($null -ne $MsiAsset -and $MsiAsset.name) {
-            Start-PopUp "Locate $($MsiAsset.name)..."
-        } else {
-            $MsiAsset = @{ name = 'WAU.msi' }
-            Start-PopUp "Locate $($MsiAsset.name)..."
-        }
-
         # Open a file selection dialog to choose a location for WAU.msi
         $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
         $openFileDialog.Title = "Locate $($MsiAsset.name)"
@@ -508,34 +497,34 @@ function New-WAUTransformFile {
                 $installer = New-Object -ComObject WindowsInstaller.Installer
                 $database = $installer.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $installer, @($selectedFile, 0))
                 
-                # Extract GUID from $($MsiAsset.name)
-                $view = $database.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $database, "SELECT Value FROM Property WHERE Property = 'ProductCode'")
-                $view.GetType().InvokeMember("Execute", "InvokeMethod", $null, $view, $null)
-
-                # Extract Version from $($MsiAsset.name)
-                $versionView = $database.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $database, "SELECT Value FROM Property WHERE Property = 'ProductVersion'")
-                $versionView.GetType().InvokeMember("Execute", "InvokeMethod", $null, $versionView, $null)
+                # Extract Properties from $($MsiAsset.name)
+                $properties = @('ProductName', 'ProductVersion', 'ProductCode')
+                $views = @{}
+                $values = @{}
                 
-                $record = $view.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $view, $null)
-                $guid = $null
-                if ($record) {
-                    $guid = $record.GetType().InvokeMember("StringData", "GetProperty", $null, $record, 1)
-                    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($record) | Out-Null
+                # Create and execute views
+                foreach ($prop in $properties) {
+                    $views[$prop] = $database.GetType().InvokeMember("OpenView", "InvokeMethod", $null, $database, "SELECT Value FROM Property WHERE Property = '$prop'")
+                    $views[$prop].GetType().InvokeMember("Execute", "InvokeMethod", $null, $views[$prop], $null)
+                    
+                    # Fetch and extract value
+                    $record = $views[$prop].GetType().InvokeMember("Fetch", "InvokeMethod", $null, $views[$prop], $null)
+                    $values[$prop] = if ($record) {
+                        $value = $record.GetType().InvokeMember("StringData", "GetProperty", $null, $record, 1)
+                        [System.Runtime.InteropServices.Marshal]::ReleaseComObject($record) | Out-Null
+                        $value
+                    } else { $null }
+                    
+                    # Close and release view
+                    $views[$prop].GetType().InvokeMember("Close", "InvokeMethod", $null, $views[$prop], $null)
+                    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($views[$prop]) | Out-Null
                 }
-
-                $versionRecord = $versionView.GetType().InvokeMember("Fetch", "InvokeMethod", $null, $versionView, $null)
-                $version = $null
-                if ($versionRecord) {
-                    $version = $versionRecord.GetType().InvokeMember("StringData", "GetProperty", $null, $versionRecord, 1)
-                    [System.Runtime.InteropServices.Marshal]::ReleaseComObject($versionRecord) | Out-Null
-                }
-
-                $view.GetType().InvokeMember("Close", "InvokeMethod", $null, $view, $null)
-                [System.Runtime.InteropServices.Marshal]::ReleaseComObject($view) | Out-Null
                 
-                $versionView.GetType().InvokeMember("Close", "InvokeMethod", $null, $versionView, $null)
-                [System.Runtime.InteropServices.Marshal]::ReleaseComObject($versionView) | Out-Null
-                               
+                # Assign variables
+                $name = $values['ProductName']
+                $version = $values['ProductVersion'] 
+                $guid = $values['ProductCode']
+                
                 if ($guid) {
                     # Create transform file name by removing from '(' to end and trimming
                     $transformName = if ($Script:WAU_TITLE -match '^(.+?)\s*\(') {
@@ -704,11 +693,10 @@ function New-WAUTransformFile {
                     $cmdFilePath = [System.IO.Path]::Combine($msiDirectory, $cmdFileName)
                     $msiFileName = [System.IO.Path]::GetFileName($selectedFile)
                     $cmdContent = @"
-msiexec /i "%~dp0$msiFileName" TRANSFORMS="%~dp0$transformName" /qn
-
-::Detection for Version $($version): $($guid)
+::MSI detection for $($version): $($guid)
 ::Detection for ANY version: $($Script:WAU_REGISTRY_PATH),  Value Name: ProductVersion, Detection Method: Value exists
 
+msiexec /i "%~dp0$msiFileName" TRANSFORMS="%~dp0$transformName" /qn
 "@
                     Set-Content -Path $cmdFilePath -Value $cmdContent -Encoding ASCII
 
@@ -717,14 +705,16 @@ msiexec /i "%~dp0$msiFileName" TRANSFORMS="%~dp0$transformName" /qn
                     $cmdFilePath = [System.IO.Path]::Combine($msiDirectory, $cmdFileName)
                     $msiFileName = [System.IO.Path]::GetFileName($selectedFile)
                     $cmdContent = @"
+::Uninstall for $($version):
 msiexec /x"$($guid)" REBOOT=R /qn
 
-::Uninstall for ANY version: powershell.exe -Command "(Get-WMIObject -Classname Win32_Product | Where-Object Name -Like 'Winget-AutoUpdate*').UnInstall()"
+::Uninstall for ANY version:
+::powershell.exe -Command "Get-Package -Name "*Winget-AutoUpdate*" | Uninstall-Package -Force"
 "@
                     Set-Content -Path $cmdFilePath -Value $cmdContent -Encoding ASCII
 
                     # Show success message with transform file path and properties summary
-                    [System.Windows.MessageBox]::Show("Transform file created successfully!`n`nTransform File: $transformName`nLocation: $transformPath`n`nInstall/Uninstall scripts created.`n`nProperties Set:`n$propertiesSummary`n`nProduct Code: $guid`nProduct Version: $version`n`nThe Product Code has been copied to your clipboard.", "Transform Created", "OK", "Information")
+                    [System.Windows.MessageBox]::Show("Transform file created successfully!`n`nTransform File: $transformName`nLocation: $transformPath`n`nInstall/Uninstall scripts created.`n`nProperties Set:`n$propertiesSummary`n`nProduct Name: $name`nProduct Version: $version`nProduct Code: $guid`n`nThe Product Code has been copied to your clipboard.", "Transform Created", "OK", "Information")
                     Start-Process "explorer.exe" -ArgumentList "$msiDirectory"
                 } else {
                     [System.Windows.MessageBox]::Show("Could not extract Product Code from the MSI file.", "Error", "OK", "Error")

@@ -570,7 +570,7 @@ function New-WAUTransformFile {
                         "06:00:00"  # Default time
                     }
                     
-                    $properties['UPDATESTIMEDELAY'] = if (![string]::IsNullOrWhiteSpace($controls.RandomDelayTextBox.Text)) {
+                    $properties['UPDATESATTIMEDELAY'] = if (![string]::IsNullOrWhiteSpace($controls.RandomDelayTextBox.Text)) {
                         $controls.RandomDelayTextBox.Text
                     } else {
                         "00:00"  # Default delay
@@ -670,7 +670,7 @@ function New-WAUTransformFile {
                     
                     # Sort properties for display according to the form order
                     $propertyOrder = @(
-                        'UPDATESINTERVAL', 'NOTIFICATIONLEVEL', 'UPDATESATTIME', 'UPDATESTIMEDELAY',
+                        'UPDATESINTERVAL', 'NOTIFICATIONLEVEL', 'UPDATESATTIME', 'UPDATESATTIMEDELAY',
                         'LISTPATH', 'MODSPATH', 'AZUREBLOBSASURL',
                         'DISABLEWAUAUTOUPDATE', 'UPDATEPRERELEASE', 'DONOTRUNONMETERED',
                         'STARTMENUSHORTCUT', 'DESKTOPSHORTCUT', 'APPINSTALLERSHORTCUT',

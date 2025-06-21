@@ -160,7 +160,7 @@ function Install-App ($AppID, $AppArgs) {
         }
 
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
-	& "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 
         if ($ModsInstall) {
             Write-ToLog "-> Modifications for $AppID during install are being applied..." "DarkYellow"
@@ -212,7 +212,7 @@ function Uninstall-App ($AppID, $AppArgs) {
         Write-ToLog "-> Uninstalling $AppID..." "DarkYellow"
         $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
-	& "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+        & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 
         if ($ModsUninstall) {
             Write-ToLog "-> Modifications for $AppID during uninstall are being applied..." "DarkYellow"
@@ -294,6 +294,7 @@ $Script:IsElevated = $CurrentPrincipal.IsInRole([Security.Principal.WindowsBuilt
 #Get WAU Installed location
 $WAURegKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\"
 $Script:WAUInstallLocation = Get-ItemProperty $WAURegKey -ErrorAction SilentlyContinue | Select-Object -ExpandProperty InstallLocation
+
 # Use the Working Dir (even if it is from a symlink)
 $Mods = "$realPath\mods"
 

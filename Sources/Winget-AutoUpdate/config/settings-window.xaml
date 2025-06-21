@@ -166,7 +166,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <CheckBox Grid.Row="0" Grid.Column="0" x:Name="DisableAutoUpdateCheckBox" Content="Disable WAU AutoUpdate" Margin="0,0,5,5"
+        <CheckBox Grid.Row="0" Grid.Column="0" x:Name="DisableWAUAutoUpdateCheckBox" Content="Disable WAU AutoUpdate" Margin="0,0,5,5"
                 ToolTip="Disable automatic updating of WAU itself"/>
         <CheckBox Grid.Row="0" Grid.Column="1" x:Name="UpdatePreReleaseCheckBox" Content="Update WAU to PreRelease" Margin="0,0,5,5"
                 ToolTip="Allow WAU to update itself to pre-release versions"/>

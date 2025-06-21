@@ -596,7 +596,7 @@ function New-WAUTransformFile {
                     }
                     
                     # Checkbox properties - always include (1 for checked, 0 for unchecked)
-                    $properties['DISABLEAUTOUPDATE'] = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { '1' } else { '0' }
+                    $properties['DISABLEWAUAUTOUPDATE'] = if ($controls.DisableWAUAutoUpdateCheckBox.IsChecked) { '1' } else { '0' }
                     $properties['UPDATEPRERELEASE'] = if ($controls.UpdatePreReleaseCheckBox.IsChecked) { '1' } else { '0' }
                     $properties['DONOTRUNONMETERED'] = if ($controls.DoNotRunOnMeteredCheckBox.IsChecked) { '1' } else { '0' }
                     $properties['STARTMENUSHORTCUT'] = if ($controls.StartMenuShortcutCheckBox.IsChecked) { '1' } else { '0' }
@@ -672,7 +672,7 @@ function New-WAUTransformFile {
                     $propertyOrder = @(
                         'UPDATESINTERVAL', 'NOTIFICATIONLEVEL', 'UPDATESATTIME', 'UPDATESTIMEDELAY',
                         'LISTPATH', 'MODSPATH', 'AZUREBLOBSASURL',
-                        'DISABLEAUTOUPDATE', 'UPDATEPRERELEASE', 'DONOTRUNONMETERED',
+                        'DISABLEWAUAUTOUPDATE', 'UPDATEPRERELEASE', 'DONOTRUNONMETERED',
                         'STARTMENUSHORTCUT', 'DESKTOPSHORTCUT', 'APPINSTALLERSHORTCUT',
                         'UPDATESATLOGON', 'USERCONTEXT', 'BYPASSLISTFORUSERS', 'USEWHITELIST',
                         'MAXLOGFILES', 'MAXLOGSIZE', 'REBOOT'
@@ -870,7 +870,7 @@ function Update-MaxLogSizeState {
 function Update-PreReleaseCheckBoxState {
     param($controls)
 
-    if ($controls.DisableAutoUpdateCheckBox.IsChecked) {
+    if ($controls.DisableWAUAutoUpdateCheckBox.IsChecked) {
         $controls.UpdatePreReleaseCheckBox.IsChecked = $false
         $controls.UpdatePreReleaseCheckBox.IsEnabled = $false
     } else {
@@ -998,7 +998,7 @@ function Update-WAUGUIFromConfig {
     $Controls.DoNotRunOnMeteredCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_DoNotRunOnMetered" -Config $updatedConfig -Policies $updatedPolicies)
     $Controls.UserContextCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_UserContext" -Config $updatedConfig -Policies $updatedPolicies)
     $Controls.BypassListForUsersCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_BypassListForUsers" -Config $updatedConfig -Policies $updatedPolicies)
-    $Controls.DisableAutoUpdateCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_DisableAutoUpdate" -Config $updatedConfig -Policies $updatedPolicies)
+    $Controls.DisableWAUAutoUpdateCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_DisableAutoUpdate" -Config $updatedConfig -Policies $updatedPolicies)
     $Controls.UpdatePreReleaseCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_UpdatePrerelease" -Config $updatedConfig -Policies $updatedPolicies)
     $Controls.UseWhiteListCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_UseWhiteList" -Config $updatedConfig -Policies $updatedPolicies)
     $Controls.AppInstallerShortcutCheckBox.IsChecked = [bool](Get-DisplayValue -PropertyName "WAU_AppInstallerShortcut" -Config $updatedConfig -Policies $updatedPolicies)
@@ -1271,8 +1271,8 @@ function Save-WAUSettings {
                 WAU_ListPath = $controls.ListPathTextBox.Text
                 WAU_ModsPath = $controls.ModsPathTextBox.Text
                 WAU_AzureBlobSASURL = $controls.AzureBlobSASURLTextBox.Text
-                WAU_DisableAutoUpdate = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 1 } else { 0 }
-                WAU_UpdatePreRelease = if ($controls.DisableAutoUpdateCheckBox.IsChecked) { 0 } elseif ($controls.UpdatePreReleaseCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_DisableAutoUpdate = if ($controls.DisableWAUAutoUpdateCheckBox.IsChecked) { 1 } else { 0 }
+                WAU_UpdatePreRelease = if ($controls.DisableWAUAutoUpdateCheckBox.IsChecked) { 0 } elseif ($controls.UpdatePreReleaseCheckBox.IsChecked) { 1 } else { 0 }
                 WAU_DoNotRunOnMetered = if ($controls.DoNotRunOnMeteredCheckBox.IsChecked) { 1 } else { 0 }
                 WAU_StartMenuShortcut = if ($controls.StartMenuShortcutCheckBox.IsChecked) { 1 } else { 0 }
                 WAU_DesktopShortcut = if ($controls.DesktopShortcutCheckBox.IsChecked) { 1 } else { 0 }
@@ -1442,12 +1442,12 @@ function Show-WAUSettingsGUI {
         Update-StatusDisplay -Controls $controls
     })
     
-    # Event handler for DisableAutoUpdate checkbox
-    $controls.DisableAutoUpdateCheckBox.Add_Checked({
+    # Event handler for DisableWAUAutoUpdate checkbox
+    $controls.DisableWAUAutoUpdateCheckBox.Add_Checked({
         Update-PreReleaseCheckBoxState -Controls $controls
     })
     
-    $controls.DisableAutoUpdateCheckBox.Add_Unchecked({
+    $controls.DisableWAUAutoUpdateCheckBox.Add_Unchecked({
         Update-PreReleaseCheckBoxState -Controls $controls
     })
 

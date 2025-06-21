@@ -18,6 +18,15 @@ function Invoke-ModsApp ($Run, $RunSwitch, $RunWait, $User) {
     Return
 }
 
+function Skip-ModsProc ($SkipApp) {
+    foreach ($process in $SkipApp) {
+        $running = Get-Process -Name $process -ErrorAction SilentlyContinue
+        if ($running) {
+            Return $true
+        }
+    }
+    Return
+}
 
 function Stop-ModsProc ($Proc) {
     foreach ($process in $Proc) {
@@ -25,6 +34,7 @@ function Stop-ModsProc ($Proc) {
     }
     Return
 }
+
 function Stop-ModsSvc ($Svc) {
     foreach ($service in $Svc) {
         Stop-Service -Name $service -Force -ErrorAction SilentlyContinue | Out-Null

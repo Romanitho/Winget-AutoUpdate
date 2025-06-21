@@ -175,10 +175,25 @@ Default is 1048576 = 1 MB (ca. 7500 lines)
 Specify Winget-AutoUpdate installation location. Default: `C:\Program Files\Winget-AutoUpdate` (Recommended to leave default).
 
 ### Deploy with Intune
-You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package for example in Intune:
+You can use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the package (this example with an override of parameters):
 ```batch
-"%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Romanitho.Winget-AutoUpdate --scope machine --override \"/qn RUN_WAU=YES USERCONTEXT=1 STARTMENUSHORTCUT=1 NOTIFICATIONLEVEL=SuccessOnly UPDATESINTERVAL=Daily""
+"%systemroot%\sysnative\WindowsPowerShell\v1.0\powershell.exe" -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Adobe.Acrobat.Reader.64-bit --scope machine --override \"-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1""
 ```
+### Deploy with SCCM
+You can also use [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) to deploy the same package in **SCCM**:
+```batch
+powershell.exe -noprofile -executionpolicy bypass -file "C:\Program Files\Winget-AutoUpdate\Winget-Install.ps1" -AppIDs "Adobe.Acrobat.Reader.64-bit --scope machine --override \"-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1""
+```
+Instead of including the override parameters in the install string you can use a **Mod** (**mods\Adobe.Acrobat.Reader.64-bit-override.txt**) with the content:
+```batch
+"-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1"
+```
+* A standard single installation: **-AppIDs Notepad++.Notepad++**
+* Multiple installations: **-AppIDs "7zip.7zip, Notepad++.Notepad++"**
+
+As a detection script use **config\winget-detect.ps1** (change app to detect [**Application ID**]) in **Intune**/**SCCM** ([winget-detect.ps1](Sources/Winget-AutoUpdate/config/winget-detect.ps1))
+
+A nice feature is if you're already using the deprecated standalone script **winget-install.ps1** from the [old repo](https://github.com/Romanitho/Winget-Install) and have placed it somwhere locally on all clients you can make a **SymLink** in its place and keep using the old path (avoiding a lot of work) in your deployed applications (**Winget-Install.ps1** takes care of the SymLink logic).
 
 ## GPO / Intune Management
 Read more in the [Policies section](https://github.com/Romanitho/Winget-AutoUpdate/tree/main/Sources/Policies).
@@ -190,6 +205,8 @@ This script executes **if the network is active/any version of Winget is install
 If **ExitCode** is **1** from `_WAU-mods.ps1` then **Re-run WAU**.
 
 Likewise `_WAU-mods-postsys.ps1` can be used to do things at the end of the **SYSTEM context WAU** process before the user run.
+
+You can find more information in [README Mods for WAU](Sources/Winget-AutoUpdate/mods/README.md)
 
 ## Custom scripts (Mods feature for Apps)
 The Mods feature allows you to run additional scripts when upgrading or installing an app.
@@ -207,8 +224,7 @@ The **-install** mod will be used for upgrades too if **-upgrade** doesn't exist
 > Example:<br>
 If you want to run a script that removes the shortcut from **%PUBLIC%\Desktop** (we don't want to fill the desktop with shortcuts our users can't delete) just after installing **Acrobat Reader DC** (32-bit), prepare a powershell script that removes the Public Desktop shortcut **Acrobat Reader DC.lnk** and name your script like this: `Adobe.Acrobat.Reader.32-bit-installed.ps1` and put it in the **mods** folder.
 
-You can find more information on [Winget-Install Repo](https://github.com/Romanitho/Winget-AutoUpdate?tab=readme-ov-file#custom-script-mods-for-wau), as it's a related feature.<br>
-Read more in the `README.md` under the directory **mods**.
+You can find more information in [README Mods for WAU](Sources/Winget-AutoUpdate/mods/README.md), as it's a related feature.
 
 Share your mods with the community:<br>
 <https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods>
@@ -216,9 +232,16 @@ Share your mods with the community:<br>
 ### Winget native parameters
 Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
 > Example:<br>
-**Canneverbe.CDBurnerXP-override.txt** with the content `ADDLOCAL=All REMOVE=Desktop_Shortcut /qn`
+**Adobe.Acrobat.Reader.64-bit-override.txt** with the content `"-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1"`
 
-This will use the **content** of the text file as a native **winget --override** parameter when upgrading (as proposed by [JonNesovic](https://github.com/JonNesovic) in [Mod for --override argument #244](https://github.com/Romanitho/Winget-AutoUpdate/discussions/244#discussion-4637666)).
+This will use the **content** of the text file as a native **winget --override** parameter when upgrading.
+
+Likewise you can use the **AppID** followed by the `-custom` suffix as a **text file** (.**txt**) that you can place under the **mods** folder (*Arguments to be passed on to the installer in addition to the defaults*).
+> Example:<br>
+**Adobe.Acrobat.Reader.64-bit-custom.txt** with the content `"DISABLEDESKTOPSHORTCUT=1"`
+
+This will use the **content** of the text file as a native **winget --custom** parameter when upgrading.
+
 
 ## Known issues
 * As reported by [soredake](https://github.com/soredake), Powershell from MsStore is not supported with WAU in system context. See <https://github.com/Romanitho/Winget-AutoUpdate/issues/113>

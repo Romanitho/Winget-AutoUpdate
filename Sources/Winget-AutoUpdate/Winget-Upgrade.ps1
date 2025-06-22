@@ -332,28 +332,44 @@ if (Test-Network) {
                             
                             # Execute action based on returned instruction
                             switch ($ModsResult.Action) {
-                                "Rerun" { 
-                                    Write-ToLog "Mods requested WAU re-run"
+                                "Rerun" {
+                                    Write-ToLog "Mods requested a WAU re-run"
                                     Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
                                     $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 0 }
                                     Exit $exitCode
                                 }
-                                "Abort" { 
-                                    Write-ToLog "Mods requested WAU abort"
+                                "Abort" {
+                                    Write-ToLog "Mods requested WAU to abort"
                                     $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 1602 }  # Default to "User cancelled"
                                     Exit $exitCode
                                 }
-                                "Reboot" { 
-                                    Write-ToLog "Mods requested system reboot"
-                                    Restart-Computer -Force 
+                                "Reboot" {
+                                    Write-ToLog "Mods requested a system reboot"
+
+                                    # Get configurable delay, default to 300 seconds (5 minutes)
+                                    $rebootDelay = if ($ModsResult.RebootDelay) { 
+                                        $ModsResult.RebootDelay 
+                                    } else {
+                                        300
+                                    }
+                                    
+                                    # Ensure minimum delay of 60 seconds for safety
+                                    if ($rebootDelay -lt 60) {
+                                        $rebootDelay = 60
+                                        Write-ToLog "Reboot delay adjusted to minimum 60 seconds" "Yellow"
+                                    }
+                                    
+                                    $shutdownMessage = if ($ModsResult.Message) { $ModsResult.Message } else { "WAU Mods requested a system reboot" }
+                                    & shutdown /r /t $rebootDelay /c $shutdownMessage
+                                    Write-ToLog "System restart scheduled in $rebootDelay seconds" "Yellow"
                                     $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 3010 }  # Default to "Restart required"
                                     Exit $exitCode
                                 }
-                                "Continue" { 
+                                "Continue" {
                                     Write-ToLog "Mods allows WAU to continue normally"
                                     # Continue with normal WAU execution - no exit needed
                                 }
-                                default { 
+                                default {
                                     Write-ToLog "Unknown action '$($ModsResult.Action)' from mods, continuing normally" "Cyan"
                                 }
                             }

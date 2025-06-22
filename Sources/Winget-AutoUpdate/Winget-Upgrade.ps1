@@ -344,6 +344,7 @@ if (Test-Network) {
                                 "Reboot" { 
                                     Write-ToLog "Mods requested system reboot"
                                     Restart-Computer -Force 
+                                    Exit
                                 }
                                 "Continue" { 
                                     Write-ToLog "Mods allows WAU to continue normally"

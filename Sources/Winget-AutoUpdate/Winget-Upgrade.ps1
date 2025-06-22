@@ -210,7 +210,7 @@ if (Test-Network) {
                 #Compare
                 if ((Compare-SemVer -Version1 $WAUCurrentVersion -Version2 $WAUAvailableVersion) -lt 0) {
                     #If new version is available, update it
-                    Write-ToLog "WAU Available version: $WAUAvailableVersion" "Yellow";
+                    Write-ToLog "WAU Available version: $WAUAvailableVersion" "Darkyellow";
                     Update-WAU;
                 }
                 else {
@@ -246,10 +246,10 @@ if (Test-Network) {
                     }
                     if ($NewList) {
                         if ($AlwaysDownloaded) {
-                            Write-ToLog "List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
+                            Write-ToLog "List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Darkyellow"
                         }
                         else {
-                            Write-ToLog "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Yellow"
+                            Write-ToLog "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Darkyellow"
                         }
                         $Script:AlwaysDownloaded = $False
                     }
@@ -284,14 +284,14 @@ if (Test-Network) {
                     $Script:ReachNoPath = $False
                 }
                 if ($NewMods -gt 0) {
-                    Write-ToLog "$NewMods newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))\mods" "Yellow"
+                    Write-ToLog "$NewMods newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))\mods" "Darkyellow"
                 }
                 else {
                     if (Test-Path "$WorkingDir\mods\*.ps1") {
                         Write-ToLog "Mods are up to date." "Green"
                     }
                     else {
-                        Write-ToLog "No Mods are implemented..." "Yellow"
+                        Write-ToLog "No Mods are implemented..." "Darkyellow"
                     }
                 }
                 if ($DeletedMods -gt 0) {
@@ -302,14 +302,63 @@ if (Test-Network) {
             #Test if _WAU-mods.ps1 exist: Mods for WAU (if Network is active/any Winget is installed/running as SYSTEM)
             $Mods = "$WorkingDir\mods"
             if (Test-Path "$Mods\_WAU-mods.ps1") {
-                Write-ToLog "Running Mods for WAU..." "Yellow"
-                & "$Mods\_WAU-mods.ps1"
+                Write-ToLog "Running Mods for WAU..." "Cyan"
+
+                # Capture both output and exit code
+                $ModsOutput = & "$Mods\_WAU-mods.ps1" 2>&1 | Out-String
                 $ModsExitCode = $LASTEXITCODE
-                #If _WAU-mods.ps1 has ExitCode 1 - Re-run WAU
+
+                # Handle legacy exit code behavior first (backward compatibility)
                 if ($ModsExitCode -eq 1) {
-                    Write-ToLog "Re-run WAU"
+                    Write-ToLog "Legacy exit code 1 detected - Re-running WAU"
                     Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
                     Exit
+                }
+
+                # Try to parse JSON output for new action-based system
+                if ($ModsOutput -and $ModsOutput.Trim()) {
+                    try {
+                        # Remove any non-JSON content (like debug output) and find JSON
+                        $jsonMatch = $ModsOutput | Select-String -Pattern '\{.*\}' | Select-Object -First 1
+                        
+                        if ($jsonMatch) {
+                            $ModsResult = $jsonMatch.Matches[0].Value | ConvertFrom-Json
+                            
+                            # Log message if provided
+                            if ($ModsResult.Message) {
+                                $logLevel = if ($ModsResult.LogLevel) { $ModsResult.LogLevel } else { "White" }
+                                Write-ToLog $ModsResult.Message $logLevel
+                            }
+                            
+                            # Execute action based on returned instruction
+                            switch ($ModsResult.Action) {
+                                "Rerun" { 
+                                    Write-ToLog "Mods requested WAU re-run"
+                                    Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
+                                    Exit 
+                                }
+                                "Abort" { 
+                                    Write-ToLog "Mods requested WAU abort"
+                                    Exit 
+                                }
+                                "Reboot" { 
+                                    Write-ToLog "Mods requested system reboot"
+                                    Restart-Computer -Force 
+                                }
+                                "Continue" { 
+                                    Write-ToLog "Mods allows WAU to continue normally"
+                                    # Continue with normal WAU execution
+                                }
+                                default { 
+                                    Write-ToLog "Unknown action '$($ModsResult.Action)' from mods, continuing normally" "Cyan"
+                                }
+                            }
+                        }
+                    }
+                    catch {
+                        Write-ToLog "Failed to parse mods JSON output: $($_.Exception.Message)" "Red"
+                        Write-ToLog "Continuing with normal WAU execution" "Cyan"
+                    }
                 }
             }
 
@@ -351,7 +400,7 @@ if (Test-Network) {
         }
 
         #Get outdated Winget packages
-        Write-ToLog "Checking application updates on Winget Repository named '$($Script:WingetSourceCustom)' .." "yellow"
+        Write-ToLog "Checking application updates on Winget Repository named '$($Script:WingetSourceCustom)' .." "Darkyellow"
         $outdated = Get-WingetOutdatedApps -src $Script:WingetSourceCustom;
 
         #If something unusual happened or no update found
@@ -436,7 +485,7 @@ if (Test-Network) {
         #Test if _WAU-mods-postsys.ps1 exists: Mods for WAU (postsys) - if Network is active/any Winget is installed/running as SYSTEM _after_ SYSTEM updates
         if ($true -eq $IsSystem) {
             if (Test-Path "$Mods\_WAU-mods-postsys.ps1") {
-                Write-ToLog "Running Mods (postsys) for WAU..." "Yellow"
+                Write-ToLog "Running Mods (postsys) for WAU..." "Darkyellow"
                 & "$Mods\_WAU-mods-postsys.ps1"
             }
         }

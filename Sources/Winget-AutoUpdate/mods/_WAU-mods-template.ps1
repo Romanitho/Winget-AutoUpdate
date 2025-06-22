@@ -19,7 +19,8 @@
         "Action": "string",     // Required: Action for WAU to perform
         "Message": "string",    // Optional: Message to write to WAU log
         "LogLevel": "string",   // Optional: Log level for the message
-        "ExitCode": number      // Optional: Windows installer exit code for reference
+        "ExitCode": number,     // Optional: Windows installer exit code for reference
+        "RebootDelay": number   // Optional: Delay in seconds before rebooting (default 300 seconds (5 minutes))
     }
     
     Available Actions:
@@ -66,6 +67,7 @@
         Message = "System requires restart before updates"
         LogLevel = "Red"
         ExitCode = 3010
+        RebootDelay = 300  # Optional: Delay before rebooting (default is 300 seconds)
     } | ConvertTo-Json -Compress
 
 .NOTES

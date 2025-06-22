@@ -74,6 +74,7 @@
     - Only the first valid JSON object in output will be processed
     - If JSON parsing fails, WAU will continue normally
     - Make sure your Functions have unique names to avoid conflicts
+    - Beware of logic loops or long-running operations that may loop indefinitely or block WAU execution!
 #>
 
 

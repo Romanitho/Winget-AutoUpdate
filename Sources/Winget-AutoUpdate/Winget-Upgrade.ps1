@@ -335,20 +335,23 @@ if (Test-Network) {
                                 "Rerun" { 
                                     Write-ToLog "Mods requested WAU re-run"
                                     Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
-                                    Exit 
+                                    $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 0 }
+                                    Exit $exitCode
                                 }
                                 "Abort" { 
                                     Write-ToLog "Mods requested WAU abort"
-                                    Exit 
+                                    $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 1602 }  # Default to "User cancelled"
+                                    Exit $exitCode
                                 }
                                 "Reboot" { 
                                     Write-ToLog "Mods requested system reboot"
                                     Restart-Computer -Force 
-                                    Exit
+                                    $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 3010 }  # Default to "Restart required"
+                                    Exit $exitCode
                                 }
                                 "Continue" { 
                                     Write-ToLog "Mods allows WAU to continue normally"
-                                    # Continue with normal WAU execution
+                                    # Continue with normal WAU execution - no exit needed
                                 }
                                 default { 
                                     Write-ToLog "Unknown action '$($ModsResult.Action)' from mods, continuing normally" "Cyan"

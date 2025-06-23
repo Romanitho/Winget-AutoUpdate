@@ -27,7 +27,7 @@
     - "Continue"   : Continue with normal WAU execution (default behavior)
     - "Abort"      : Abort WAU execution completely
     - "Rerun"      : Re-run WAU (equivalent to legacy exit code 1)
-    - "Reboot"     : Restart the system immediately
+    - "Reboot"     : Restart the system with delay and notification to end user
     
     Available LogLevels:
     - "White"      : Default/normal message
@@ -64,7 +64,7 @@
     # Example 3: Request reboot after checks
     $result = @{
         Action = "Reboot"
-        Message = "System requires restart before updates"
+        Message = "The system needs to reboot within 5 minutes`nbefore WAU updates can be performed."
         LogLevel = "Red"
         ExitCode = 3010
         RebootDelay = 300  # Optional: Delay before rebooting (default is 300 seconds)

@@ -359,7 +359,7 @@ if (Test-Network) {
                                         Write-ToLog "Reboot delay adjusted to minimum 60 seconds" "Yellow"
                                     }
 
-                                    $shutdownMessage = if ($ModsResult.Message) { $ModsResult.Message } else { "WAU Mods requested a system reboot in $rebootDelay seconds" }
+                                    $shutdownMessage = if ($ModsResult.Message) { $ModsResult.Message } else { "WAU Mods requested a system reboot in $($rebootDelay / 60) minutes" }
                                     & shutdown /r /t $rebootDelay /c $shutdownMessage
                                     Write-ToLog "System restart scheduled in $rebootDelay seconds" "Yellow"
                                     $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 3010 }  # Default to "Restart required"

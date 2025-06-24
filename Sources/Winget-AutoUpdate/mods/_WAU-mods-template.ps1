@@ -56,6 +56,7 @@
         ExitCode = 1602
     } | ConvertTo-Json -Compress
     
+    # Example 2: Postpone WAU execution
     $result = @{
         Action = "Postpone"
         Message = "WAU postponed due to maintenance schedule"
@@ -64,14 +65,14 @@
         PostponeDuration = 2  # Optional: Postpone WAU execution for 2 hours (default is 1 hour)
     } | ConvertTo-Json -Compress
 
-    # Example 2: Continue normally
+    # Example 3: Continue normally
     $result = @{
         Action = "Continue"
         Message = "All checks passed, proceeding with updates"
         LogLevel = "Green"
     } | ConvertTo-Json -Compress
-    
-    # Example 3: Request reboot after checks
+
+    # Example 4: Request reboot after checks
     $result = @{
         Action = "Reboot"
         Message = "The system needs to reboot within 5 minutes`nbefore WAU updates can be performed."

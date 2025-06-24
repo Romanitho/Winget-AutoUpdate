@@ -692,11 +692,12 @@ function New-WAUTransformFile {
                     $cmdFileName = "Install.cmd"
                     $cmdFilePath = [System.IO.Path]::Combine($msiDirectory, $cmdFileName)
                     $msiFileName = [System.IO.Path]::GetFileName($selectedFile)
+                    $logFileName = [System.IO.Path]::GetFileNameWithoutExtension($transformName) + ".log"
                     $cmdContent = @"
 ::MSI detection for $($version): $($guid)
 ::Detection for ANY version: $($Script:WAU_REGISTRY_PATH),  Value Name: ProductVersion, Detection Method: Value exists
 
-msiexec /i "%~dp0$msiFileName" TRANSFORMS="%~dp0$transformName" /qn
+msiexec /i "%~dp0$msiFileName" TRANSFORMS="%~dp0$transformName" /qn /l*v "%~dp0Inst-$logFileName"
 "@
                     Set-Content -Path $cmdFilePath -Value $cmdContent -Encoding ASCII
 
@@ -706,7 +707,7 @@ msiexec /i "%~dp0$msiFileName" TRANSFORMS="%~dp0$transformName" /qn
                     $msiFileName = [System.IO.Path]::GetFileName($selectedFile)
                     $cmdContent = @"
 ::Uninstall for $($version):
-msiexec /x"$($guid)" REBOOT=R /qn
+msiexec /x"$($guid)" REBOOT=R /qn /l*v "%~dp0Uninst-$logFileName"
 
 ::Uninstall for ANY version:
 ::powershell.exe -Command "Get-Package -Name "*Winget-AutoUpdate*" | Uninstall-Package -Force"

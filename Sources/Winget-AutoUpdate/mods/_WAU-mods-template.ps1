@@ -16,16 +16,18 @@
     
     The script should output a JSON object with the following structure:
     {
-        "Action": "string",     // Required: Action for WAU to perform
-        "Message": "string",    // Optional: Message to write to WAU log
-        "LogLevel": "string",   // Optional: Log level for the message
-        "ExitCode": number,     // Optional: Windows installer exit code for reference
-        "RebootDelay": number   // Optional: Delay in seconds before rebooting (default 300 seconds (5 minutes))
+        "Action": "string",         // Required: Action for WAU to perform
+        "Message": "string",        // Optional: Message to write to WAU log
+        "LogLevel": "string",       // Optional: Log level for the message
+        "ExitCode": number,         // Optional: Windows installer exit code for reference
+        "PostponeDuration": number, // Optional: Postpone in hours before running WAU again (default 1 hour)
+        "RebootDelay": number       // Optional: Delay in minutes before rebooting (default 5 minutes)
     }
     
     Available Actions:
     - "Continue"   : Continue with normal WAU execution (default behavior)
     - "Abort"      : Abort WAU execution completely
+    - "Postpone"   : Delay WAU execution temporarily with 'PostponeDuration' hours
     - "Rerun"      : Re-run WAU (equivalent to legacy exit code 1)
     - "Reboot"     : Restart the system with delay and notification to end user
     
@@ -54,6 +56,14 @@
         ExitCode = 1602
     } | ConvertTo-Json -Compress
     
+    $result = @{
+        Action = "Postpone"
+        Message = "WAU postponed due to maintenance schedule"
+        LogLevel = "Yellow"
+        ExitCode = 1602
+        PostponeDuration = 2  # Optional: Postpone WAU execution for 2 hours (default is 1 hour)
+    } | ConvertTo-Json -Compress
+
     # Example 2: Continue normally
     $result = @{
         Action = "Continue"
@@ -67,7 +77,7 @@
         Message = "The system needs to reboot within 5 minutes`nbefore WAU updates can be performed."
         LogLevel = "Red"
         ExitCode = 3010
-        RebootDelay = 300  # Optional: Delay before rebooting (default is 300 seconds)
+        RebootDelay = 5  # Optional: Delay before rebooting (default is 5 minutes)
     } | ConvertTo-Json -Compress
 
 .NOTES
@@ -144,10 +154,39 @@ if ($freeSpaceGB -lt $minimumSpaceGB) {
     Exit 0
 }
 
+# Example: Check Windows Update registry keys for installation status
+$wuKeys = @(
+    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\Results\Install",
+    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending"
+)
+
+foreach ($key in $wuKeys) {
+    if (Test-Path $key) {
+        $lastInstall = Get-ItemProperty -Path $key -ErrorAction SilentlyContinue
+        if ($lastInstall -and (Get-Date).AddMinutes(-30) -lt [DateTime]$lastInstall.LastSuccessTime) {
+            $wuInProgress = $true
+            break
+        }
+    }
+}
+
+if ($wuInProgress) {
+    $result = @{
+        Action = "Postpone"
+        Message = "Windows Update is currently installing. WAU postponed for 2 hours."
+        LogLevel = "Yellow"
+        ExitCode = 1618
+        PostponeDuration = 2
+    } | ConvertTo-Json -Compress
+
+    Write-Output $result
+    Exit 0
+}
+
 # All checks passed - continue with normal WAU execution
 $result = @{
     Action = "Continue"
-    Message = "Second Tuesday check passed. No maintenance window. Sufficient disk space (${freeSpaceGB}GB). Continuing with WAU execution."
+    Message = "Second Tuesday check passed. No maintenance window. Sufficient disk space (${freeSpaceGB}GB). No Windows Update in progress. Continuing with WAU execution."
     LogLevel = "Green"
 } | ConvertTo-Json -Compress
 

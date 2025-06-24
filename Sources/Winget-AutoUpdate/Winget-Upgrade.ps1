@@ -343,31 +343,52 @@ if (Test-Network) {
                                     $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 1602 }  # Default to "User cancelled"
                                     Exit $exitCode
                                 }
+                                "Postpone" {
+                                    Write-ToLog "Mods requested a postpone of WAU"
+                                    $postponeDuration = if ($ModsResult.PostponeDuration) {
+                                        $ModsResult.PostponeDuration
+                                    } else {
+                                        1
+                                    }
+                                    # Create a postponed temporary scheduled task to try again later
+                                    $uniqueTaskName = "Postponed-$($Script:GitHub_Repo)_$(Get-Random)"
+                                    $taskPath = "\WAU\"
+                                    $copyAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUConfig.InstallLocation)winget-upgrade.ps1`""
+                                    $copyTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddHours($postponeDuration)
+                                    # Set EndBoundary to make DeleteExpiredTaskAfter work
+                                    $copyTrigger.EndBoundary = (Get-Date).AddHours($postponeDuration).AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss")
+                                    $copySettings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 60) -DeleteExpiredTaskAfter (New-TimeSpan -Seconds 0)
+                                    $copyPrincipal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+                                    Register-ScheduledTask -TaskName $uniqueTaskName -TaskPath $taskPath -Action $copyAction -Trigger $copyTrigger -Settings $copySettings -Principal $copyPrincipal -Description "Postponed copy of $Script:GitHub_Repo" | Out-Null
+
+                                    Write-ToLog "WAU will try again in $postponeDuration hours" "Yellow"
+                                    $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 1602 }  # Default to "User cancelled"
+                                    Exit $exitCode
+                                }
                                 "Reboot" {
                                     Write-ToLog "Mods requested a system reboot"
 
-                                    # Get configurable delay, default to 300 seconds (5 minutes)
+                                    # Get configurable delay, default to 5 minutes
                                     $rebootDelay = if ($ModsResult.RebootDelay) { 
                                         $ModsResult.RebootDelay 
                                     } else {
-                                        300
-                                    }
-                                    
-                                    # Ensure minimum delay of 60 seconds for safety
-                                    if ($rebootDelay -lt 60) {
-                                        $rebootDelay = 60
-                                        Write-ToLog "Reboot delay adjusted to minimum 60 seconds" "Yellow"
+                                        5
                                     }
 
-                                    $shutdownMessage = if ($ModsResult.Message) { $ModsResult.Message } else { "WAU Mods requested a system reboot in $($rebootDelay / 60) minutes" }
-                                    & shutdown /r /t $rebootDelay /c $shutdownMessage
-                                    Write-ToLog "System restart scheduled in $rebootDelay seconds" "Yellow"
+                                    # Ensure minimum delay of 1 minute for safety
+                                    if ($rebootDelay -lt 1) {
+                                        $rebootDelay = 1
+                                        Write-ToLog "Reboot delay adjusted to minimum 1 minute" "Yellow"
+                                    }
+
+                                    $shutdownMessage = if ($ModsResult.Message) { $ModsResult.Message } else { "WAU Mods requested a system reboot in $rebootDelay minutes" }
+                                    & shutdown /r /t ([int]($rebootDelay * 60)) /c $shutdownMessage
+                                    Write-ToLog "System restart scheduled in $rebootDelay minutes" "Yellow"
                                     $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 3010 }  # Default to "Restart required"
                                     Exit $exitCode
                                 }
                                 "Continue" {
                                     Write-ToLog "Mods allows WAU to continue normally"
-                                    # Continue with normal WAU execution - no exit needed
                                 }
                                 default {
                                     Write-ToLog "Unknown action '$($ModsResult.Action)' from mods, continuing normally" "Cyan"

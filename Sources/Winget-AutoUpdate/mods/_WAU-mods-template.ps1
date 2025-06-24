@@ -155,6 +155,7 @@ if ($freeSpaceGB -lt $minimumSpaceGB) {
 }
 
 # Example: Check Windows Update registry keys for installation status
+$wuInProgress = $false
 $wuKeys = @(
     "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\Results\Install",
     "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Services\Pending"
@@ -163,12 +164,28 @@ $wuKeys = @(
 foreach ($key in $wuKeys) {
     if (Test-Path $key) {
         $lastInstall = Get-ItemProperty -Path $key -ErrorAction SilentlyContinue
-        if ($lastInstall -and (Get-Date).AddMinutes(-30) -lt [DateTime]$lastInstall.LastSuccessTime) {
-            $wuInProgress = $true
-            break
+        if ($lastInstall -and $lastInstall.PSObject.Properties.Name -contains "LastSuccessTime" -and $lastInstall.LastSuccessTime) {
+            try {
+                $lastSuccessTime = [DateTime]$lastInstall.LastSuccessTime
+                # If the last successful install was within the last 30 minutes, consider WU in progress
+                if ((Get-Date).AddMinutes(-30) -lt $lastSuccessTime) {
+                    $wuInProgress = $true
+                    break
+                }
+            }
+            catch {
+                # Failed to parse date, skip this check
+                continue
+            }
         }
     }
 }
+
+# Check if Windows Update service is running
+$wuInProgress = $wuInProgress -or (Get-Service -Name "wuauserv" -ErrorAction SilentlyContinue).Status -eq "Running"
+
+# Check for specific Windows Update processes (TiWorker and TrustedInstaller are strong indicators)
+$wuInProgress = $wuInProgress -or (Get-Process -Name "TiWorker","TrustedInstaller" -ErrorAction SilentlyContinue).Count -gt 0
 
 if ($wuInProgress) {
     $result = @{

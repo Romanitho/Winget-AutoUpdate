@@ -20,14 +20,14 @@
         "Message": "string",        // Optional: Message to write to WAU log
         "LogLevel": "string",       // Optional: Log level for the message
         "ExitCode": number,         // Optional: Windows installer exit code for reference
-        "PostponeDuration": number, // Optional: Postpone in hours before running WAU again (default 1 hour)
+        "PostponeDuration": number, // Optional: Postpone duration in hours before running WAU again (default 1 hour)
         "RebootDelay": number       // Optional: Delay in minutes before rebooting (default 5 minutes)
     }
     
     Available Actions:
     - "Continue"   : Continue with normal WAU execution (default behavior)
     - "Abort"      : Abort WAU execution completely
-    - "Postpone"   : Delay WAU execution temporarily with 'PostponeDuration' hours
+    - "Postpone"   : Postpone WAU execution temporarily with 'PostponeDuration' hours
     - "Rerun"      : Re-run WAU (equivalent to legacy exit code 1)
     - "Reboot"     : Restart the system with delay and notification to end user
     

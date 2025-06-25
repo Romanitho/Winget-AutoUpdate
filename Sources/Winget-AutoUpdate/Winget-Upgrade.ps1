@@ -345,45 +345,76 @@ if (Test-Network) {
                                 }
                                 "Postpone" {
                                     Write-ToLog "Mods requested a postpone of WAU"
-                                    $postponeDuration = if ($ModsResult.PostponeDuration) {
-                                        $ModsResult.PostponeDuration
-                                    } else {
-                                        1
+                                    # Check if a postponed task already exists
+                                    $existingTask = Get-ScheduledTask -TaskPath "\WAU\" -ErrorAction SilentlyContinue | Where-Object { $_.TaskName -like "Postponed-$($Script:GitHub_Repo)*" }
+                                    if ($existingTask) {
+                                        Write-ToLog "A postponed task for $($Script:GitHub_Repo) already exists, not creating another." "Yellow"
                                     }
-                                    # Create a postponed temporary scheduled task to try again later
-                                    $uniqueTaskName = "Postponed-$($Script:GitHub_Repo)_$(Get-Random)"
-                                    $taskPath = "\WAU\"
-                                    $copyAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUConfig.InstallLocation)winget-upgrade.ps1`""
-                                    $copyTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddHours($postponeDuration)
-                                    # Set EndBoundary to make DeleteExpiredTaskAfter work
-                                    $copyTrigger.EndBoundary = (Get-Date).AddHours($postponeDuration).AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss")
-                                    $copySettings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 60) -DeleteExpiredTaskAfter (New-TimeSpan -Seconds 0)
-                                    $copyPrincipal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-                                    Register-ScheduledTask -TaskName $uniqueTaskName -TaskPath $taskPath -Action $copyAction -Trigger $copyTrigger -Settings $copySettings -Principal $copyPrincipal -Description "Postponed copy of $Script:GitHub_Repo" | Out-Null
+                                    else {
+                                        # Get configurable duration, default to 1 hour
+                                        $postponeDuration = if ($ModsResult.PostponeDuration) {
+                                            try {
+                                                [double]$parsedDuration = [double]$ModsResult.PostponeDuration
+                                                # Ensure minimum duration of 0.1 hours (6 minutes)
+                                                if ($parsedDuration -lt 0.1) {
+                                                    Write-ToLog "PostponeDuration adjusted to minimum 0.1 hours (6 minutes)" "Yellow"
+                                                    0.1
+                                                } else {
+                                                    $parsedDuration
+                                                }
+                                            }
+                                            catch {
+                                                Write-ToLog "Invalid PostponeDuration value '$($ModsResult.PostponeDuration)', using default 1 hour" "Yellow"
+                                                1
+                                            }
+                                        } else {
+                                            1
+                                        }
 
-                                    Write-ToLog "WAU will try again in $postponeDuration hours" "Yellow"
+                                        # Create a postponed temporary scheduled task to try again later
+                                        $uniqueTaskName = "Postponed-$($Script:GitHub_Repo)_$(Get-Random)"
+                                        $taskPath = "\WAU\"
+                                        $copyAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($WAUConfig.InstallLocation)Winget-Upgrade.ps1`""
+                                        $copyTrigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddHours($postponeDuration)
+                                        # Set EndBoundary to make DeleteExpiredTaskAfter work
+                                        $copyTrigger.EndBoundary = (Get-Date).AddHours($postponeDuration).AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss")
+                                        $copySettings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 60) -DeleteExpiredTaskAfter (New-TimeSpan -Seconds 0)
+                                        $copyPrincipal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+                                        Register-ScheduledTask -TaskName $uniqueTaskName -TaskPath $taskPath -Action $copyAction -Trigger $copyTrigger -Settings $copySettings -Principal $copyPrincipal -Description "Postponed copy of $Script:GitHub_Repo" | Out-Null
+                                        Write-ToLog "WAU will try again in $postponeDuration hours" "Yellow"
+                                    }
                                     $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 1602 }  # Default to "User cancelled"
                                     Exit $exitCode
                                 }
                                 "Reboot" {
                                     Write-ToLog "Mods requested a system reboot"
-
                                     # Get configurable delay, default to 5 minutes
-                                    $rebootDelay = if ($ModsResult.RebootDelay) { 
-                                        $ModsResult.RebootDelay 
+                                    $rebootDelay = if ($ModsResult.RebootDelay) {
+                                        try {
+                                            [double]$parsedDelay = [double]$ModsResult.RebootDelay
+                                            # Ensure minimum delay of 1 minute for safety
+                                            if ($parsedDelay -lt 1) {
+                                                Write-ToLog "RebootDelay adjusted to minimum 1 minute" "Yellow"
+                                                1
+                                            } else {
+                                                $parsedDelay
+                                            }
+                                        }
+                                        catch {
+                                            Write-ToLog "Invalid RebootDelay value '$($ModsResult.RebootDelay)', using default 5 minutes" "Yellow"
+                                            5
+                                        }
                                     } else {
                                         5
                                     }
 
-                                    # Ensure minimum delay of 1 minute for safety
-                                    if ($rebootDelay -lt 1) {
-                                        $rebootDelay = 1
-                                        Write-ToLog "Reboot delay adjusted to minimum 1 minute" "Yellow"
-                                    }
-
                                     $shutdownMessage = if ($ModsResult.Message) { $ModsResult.Message } else { "WAU Mods requested a system reboot in $rebootDelay minutes" }
-                                    & shutdown /r /t ([int]($rebootDelay * 60)) /c $shutdownMessage
-                                    Write-ToLog "System restart scheduled in $rebootDelay minutes" "Yellow"
+                                    $result = & shutdown /r /t ([int]($rebootDelay * 60)) /c $shutdownMessage 2>&1
+                                    if ([string]::IsNullOrEmpty($result)) {
+                                        Write-ToLog "System restart scheduled in $rebootDelay minutes" "Yellow"
+                                    } else {
+                                        Write-ToLog "A system shutdown has already been scheduled" "Yellow"
+                                    }
                                     $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 3010 }  # Default to "Restart required"
                                     Exit $exitCode
                                 }

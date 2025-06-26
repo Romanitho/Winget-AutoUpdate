@@ -488,13 +488,32 @@ if (Test-Network) {
 
                                                     # Create a self destroying scheduled task for mandatory restart
                                                     Write-ToLog "Creating scheduled task for mandatory restart in $rebootDelay minutes" "Yellow"
-                                                    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument @"
--NoProfile -WindowStyle Hidden -Command "
+
+                                                    # Create PowerShell script with enhanced logging
+                                                    $scriptContent = @"
 `$regPath = 'HKLM:\SOFTWARE\Microsoft\SMS\Mobile Client\Reboot Management\RebootData'
-# Only run if RebootBy and OverrideRebootWindowTime exists under the key (user has already restarted the client)
+`$ccmRestartPath = "`$env:windir\CCM\CcmRestart.exe"
+`$logPath = "$($Script:WorkingDir)\logs\mandatory_restart.log"
+
+# Function to write to log
+function Write-RestartLog {
+    param([string]`$Message)
+    `$timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+    "`$timestamp - `$Message" | Out-File -FilePath `$logPath -Append -Encoding UTF8
+}
+
+Write-RestartLog "Mandatory restart task started"
+
+# Only run if RebootBy and OverrideRebootWindowTime exists under the key (if not: the user has already restarted the client)
 `$regProps = Get-ItemProperty -Path `$regPath -ErrorAction SilentlyContinue
 if (`$regProps.PSObject.Properties.Name -contains 'RebootBy' -and `$regProps.PSObject.Properties.Name -contains 'OverrideRebootWindowTime') {
-    if (-not (Test-Path `$regPath)) { New-Item -Path `$regPath -Force }
+    Write-RestartLog "SCCM restart registry values found, proceeding with restart"
+    
+    if (-not (Test-Path `$regPath)) { 
+        New-Item -Path `$regPath -Force 
+        Write-RestartLog "Created registry path: `$regPath"
+    }
+    
     'RebootBy','OverrideRebootWindowTime' | ForEach-Object { 
         New-ItemProperty -Path `$regPath -Name `$_ -Value ([Int64]-1) -PropertyType QWord -Force 
     }
@@ -505,10 +524,32 @@ if (`$regProps.PSObject.Properties.Name -contains 'RebootBy' -and `$regProps.PSO
         New-ItemProperty -Path `$regPath -Name `$_ -Value 1 -PropertyType DWord -Force 
     }
     New-ItemProperty -Path `$regPath -Name 'GraceSeconds' -Value 0 -PropertyType DWord -Force
-    Start-Process -FilePath "`$env:windir\CCM\CcmRestart.exe" -NoNewWindow -Wait
+    
+    Write-RestartLog "Registry values updated for mandatory restart"
+    
+    # Check if CcmRestart.exe exists and use it, otherwise restart the service
+    if (Test-Path `$ccmRestartPath) {
+        Write-RestartLog "Executing CcmRestart.exe"
+        Start-Process -FilePath `$ccmRestartPath -NoNewWindow -Wait -ErrorAction SilentlyContinue
+        Write-RestartLog "CcmRestart.exe execution completed"
+    } else {
+        Write-RestartLog "CcmRestart.exe not found, restarting ccmexec service"
+        Restart-Service ccmexec -Force -ErrorAction SilentlyContinue
+        Write-RestartLog "ccmexec service restart completed"
+    }
+} else {
+    Write-RestartLog "No SCCM restart registry values found, task completed without action"
 }
-"
+
+Write-RestartLog "Mandatory restart task completed"
 "@
+                                                    
+                                                    # Encode to Base64
+                                                    $encodedScript = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($scriptContent))
+                                                    
+                                                    # Create action with encoded command
+                                                    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -EncodedCommand $encodedScript"
+                                                    
                                                     $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes($rebootDelay)
                                                     # Set EndBoundary to make DeleteExpiredTaskAfter work
                                                     $trigger.EndBoundary = (Get-Date).AddMinutes($rebootDelay).AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss")

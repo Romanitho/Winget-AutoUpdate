@@ -499,7 +499,7 @@ if (Test-Network) {
                                             }
                                         }
                                     } else {
-                                        # Standard shutdown when SCCM is not available (or "Windows" expplicitly requested as reboot handler)
+                                        # Standard shutdown when SCCM is not available (or reboot handler is not "SCCM")
                                         $result = & shutdown /r /t ([int]($rebootDelay * 60)) /c $shutdownMessage 2>&1
                                         if ($LASTEXITCODE -eq 0) {
                                             Write-ToLog "System restart scheduled in $rebootDelay minutes" "Yellow"

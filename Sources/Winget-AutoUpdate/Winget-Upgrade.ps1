@@ -409,11 +409,12 @@ if (Test-Network) {
                                     }
 
                                     $shutdownMessage = if ($ModsResult.Message) { $ModsResult.Message } else { "WAU Mods requested a system reboot in $rebootDelay minutes" }
+                                    $rebootHandler = if ($ModsResult.RebootHandler) { $ModsResult.RebootHandler } else { "Windows" }
                                     
                                     # Check if SCCM client is available for managed restart (user controlled)
                                     $sccmClient = Get-CimInstance -Namespace "root\ccm" -ClassName "SMS_Client" -ErrorAction SilentlyContinue
                                     
-                                    if ($sccmClient) {
+                                    if ($sccmClient -and ($rebootHandler -eq "SCCM")) {
                                         Write-ToLog "SCCM client detected - using managed restart (user controlled)" "Green"
 
                                         try {
@@ -498,7 +499,7 @@ if (Test-Network) {
                                             }
                                         }
                                     } else {
-                                        # Standard shutdown when SCCM is not available
+                                        # Standard shutdown when SCCM is not available (or "Windows" expplicitly requested as reboot handler)
                                         $result = & shutdown /r /t ([int]($rebootDelay * 60)) /c $shutdownMessage 2>&1
                                         if ($LASTEXITCODE -eq 0) {
                                             Write-ToLog "System restart scheduled in $rebootDelay minutes" "Yellow"

@@ -21,7 +21,8 @@
         "LogLevel": "string",       // Optional: Log level for the message
         "ExitCode": number,         // Optional: Windows installer exit code for reference
         "PostponeDuration": number, // Optional: Postpone duration in hours before running WAU again (default 1 hour)
-        "RebootDelay": number       // Optional: Delay in minutes before rebooting (default 5 minutes)
+        "RebootDelay": number,      // Optional: Delay in minutes before rebooting (default 5 minutes)
+        "RebootHandler": string     // Optional: "SCCM" or "Windows" (default "Windows") to specify reboot handler
     }
     
     Available Actions:
@@ -75,10 +76,11 @@
     # Example 4: Request reboot after checks
     $result = @{
         Action = "Reboot"
-        Message = "The system needs to reboot within 5 minutes before WAU updates can be performed."
+        Message = "The system needs to reboot within 15 minutes before WAU updates can be performed."
         LogLevel = "Red"
         ExitCode = 3010
-        RebootDelay = 10  # Optional: Delay before rebooting (default is 5 minutes)
+        RebootDelay = 15  # Optional: Delay before rebooting (default is 5 minutes)
+        RebootHandler = "SCCM"  # Optional: Specify reboot handler (default is "Windows")
     } | ConvertTo-Json -Compress
 
 .NOTES

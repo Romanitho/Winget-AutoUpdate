@@ -210,7 +210,7 @@ if (Test-Network) {
                 #Compare
                 if ((Compare-SemVer -Version1 $WAUCurrentVersion -Version2 $WAUAvailableVersion) -lt 0) {
                     #If new version is available, update it
-                    Write-ToLog "WAU Available version: $WAUAvailableVersion" "Darkyellow";
+                    Write-ToLog "WAU Available version: $WAUAvailableVersion" "DarkYellow";
                     Update-WAU;
                 }
                 else {
@@ -246,10 +246,10 @@ if (Test-Network) {
                     }
                     if ($NewList) {
                         if ($AlwaysDownloaded) {
-                            Write-ToLog "List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Darkyellow"
+                            Write-ToLog "List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "DarkYellow"
                         }
                         else {
-                            Write-ToLog "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "Darkyellow"
+                            Write-ToLog "Newer List downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))" "DarkYellow"
                         }
                         $Script:AlwaysDownloaded = $False
                     }
@@ -284,14 +284,14 @@ if (Test-Network) {
                     $Script:ReachNoPath = $False
                 }
                 if ($NewMods -gt 0) {
-                    Write-ToLog "$NewMods newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))\mods" "Darkyellow"
+                    Write-ToLog "$NewMods newer Mods downloaded/copied to local path: $($WAUConfig.InstallLocation.TrimEnd(" ", "\"))\mods" "DarkYellow"
                 }
                 else {
                     if (Test-Path "$WorkingDir\mods\*.ps1") {
                         Write-ToLog "Mods are up to date." "Green"
                     }
                     else {
-                        Write-ToLog "No Mods are implemented..." "Darkyellow"
+                        Write-ToLog "No Mods are implemented..." "DarkYellow"
                     }
                 }
                 if ($DeletedMods -gt 0) {
@@ -563,7 +563,7 @@ if (Test-Network) {
         }
 
         #Get outdated Winget packages
-        Write-ToLog "Checking application updates on Winget Repository named '$($Script:WingetSourceCustom)' .." "Darkyellow"
+        Write-ToLog "Checking application updates on Winget Repository named '$($Script:WingetSourceCustom)' .." "DarkYellow"
         $outdated = Get-WingetOutdatedApps -src $Script:WingetSourceCustom;
 
         #If something unusual happened or no update found
@@ -648,7 +648,7 @@ if (Test-Network) {
         #Test if _WAU-mods-postsys.ps1 exists: Mods for WAU (postsys) - if Network is active/any Winget is installed/running as SYSTEM _after_ SYSTEM updates
         if ($true -eq $IsSystem) {
             if (Test-Path "$Mods\_WAU-mods-postsys.ps1") {
-                Write-ToLog "Running Mods (postsys) for WAU..." "Darkyellow"
+                Write-ToLog "Running Mods (postsys) for WAU..." "DarkYellow"
                 & "$Mods\_WAU-mods-postsys.ps1"
             }
         }

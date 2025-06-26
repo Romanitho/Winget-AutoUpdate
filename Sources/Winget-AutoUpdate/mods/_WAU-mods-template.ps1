@@ -78,7 +78,7 @@
         Action = "Reboot"
         Message = "The system needs to reboot within 15 minutes before WAU updates can be performed."
         LogLevel = "Red"
-        ExitCode = 3010
+        ExitCode = 1641  # Optional: Use 1641 for SCCM Hard Reboot (default is 3010 for Soft Reboot)
         RebootDelay = 15  # Optional: Delay before rebooting (default is 5 minutes)
         RebootHandler = "SCCM"  # Optional: Specify reboot handler (default is "Windows")
     } | ConvertTo-Json -Compress

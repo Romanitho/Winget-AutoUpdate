@@ -417,10 +417,10 @@ if (Test-Network) {
                                     if ($sccmClient -and ($rebootHandler -eq "SCCM")) {
                                         Write-ToLog "SCCM client detected - using managed restart (user controlled)" "Green"
 
+                                        $ccmRestartPath = "$env:windir\CCM\CcmRestart.exe"
+                                        $regPath = 'HKLM:\SOFTWARE\Microsoft\SMS\Mobile Client\Reboot Management\RebootData'
+                                        
                                         try {
-                                            $ccmRestartPath = "$env:windir\CCM\CcmRestart.exe"
-                                            $regPath = 'HKLM:\SOFTWARE\Microsoft\SMS\Mobile Client\Reboot Management\RebootData'
-                                            
                                             # Check if SCCM restart registry values already exist
                                             $existingRebootBy = $null
                                             $existingRebootValues = $false
@@ -451,30 +451,88 @@ if (Test-Network) {
                                                 # No existing restart scheduled - create new SCCM managed restart (user controlled)
                                                 Write-ToLog "Setting up new SCCM managed restart schedule" "Green"
                                                 
-                                                # Check the intended exit code to determine restart type
-                                                $intendedExitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 3010 }
-                                                $hardRebootValue = if ($intendedExitCode -eq 1641) { 1 } else { 0 }
-                                                
-                                                
-                                                if ($intendedExitCode -eq 1641) {
-                                                    Write-ToLog "Exit code 1641 detected - using hard reboot for SCCM restart" "Yellow"
-                                                } else {
-                                                    Write-ToLog "Using soft reboot for SCCM restart (exit code: $intendedExitCode)" "Cyan"
-                                                }
-                                                
-                                                $restartTime = [DateTimeOffset]::Now.AddMinutes($rebootDelay).ToUnixTimeSeconds()
-                                                
                                                 # Ensure registry path exists
                                                 if (-not (Test-Path $regPath)) {
                                                     New-Item -Path $regPath -Force | Out-Null
                                                 }
                                                 
-                                                # Set restart properties for SCCM
-                                                New-ItemProperty -Path $regPath -Name 'RebootBy' -Value ([Int64]$restartTime) -PropertyType QWord -Force | Out-Null
-                                                New-ItemProperty -Path $regPath -Name 'RebootValueInUTC' -Value 1 -PropertyType DWord -Force | Out-Null
-                                                New-ItemProperty -Path $regPath -Name 'NotifyUI' -Value 1 -PropertyType DWord -Force | Out-Null
-                                                New-ItemProperty -Path $regPath -Name 'HardReboot' -Value $hardRebootValue -PropertyType DWord -Force | Out-Null
-                                                New-ItemProperty -Path $regPath -Name 'SetTime' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                # Check the intended exit code to determine restart type
+                                                $intendedExitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 3010 }
+                                                 
+                                                if ($intendedExitCode -eq 1641) {
+                                                    # HARD/MANDATORY REBOOT in SCCM registry (show UI to user, doesn't execute automatically!)
+                                                    $restartTime = [DateTimeOffset]::Now.AddMinutes($rebootDelay).ToUnixTimeSeconds()
+                                                    
+                                                    # CRITICAL: Both RebootBy and OverrideRebootWindowTime must be set to the same value
+                                                    New-ItemProperty -Path $regPath -Name 'RebootBy' -Value ([Int64]$restartTime) -PropertyType QWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'OverrideRebootWindowTime' -Value ([Int64]$restartTime) -PropertyType QWord -Force | Out-Null
+                                                    
+                                                    # Mandatory reboot settings
+                                                    New-ItemProperty -Path $regPath -Name 'PreferredRebootWindowTypes' -Value @("3") -PropertyType MultiString -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'OverrideRebootWindow' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    
+                                                    # Ignore service window settings
+                                                    New-ItemProperty -Path $regPath -Name 'OverrideServiceWindows' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'RebootOutsideOfServiceWindow' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    
+                                                    # Hard reboot settings
+                                                    New-ItemProperty -Path $regPath -Name 'HardReboot' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'NotifyUI' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'RebootValueInUTC' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'SetTime' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'GraceSeconds' -Value 0 -PropertyType DWord -Force | Out-Null
+        
+                                                    # HARD/MANDATORY REBOOT via Task Scheduler (for execution, unless user executed it manually via UI)
+                                                    $taskName = "WAU_MandatoryRestart"
+                                                    $taskPath = "\WAU\"
+
+                                                    # Create a self destroying scheduled task for mandatory restart
+                                                    Write-ToLog "Creating scheduled task for mandatory restart in $rebootDelay minutes" "Yellow"
+                                                    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument @"
+-NoProfile -WindowStyle Hidden -Command "
+`$regPath = 'HKLM:\SOFTWARE\Microsoft\SMS\Mobile Client\Reboot Management\RebootData'
+# Only run if RebootBy and OverrideRebootWindowTime exists under the key (user has already restarted the client)
+`$regProps = Get-ItemProperty -Path `$regPath -ErrorAction SilentlyContinue
+if (`$regProps.PSObject.Properties.Name -contains 'RebootBy' -and `$regProps.PSObject.Properties.Name -contains 'OverrideRebootWindowTime') {
+    if (-not (Test-Path `$regPath)) { New-Item -Path `$regPath -Force }
+    'RebootBy','OverrideRebootWindowTime' | ForEach-Object { 
+        New-ItemProperty -Path `$regPath -Name `$_ -Value ([Int64]-1) -PropertyType QWord -Force 
+    }
+    'PreferredRebootWindowTypes' | ForEach-Object { 
+        New-ItemProperty -Path `$regPath -Name `$_ -Value @('3') -PropertyType MultiString -Force 
+    }
+    'OverrideRebootWindow','HardReboot','NotifyUI','RebootValueInUTC','SetTime','OverrideServiceWindows','RebootOutsideOfServiceWindow' | ForEach-Object { 
+        New-ItemProperty -Path `$regPath -Name `$_ -Value 1 -PropertyType DWord -Force 
+    }
+    New-ItemProperty -Path `$regPath -Name 'GraceSeconds' -Value 0 -PropertyType DWord -Force
+    Start-Process -FilePath "`$env:windir\CCM\CcmRestart.exe" -NoNewWindow -Wait
+}
+"
+"@
+                                                    $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes($rebootDelay)
+                                                    # Set EndBoundary to make DeleteExpiredTaskAfter work
+                                                    $trigger.EndBoundary = (Get-Date).AddMinutes($rebootDelay).AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss")
+                                                    $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 60) -DeleteExpiredTaskAfter (New-TimeSpan -Seconds 0)
+                                                    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+                                                    Register-ScheduledTask -TaskName $taskName -TaskPath $taskPath -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "Mandatory Restart by SCCM" -Force | Out-Null
+                                                 } else {
+                                                    # SOFT/NON-MANDATORY REBOOT
+                                                    Write-ToLog "Using soft reboot (non-mandatory) for SCCM restart" "Cyan"
+                                                    
+                                                    # For non-mandatory, RebootBy should be 0 to show dialog immediately
+                                                    New-ItemProperty -Path $regPath -Name 'RebootBy' -Value 0 -PropertyType QWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'OverrideRebootWindowTime' -Value 0 -PropertyType QWord -Force | Out-Null
+                                                    
+                                                    # Set as non-mandatory reboot
+                                                    New-ItemProperty -Path $regPath -Name 'PreferredRebootWindowTypes' -Value @("4") -PropertyType MultiString -Force | Out-Null
+                                                    
+                                                    # Soft reboot settings
+                                                    New-ItemProperty -Path $regPath -Name 'HardReboot' -Value 0 -PropertyType DWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'NotifyUI' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'RebootValueInUTC' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'SetTime' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                    New-ItemProperty -Path $regPath -Name 'GraceSeconds' -Value 300 -PropertyType DWord -Force | Out-Null  # Default grace period of 5 minutes
+                                                }
                                                 
                                                 # Try CcmRestart.exe first for notification
                                                 if (Test-Path $ccmRestartPath) {
@@ -485,7 +543,11 @@ if (Test-Network) {
                                                     Restart-Service ccmexec -Force -ErrorAction SilentlyContinue
                                                 }
                                                 
-                                                Write-ToLog "SCCM managed restart scheduled for: $([DateTimeOffset]::FromUnixTimeSeconds($restartTime).LocalDateTime)" "Green"
+                                                if ($intendedExitCode -eq 1641) {
+                                                    Write-ToLog "MANDATORY restart via scheduled task: In $rebootDelay minutes" "Green"
+                                                } else {
+                                                    Write-ToLog "Non-mandatory restart dialog triggered" "Green"
+                                                }
                                             }
                                         }
                                         catch {

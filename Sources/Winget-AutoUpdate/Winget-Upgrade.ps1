@@ -335,12 +335,12 @@ if (Test-Network) {
                                 "Rerun" {
                                     Write-ToLog "Mods requested a WAU re-run"
                                     Start-Process powershell -ArgumentList "-NoProfile -WindowStyle Hidden -ExecutionPolicy Bypass -Command `"$WorkingDir\winget-upgrade.ps1`""
-                                    $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 0 }
+                                    $exitCode = if ($ModsResult.ExitCode) { [int]$ModsResult.ExitCode } else { 0 }
                                     Exit $exitCode
                                 }
                                 "Abort" {
                                     Write-ToLog "Mods requested WAU to abort"
-                                    $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 1602 }  # Default to "User cancelled"
+                                    $exitCode = if ($ModsResult.ExitCode) { [int]$ModsResult.ExitCode } else { 1602 }  # Default to "User cancelled"
                                     Exit $exitCode
                                 }
                                 "Postpone" {
@@ -383,7 +383,7 @@ if (Test-Network) {
                                         Register-ScheduledTask -TaskName $uniqueTaskName -TaskPath $taskPath -Action $copyAction -Trigger $copyTrigger -Settings $copySettings -Principal $copyPrincipal -Description "Postponed copy of $Script:GitHub_Repo" | Out-Null
                                         Write-ToLog "WAU will try again in $postponeDuration hours" "Yellow"
                                     }
-                                    $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 1602 }  # Default to "User cancelled"
+                                    $exitCode = if ($ModsResult.ExitCode) { [int]$ModsResult.ExitCode } else { 1602 }  # Default to "User cancelled"
                                     Exit $exitCode
                                 }
                                 "Reboot" {
@@ -409,13 +409,104 @@ if (Test-Network) {
                                     }
 
                                     $shutdownMessage = if ($ModsResult.Message) { $ModsResult.Message } else { "WAU Mods requested a system reboot in $rebootDelay minutes" }
-                                    $result = & shutdown /r /t ([int]($rebootDelay * 60)) /c $shutdownMessage 2>&1
-                                    if ([string]::IsNullOrEmpty($result)) {
-                                        Write-ToLog "System restart scheduled in $rebootDelay minutes" "Yellow"
+                                    
+                                    # Check if SCCM client is available for managed restart (user controlled)
+                                    $sccmClient = Get-CimInstance -Namespace "root\ccm" -ClassName "SMS_Client" -ErrorAction SilentlyContinue
+                                    
+                                    if ($sccmClient) {
+                                        Write-ToLog "SCCM client detected - using managed restart (user controlled)" "Green"
+
+                                        try {
+                                            $ccmRestartPath = "$env:windir\CCM\CcmRestart.exe"
+                                            $regPath = 'HKLM:\SOFTWARE\Microsoft\SMS\Mobile Client\Reboot Management\RebootData'
+                                            
+                                            # Check if SCCM restart registry values already exist
+                                            $existingRebootBy = $null
+                                            $existingRebootValues = $false
+                                            
+                                            if (Test-Path $regPath) {
+                                                $existingRebootBy = Get-ItemProperty -Path $regPath -Name 'RebootBy' -ErrorAction SilentlyContinue
+                                                $existingNotifyUI = Get-ItemProperty -Path $regPath -Name 'NotifyUI' -ErrorAction SilentlyContinue
+                                                $existingSetTime = Get-ItemProperty -Path $regPath -Name 'SetTime' -ErrorAction SilentlyContinue
+                                                
+                                                # Check if we have the key registry values indicating a restart is already scheduled
+                                                if ($existingRebootBy -and $existingNotifyUI -and $existingSetTime -and $existingRebootBy.PSObject.Properties['RebootBy']) {
+                                                    $existingRebootValues = $true
+                                                    $existingRestartTime = [DateTimeOffset]::FromUnixTimeSeconds([int64]$existingRebootBy.RebootBy).LocalDateTime
+                                                    Write-ToLog "SCCM restart already scheduled for: $existingRestartTime" "Yellow"
+                                                }
+                                            }
+                                            
+                                            if ($existingRebootValues) {
+                                                # Try CcmRestart.exe for notification
+                                                if (Test-Path $ccmRestartPath) {
+                                                    Write-ToLog "Triggering SCCM restart notification via CcmRestart.exe" "Cyan"
+                                                    Start-Process -FilePath $ccmRestartPath -NoNewWindow -Wait -ErrorAction SilentlyContinue
+                                                } else {
+                                                    Write-ToLog "CcmRestart.exe not found, restarting ccmexec service" "Yellow"
+                                                    Restart-Service ccmexec -Force -ErrorAction SilentlyContinue
+                                                }
+                                            } else {
+                                                # No existing restart scheduled - create new SCCM managed restart (user controlled)
+                                                Write-ToLog "Setting up new SCCM managed restart schedule" "Green"
+                                                
+                                                # Check the intended exit code to determine restart type
+                                                $intendedExitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 3010 }
+                                                $hardRebootValue = if ($intendedExitCode -eq 1641) { 1 } else { 0 }
+                                                
+                                                
+                                                if ($intendedExitCode -eq 1641) {
+                                                    Write-ToLog "Exit code 1641 detected - using hard reboot for SCCM restart" "Yellow"
+                                                } else {
+                                                    Write-ToLog "Using soft reboot for SCCM restart (exit code: $intendedExitCode)" "Cyan"
+                                                }
+                                                
+                                                $restartTime = [DateTimeOffset]::Now.AddMinutes($rebootDelay).ToUnixTimeSeconds()
+                                                
+                                                # Ensure registry path exists
+                                                if (-not (Test-Path $regPath)) {
+                                                    New-Item -Path $regPath -Force | Out-Null
+                                                }
+                                                
+                                                # Set restart properties for SCCM
+                                                New-ItemProperty -Path $regPath -Name 'RebootBy' -Value ([Int64]$restartTime) -PropertyType QWord -Force | Out-Null
+                                                New-ItemProperty -Path $regPath -Name 'RebootValueInUTC' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                New-ItemProperty -Path $regPath -Name 'NotifyUI' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                New-ItemProperty -Path $regPath -Name 'HardReboot' -Value $hardRebootValue -PropertyType DWord -Force | Out-Null
+                                                New-ItemProperty -Path $regPath -Name 'SetTime' -Value 1 -PropertyType DWord -Force | Out-Null
+                                                
+                                                # Try CcmRestart.exe first for notification
+                                                if (Test-Path $ccmRestartPath) {
+                                                    Write-ToLog "Triggering SCCM restart notification via CcmRestart.exe" "Cyan"
+                                                    Start-Process -FilePath $ccmRestartPath -NoNewWindow -Wait -ErrorAction SilentlyContinue
+                                                } else {
+                                                    Write-ToLog "CcmRestart.exe not found, restarting ccmexec service" "Yellow"
+                                                    Restart-Service ccmexec -Force -ErrorAction SilentlyContinue
+                                                }
+                                                
+                                                Write-ToLog "SCCM managed restart scheduled for: $([DateTimeOffset]::FromUnixTimeSeconds($restartTime).LocalDateTime)" "Green"
+                                            }
+                                        }
+                                        catch {
+                                            Write-ToLog "Failed to set SCCM restart: $($_.Exception.Message). Falling back to standard restart." "Yellow"
+                                            # Fallback to standard shutdown
+                                            $result = & shutdown /r /t ([int]($rebootDelay * 60)) /c $shutdownMessage 2>&1
+                                            if ($LASTEXITCODE -eq 0) {
+                                                Write-ToLog "System restart scheduled in $rebootDelay minutes (fallback)" "Yellow"
+                                            } else {
+                                                Write-ToLog "A system shutdown has already been scheduled or failed: $result" "Yellow"
+                                            }
+                                        }
                                     } else {
-                                        Write-ToLog "A system shutdown has already been scheduled" "Yellow"
+                                        # Standard shutdown when SCCM is not available
+                                        $result = & shutdown /r /t ([int]($rebootDelay * 60)) /c $shutdownMessage 2>&1
+                                        if ($LASTEXITCODE -eq 0) {
+                                            Write-ToLog "System restart scheduled in $rebootDelay minutes" "Yellow"
+                                        } else {
+                                            Write-ToLog "A system shutdown has already been scheduled or failed: $result" "Yellow"
+                                        }
                                     }
-                                    $exitCode = if ($ModsResult.ExitCode) { $ModsResult.ExitCode } else { 3010 }  # Default to "Restart required"
+                                    $exitCode = if ($ModsResult.ExitCode) { [int]$ModsResult.ExitCode } else { 3010 }  # Default to "Restart required"
                                     Exit $exitCode
                                 }
                                 "Continue" {

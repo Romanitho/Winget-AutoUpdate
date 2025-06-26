@@ -43,8 +43,8 @@
     - 0            : Success
     - 1602         : User cancelled installation
     - 1618         : Another installation is in progress
-    - 3010         : Restart required
-    - 1641         : Restart initiated by installer
+    - 3010         : Restart required (SCCM Soft Reboot)
+    - 1641         : Restart initiated by installer (SCCM Hard Reboot)
     
     Examples:
     
@@ -75,10 +75,10 @@
     # Example 4: Request reboot after checks
     $result = @{
         Action = "Reboot"
-        Message = "The system needs to reboot within 5 minutes`nbefore WAU updates can be performed."
+        Message = "The system needs to reboot within 5 minutes before WAU updates can be performed."
         LogLevel = "Red"
         ExitCode = 3010
-        RebootDelay = 5  # Optional: Delay before rebooting (default is 5 minutes)
+        RebootDelay = 10  # Optional: Delay before rebooting (default is 5 minutes)
     } | ConvertTo-Json -Compress
 
 .NOTES

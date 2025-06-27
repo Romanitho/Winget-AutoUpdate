@@ -10,7 +10,7 @@ function Test-WAUMods {
         [string]$GitHub_Repo = "Winget-AutoUpdate"
     )
 
-    # Define Mods path (for independent execution just in case)
+    # Define Mods path
     $Mods = "$WorkingDir\mods"
 
     # Capture both output and exit code

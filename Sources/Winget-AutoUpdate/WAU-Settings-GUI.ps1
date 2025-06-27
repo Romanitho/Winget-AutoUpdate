@@ -567,13 +567,11 @@ function New-WAUTransformFile {
                     $hour = "{0:D2}" -f ($controls.UpdateTimeHourComboBox.SelectedIndex + 1)
                     $minute = "{0:D2}" -f ($controls.UpdateTimeMinuteComboBox.SelectedIndex)
                     $properties['UPDATESATTIME'] = "$hour`:$minute`:00"
-                    
-                    $properties['UPDATESATTIMEDELAY'] = if (![string]::IsNullOrWhiteSpace($controls.RandomDelayTextBox.Text)) {
-                        $controls.RandomDelayTextBox.Text
-                    } else {
-                        "00:00"  # Default delay
-                    }
-                    
+
+                    $hour = "{0:D2}" -f ($controls.RandomDelayHourComboBox.SelectedIndex)
+                    $minute = "{0:D2}" -f ($controls.RandomDelayMinuteComboBox.SelectedIndex)
+                    $properties['UPDATESATTIMEDELAY'] = "$hour`:$minute"
+
                     # Path settings - always include even if empty
                     $properties['LISTPATH'] = if (![string]::IsNullOrWhiteSpace($controls.ListPathTextBox.Text)) {
                         $controls.ListPathTextBox.Text
@@ -775,14 +773,16 @@ function Update-StatusDisplay {
         $controls.StatusDescription.Text = "WAU will not check for updates automatically when disabled"
         $controls.UpdateTimeHourComboBox.IsEnabled = $false
         $controls.UpdateTimeMinuteComboBox.IsEnabled = $false
-        $controls.RandomDelayTextBox.IsEnabled = $false
+        $controls.RandomDelayHourComboBox.IsEnabled = $false
+        $controls.RandomDelayMinuteComboBox.IsEnabled = $false
     } else {
         $controls.StatusText.Text = "Enabled"
         $controls.StatusText.Foreground = "Green"
         $controls.StatusDescription.Text = "WAU will check for updates according to the schedule below"
         $controls.UpdateTimeHourComboBox.IsEnabled = $true
         $controls.UpdateTimeMinuteComboBox.IsEnabled = $true
-        $controls.RandomDelayTextBox.IsEnabled = $true
+        $controls.RandomDelayHourComboBox.IsEnabled = $true
+        $controls.RandomDelayMinuteComboBox.IsEnabled = $true
     }
 }
 function Set-ControlsState {
@@ -1000,8 +1000,23 @@ function Update-WAUGUIFromConfig {
     } else {
         $controls.UpdateTimeMinuteComboBox.SelectedIndex = 0  # fallback to 00
     }
-    $Controls.RandomDelayTextBox.Text = (Get-DisplayValue -PropertyName "WAU_UpdatesTimeDelay" -Config $updatedConfig -Policies $updatedPolicies).ToString()
-    
+
+    $randomDelay = (Get-DisplayValue -PropertyName "WAU_UpdatesTimeDelay" -Config $updatedConfig -Policies $updatedPolicies).ToString()
+    # Get the first 2 characters (hours), convert to int and set as SelectedIndex
+    $hourIndex = [int]$randomDelay.Substring(0,2)
+    if ($hourIndex -ge 0 -and $hourIndex -lt $controls.RandomDelayHourComboBox.Items.Count) {
+        $controls.RandomDelayHourComboBox.SelectedIndex = $hourIndex
+    } else {
+        $controls.RandomDelayHourComboBox.SelectedIndex = 0  # fallback to 00
+    }
+    # Get the 4-5 characters (minutes), convert to int, and set as SelectedIndex
+    $minuteIndex = [int]$randomDelay.Substring(3,2)
+    if ($minuteIndex -ge 0 -and $minuteIndex -lt $controls.RandomDelayMinuteComboBox.Items.Count) {
+        $controls.RandomDelayMinuteComboBox.SelectedIndex = $minuteIndex
+    } else {
+        $controls.RandomDelayMinuteComboBox.SelectedIndex = 0  # fallback to 00
+    }
+
     # Update paths
     $Controls.ListPathTextBox.Text = (Get-DisplayValue -PropertyName "WAU_ListPath" -Config $updatedConfig -Policies $updatedPolicies).ToString()
     $Controls.ModsPathTextBox.Text = (Get-DisplayValue -PropertyName "WAU_ModsPath" -Config $updatedConfig -Policies $updatedPolicies).ToString()
@@ -1252,24 +1267,12 @@ function Save-WAUSettings {
             # Force UI update
             [System.Windows.Forms.Application]::DoEvents()
             
-            # Validate random delay format
-            try {
-                [datetime]::ParseExact($controls.RandomDelayTextBox.Text, "HH:mm", $null) | Out-Null
-            }
-            catch {
-                Close-PopUp
-                [System.Windows.MessageBox]::Show("Invalid time format. Please use HH:mm format (e.g., 00:00)", "Error", "OK", "Error")
-                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-                return
-            }
-        
             # Prepare settings hashtable
             $newSettings = @{
                 WAU_UpdatesInterval = $controls.UpdateIntervalComboBox.SelectedItem.Tag
                 WAU_NotificationLevel = $controls.NotificationLevelComboBox.SelectedItem.Tag
                 WAU_UpdatesAtTime = "{0:D2}:{1:D2}:00" -f ($controls.UpdateTimeHourComboBox.SelectedIndex + 1), $controls.UpdateTimeMinuteComboBox.SelectedIndex
-                WAU_UpdatesTimeDelay = $controls.RandomDelayTextBox.Text
+                WAU_UpdatesTimeDelay = "{0:D2}:{1:D2}" -f ($controls.RandomDelayHourComboBox.SelectedIndex), $controls.RandomDelayMinuteComboBox.SelectedIndex
                 WAU_ListPath = $controls.ListPathTextBox.Text
                 WAU_ModsPath = $controls.ModsPathTextBox.Text
                 WAU_AzureBlobSASURL = $controls.AzureBlobSASURLTextBox.Text
@@ -1446,6 +1449,22 @@ function Show-WAUSettingsGUI {
         $item.Content = "{0:D2}" -f $_  # Formats to 00, 01, 02, etc.
         $item.Tag = "{0:D2}" -f $_
         $controls.UpdateTimeMinuteComboBox.Items.Add($item) | Out-Null
+    }
+
+    # Set initial values for Random Delay Hour ComboBox programmatically
+    0..23 | ForEach-Object { 
+        $item = New-Object System.Windows.Controls.ComboBoxItem
+        $item.Content = "{0:D2}" -f $_  # Formats to 00, 01, 02, etc.
+        $item.Tag = "{0:D2}" -f $_
+        $controls.RandomDelayHourComboBox.Items.Add($item) | Out-Null
+    }
+
+    # Set initial values for Random Delay Minute ComboBox programmatically
+    0..59 | ForEach-Object { 
+        $item = New-Object System.Windows.Controls.ComboBoxItem
+        $item.Content = "{0:D2}" -f $_  # Formats to 00, 01, 02, etc.
+        $item.Tag = "{0:D2}" -f $_
+        $controls.RandomDelayMinuteComboBox.Items.Add($item) | Out-Null
     }
 
     # Set default values

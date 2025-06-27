@@ -109,8 +109,9 @@
         <!-- Random Delay Column -->
         <StackPanel Grid.Column="1" Margin="5,0,0,0">
             <StackPanel Orientation="Horizontal">
-            <TextBox x:Name="RandomDelayTextBox" Width="60" Height="25" Text="00:00" VerticalContentAlignment="Center"/>
-            <TextBlock Text="(HH:mm format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
+                <ComboBox x:Name="RandomDelayHourComboBox" Width="50" Height="25" VerticalContentAlignment="Center"/>
+                <TextBlock Text=":" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="RandomDelayMinuteComboBox" Width="50" Height="25" VerticalContentAlignment="Center"/>
             </StackPanel>
             <TextBlock Text="Maximum random delay after scheduled time" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
         </StackPanel>

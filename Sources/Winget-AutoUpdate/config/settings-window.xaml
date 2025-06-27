@@ -100,8 +100,9 @@
         <!-- Update Time Column -->
         <StackPanel Grid.Column="0" Margin="0,0,5,0">
             <StackPanel Orientation="Horizontal">
-            <TextBox x:Name="UpdateTimeTextBox" Width="80" Height="25" Text="06:00" VerticalContentAlignment="Center"/>
-            <TextBlock Text="(HH:mm format)" VerticalAlignment="Center" Margin="10,0,0,0" FontSize="10" Foreground="$Script:COLOR_INACTIVE"/>
+                <ComboBox x:Name="UpdateTimeHourComboBox" Width="50" Height="25" VerticalContentAlignment="Center"/>
+                <TextBlock Text=":" VerticalAlignment="Center" Margin="5,0,5,0"/>
+                <ComboBox x:Name="UpdateTimeMinuteComboBox" Width="50" Height="25" VerticalContentAlignment="Center"/>
             </StackPanel>
             <TextBlock Text="Time of day when updates are checked" FontSize="10" Foreground="$Script:COLOR_INACTIVE" Margin="0,5,0,0"/>
         </StackPanel>

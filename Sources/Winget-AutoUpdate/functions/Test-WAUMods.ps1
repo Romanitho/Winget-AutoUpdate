@@ -198,11 +198,16 @@ function Test-WAUMods {
                                         # Create a self destroying scheduled task for mandatory restart
                                         Write-ToLog "Creating scheduled task for mandatory restart in $rebootDelay minutes" "Yellow"
 
+                                        # Escape the shutdown message properly before using in here-string
+                                        $escapedShutdownMessage = $shutdownMessage -replace '"', '\"' -replace '`', '``'
+
                                         # Create PowerShell script with enhanced logging
                                         $scriptContent = @"
 `$regPath = 'HKLM:\SOFTWARE\Microsoft\SMS\Mobile Client\Reboot Management\RebootData'
 `$ccmRestartPath = "`$env:windir\CCM\CcmRestart.exe"
 `$logPath = "$WorkingDir\logs\mandatory_restart.log"
+`$rebootDelay = $rebootDelay
+`$shutdownMessage = "$escapedShutdownMessage"
 
 # Function to write to log
 function Write-RestartLog {
@@ -218,33 +223,58 @@ Write-RestartLog "Mandatory restart task started"
 if (`$regProps.PSObject.Properties.Name -contains 'RebootBy' -and `$regProps.PSObject.Properties.Name -contains 'OverrideRebootWindowTime') {
     Write-RestartLog "SCCM restart registry values found, proceeding with restart"
     
-    if (-not (Test-Path `$regPath)) { 
-        New-Item -Path `$regPath -Force 
-        Write-RestartLog "Created registry path: `$regPath"
-    }
-    
-    'RebootBy','OverrideRebootWindowTime' | ForEach-Object { 
-        New-ItemProperty -Path `$regPath -Name `$_ -Value ([Int64]-1) -PropertyType QWord -Force 
-    }
-    'PreferredRebootWindowTypes' | ForEach-Object { 
-        New-ItemProperty -Path `$regPath -Name `$_ -Value @('3') -PropertyType MultiString -Force 
-    }
-    'OverrideRebootWindow','HardReboot','NotifyUI','RebootValueInUTC','SetTime','OverrideServiceWindows','RebootOutsideOfServiceWindow' | ForEach-Object { 
-        New-ItemProperty -Path `$regPath -Name `$_ -Value 1 -PropertyType DWord -Force 
-    }
-    New-ItemProperty -Path `$regPath -Name 'GraceSeconds' -Value 0 -PropertyType DWord -Force
-    
-    Write-RestartLog "Registry values updated for mandatory restart"
-    
-    # Check if CcmRestart.exe exists and use it, otherwise restart the service
-    if (Test-Path `$ccmRestartPath) {
-        Write-RestartLog "Executing CcmRestart.exe"
-        Start-Process -FilePath `$ccmRestartPath -NoNewWindow -Wait -ErrorAction SilentlyContinue
-        Write-RestartLog "CcmRestart.exe execution completed"
+    # Grace period is over, system will now restart in 2 minutes
+    Write-RestartLog "The grace period for restart (`$rebootDelay minutes) is over (`$shutdownMessage). System will restart in 2 minutes." "Yellow"
+
+    `$result = & shutdown /r /t 120 /c "Mandatory restart: The grace period for restart (`$rebootDelay minutes) is over (`$shutdownMessage). System will restart in 2 minutes." 2>&1
+    if (`$LASTEXITCODE -eq 0) {
+        Write-RestartLog "System restart scheduled in 2 minutes" "Yellow"
+
+        # Remove all values under the registry key
+        `$key = Get-Item -Path `$regPath -ErrorAction SilentlyContinue
+        if (`$key) {
+            `$key.GetValueNames() | ForEach-Object { Remove-ItemProperty -Path `$regPath -Name `$_ -ErrorAction SilentlyContinue }
+            Write-RestartLog "All registry values under `$regPath have been deleted"
+        } else {
+            Write-RestartLog "Registry key `$regPath not found, nothing to delete"
+        }
+    } elseif (`$LASTEXITCODE -eq 1190) {
+        Write-RestartLog "A system shutdown already exists: `$result" "Yellow"
+
+        # Remove all values under the registry key
+        `$key = Get-Item -Path `$regPath -ErrorAction SilentlyContinue
+        if (`$key) {
+            `$key.GetValueNames() | ForEach-Object { Remove-ItemProperty -Path `$regPath -Name `$_ -ErrorAction SilentlyContinue }
+            Write-RestartLog "All registry values under `$regPath have been deleted"
+        } else {
+            Write-RestartLog "Registry key `$regPath not found, nothing to delete"
+        }
     } else {
-        Write-RestartLog "CcmRestart.exe not found, restarting ccmexec service"
-        Restart-Service ccmexec -Force -ErrorAction SilentlyContinue
-        Write-RestartLog "ccmexec service restart completed"
+        Write-RestartLog "A system shutdown failed: `$result" "Yellow"
+        
+        'RebootBy','OverrideRebootWindowTime' | ForEach-Object { 
+            New-ItemProperty -Path `$regPath -Name `$_ -Value ([Int64]-1) -PropertyType QWord -Force 
+        }
+        'PreferredRebootWindowTypes' | ForEach-Object { 
+            New-ItemProperty -Path `$regPath -Name `$_ -Value @('3') -PropertyType MultiString -Force 
+        }
+        'OverrideRebootWindow','HardReboot','NotifyUI','RebootValueInUTC','SetTime','OverrideServiceWindows','RebootOutsideOfServiceWindow' | ForEach-Object { 
+            New-ItemProperty -Path `$regPath -Name `$_ -Value 1 -PropertyType DWord -Force 
+        }
+        New-ItemProperty -Path `$regPath -Name 'GraceSeconds' -Value 0 -PropertyType DWord -Force
+        
+        Write-RestartLog "Registry values updated for SCCM mandatory restart"
+        
+        # Check if CcmRestart.exe exists and use it, otherwise restart the service
+        if (Test-Path `$ccmRestartPath) {
+            Write-RestartLog "Executing CcmRestart.exe"
+            Start-Process -FilePath `$ccmRestartPath -NoNewWindow -Wait -ErrorAction SilentlyContinue
+            Write-RestartLog "CcmRestart.exe execution completed"
+        } else {
+            Write-RestartLog "CcmRestart.exe not found, restarting ccmexec service"
+            Restart-Service ccmexec -Force -ErrorAction SilentlyContinue
+            Write-RestartLog "ccmexec service restart completed"
+        }
     }
 } else {
     Write-RestartLog "No SCCM restart registry values found, task completed without action"

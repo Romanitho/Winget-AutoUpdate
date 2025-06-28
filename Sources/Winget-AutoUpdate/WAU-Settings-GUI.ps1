@@ -58,8 +58,8 @@ function Test-Administrator {
 function Test-ValidPathCharacter {
     param([string]$text, [string]$currentTextBoxValue = "")
     
-    # Allow characters for paths AND URLs: letters, digits, :, \, /, -, _, ., space, 'GPO' and 'AzureBlob'
-    $isValidChar = $text -match '^[a-zA-Z0-9:\\/_.\s-]*$'
+    # Allow characters for paths AND URLs: letters, digits, :, \, /, -, _, ., space, $, 'GPO' and 'AzureBlob'
+    $isValidChar = $text -match '^[a-zA-Z0-9:\\/_.\s\-\$]*$'
     
     if (-not $isValidChar) {
         return $false

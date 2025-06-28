@@ -224,9 +224,12 @@ if (`$regProps.PSObject.Properties.Name -contains 'RebootBy' -and `$regProps.PSO
     Write-RestartLog "SCCM restart registry values found, proceeding with restart"
     
     # Grace period is over, system will now restart in 2 minutes
-    Write-RestartLog "The grace period for restart (`$rebootDelay minutes) is over (`$shutdownMessage). System will restart in 2 minutes." "Yellow"
+    Write-RestartLog "Grace period: `$rebootDelay minutes is over (`$shutdownMessage). System will now restart in 2 minutes." "Yellow"
 
-    `$result = & shutdown /r /t 120 /c "Mandatory restart: The grace period for restart (`$rebootDelay minutes) is over (`$shutdownMessage). System will restart in 2 minutes." 2>&1
+    # Cancels any pending system shutdown or restart using 'shutdown /a'.
+    `$null = & shutdown /a 2>&1
+    
+    `$result = & shutdown /r /t 120 /c "Grace period: `$rebootDelay minutes is over (`$shutdownMessage). System will now restart in 2 minutes." 2>&1
     if (`$LASTEXITCODE -eq 0) {
         Write-RestartLog "System restart scheduled in 2 minutes" "Yellow"
 
@@ -282,20 +285,29 @@ if (`$regProps.PSObject.Properties.Name -contains 'RebootBy' -and `$regProps.PSO
 
 Write-RestartLog "Mandatory restart task completed"
 "@
-                                                    
                                         # Encode to Base64
                                         $encodedScript = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($scriptContent))
                                         
                                         # Create action with encoded command
                                         $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -WindowStyle Hidden -EncodedCommand $encodedScript"
                                         
-                                        $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes($rebootDelay)
+                                        # Create a scheduled task trigger to run (rebootDelay - 2) minutes from now, but at least 2 minutes delay.
+                                        $triggerDelay = [math]::Max(($rebootDelay - 2), 2)
+                                        $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes($triggerDelay)
                                         # Set EndBoundary to make DeleteExpiredTaskAfter work
-                                        $trigger.EndBoundary = (Get-Date).AddMinutes($rebootDelay).AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss")
+                                        $trigger.EndBoundary = (Get-Date).AddMinutes($triggerDelay).AddMinutes(1).ToString("yyyy-MM-ddTHH:mm:ss")
                                         $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit (New-TimeSpan -Minutes 60) -DeleteExpiredTaskAfter (New-TimeSpan -Seconds 0)
                                         $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-                                        Register-ScheduledTask -TaskName $taskName -TaskPath $taskPath -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "Mandatory Restart by SCCM" -Force | Out-Null
+                                        Register-ScheduledTask -TaskName $taskName -TaskPath $taskPath -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description "Mandatory SCCM Restart" -Force | Out-Null
+
+                                        # Add a standard shutdown command
+                                        $result = & shutdown /r /t ([int]($rebootDelay * 60)) /c $shutdownMessage 2>&1
+                                        if ($LASTEXITCODE -eq 0) {
+                                            Write-ToLog "System restart scheduled in $rebootDelay minutes" "Yellow"
                                         } else {
+                                            Write-ToLog "A system shutdown has already been scheduled or failed: $result" "Yellow"
+                                        }
+                                    } else {
                                         # SOFT/NON-MANDATORY REBOOT
                                         Write-ToLog "Using soft reboot (non-mandatory) for SCCM restart" "Cyan"
                                         

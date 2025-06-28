@@ -55,6 +55,195 @@ function Test-Administrator {
     $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
+function Test-ValidPathCharacter {
+    param([string]$text, [string]$currentTextBoxValue = "")
+    
+    # Allow characters for paths AND URLs: letters, digits, :, \, /, -, _, ., space, 'GPO' and 'AzureBlob'
+    $isValidChar = $text -match '^[a-zA-Z0-9:\\/_.\s-]*$'
+    
+    if (-not $isValidChar) {
+        return $false
+    }
+    
+    # Get WAU installation path to block
+    try {
+        $currentConfig = Get-WAUCurrentConfig
+        $installLocation = $currentConfig.InstallLocation.TrimEnd('\')
+        
+        # Check if the proposed new text would contain the install location
+        $proposedText = $currentTextBoxValue + $text
+        if ($proposedText -like "*$installLocation*") {
+            return $false
+        }
+    }
+    catch {
+        # If we can't get config, just allow the character
+    }
+    
+    # For PreviewTextInput, we only check basic character validity and install location
+    # We don't check for trailing slashes or filenames here since the user is still typing
+    
+    return $true
+}
+function Test-PathTextBox_PreviewTextInput {
+    param($source, $e)
+    
+    # Get current text in the TextBox
+    $currentText = $source.Text
+    
+    # Check if the input character is valid and doesn't create forbidden path
+    if (-not (Test-ValidPathCharacter -text $e.Text -currentTextBoxValue $currentText)) {
+        $e.Handled = $true  # Blockera tecknet
+    }
+}
+function Test-PathTextBox_TextChanged {
+    param($source, $e)
+    
+    try {
+        $currentConfig = Get-WAUCurrentConfig
+        $installLocation = $currentConfig.InstallLocation.TrimEnd('\')
+        
+        $hasError = $false
+        $errorMessage = ""
+        
+        # Store original tooltip if not already stored
+        if (-not $source.Tag) {
+            $source.Tag = $source.ToolTip
+        }
+        
+        # Empty is OK
+        if ([string]::IsNullOrWhiteSpace($source.Text)) {
+            $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
+            # Restore original tooltip
+            $source.ToolTip = $source.Tag
+            return
+        }
+
+        # Only allow "GPO" or "AzureBlob" as special values
+        if ($source.Text -eq "GPO" -or $source.Text -eq "AzureBlob") {
+            $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
+            $source.ToolTip = $source.Tag
+            return
+        }
+
+        # Allow local paths (e.g. D:\Folder), UNC paths (\\server\share), or URLs (http/https)
+        if (
+            -not (
+                $source.Text -match '^[a-zA-Z]:\\' -or
+                $source.Text -match '^\\\\' -or
+                $source.Text -match '^https?://'
+            )
+        ) {
+            $source.BorderBrush = [System.Windows.Media.Brushes]::Red
+            $source.ToolTip = "Only local paths, UNC paths, URLs, or the special values 'GPO' and 'AzureBlob' are allowed."
+            return
+        }
+
+        # Check if current text contains the install location
+        if ($source.Text -like "*$installLocation*") {
+            $hasError = $true
+            $errorMessage = "Cannot use WAU installation directory: $installLocation"
+        }
+        # For URLs, apply the same restrictions as local paths
+        elseif ($source.Text -match '^https?://') {
+            if ($source.Text.EndsWith('\') -or $source.Text.EndsWith('/')) {
+                $hasError = $true
+                $errorMessage = "URL cannot end with '\' or '/'"
+            }
+            else {
+                $lastSegment = Split-Path -Leaf $source.Text
+                if ($lastSegment -and $lastSegment.Contains('.')) {
+                    $hasError = $true
+                    $errorMessage = "URL cannot end with a filename (no dots allowed in final segment)"
+                }
+            }
+        }
+        # For non-URLs, apply local path restrictions
+        elseif ($source.Text.EndsWith('\') -or $source.Text.EndsWith('/')) {
+            $hasError = $true
+            $errorMessage = "Path cannot end with '\' or '/'"
+        }
+        # Check if path ends with a filename (contains dot in last segment)
+        else {
+            $lastSegment = Split-Path -Leaf $source.Text
+            if ($lastSegment -and $lastSegment.Contains('.')) {
+                $hasError = $true
+                $errorMessage = "Path cannot end with a filename (no dots allowed in final segment)"
+            }
+        }
+        
+        if ($hasError) {
+            $source.BorderBrush = [System.Windows.Media.Brushes]::Red
+            $source.ToolTip = $errorMessage
+        } else {
+            $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
+            # Restore original tooltip
+            $source.ToolTip = $source.Tag
+        }
+    }
+    catch {
+        # If we can't get config, clear any error styling
+        $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
+        # Restore original tooltip if available
+        if ($source.Tag) {
+            $source.ToolTip = $source.Tag
+        } else {
+            $source.ClearValue([System.Windows.Controls.TextBox]::ToolTipProperty)
+        }
+    }
+}
+function Test-PathValue {
+    param([string]$path)
+
+    if ([string]::IsNullOrWhiteSpace($path)) {
+        return $true  # Empty paths are allowed
+    }
+
+    # Allow special values "GPO" and "AzureBlob"
+    if ($path -eq "GPO" -or $path -eq "AzureBlob") {
+        return $true
+    }
+
+    try {
+        $currentConfig = Get-WAUCurrentConfig
+        $installLocation = $currentConfig.InstallLocation.TrimEnd('\')
+
+        # Check if path contains WAU install location
+        if ($path -like "*$installLocation*") {
+            return $false
+        }
+    }
+    catch {
+        # If we can't get config, allow the path
+    }
+
+    # URL validation (must not end with / or \, and last segment must not contain dot)
+    if ($path -match '^https?://') {
+        if ($path.EndsWith('\') -or $path.EndsWith('/')) {
+            return $false
+        }
+        $lastSegment = Split-Path -Leaf $path
+        if ($lastSegment -and $lastSegment.Contains('.')) {
+            return $false
+        }
+        return $true
+    }
+
+    # UNC and local path validation (must not end with / or \, and last segment must not contain dot)
+    if ($path -match '^[a-zA-Z]:\\' -or $path -match '^\\\\') {
+        if ($path.EndsWith('\') -or $path.EndsWith('/')) {
+            return $false
+        }
+        $lastSegment = Split-Path -Leaf $path
+        if ($lastSegment -and $lastSegment.Contains('.')) {
+            return $false
+        }
+        return $true
+    }
+
+    # Otherwise, not valid
+    return $false
+}
 Function Start-PopUp ($Message) {
 
     if (!$PopUpWindow) {
@@ -1206,6 +1395,27 @@ function Update-WAUGUIFromConfig {
 function Save-WAUSettings {
     param($controls)
 
+        # Validate path inputs before saving
+        $pathErrors = @()
+        
+        if (-not (Test-PathValue -path $controls.ListPathTextBox.Text)) {
+            $pathErrors += "External List Path contains invalid value"
+        }
+        
+        if (-not (Test-PathValue -path $controls.ModsPathTextBox.Text)) {
+            $pathErrors += "External Mods Path contains invalid value"
+        }
+        
+        if (-not (Test-PathValue -path $controls.AzureBlobSASURLTextBox.Text)) {
+            $pathErrors += "Azure Blob SAS URL contains invalid value"
+        }
+        
+        if ($pathErrors.Count -gt 0) {
+            $errorMessage = "Cannot save settings. Please fix the following errors:`n`n" + ($pathErrors -join "`n")
+            [System.Windows.MessageBox]::Show($errorMessage, "Validation Error", "OK", "Warning")
+            return
+        }
+
         # Check if settings are controlled by GPO
         $updatedConfig = Get-WAUCurrentConfig
         $updatedPolicies = $null
@@ -1496,7 +1706,33 @@ function Show-WAUSettingsGUI {
     $controls.MaxLogFilesComboBox.Add_SelectionChanged({
         Update-MaxLogSizeState -Controls $controls
     })
+
+    # Event handlers for path TextBox input validation
+    $controls.ListPathTextBox.Add_PreviewTextInput({
+        Test-PathTextBox_PreviewTextInput -source $args[0] -e $args[1]
+    })
     
+    $controls.ModsPathTextBox.Add_PreviewTextInput({
+        Test-PathTextBox_PreviewTextInput -source $args[0] -e $args[1]
+    })
+    
+    $controls.AzureBlobSASURLTextBox.Add_PreviewTextInput({
+        Test-PathTextBox_PreviewTextInput -source $args[0] -e $args[1]
+    })
+
+    # Event handlers for path TextBox text validation
+    $controls.ListPathTextBox.Add_TextChanged({
+        Test-PathTextBox_TextChanged -source $args[0] -e $args[1]
+    })
+    
+    $controls.ModsPathTextBox.Add_TextChanged({
+        Test-PathTextBox_TextChanged -source $args[0] -e $args[1]
+    })
+    
+    $controls.AzureBlobSASURLTextBox.Add_TextChanged({
+        Test-PathTextBox_TextChanged -source $args[0] -e $args[1]
+    })
+
     # Populate current settings
     Update-WAUGUIFromConfig -Controls $controls    
 

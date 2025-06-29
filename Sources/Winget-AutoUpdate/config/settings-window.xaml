@@ -81,6 +81,7 @@
                 <ComboBox x:Name="NotificationLevelComboBox" Height="25" Width="Auto">
                     <ComboBoxItem Content="Full" Tag="Full"/>
                     <ComboBoxItem Content="Success Only" Tag="SuccessOnly"/>
+                    <ComboBoxItem Content="Errors Only" Tag="ErrorsOnly"/>
                     <ComboBoxItem Content="None" Tag="None"/>
                 </ComboBox>
                 <TextBlock Text="Level of notifications" 

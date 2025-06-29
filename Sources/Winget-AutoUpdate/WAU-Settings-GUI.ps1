@@ -1157,7 +1157,8 @@ function Update-WAUGUIFromConfig {
     $Controls.NotificationLevelComboBox.SelectedIndex = switch ($notifLevel) {
         "Full" { 0 }
         "SuccessOnly" { 1 }
-        "None" { 2 }
+        "ErrorsOnly" { 2 }
+        "None" { 3 }
         default { 0 }
     }
     

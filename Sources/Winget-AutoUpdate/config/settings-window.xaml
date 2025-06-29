@@ -264,9 +264,25 @@
         </StackPanel>
     </GroupBox>
 
-    <!-- Status Bar -->
-    <TextBlock Grid.Row="8" x:Name="StatusBarText" Text="$Script:STATUS_READY_TEXT" FontSize="10" Foreground="$Script:COLOR_INACTIVE" VerticalAlignment="Bottom"/>
-    
+<!-- Status Bar -->
+<StackPanel Grid.Row="8" Orientation="Horizontal" VerticalAlignment="Bottom">
+    <Button x:Name="ScreenshotButton" 
+            Width="25" Height="16" 
+            Background="Transparent" 
+            BorderThickness="0"
+            Margin="0,0,8,0"
+            ToolTip="Take screenshot to clipboard"
+            Cursor="Hand">
+        <Canvas Width="16" Height="12">
+            <Rectangle Canvas.Left="2" Canvas.Top="3" Width="12" Height="8" 
+                    Stroke="DarkBlue" StrokeThickness="1" Fill="LightBlue"/>
+            <Ellipse Canvas.Left="6" Canvas.Top="5" Width="4" Height="4" 
+                    Fill="DarkBlue"/>
+        </Canvas>
+    </Button>
+    <TextBlock x:Name="StatusBarText" Text="$Script:STATUS_READY_TEXT" FontSize="10" Foreground="$Script:COLOR_INACTIVE" VerticalAlignment="Bottom"/>
+</StackPanel>
+
     <!-- Buttons -->
     <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
         <Button x:Name="RunNowButton" Content="Run WAU" Width="100" Height="30" Margin="0,0,10,0"/>
@@ -275,4 +291,5 @@
         <Button x:Name="CancelButton" Content="Cancel" Width="80" Height="30"/>
     </StackPanel>
     </Grid>
+
 </Window>

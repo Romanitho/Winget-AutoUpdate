@@ -331,6 +331,87 @@ function Test-InstalledWAU {
 
     return $matchingApps
 }
+function Hide-SensitiveText {
+    param(
+        [string]$originalText,
+        [int]$visibleChars = 5
+    )
+    
+    if ([string]::IsNullOrWhiteSpace($originalText) -or $originalText.Length -le ($visibleChars * 2)) {
+        return $originalText
+    }
+    
+    $start = $originalText.Substring(0, $visibleChars)
+    $end = $originalText.Substring($originalText.Length - $visibleChars)
+    $masked = "*" * [Math]::Max(1, $originalText.Length - ($visibleChars * 2))
+    
+    return "$start$masked$end"
+}
+function New-WindowScreenshot {
+    param($window, $controls)
+    
+    try {
+        # Store original values for sensitive fields
+        $originalListPath = $controls.ListPathTextBox.Text
+        $originalModsPath = $controls.ModsPathTextBox.Text
+        $originalAzureBlob = $controls.AzureBlobSASURLTextBox.Text
+        
+        # Temporarily mask sensitive text
+        if (-not [string]::IsNullOrWhiteSpace($originalListPath)) {
+            $controls.ListPathTextBox.Text = Hide-SensitiveText $originalListPath
+        }
+        if (-not [string]::IsNullOrWhiteSpace($originalModsPath)) {
+            $controls.ModsPathTextBox.Text = Hide-SensitiveText $originalModsPath
+        }
+        if (-not [string]::IsNullOrWhiteSpace($originalAzureBlob)) {
+            $controls.AzureBlobSASURLTextBox.Text = Hide-SensitiveText $originalAzureBlob
+        }
+        
+        # Force UI update to show masked values
+        [System.Windows.Forms.Application]::DoEvents()
+        Start-Sleep -Milliseconds 100
+        
+        # Get window position and size
+        $windowRect = New-Object System.Drawing.Rectangle
+        $windowRect.X = $window.Left
+        $windowRect.Y = $window.Top
+        $windowRect.Width = $window.ActualWidth
+        $windowRect.Height = $window.ActualHeight
+        
+        # Create bitmap and capture screen
+        $bitmap = New-Object System.Drawing.Bitmap($windowRect.Width, $windowRect.Height)
+        $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+        $graphics.CopyFromScreen($windowRect.X, $windowRect.Y, 0, 0, $bitmap.Size)
+        $graphics.Dispose()
+        
+        # Copy to clipboard
+        [System.Windows.Forms.Clipboard]::SetImage($bitmap)
+        
+        # Clean up
+        $bitmap.Dispose()
+        
+        # Show confirmation
+        $controls.StatusBarText.Text = "Screenshot saved"
+        $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+        
+        # Timer to reset status
+        $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+            Start-Sleep -Milliseconds $Script:WAIT_TIME
+            $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
+            $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
+        }) | Out-Null
+        
+    }
+    catch {
+        [System.Windows.MessageBox]::Show("Failed to capture screenshot: $($_.Exception.Message)", "Error", "OK", "Error")
+    }
+    finally {
+        # Always restore original values
+        $controls.ListPathTextBox.Text = $originalListPath
+        $controls.ModsPathTextBox.Text = $originalModsPath
+        $controls.AzureBlobSASURLTextBox.Text = $originalAzureBlob
+    }
+}
 
 # 2. Configuration functions
 function Get-DisplayValue {
@@ -982,7 +1063,7 @@ function Set-ControlsState {
     )
 
     $alwaysEnabledControls = @(
-        'SaveButton', 'CancelButton', 'RunNowButton', 'OpenLogsButton',
+        'ScreenshotButton', 'SaveButton', 'CancelButton', 'RunNowButton', 'OpenLogsButton',
         'DevTaskButton', 'DevRegButton', 'DevGUIDButton', 'DevListButton', 'DevMSTButton'
     )
 
@@ -1090,7 +1171,7 @@ function Update-GPOManagementState {
          # Show popup only if not skipped (i.e., when window first opens)
         if (-not $skipPopup) {
             # Update status bar to show GPO is controlling settings
-            $controls.StatusBarText.Text = "Settings Managed by GPO"
+            $controls.StatusBarText.Text = "Managed by GPO"
             $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
             
             # Show popup when GPO is controlling settings with delay to ensure main window is visible first
@@ -1112,7 +1193,7 @@ function Update-GPOManagementState {
         Set-ControlsState -parentControl $window -enabled $true
         
         # Reset status bar if it was showing GPO message
-        if ($controls.StatusBarText.Text -eq "Settings Managed by GPO") {
+        if ($controls.StatusBarText.Text -eq "Managed by GPO") {
             $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
             $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
         }
@@ -1732,6 +1813,11 @@ function Show-WAUSettingsGUI {
     
     $controls.AzureBlobSASURLTextBox.Add_TextChanged({
         Test-PathTextBox_TextChanged -source $args[0] -e $args[1]
+    })
+
+    # Screenshot button handler
+    $controls.ScreenshotButton.Add_Click({
+        New-WindowScreenshot -window $window -controls $controls
     })
 
     # Populate current settings

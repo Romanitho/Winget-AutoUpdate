@@ -58,8 +58,8 @@ function Test-Administrator {
 function Test-ValidPathCharacter {
     param([string]$text, [string]$currentTextBoxValue = "")
     
-    # Allow characters for paths AND URLs: letters, digits, :, \, /, -, _, ., space, $, 'GPO' and 'AzureBlob'
-    $isValidChar = $text -match '^[a-zA-Z0-9:\\/_.\s\-\$]*$'
+    # Allow characters for paths and URLs: letters, digits, :, \, /, -, _, ., space, $, 'GPO', 'AzureBlob', and SAS URL characters (?, &, =, %)
+    $isValidChar = $text -match '^[a-zA-Z0-9:\\/_.\s\-\$?&=%]*$'
     
     if (-not $isValidChar) {
         return $false
@@ -368,6 +368,7 @@ function New-WindowScreenshot {
         }
         
         # Force UI update to show masked values
+        Start-Sleep -Milliseconds 100
         [System.Windows.Forms.Application]::DoEvents()
         Start-Sleep -Milliseconds 100
         
@@ -391,8 +392,8 @@ function New-WindowScreenshot {
         $bitmap.Dispose()
         
         # Show confirmation
-        $controls.StatusBarText.Text = "Screenshot saved"
-        $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+        $controls.StatusBarText.Text = "Screenshot copied"
+        $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
         
         # Timer to reset status
         $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{

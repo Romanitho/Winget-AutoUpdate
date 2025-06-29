@@ -1614,6 +1614,10 @@ function Test-WindowKeyPress {
             Set-DevToolsVisibility -controls $controls -window $window
             $keyEventArgs.Handled = $true
         }
+        'F11' {
+            New-WindowScreenshot -window $window -controls $controls
+            $keyEventArgs.Handled = $true
+        }
         'Enter' { 
             if ($keyEventArgs.KeyboardDevice.Modifiers -eq [System.Windows.Input.ModifierKeys]::None) {
                 Save-WAUSettings -controls $controls

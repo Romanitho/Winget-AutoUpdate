@@ -270,8 +270,8 @@
             Width="25" Height="16" 
             Background="Transparent" 
             BorderThickness="0"
-            Margin="0,0,8,0"
-            ToolTip="Take screenshot to clipboard"
+            Margin="0,0,0,0"
+            ToolTip="Take screenshot to clipboard (F11)"
             Cursor="Hand">
         <Canvas Width="16" Height="12">
             <Rectangle Canvas.Left="2" Canvas.Top="3" Width="12" Height="8" 

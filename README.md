@@ -42,7 +42,7 @@ List and Mods folder content will be copied to WAU install location:
 
 
 ### Notification Level
-You can choose which notification will be displayed: `Full`, `Success only` or `None`.
+You can choose which notification will be displayed: `Full`, `Success only`, `Errors only` or `None`.
 
 ### Notification language
 You can easily translate toast notifications by creating your locale xml config file (and share it with us :) ).
@@ -147,7 +147,7 @@ Set `DESKTOPSHORTCUT=1` to create a shortcut for user interaction on the Desktop
 Set `STARTMENUSHORTCUT=1` to create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate` and open Logs.
 
 ### NOTIFICATIONLEVEL
-Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).
+Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success), ErrorsOnly (Only displays notification for error) or None (Does not show any popup).
 
 ### UPDATESATLOGON
 Default value 1. Set `UPDATESATLOGON=0` to disable WAU from running at user logon.

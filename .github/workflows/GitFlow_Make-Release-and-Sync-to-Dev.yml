@@ -128,6 +128,16 @@ jobs:
 
             <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>
 
+  sync:
+    name: Sync develop with main
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0
+    
       # Step 5: Configure Git for merge back to develop
       - name: Configure Git
         shell: bash

@@ -147,7 +147,7 @@ Set `DESKTOPSHORTCUT=1` to create a shortcut for user interaction on the Desktop
 Set `STARTMENUSHORTCUT=1` to create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate` and open Logs.
 
 ### NOTIFICATIONLEVEL
-Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success), ErrorsOnly (Only displays notification for error) or None (Does not show any popup).
+Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success), ErrorsOnly (Only displays notification for errors) or None (Does not show any popup).
 
 ### UPDATESATLOGON
 Default value 1. Set `UPDATESATLOGON=0` to disable WAU from running at user logon.

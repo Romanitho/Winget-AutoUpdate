@@ -164,6 +164,11 @@
               <string>SuccessOnly</string>
             </value>
           </item>
+          <item displayName="$(string.NotificationLevel_ErrorsOnly)">
+            <value>
+              <string>ErrorsOnly</string>
+            </value>
+          </item>
           <item displayName="$(string.NotificationLevel_None)">
             <value>
               <string>None</string>

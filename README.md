@@ -189,10 +189,8 @@ Read more in the [Policies section](https://github.com/Romanitho/Winget-AutoUpda
 This script executes **if the network is active/any version of Winget is installed/WAU is running as SYSTEM**.<br>
 If **ExitCode** is **1** from `_WAU-mods.ps1` then **Re-run WAU**.
 
-In addition to this legacy handling, **function {Test-WAUMods}** now supports a new action-based system.
-
-This allows you to define multiple actions and conditions directly in your mod script, enabling more advanced automation scenarios.
-
+In addition to this legacy handling, a new action-based system is now supported.<br>
+This system lets you define multiple actions and conditions directly in your mod scripts, enabling more advanced automation and control over the WAU process.<br>
 With actions, you can execute different scripts, check results, and control the WAU flow with greater flexibility and improved logging compared to relying solely on **Exit Code**.
 
 Likewise `_WAU-mods-postsys.ps1` can be used to do things at the end of the **SYSTEM context WAU** process before the user run.

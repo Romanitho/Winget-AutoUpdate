@@ -93,7 +93,7 @@ function Test-PathTextBox_PreviewTextInput {
     
     # Check if the input character is valid and doesn't create forbidden path
     if (-not (Test-ValidPathCharacter -text $e.Text -currentTextBoxValue $currentText)) {
-        $e.Handled = $true  # Blockera tecknet
+        $e.Handled = $true  # Block the character
     }
 }
 function Test-PathTextBox_TextChanged {

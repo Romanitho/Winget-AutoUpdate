@@ -368,7 +368,6 @@ function New-WindowScreenshot {
         }
         
         # Force UI update to show masked values
-        Start-Sleep -Milliseconds 100
         [System.Windows.Forms.Application]::DoEvents()
         Start-Sleep -Milliseconds 100
         

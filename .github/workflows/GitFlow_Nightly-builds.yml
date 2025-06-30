@@ -155,7 +155,7 @@ jobs:
 
       # Step 6: Create GitHub release with all artifacts
       - name: Create release
-        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
+        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
         if: steps.check_prs.outputs.BUILD_NEEDED == 'true'
         with:
           tag: v${{ steps.format_version.outputs.NextSemVer }}

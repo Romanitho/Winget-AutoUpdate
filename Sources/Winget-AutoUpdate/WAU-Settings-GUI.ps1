@@ -2349,7 +2349,7 @@ function Show-WAUSettingsGUI {
             
             # Show messagebox about backup and ask if user wants to import another file
             $importMsg = "A backup of your current settings has been saved to:`n$backupFile`n`nDo you want to continue and import a WAU Settings file?"
-            $result = [System.Windows.MessageBox]::Show($importMsg, "Backup Created", "OKCancel", "Question", "Yes")
+            $result = [System.Windows.MessageBox]::Show($importMsg, "Backup Created", "OKCancel", "Question", "OK")
             if ($result -eq 'Cancel') {
                 # Open the folder containing the backup file
                 Start-Process "explorer.exe" -ArgumentList "/select,`"$backupFile`""

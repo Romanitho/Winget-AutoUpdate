@@ -24,7 +24,6 @@ Must be run as Administrator
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName PresentationFramework
-Add-Type -AssemblyName PresentationCore
 
 # Constants of most used paths and arguments
 $Script:WAU_REGISTRY_PATH = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
@@ -372,28 +371,13 @@ function New-WindowScreenshot {
         [System.Windows.Forms.Application]::DoEvents()
         Start-Sleep -Milliseconds 100
 
-        # Get the position and size of the client area (excluding borders)
-        $content = $window.Content
-        $source = [System.Windows.PresentationSource]::FromVisual($content)
-        $topLeft = $content.PointToScreen([System.Windows.Point]::new(0,0))
-        $dpiX = $source.CompositionTarget.TransformToDevice.M11
-        $dpiY = $source.CompositionTarget.TransformToDevice.M22
-        $x = [int][Math]::Round($topLeft.X)
-        $y = [int][Math]::Round($topLeft.Y)
-        $width = [int][Math]::Floor($content.ActualWidth * $dpiX)
-        $height = [int][Math]::Floor($content.ActualHeight * $dpiY)
-        
-        # Create bitmap and capture screen
-        $bitmap = New-Object System.Drawing.Bitmap($width, $height)
-        $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-        $graphics.CopyFromScreen($x, $y, 0, 0, $bitmap.Size)
-        $graphics.Dispose()
+        # Ensure window is active/focused
+        $window.Activate()
+        $window.Focus()
+        Start-Sleep -Milliseconds 50
 
-        # Copy to clipboard
-        [System.Windows.Forms.Clipboard]::SetImage($bitmap)
-
-        # Clean up
-        $bitmap.Dispose()
+        # Send Alt+Print Screen to capture active window
+        [System.Windows.Forms.SendKeys]::SendWait("%{PRTSC}")
 
         # Show confirmation
         $controls.StatusBarText.Text = "Screenshot copied"

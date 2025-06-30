@@ -24,6 +24,7 @@ Must be run as Administrator
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 Add-Type -AssemblyName PresentationFramework
+Add-Type -AssemblyName PresentationCore
 
 # Constants of most used paths and arguments
 $Script:WAU_REGISTRY_PATH = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
@@ -349,13 +350,13 @@ function Hide-SensitiveText {
 }
 function New-WindowScreenshot {
     param($window, $controls)
-    
+
     try {
         # Store original values for sensitive fields
         $originalListPath = $controls.ListPathTextBox.Text
         $originalModsPath = $controls.ModsPathTextBox.Text
         $originalAzureBlob = $controls.AzureBlobSASURLTextBox.Text
-        
+
         # Temporarily mask sensitive text
         if (-not [string]::IsNullOrWhiteSpace($originalListPath)) {
             $controls.ListPathTextBox.Text = Hide-SensitiveText $originalListPath
@@ -366,41 +367,45 @@ function New-WindowScreenshot {
         if (-not [string]::IsNullOrWhiteSpace($originalAzureBlob)) {
             $controls.AzureBlobSASURLTextBox.Text = Hide-SensitiveText $originalAzureBlob
         }
-        
+
         # Force UI update to show masked values
         [System.Windows.Forms.Application]::DoEvents()
         Start-Sleep -Milliseconds 100
-        
-        # Get window position and size
-        $windowRect = New-Object System.Drawing.Rectangle
-        $windowRect.X = $window.Left
-        $windowRect.Y = $window.Top
-        $windowRect.Width = $window.ActualWidth
-        $windowRect.Height = $window.ActualHeight
+
+        # Get the position and size of the client area (excluding borders)
+        $content = $window.Content
+        $source = [System.Windows.PresentationSource]::FromVisual($content)
+        $topLeft = $content.PointToScreen([System.Windows.Point]::new(0,0))
+        $dpiX = $source.CompositionTarget.TransformToDevice.M11
+        $dpiY = $source.CompositionTarget.TransformToDevice.M22
+        $x = [int][Math]::Round($topLeft.X)
+        $y = [int][Math]::Round($topLeft.Y)
+        $width = [int][Math]::Floor($content.ActualWidth * $dpiX)
+        $height = [int][Math]::Floor($content.ActualHeight * $dpiY)
         
         # Create bitmap and capture screen
-        $bitmap = New-Object System.Drawing.Bitmap($windowRect.Width, $windowRect.Height)
+        $bitmap = New-Object System.Drawing.Bitmap($width, $height)
         $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-        $graphics.CopyFromScreen($windowRect.X, $windowRect.Y, 0, 0, $bitmap.Size)
+        $graphics.CopyFromScreen($x, $y, 0, 0, $bitmap.Size)
         $graphics.Dispose()
-        
+
         # Copy to clipboard
         [System.Windows.Forms.Clipboard]::SetImage($bitmap)
-        
+
         # Clean up
         $bitmap.Dispose()
-        
+
         # Show confirmation
         $controls.StatusBarText.Text = "Screenshot copied"
         $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
-        
+
         # Timer to reset status
         $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
             Start-Sleep -Milliseconds $Script:WAIT_TIME
             $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
             $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
         }) | Out-Null
-        
+
     }
     catch {
         [System.Windows.MessageBox]::Show("Failed to capture screenshot: $($_.Exception.Message)", "Error", "OK", "Error")

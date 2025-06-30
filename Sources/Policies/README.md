@@ -1,6 +1,8 @@
 # WAU Administration Template
 
-In an enterprise environment, it's crucial that different groups can have different settings in applications or implement other mandatory settings for security/management reasons. **WAU** doesn't have any settings that can be changed except during installation (or by editing the registry/the `Winget-AutoUpdate` task as **Admin**). However, with the use of **ADML/ADMX** files, you can manage every **WAU** setting from within **GPO** or **Intune policies**.
+In an enterprise environment, it's crucial that different groups can have different settings in applications or implement other mandatory settings for security/management reasons.
+
+With the use of **ADML/ADMX** files, you can manage every **WAU** setting from within **GPO** or **Intune policies**.
 
 ![image](https://user-images.githubusercontent.com/102996177/213920242-7ff8e2b4-d926-4407-b860-1e5922e29c3e.png)
 

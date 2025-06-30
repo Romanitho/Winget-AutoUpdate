@@ -74,6 +74,19 @@ WAU runs with system and user contexts. This way, even apps installed on User's 
 ### Default install location
 By default, scripts and components will be placed in "Program Files" location (inside a Winget-AutoUpdate folder).
 
+## Settings
+Post installation: all settings can be managed via the **WAU Settings (Administrator)** shortcut installed if `STARTMENUSHORTCUT=1` is set during installation (if not set `WAU-Settings-GUI.ps1` can be run manually as an **Administrator**)
+
+Managed by Registry (local):  
+![image](https://github.com/user-attachments/assets/4d27b2a8-a678-4b27-b0f4-693d4df6a95f)
+
+Dev Tools (F12):  
+![image](https://github.com/user-attachments/assets/d89bdf9f-a9bb-4371-9ec4-097287e79191)
+
+Managed by GPO (central/local):  
+![image](https://github.com/user-attachments/assets/e4efd123-e806-4342-ba86-602e9ab91efa)
+
+
 ## Update WAU
 ### Manual Update
 Same process as new installation.
@@ -144,7 +157,7 @@ Default value 0. Set `BYPASSLISTFORUSERS=1` to bypass Black/White list when run 
 Set `DESKTOPSHORTCUT=1` to create a shortcut for user interaction on the Desktop to run task `Winget-AutoUpdate`
 
 ### STARTMENUSHORTCUT
-Set `STARTMENUSHORTCUT=1` to create shortcuts for user interaction in the Start Menu to run task `Winget-AutoUpdate` and open Logs.
+Set `STARTMENUSHORTCUT=1` to create shortcuts for user interaction in the Start Menu to **Run WAU** (run task `Winget-AutoUpdate`), **Open Logs**, start **WAU App Installer** or **WAU Settings (Administrator)**.
 
 ### NOTIFICATIONLEVEL
 Specify the Notification level: Full (Default, displays all notification), SuccessOnly (Only displays notification for success) or None (Does not show any popup).

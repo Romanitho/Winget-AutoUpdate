@@ -36,6 +36,7 @@ $Script:WAU_TITLE = "WAU Settings (Administrator)"
 $Script:DESKTOP_WAU_SETTINGS = [System.IO.Path]::Combine([Environment]::GetFolderPath('Desktop'), "$Script:WAU_TITLE.lnk")
 $Script:DESKTOP_WAU_APPINSTALLER = "${env:Public}\Desktop\WAU App Installer.lnk"
 $Script:STARTMENU_WAU_DIR = "${env:PROGRAMDATA}\Microsoft\Windows\Start Menu\Programs\Winget-AutoUpdate"
+$Script:USER_DIR = "${env:APPDATA}\Winget-AutoUpdate"
 $Script:COLOR_ENABLED = "#228B22"  # Forest green
 $Script:COLOR_DISABLED = "#FF6666" # Light red
 $Script:COLOR_ACTIVE = "Orange"
@@ -194,6 +195,167 @@ function Get-WAUCurrentConfig {
     catch {
         [System.Windows.MessageBox]::Show("WAU configuration not found. Please ensure WAU is properly installed.", "Error", "OK", "Error")
         exit 1
+    }
+}
+function Import-WAUSettingsFromFile {
+    param(
+        [string]$FilePath,
+        $Controls
+    )
+    
+    try {
+        $content = Get-Content -Path $FilePath -Encoding UTF8
+        
+        # Parse .reg.txt content and extract registry values
+        foreach ($line in $content) {
+            if ($line -match '"(.+?)"=(.+)') {
+                $valueName = $matches[1]
+                $valueData = $matches[2]
+                
+                # Convert value based on type and update corresponding GUI control
+                switch ($valueName) {
+                    'WAU_NotificationLevel' { 
+                        # Extract string value and set notification level
+                        if ($valueData -match '"(.+?)"') {
+                            $level = $matches[1]
+                            $Controls.NotificationLevelComboBox.SelectedIndex = switch ($level) {
+                                "Full" { 0 }
+                                "SuccessOnly" { 1 }
+                                "ErrorsOnly" { 2 }
+                                "None" { 3 }
+                                default { 0 }
+                            }
+                        }
+                    }
+                    'WAU_UpdatesInterval' {
+                        # Extract string value
+                        if ($valueData -match '"(.+?)"') {
+                            $interval = $matches[1]
+                            $Controls.UpdateIntervalComboBox.SelectedIndex = switch ($interval) {
+                                "Daily" { 0 }
+                                "BiDaily" { 1 }
+                                "Weekly" { 2 }
+                                "BiWeekly" { 3 }
+                                "Monthly" { 4 }
+                                "Never" { 5 }
+                                default { 5 }
+                            }
+                        }
+                    }
+                    'WAU_UpdatesAtTime' {
+                        if ($valueData -match '"(.+?)"') {
+                            $time = $matches[1]
+                            $hourIndex = [int]$time.Substring(0,2) - 1
+                            $minuteIndex = [int]$time.Substring(3,2)
+                            if ($hourIndex -ge 0 -and $hourIndex -lt $Controls.UpdateTimeHourComboBox.Items.Count) {
+                                $Controls.UpdateTimeHourComboBox.SelectedIndex = $hourIndex
+                            }
+                            if ($minuteIndex -ge 0 -and $minuteIndex -lt $Controls.UpdateTimeMinuteComboBox.Items.Count) {
+                                $Controls.UpdateTimeMinuteComboBox.SelectedIndex = $minuteIndex
+                            }
+                        }
+                    }
+                    'WAU_UpdatesTimeDelay' {
+                        if ($valueData -match '"(.+?)"') {
+                            $delay = $matches[1]
+                            $hourIndex = [int]$delay.Substring(0,2)
+                            $minuteIndex = [int]$delay.Substring(3,2)
+                            if ($hourIndex -ge 0 -and $hourIndex -lt $Controls.RandomDelayHourComboBox.Items.Count) {
+                                $Controls.RandomDelayHourComboBox.SelectedIndex = $hourIndex
+                            }
+                            if ($minuteIndex -ge 0 -and $minuteIndex -lt $Controls.RandomDelayMinuteComboBox.Items.Count) {
+                                $Controls.RandomDelayMinuteComboBox.SelectedIndex = $minuteIndex
+                            }
+                        }
+                    }
+                    'WAU_UpdatePrerelease' { 
+                        $Controls.UpdatePreReleaseCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_UseWhiteList' {
+                        $Controls.UseWhiteListCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_DisableAutoUpdate' {
+                        $Controls.DisableWAUAutoUpdateCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_DoNotRunOnMetered' {
+                        $Controls.DoNotRunOnMeteredCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_UpdatesAtLogon' {
+                        $Controls.UpdatesAtLogonCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_UserContext' {
+                        $Controls.UserContextCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_BypassListForUsers' {
+                        $Controls.BypassListForUsersCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_StartMenuShortcut' {
+                        $Controls.StartMenuShortcutCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_DesktopShortcut' {
+                        $Controls.DesktopShortcutCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_AppInstallerShortcut' {
+                        $Controls.AppInstallerShortcutCheckBox.IsChecked = ($valueData -eq 'dword:00000001')
+                    }
+                    'WAU_ListPath' {
+                        if ($valueData -match '"(.+?)"') {
+                            $Controls.ListPathTextBox.Text = $matches[1]
+                        } elseif ($valueData -match '""') {
+                            $Controls.ListPathTextBox.Text = ""
+                        }
+                    }
+                    'WAU_ModsPath' {
+                        if ($valueData -match '"(.+?)"') {
+                            $Controls.ModsPathTextBox.Text = $matches[1]
+                        } elseif ($valueData -match '""') {
+                            $Controls.ModsPathTextBox.Text = ""
+                        }
+                    }
+                    'WAU_AzureBlobSASURL' {
+                        if ($valueData -match '"(.+?)"') {
+                            $Controls.AzureBlobSASURLTextBox.Text = $matches[1]
+                        } elseif ($valueData -match '""') {
+                            $Controls.AzureBlobSASURLTextBox.Text = ""
+                        }
+                    }
+                    'WAU_MaxLogFiles' {
+                        if ($valueData -match 'dword:(\w+)') {
+                            $logFiles = [int]"0x$($matches[1])"
+                            if ($logFiles -ge 0 -and $logFiles -le 99) {
+                                $Controls.MaxLogFilesComboBox.SelectedIndex = $logFiles
+                            }
+                        }
+                    }
+                    'WAU_MaxLogSize' {
+                        if ($valueData -match 'dword:(\w+)') {
+                            $logSize = [int]"0x$($matches[1])"
+                            # Find matching item in ComboBox
+                            $logSizeIndex = -1
+                            for ($i = 0; $i -lt $Controls.MaxLogSizeComboBox.Items.Count; $i++) {
+                                if ($Controls.MaxLogSizeComboBox.Items[$i].Tag -eq $logSize.ToString()) {
+                                    $logSizeIndex = $i
+                                    break
+                                }
+                            }
+                            if ($logSizeIndex -ge 0) {
+                                $Controls.MaxLogSizeComboBox.SelectedIndex = $logSizeIndex
+                            } else {
+                                $Controls.MaxLogSizeComboBox.Text = $logSize.ToString()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        # Update dependent states after importing all values
+        Update-StatusDisplay -Controls $Controls
+        Update-MaxLogSizeState -Controls $Controls
+        Update-PreReleaseCheckBoxState -Controls $Controls
+    }
+    catch {
+        throw "Could not parse file: $($_.Exception.Message)"
     }
 }
 function Update-WAUScheduledTask {
@@ -456,16 +618,16 @@ function New-WAUTransformFile {
     try {
 
         # Configuration
-        $TempPath = "$env:TEMP\WAU_Settings"
+        $msiDir = Join-Path $Script:USER_DIR "Msi"
         $GitHubRepo = "Romanitho/Winget-AutoUpdate"
 
         # Create temp directory
-        if (!(Test-Path $TempPath)) {
-            New-Item -ItemType Directory -Path $TempPath -Force | Out-Null
+        if (!(Test-Path $msiDir)) {
+            New-Item -ItemType Directory -Path $msiDir -Force | Out-Null
         }
         
         # Check if there is an MSI file in the temp folder
-        $MsiAsset = @{ name = Get-ChildItem -Path $TempPath -Filter "*.msi" -File -ErrorAction SilentlyContinue | Select-Object -First 1 }
+        $MsiAsset = @{ name = Get-ChildItem -Path $msiDir -Filter "*.msi" -File -ErrorAction SilentlyContinue | Select-Object -First 1 }
 
         # If no MSI file was found download the latest MSI from GitHub
         if ([string]::IsNullOrEmpty($MsiAsset.name)) {
@@ -482,7 +644,7 @@ function New-WAUTransformFile {
             Start-PopUp "Downloading MSI: $($MsiAsset.name)..."
             
             $MsiUrl = $MsiAsset.browser_download_url
-            $msiFilePath = Join-Path $TempPath $MsiAsset.name
+            $msiFilePath = Join-Path $msiDir $MsiAsset.name
             
             Invoke-WebRequest -Uri $MsiUrl -OutFile $msiFilePath -UseBasicParsing
             } catch {
@@ -500,7 +662,7 @@ function New-WAUTransformFile {
         $openFileDialog.Title = "Locate $($MsiAsset.name)"
         $openFileDialog.Filter = "$($MsiAsset.name)|$($MsiAsset.name)"
         $openFileDialog.FileName = "$($MsiAsset.name)"
-        $openFileDialog.InitialDirectory = $TempPath
+        $openFileDialog.InitialDirectory = $msiDir
         $openFileDialog.RestoreDirectory = $true
         
         if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
@@ -554,9 +716,9 @@ function New-WAUTransformFile {
                     $transformPath = [System.IO.Path]::Combine($msiDirectory, $transformName)
                     
                     # Create a copy of the MSI to modify
-                    $tempPath = [System.IO.Path]::GetTempFileName()
-                    Copy-Item $selectedFile $tempPath -Force
-                    $modifiedDb = $installer.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $installer, @($tempPath, 1))
+                    $BackupFile = [System.IO.Path]::GetTempFileName()
+                    Copy-Item $selectedFile $BackupFile -Force
+                    $modifiedDb = $installer.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $installer, @($BackupFile, 1))
                     
                     # Collect all properties from form controls
                     $properties = @{
@@ -734,8 +896,8 @@ msiexec /x"$($guid)" REBOOT=R /qn /l*v "%~dp0Uninst-$logFileName"
                 }
                 
                 # Clean up temp file
-                if (Test-Path $tempPath) {
-                    Remove-Item $tempPath -Force -ErrorAction SilentlyContinue
+                if (Test-Path $BackupFile) {
+                    Remove-Item $BackupFile -Force -ErrorAction SilentlyContinue
                 }
             }
             catch {
@@ -975,7 +1137,7 @@ function Update-StatusDisplay {
     if ($interval -eq "Never") {
         $controls.StatusText.Text = "Disabled"
         $controls.StatusText.Foreground = "Red"
-        $controls.StatusDescription.Text = "WAU will not check for updates automatically when disabled"
+        $controls.StatusDescription.Text = "WAU will not check for updates when disabled"
         $controls.UpdateTimeHourComboBox.IsEnabled = $false
         $controls.UpdateTimeMinuteComboBox.IsEnabled = $false
         $controls.RandomDelayHourComboBox.IsEnabled = $false
@@ -983,7 +1145,7 @@ function Update-StatusDisplay {
     } else {
         $controls.StatusText.Text = "Enabled"
         $controls.StatusText.Foreground = "Green"
-        $controls.StatusDescription.Text = "WAU will check for updates according to the schedule below"
+        $controls.StatusDescription.Text = "WAU will check for updates as scheduled"
         $controls.UpdateTimeHourComboBox.IsEnabled = $true
         $controls.UpdateTimeMinuteComboBox.IsEnabled = $true
         $controls.RandomDelayHourComboBox.IsEnabled = $true
@@ -1759,6 +1921,7 @@ function Set-DevToolsVisibility {
         $controls.DevGUIDButton.Visibility = 'Visible'
         $controls.DevListButton.Visibility = 'Visible'
         $controls.DevMSTButton.Visibility = 'Visible'
+        $controls.DevCfgButton.Visibility = 'Visible'
         $controls.LinksStackPanel.Visibility = 'Visible'
         $window.Title = "$Script:WAU_TITLE - Dev Tools"
     } else {
@@ -1767,6 +1930,7 @@ function Set-DevToolsVisibility {
         $controls.DevGUIDButton.Visibility = 'Collapsed'
         $controls.DevListButton.Visibility = 'Collapsed'
         $controls.DevMSTButton.Visibility = 'Collapsed'
+        $controls.DevCfgButton.Visibility = 'Collapsed'
         $controls.LinksStackPanel.Visibility = 'Collapsed'
         $window.Title = "$Script:WAU_TITLE"
     }
@@ -2140,6 +2304,94 @@ function Show-WAUSettingsGUI {
                 $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
             }) | Out-Null
         }
+    })
+
+    $controls.DevCfgButton.Add_Click({
+        try {
+            # Create backup directory for current settings
+            $cfgDir = Join-Path $Script:USER_DIR "Cfg"
+            if (-not (Test-Path $cfgDir)) {
+                New-Item -Path $cfgDir -ItemType Directory -Force | Out-Null
+            }
+            
+            $computerName = $env:COMPUTERNAME
+            $dateTime = (Get-Date).ToString("yyyy-MM-dd_HH-mm-ss")
+            $backupFile = "$cfgDir\WAU Settings-$computerName-$dateTime.reg.txt"
+            $tempBackupFile = "$cfgDir\WAU Settings-$computerName-$dateTime-temp.reg.txt"
+            
+            # Export current registry settings to temporary backup file
+            $regKeyPath = $Script:WAU_REGISTRY_PATH.Replace('HKLM:', 'HKEY_LOCAL_MACHINE')
+            $null = reg export $regKeyPath $tempBackupFile /y
+            
+            # Verify the export was successful
+            if (-not (Test-Path $tempBackupFile) -or (Get-Item $tempBackupFile).Length -eq 0) {
+                throw "Registry export failed or created empty file"
+            }
+            
+            # Filter out unwanted registry values
+            $content = Get-Content -Path $tempBackupFile -Encoding UTF8
+            $filteredContent = $content | Where-Object {
+                $_ -notmatch '"ProductVersion"=' -and
+                $_ -notmatch '"InstallLocation"=' -and
+                $_ -notmatch '"WAU_RunGPOManagement"='
+            }
+            
+            # Save filtered content to final backup file
+            Set-Content -Path $backupFile -Value $filteredContent -Encoding UTF8
+            
+            # Remove temporary file
+            Remove-Item -Path $tempBackupFile -Force -ErrorAction SilentlyContinue
+            
+            # Verify the filtered backup was created successfully
+            if (-not (Test-Path $backupFile) -or (Get-Item $backupFile).Length -eq 0) {
+                throw "Filtered backup file creation failed"
+            }
+            
+            # Show messagebox about backup and ask if user wants to import another file
+            $importMsg = "A backup of your current settings has been saved to:`n$backupFile`n`nDo you want to continue and import a WAU Settings file?"
+            $result = [System.Windows.MessageBox]::Show($importMsg, "Backup Created", "OKCancel", "Question", "Yes")
+            if ($result -eq 'Cancel') {
+                # Open the folder containing the backup file
+                Start-Process "explorer.exe" -ArgumentList "/select,`"$backupFile`""
+                return
+            }
+
+            Start-PopUp "Locate WAU Settings file..."
+
+            # Open file dialog for importing settings
+            $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+            $openFileDialog.Filter = "Registry Text Files (*.reg.txt)|*.reg.txt|Registry Files (*.reg)|*.reg"
+            $openFileDialog.Title = "Select WAU Settings file to import"
+            
+            # Try Desktop, then Documents
+           if (Test-Path ([Environment]::GetFolderPath('Desktop'))) {
+                $openFileDialog.InitialDirectory = [Environment]::GetFolderPath('Desktop')
+            } else {
+                $openFileDialog.InitialDirectory = [Environment]::GetFolderPath('MyDocuments')
+            }
+            
+            $openFileDialog.RestoreDirectory = $true
+
+            if ($openFileDialog.ShowDialog() -eq 'OK') {
+                # Read and parse selected file
+                Import-WAUSettingsFromFile -FilePath $openFileDialog.FileName -Controls $controls
+                
+                Close-PopUp
+
+                # Update GUI with imported settings (without saving to registry)
+                [System.Windows.MessageBox]::Show(
+                    "Settings loaded from file.`nNote: Settings are not saved yet - 'Save Settings' if you want to keep them.", 
+                    "Configuration Imported", 
+                    "OK", 
+                    "Information"
+                )
+            }
+        }
+        catch {
+            Close-PopUp
+            [System.Windows.MessageBox]::Show("Failed to import configuration: $($_.Exception.Message)", "Error", "OK", "Error")
+        }
+        Close-PopUp
     })
 
     # Save button handler to save settings

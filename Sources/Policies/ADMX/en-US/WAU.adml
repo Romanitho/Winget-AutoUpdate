@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="5.0" schemaVersion="1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" schemaVersion="1.0"
   xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
   <displayName>WinGet-AutoUpdate</displayName>
   <description>WinGet-AutoUpdate GPO Management</description>
@@ -54,8 +54,7 @@
         Whitelist or not.
 
         If this policy is disabled or not configured, the default is No.</string>
-      <string id="ListPath_Name">Get Black/White List from external Path
-        (URL/UNC/GPO/Local)</string>
+      <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/GPO/Local)</string>
       <string id="ListPath_Explain">If this policy is enabled, you can set a
         (URL/UNC/GPO/Local) Path to external lists other than the default.
         If "Application GPO Blacklist/Whitelist" is set in this GPO the Path MUST be:

@@ -716,9 +716,9 @@ function New-WAUTransformFile {
                     $transformPath = [System.IO.Path]::Combine($msiDirectory, $transformName)
                     
                     # Create a copy of the MSI to modify
-                    $BackupFile = [System.IO.Path]::GetTempFileName()
-                    Copy-Item $selectedFile $BackupFile -Force
-                    $modifiedDb = $installer.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $installer, @($BackupFile, 1))
+                    $tempFile = [System.IO.Path]::GetTempFileName()
+                    Copy-Item $selectedFile $tempFile -Force
+                    $modifiedDb = $installer.GetType().InvokeMember("OpenDatabase", "InvokeMethod", $null, $installer, @($tempFile, 1))
                     
                     # Collect all properties from form controls
                     $properties = @{
@@ -896,8 +896,8 @@ msiexec /x"$($guid)" REBOOT=R /qn /l*v "%~dp0Uninst-$logFileName"
                 }
                 
                 # Clean up temp file
-                if (Test-Path $BackupFile) {
-                    Remove-Item $BackupFile -Force -ErrorAction SilentlyContinue
+                if (Test-Path $tempFile) {
+                    Remove-Item $tempFile -Force -ErrorAction SilentlyContinue
                 }
             }
             catch {
@@ -1161,7 +1161,7 @@ function Set-ControlsState {
 
     $alwaysEnabledControls = @(
         'ScreenshotButton', 'SaveButton', 'CancelButton', 'RunNowButton', 'OpenLogsButton',
-        'DevTaskButton', 'DevRegButton', 'DevGUIDButton', 'DevListButton', 'DevMSTButton'
+        'DevTaskButton', 'DevRegButton', 'DevGUIDButton', 'DevListButton', 'DevMSIButton'
     )
 
     function Get-Children($control) {
@@ -1697,7 +1697,36 @@ function Test-SettingsChanged {
             $guiAzureBlob = $controls.AzureBlobSASURLTextBox.Text
             if ($savedAzureBlob -ne $guiAzureBlob) { $changes += "Azure Blob SAS URL" }
             
-            # Include shortcuts in normal mode too
+            # All checkboxes
+            $savedDisableAutoUpdate = [bool](Get-DisplayValue "WAU_DisableAutoUpdate" $currentConfig $policies)
+            $guiDisableAutoUpdate = [bool]$controls.DisableWAUAutoUpdateCheckBox.IsChecked
+            if ($savedDisableAutoUpdate -ne $guiDisableAutoUpdate) { $changes += "Disable WAU AutoUpdate" }
+            
+            $savedUpdatePrerelease = [bool](Get-DisplayValue "WAU_UpdatePrerelease" $currentConfig $policies)
+            $guiUpdatePrerelease = [bool]$controls.UpdatePreReleaseCheckBox.IsChecked
+            if ($savedUpdatePrerelease -ne $guiUpdatePrerelease) { $changes += "Update PreRelease" }
+            
+            $savedDoNotRunOnMetered = [bool](Get-DisplayValue "WAU_DoNotRunOnMetered" $currentConfig $policies)
+            $guiDoNotRunOnMetered = [bool]$controls.DoNotRunOnMeteredCheckBox.IsChecked
+            if ($savedDoNotRunOnMetered -ne $guiDoNotRunOnMetered) { $changes += "Don't run on data plan" }
+            
+            $savedUpdatesAtLogon = [bool](Get-DisplayValue "WAU_UpdatesAtLogon" $currentConfig $policies)
+            $guiUpdatesAtLogon = [bool]$controls.UpdatesAtLogonCheckBox.IsChecked
+            if ($savedUpdatesAtLogon -ne $guiUpdatesAtLogon) { $changes += "Run at user logon" }
+            
+            $savedUserContext = [bool](Get-DisplayValue "WAU_UserContext" $currentConfig $policies)
+            $guiUserContext = [bool]$controls.UserContextCheckBox.IsChecked
+            if ($savedUserContext -ne $guiUserContext) { $changes += "Run in user context" }
+            
+            $savedBypassListForUsers = [bool](Get-DisplayValue "WAU_BypassListForUsers" $currentConfig $policies)
+            $guiBypassListForUsers = [bool]$controls.BypassListForUsersCheckBox.IsChecked
+            if ($savedBypassListForUsers -ne $guiBypassListForUsers) { $changes += "Bypass list in user context" }
+            
+            $savedUseWhiteList = [bool](Get-DisplayValue "WAU_UseWhiteList" $currentConfig $policies)
+            $guiUseWhiteList = [bool]$controls.UseWhiteListCheckBox.IsChecked
+            if ($savedUseWhiteList -ne $guiUseWhiteList) { $changes += "Use whitelist" }
+            
+            # Shortcut checkboxes
             $savedDesktop = [bool]($currentConfig.WAU_DesktopShortcut -eq 1)
             $guiDesktop = [bool]$controls.DesktopShortcutCheckBox.IsChecked
             if ($savedDesktop -ne $guiDesktop) { $changes += "Desktop Shortcut" }
@@ -1710,7 +1739,18 @@ function Test-SettingsChanged {
             $guiAppInstaller = [bool]$controls.AppInstallerShortcutCheckBox.IsChecked
             if ($savedAppInstaller -ne $guiAppInstaller) { $changes += "App Installer Shortcut" }
             
-            # Add more settings as needed: WAU_DoNotUpdate, WAU_DisableWAUAutoUpdate, etc.
+            # Log settings
+            $savedMaxLogFiles = Get-DisplayValue "WAU_MaxLogFiles" $currentConfig $policies
+            $guiMaxLogFiles = $controls.MaxLogFilesComboBox.SelectedItem.Content
+            if ($savedMaxLogFiles -ne $guiMaxLogFiles) { $changes += "Max Log Files" }
+            
+            $savedMaxLogSize = Get-DisplayValue "WAU_MaxLogSize" $currentConfig $policies
+            $guiMaxLogSize = if ($controls.MaxLogSizeComboBox.SelectedItem -and $controls.MaxLogSizeComboBox.SelectedItem.Tag) { 
+                $controls.MaxLogSizeComboBox.SelectedItem.Tag 
+            } else { 
+                $controls.MaxLogSizeComboBox.Text 
+            }
+            if ($savedMaxLogSize -ne $guiMaxLogSize) { $changes += "Max Log Size" }
         }
         
         return @{
@@ -1920,7 +1960,7 @@ function Set-DevToolsVisibility {
         $controls.DevRegButton.Visibility = 'Visible'
         $controls.DevGUIDButton.Visibility = 'Visible'
         $controls.DevListButton.Visibility = 'Visible'
-        $controls.DevMSTButton.Visibility = 'Visible'
+        $controls.DevMSIButton.Visibility = 'Visible'
         $controls.DevCfgButton.Visibility = 'Visible'
         $controls.LinksStackPanel.Visibility = 'Visible'
         $window.Title = "$Script:WAU_TITLE - Dev Tools"
@@ -1929,7 +1969,7 @@ function Set-DevToolsVisibility {
         $controls.DevRegButton.Visibility = 'Collapsed'
         $controls.DevGUIDButton.Visibility = 'Collapsed'
         $controls.DevListButton.Visibility = 'Collapsed'
-        $controls.DevMSTButton.Visibility = 'Collapsed'
+        $controls.DevMSIButton.Visibility = 'Collapsed'
         $controls.DevCfgButton.Visibility = 'Collapsed'
         $controls.LinksStackPanel.Visibility = 'Collapsed'
         $window.Title = "$Script:WAU_TITLE"
@@ -2291,7 +2331,7 @@ function Show-WAUSettingsGUI {
         }
     })
 
-    $controls.DevMSTButton.Add_Click({
+    $controls.DevMSIButton.Add_Click({
         if (New-WAUTransformFile -controls $controls) {
             # Update status to "Done"
             $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT

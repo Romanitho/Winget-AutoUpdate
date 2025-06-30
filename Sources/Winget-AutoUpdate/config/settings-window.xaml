@@ -49,7 +49,7 @@
                     ToolTip="open the GUID path to registry/installer folder"/>
                 <Button x:Name="DevListButton" Content="[list]" Width="36" Height="25" Visibility="Collapsed" Margin="0,0,3,0"
                     ToolTip="open the current local list"/>
-                <Button x:Name="DevMSTButton" Content="[mst]" Width="36" Height="25" Visibility="Collapsed" Margin="0,0,3,0"
+                <Button x:Name="DevMSIButton" Content="[msi]" Width="36" Height="25" Visibility="Collapsed" Margin="0,0,3,0"
                     ToolTip="create a transform file for 'WAU.msi' using the current visible settings"/>
                 <Button x:Name="DevCfgButton" Content="[cfg]" Width="36" Height="25" Visibility="Collapsed" Margin="0,0,0,0"
                     ToolTip="backup current &amp; import WAU settings file"/>

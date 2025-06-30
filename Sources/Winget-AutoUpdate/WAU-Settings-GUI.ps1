@@ -55,194 +55,21 @@ function Test-Administrator {
     $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
-function Test-ValidPathCharacter {
-    param([string]$text, [string]$currentTextBoxValue = "")
+function Hide-SensitiveText {
+    param(
+        [string]$originalText,
+        [int]$visibleChars = 5
+    )
     
-    # Allow characters for paths and URLs: letters, digits, :, \, /, -, _, ., space, $, 'GPO', 'AzureBlob', and SAS URL characters (?, &, =, %)
-    $isValidChar = $text -match '^[a-zA-Z0-9:\\/_.\s\-\$?&=%]*$'
-    
-    if (-not $isValidChar) {
-        return $false
-    }
-    
-    # Get WAU installation path to block
-    try {
-        $currentConfig = Get-WAUCurrentConfig
-        $installLocation = $currentConfig.InstallLocation.TrimEnd('\')
-        
-        # Check if the proposed new text would contain the install location
-        $proposedText = $currentTextBoxValue + $text
-        if ($proposedText -like "*$installLocation*") {
-            return $false
-        }
-    }
-    catch {
-        # If we can't get config, just allow the character
+    if ([string]::IsNullOrWhiteSpace($originalText) -or $originalText.Length -le ($visibleChars * 2)) {
+        return $originalText
     }
     
-    # For PreviewTextInput, we only check basic character validity and install location
-    # We don't check for trailing slashes or filenames here since the user is still typing
+    $start = $originalText.Substring(0, $visibleChars)
+    $end = $originalText.Substring($originalText.Length - $visibleChars)
+    $masked = "*" * [Math]::Max(1, $originalText.Length - ($visibleChars * 2))
     
-    return $true
-}
-function Test-PathTextBox_PreviewTextInput {
-    param($source, $e)
-    
-    # Get current text in the TextBox
-    $currentText = $source.Text
-    
-    # Check if the input character is valid and doesn't create forbidden path
-    if (-not (Test-ValidPathCharacter -text $e.Text -currentTextBoxValue $currentText)) {
-        $e.Handled = $true  # Block the character
-    }
-}
-function Test-PathTextBox_TextChanged {
-    param($source, $e)
-    
-    try {
-        $currentConfig = Get-WAUCurrentConfig
-        $installLocation = $currentConfig.InstallLocation.TrimEnd('\')
-        
-        $hasError = $false
-        $errorMessage = ""
-        
-        # Store original tooltip if not already stored
-        if (-not $source.Tag) {
-            $source.Tag = $source.ToolTip
-        }
-        
-        # Empty is OK
-        if ([string]::IsNullOrWhiteSpace($source.Text)) {
-            $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
-            # Restore original tooltip
-            $source.ToolTip = $source.Tag
-            return
-        }
-
-        # Only allow "GPO" or "AzureBlob" as special values
-        if ($source.Text -eq "GPO" -or $source.Text -eq "AzureBlob") {
-            $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
-            $source.ToolTip = $source.Tag
-            return
-        }
-
-        # Allow local paths (e.g. D:\Folder), UNC paths (\\server\share), or URLs (http/https)
-        if (
-            -not (
-                $source.Text -match '^[a-zA-Z]:\\' -or
-                $source.Text -match '^\\\\' -or
-                $source.Text -match '^https?://'
-            )
-        ) {
-            $source.BorderBrush = [System.Windows.Media.Brushes]::Red
-            $source.ToolTip = "Only local paths, UNC paths, URLs, or the special values 'GPO' and 'AzureBlob' are allowed."
-            return
-        }
-
-        # Check if current text contains the install location
-        if ($source.Text -like "*$installLocation*") {
-            $hasError = $true
-            $errorMessage = "Cannot use WAU installation directory: $installLocation"
-        }
-        # For URLs, apply the same restrictions as local paths
-        elseif ($source.Text -match '^https?://') {
-            if ($source.Text.EndsWith('\') -or $source.Text.EndsWith('/')) {
-                $hasError = $true
-                $errorMessage = "URL cannot end with '\' or '/'"
-            }
-            else {
-                $lastSegment = Split-Path -Leaf $source.Text
-                if ($lastSegment -and $lastSegment.Contains('.')) {
-                    $hasError = $true
-                    $errorMessage = "URL cannot end with a filename (no dots allowed in final segment)"
-                }
-            }
-        }
-        # For non-URLs, apply local path restrictions
-        elseif ($source.Text.EndsWith('\') -or $source.Text.EndsWith('/')) {
-            $hasError = $true
-            $errorMessage = "Path cannot end with '\' or '/'"
-        }
-        # Check if path ends with a filename (contains dot in last segment)
-        else {
-            $lastSegment = Split-Path -Leaf $source.Text
-            if ($lastSegment -and $lastSegment.Contains('.')) {
-                $hasError = $true
-                $errorMessage = "Path cannot end with a filename (no dots allowed in final segment)"
-            }
-        }
-        
-        if ($hasError) {
-            $source.BorderBrush = [System.Windows.Media.Brushes]::Red
-            $source.ToolTip = $errorMessage
-        } else {
-            $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
-            # Restore original tooltip
-            $source.ToolTip = $source.Tag
-        }
-    }
-    catch {
-        # If we can't get config, clear any error styling
-        $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
-        # Restore original tooltip if available
-        if ($source.Tag) {
-            $source.ToolTip = $source.Tag
-        } else {
-            $source.ClearValue([System.Windows.Controls.TextBox]::ToolTipProperty)
-        }
-    }
-}
-function Test-PathValue {
-    param([string]$path)
-
-    if ([string]::IsNullOrWhiteSpace($path)) {
-        return $true  # Empty paths are allowed
-    }
-
-    # Allow special values "GPO" and "AzureBlob"
-    if ($path -eq "GPO" -or $path -eq "AzureBlob") {
-        return $true
-    }
-
-    try {
-        $currentConfig = Get-WAUCurrentConfig
-        $installLocation = $currentConfig.InstallLocation.TrimEnd('\')
-
-        # Check if path contains WAU install location
-        if ($path -like "*$installLocation*") {
-            return $false
-        }
-    }
-    catch {
-        # If we can't get config, allow the path
-    }
-
-    # URL validation (must not end with / or \, and last segment must not contain dot)
-    if ($path -match '^https?://') {
-        if ($path.EndsWith('\') -or $path.EndsWith('/')) {
-            return $false
-        }
-        $lastSegment = Split-Path -Leaf $path
-        if ($lastSegment -and $lastSegment.Contains('.')) {
-            return $false
-        }
-        return $true
-    }
-
-    # UNC and local path validation (must not end with / or \, and last segment must not contain dot)
-    if ($path -match '^[a-zA-Z]:\\' -or $path -match '^\\\\') {
-        if ($path.EndsWith('\') -or $path.EndsWith('/')) {
-            return $false
-        }
-        $lastSegment = Split-Path -Leaf $path
-        if ($lastSegment -and $lastSegment.Contains('.')) {
-            return $false
-        }
-        return $true
-    }
-
-    # Otherwise, not valid
-    return $false
+    return "$start$masked$end"
 }
 Function Start-PopUp ($Message) {
 
@@ -330,76 +157,6 @@ function Test-InstalledWAU {
     }
 
     return $matchingApps
-}
-function Hide-SensitiveText {
-    param(
-        [string]$originalText,
-        [int]$visibleChars = 5
-    )
-    
-    if ([string]::IsNullOrWhiteSpace($originalText) -or $originalText.Length -le ($visibleChars * 2)) {
-        return $originalText
-    }
-    
-    $start = $originalText.Substring(0, $visibleChars)
-    $end = $originalText.Substring($originalText.Length - $visibleChars)
-    $masked = "*" * [Math]::Max(1, $originalText.Length - ($visibleChars * 2))
-    
-    return "$start$masked$end"
-}
-function New-WindowScreenshot {
-    param($window, $controls)
-
-    try {
-        # Store original values for sensitive fields
-        $originalListPath = $controls.ListPathTextBox.Text
-        $originalModsPath = $controls.ModsPathTextBox.Text
-        $originalAzureBlob = $controls.AzureBlobSASURLTextBox.Text
-
-        # Temporarily mask sensitive text
-        if (-not [string]::IsNullOrWhiteSpace($originalListPath)) {
-            $controls.ListPathTextBox.Text = Hide-SensitiveText $originalListPath
-        }
-        if (-not [string]::IsNullOrWhiteSpace($originalModsPath)) {
-            $controls.ModsPathTextBox.Text = Hide-SensitiveText $originalModsPath
-        }
-        if (-not [string]::IsNullOrWhiteSpace($originalAzureBlob)) {
-            $controls.AzureBlobSASURLTextBox.Text = Hide-SensitiveText $originalAzureBlob
-        }
-
-        # Force UI update to show masked values
-        [System.Windows.Forms.Application]::DoEvents()
-        Start-Sleep -Milliseconds 100
-
-        # Ensure window is active/focused
-        $window.Activate()
-        $window.Focus()
-        Start-Sleep -Milliseconds 50
-
-        # Send Alt+Print Screen to capture active window
-        [System.Windows.Forms.SendKeys]::SendWait("%{PRTSC}")
-
-        # Show confirmation
-        $controls.StatusBarText.Text = "Screenshot copied"
-        $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
-
-        # Timer to reset status
-        $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
-            Start-Sleep -Milliseconds $Script:WAIT_TIME
-            $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
-            $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
-        }) | Out-Null
-
-    }
-    catch {
-        [System.Windows.MessageBox]::Show("Failed to capture screenshot: $($_.Exception.Message)", "Error", "OK", "Error")
-    }
-    finally {
-        # Always restore original values
-        $controls.ListPathTextBox.Text = $originalListPath
-        $controls.ModsPathTextBox.Text = $originalModsPath
-        $controls.AzureBlobSASURLTextBox.Text = $originalAzureBlob
-    }
 }
 
 # 2. Configuration functions
@@ -1022,6 +779,195 @@ function Start-WAUManually {
 }
 
 # 4. GUI helper functions (depends on config functions)
+function Test-ValidPathCharacter {
+    param([string]$text, [string]$currentTextBoxValue = "")
+    
+    # Allow characters for paths and URLs: letters, digits, :, \, /, -, _, ., space, $, 'GPO', 'AzureBlob', and SAS URL characters (?, &, =, %)
+    $isValidChar = $text -match '^[a-zA-Z0-9:\\/_.\s\-\$?&=%]*$'
+    
+    if (-not $isValidChar) {
+        return $false
+    }
+    
+    # Get WAU installation path to block
+    try {
+        $currentConfig = Get-WAUCurrentConfig
+        $installLocation = $currentConfig.InstallLocation.TrimEnd('\')
+        
+        # Check if the proposed new text would contain the install location
+        $proposedText = $currentTextBoxValue + $text
+        if ($proposedText -like "*$installLocation*") {
+            return $false
+        }
+    }
+    catch {
+        # If we can't get config, just allow the character
+    }
+    
+    # For PreviewTextInput, we only check basic character validity and install location
+    # We don't check for trailing slashes or filenames here since the user is still typing
+    
+    return $true
+}
+function Test-PathTextBox_PreviewTextInput {
+    param($source, $e)
+    
+    # Get current text in the TextBox
+    $currentText = $source.Text
+    
+    # Check if the input character is valid and doesn't create forbidden path
+    if (-not (Test-ValidPathCharacter -text $e.Text -currentTextBoxValue $currentText)) {
+        $e.Handled = $true  # Block the character
+    }
+}
+function Test-PathTextBox_TextChanged {
+    param($source, $e)
+    
+    try {
+        $currentConfig = Get-WAUCurrentConfig
+        $installLocation = $currentConfig.InstallLocation.TrimEnd('\')
+        
+        $hasError = $false
+        $errorMessage = ""
+        
+        # Store original tooltip if not already stored
+        if (-not $source.Tag) {
+            $source.Tag = $source.ToolTip
+        }
+        
+        # Empty is OK
+        if ([string]::IsNullOrWhiteSpace($source.Text)) {
+            $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
+            # Restore original tooltip
+            $source.ToolTip = $source.Tag
+            return
+        }
+
+        # Only allow "GPO" or "AzureBlob" as special values
+        if ($source.Text -eq "GPO" -or $source.Text -eq "AzureBlob") {
+            $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
+            $source.ToolTip = $source.Tag
+            return
+        }
+
+        # Allow local paths (e.g. D:\Folder), UNC paths (\\server\share), or URLs (http/https)
+        if (
+            -not (
+                $source.Text -match '^[a-zA-Z]:\\' -or
+                $source.Text -match '^\\\\' -or
+                $source.Text -match '^https?://'
+            )
+        ) {
+            $source.BorderBrush = [System.Windows.Media.Brushes]::Red
+            $source.ToolTip = "Only local paths, UNC paths, URLs, or the special values 'GPO' and 'AzureBlob' are allowed."
+            return
+        }
+
+        # Check if current text contains the install location
+        if ($source.Text -like "*$installLocation*") {
+            $hasError = $true
+            $errorMessage = "Cannot use WAU installation directory: $installLocation"
+        }
+        # For URLs, apply the same restrictions as local paths
+        elseif ($source.Text -match '^https?://') {
+            if ($source.Text.EndsWith('\') -or $source.Text.EndsWith('/')) {
+                $hasError = $true
+                $errorMessage = "URL cannot end with '\' or '/'"
+            }
+            else {
+                $lastSegment = Split-Path -Leaf $source.Text
+                if ($lastSegment -and $lastSegment.Contains('.')) {
+                    $hasError = $true
+                    $errorMessage = "URL cannot end with a filename (no dots allowed in final segment)"
+                }
+            }
+        }
+        # For non-URLs, apply local path restrictions
+        elseif ($source.Text.EndsWith('\') -or $source.Text.EndsWith('/')) {
+            $hasError = $true
+            $errorMessage = "Path cannot end with '\' or '/'"
+        }
+        # Check if path ends with a filename (contains dot in last segment)
+        else {
+            $lastSegment = Split-Path -Leaf $source.Text
+            if ($lastSegment -and $lastSegment.Contains('.')) {
+                $hasError = $true
+                $errorMessage = "Path cannot end with a filename (no dots allowed in final segment)"
+            }
+        }
+        
+        if ($hasError) {
+            $source.BorderBrush = [System.Windows.Media.Brushes]::Red
+            $source.ToolTip = $errorMessage
+        } else {
+            $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
+            # Restore original tooltip
+            $source.ToolTip = $source.Tag
+        }
+    }
+    catch {
+        # If we can't get config, clear any error styling
+        $source.ClearValue([System.Windows.Controls.TextBox]::BorderBrushProperty)
+        # Restore original tooltip if available
+        if ($source.Tag) {
+            $source.ToolTip = $source.Tag
+        } else {
+            $source.ClearValue([System.Windows.Controls.TextBox]::ToolTipProperty)
+        }
+    }
+}
+function Test-PathValue {
+    param([string]$path)
+
+    if ([string]::IsNullOrWhiteSpace($path)) {
+        return $true  # Empty paths are allowed
+    }
+
+    # Allow special values "GPO" and "AzureBlob"
+    if ($path -eq "GPO" -or $path -eq "AzureBlob") {
+        return $true
+    }
+
+    try {
+        $currentConfig = Get-WAUCurrentConfig
+        $installLocation = $currentConfig.InstallLocation.TrimEnd('\')
+
+        # Check if path contains WAU install location
+        if ($path -like "*$installLocation*") {
+            return $false
+        }
+    }
+    catch {
+        # If we can't get config, allow the path
+    }
+
+    # URL validation (must not end with / or \, and last segment must not contain dot)
+    if ($path -match '^https?://') {
+        if ($path.EndsWith('\') -or $path.EndsWith('/')) {
+            return $false
+        }
+        $lastSegment = Split-Path -Leaf $path
+        if ($lastSegment -and $lastSegment.Contains('.')) {
+            return $false
+        }
+        return $true
+    }
+
+    # UNC and local path validation (must not end with / or \, and last segment must not contain dot)
+    if ($path -match '^[a-zA-Z]:\\' -or $path -match '^\\\\') {
+        if ($path.EndsWith('\') -or $path.EndsWith('/')) {
+            return $false
+        }
+        $lastSegment = Split-Path -Leaf $path
+        if ($lastSegment -and $lastSegment.Contains('.')) {
+            return $false
+        }
+        return $true
+    }
+
+    # Otherwise, not valid
+    return $false
+}
 function Update-StatusDisplay {
     param($controls)
 
@@ -1463,6 +1409,163 @@ function Update-WAUGUIFromConfig {
 }
 
 # 5. GUI action functions (depends on config + GUI helper functions)
+function New-WindowScreenshot {
+    param($window, $controls)
+
+    try {
+        # Store original values for sensitive fields
+        $originalListPath = $controls.ListPathTextBox.Text
+        $originalModsPath = $controls.ModsPathTextBox.Text
+        $originalAzureBlob = $controls.AzureBlobSASURLTextBox.Text
+
+        # Temporarily mask sensitive text
+        if (-not [string]::IsNullOrWhiteSpace($originalListPath)) {
+            $controls.ListPathTextBox.Text = Hide-SensitiveText $originalListPath
+        }
+        if (-not [string]::IsNullOrWhiteSpace($originalModsPath)) {
+            $controls.ModsPathTextBox.Text = Hide-SensitiveText $originalModsPath
+        }
+        if (-not [string]::IsNullOrWhiteSpace($originalAzureBlob)) {
+            $controls.AzureBlobSASURLTextBox.Text = Hide-SensitiveText $originalAzureBlob
+        }
+
+        # Force UI update to show masked values
+        [System.Windows.Forms.Application]::DoEvents()
+        Start-Sleep -Milliseconds 100
+
+        # Ensure window is active/focused
+        $window.Activate()
+        $window.Focus()
+        Start-Sleep -Milliseconds 50
+
+        # Send Alt+Print Screen to capture active window
+        [System.Windows.Forms.SendKeys]::SendWait("%{PRTSC}")
+
+        # Show confirmation
+        $controls.StatusBarText.Text = "Screenshot copied"
+        $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
+
+        # Timer to reset status
+        $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+            Start-Sleep -Milliseconds $Script:WAIT_TIME
+            $controls.StatusBarText.Text = $Script:STATUS_READY_TEXT
+            $controls.StatusBarText.Foreground = $Script:COLOR_INACTIVE
+        }) | Out-Null
+
+    }
+    catch {
+        [System.Windows.MessageBox]::Show("Failed to capture screenshot: $($_.Exception.Message)", "Error", "OK", "Error")
+    }
+    finally {
+        # Always restore original values
+        $controls.ListPathTextBox.Text = $originalListPath
+        $controls.ModsPathTextBox.Text = $originalModsPath
+        $controls.AzureBlobSASURLTextBox.Text = $originalAzureBlob
+    }
+}
+function Test-SettingsChanged {
+    param($controls)
+    
+    try {
+        # Get current saved configuration and policies
+        $currentConfig = Get-WAUCurrentConfig
+        $policies = $null
+        try {
+            $policies = Get-ItemProperty -Path $Script:WAU_POLICIES_PATH -ErrorAction SilentlyContinue
+        } catch { }
+        
+        # Check if GPO management is active
+        $isGPOManaged = ($policies.WAU_ActivateGPOManagement -eq 1 -and $currentConfig.WAU_RunGPOManagement -eq 1)
+        
+        $changes = @()
+        
+        if ($isGPOManaged) {
+            # In GPO mode, only check shortcut settings (these are always from local config)
+            
+            # Desktop shortcut
+            $savedDesktop = [bool]($currentConfig.WAU_DesktopShortcut -eq 1)
+            $guiDesktop = [bool]$controls.DesktopShortcutCheckBox.IsChecked
+            if ($savedDesktop -ne $guiDesktop) { $changes += "Desktop Shortcut" }
+            
+            # Start Menu shortcut
+            $savedStartMenu = [bool]($currentConfig.WAU_StartMenuShortcut -eq 1)
+            $guiStartMenu = [bool]$controls.StartMenuShortcutCheckBox.IsChecked
+            if ($savedStartMenu -ne $guiStartMenu) { $changes += "Start Menu Shortcut" }
+            
+            # App Installer shortcut
+            $savedAppInstaller = [bool]($currentConfig.WAU_AppInstallerShortcut -eq 1)
+            $guiAppInstaller = [bool]$controls.AppInstallerShortcutCheckBox.IsChecked
+            if ($savedAppInstaller -ne $guiAppInstaller) { $changes += "App Installer Shortcut" }
+            
+        } else {
+            # In normal mode, check all settings
+            
+            # Update interval
+            $savedInterval = Get-DisplayValue "WAU_UpdatesInterval" $currentConfig $policies
+            $guiInterval = $controls.UpdateIntervalComboBox.SelectedItem.Tag
+            if ($savedInterval -ne $guiInterval) { $changes += "Update Interval" }
+            
+            # Notification level
+            $savedNotification = Get-DisplayValue "WAU_NotificationLevel" $currentConfig $policies
+            $guiNotification = $controls.NotificationLevelComboBox.SelectedItem.Tag
+            if ($savedNotification -ne $guiNotification) { $changes += "Notification Level" }
+            
+            # Update time
+            $savedTime = Get-DisplayValue "WAU_UpdatesAtTime" $currentConfig $policies
+            $guiTime = "{0:D2}:{1:D2}:00" -f ($controls.UpdateTimeHourComboBox.SelectedIndex + 1), $controls.UpdateTimeMinuteComboBox.SelectedIndex
+            if ($savedTime -ne $guiTime) { $changes += "Update Time" }
+            
+            # Random delay
+            $savedDelay = Get-DisplayValue "WAU_UpdatesTimeDelay" $currentConfig $policies
+            $guiDelay = "{0:D2}:{1:D2}" -f ($controls.RandomDelayHourComboBox.SelectedIndex), $controls.RandomDelayMinuteComboBox.SelectedIndex
+            if ($savedDelay -ne $guiDelay) { $changes += "Random Delay" }
+            
+            # List path
+            $savedListPath = Get-DisplayValue "WAU_ListPath" $currentConfig $policies
+            $guiListPath = $controls.ListPathTextBox.Text
+            if ($savedListPath -ne $guiListPath) { $changes += "External List Path" }
+            
+            # Mods path
+            $savedModsPath = Get-DisplayValue "WAU_ModsPath" $currentConfig $policies
+            $guiModsPath = $controls.ModsPathTextBox.Text
+            if ($savedModsPath -ne $guiModsPath) { $changes += "External Mods Path" }
+            
+            # Azure Blob SAS URL
+            $savedAzureBlob = Get-DisplayValue "WAU_AzureBlobSASURL" $currentConfig $policies
+            $guiAzureBlob = $controls.AzureBlobSASURLTextBox.Text
+            if ($savedAzureBlob -ne $guiAzureBlob) { $changes += "Azure Blob SAS URL" }
+            
+            # Include shortcuts in normal mode too
+            $savedDesktop = [bool]($currentConfig.WAU_DesktopShortcut -eq 1)
+            $guiDesktop = [bool]$controls.DesktopShortcutCheckBox.IsChecked
+            if ($savedDesktop -ne $guiDesktop) { $changes += "Desktop Shortcut" }
+            
+            $savedStartMenu = [bool]($currentConfig.WAU_StartMenuShortcut -eq 1)
+            $guiStartMenu = [bool]$controls.StartMenuShortcutCheckBox.IsChecked
+            if ($savedStartMenu -ne $guiStartMenu) { $changes += "Start Menu Shortcut" }
+            
+            $savedAppInstaller = [bool]($currentConfig.WAU_AppInstallerShortcut -eq 1)
+            $guiAppInstaller = [bool]$controls.AppInstallerShortcutCheckBox.IsChecked
+            if ($savedAppInstaller -ne $guiAppInstaller) { $changes += "App Installer Shortcut" }
+            
+            # Add more settings as needed: WAU_DoNotUpdate, WAU_DisableWAUAutoUpdate, etc.
+        }
+        
+        return @{
+            HasChanges = ($changes.Count -gt 0)
+            Changes = $changes
+            IsGPOManaged = $isGPOManaged
+        }
+    }
+    catch {
+        # On error, assume no changes to be safe
+        return @{ 
+            HasChanges = $false
+            Changes = @()
+            IsGPOManaged = $false
+        }
+    }
+}
 function Save-WAUSettings {
     param($controls)
 
@@ -1621,6 +1724,7 @@ function Test-WindowKeyPress {
 }
 function Invoke-SettingsLoad {
     param($controls)
+
     # Update status to "Loading"
     $controls.StatusBarText.Text = "Loading..."
     $controls.StatusBarText.Foreground = $Script:COLOR_ACTIVE
@@ -1638,6 +1742,7 @@ function Invoke-SettingsLoad {
         $controls.StatusBarText.Text = "Load failed"
         $controls.StatusBarText.Foreground = $Script:COLOR_DISABLED
     }
+
     # Create timer to reset status back to ready after half standard wait time
     $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
         Start-Sleep -Milliseconds ($Script:WAIT_TIME / 2)
@@ -1679,22 +1784,63 @@ function Set-DevToolsVisibility {
 }
 function Close-WindowGracefully {
     param($controls, $window)
+    
     try {
-        $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
-        $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+        # Check if settings have changed
+        $changeResult = Test-SettingsChanged -controls $controls
         
-        # Create timer to reset status and close window after half standard wait time
-        $timer = New-Object System.Windows.Threading.DispatcherTimer
-        $timer.Interval = [TimeSpan]::FromMilliseconds($Script:WAIT_TIME / 2)
-        $timer.Add_Tick({
-            $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
-            $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
-            if ($null -ne $timer) {
-                $timer.Stop()
+        if ($changeResult.HasChanges) {
+            $message = if ($changeResult.IsGPOManaged) {
+                "You have unsaved shortcut changes. Do you want to save them before closing?"
+            } else {
+                "You have unsaved changes. Do you want to save them before closing?"
             }
-            $window.Close()
-        })
-        $timer.Start()
+            
+            $result = [System.Windows.MessageBox]::Show(
+                $message,
+                "Unsaved Changes",
+                "YesNoCancel",
+                "Question",
+                "Yes"
+            )
+            
+            switch ($result) {
+                'Yes' {
+                    # Save and then close
+                    Save-WAUSettings -controls $controls
+                    # Close window after a short delay to let save operation complete
+                    $window.Dispatcher.BeginInvoke([System.Windows.Threading.DispatcherPriority]::Background, [Action]{
+                        Start-Sleep -Milliseconds 500  # Short delay for save to complete
+                        $window.Close()
+                    }) | Out-Null
+                }
+                'No' {
+                    # Close without saving
+                    $window.Close()
+                }
+                'Cancel' {
+                    # Don't close, return to window
+                    return
+                }
+            }
+        } else {
+            # No changes, close directly
+            $controls.StatusBarText.Text = $Script:STATUS_DONE_TEXT
+            $controls.StatusBarText.Foreground = $Script:COLOR_ENABLED
+            
+            # Create timer to reset status and close window after half standard wait time
+            $timer = New-Object System.Windows.Threading.DispatcherTimer
+            $timer.Interval = [TimeSpan]::FromMilliseconds($Script:WAIT_TIME / 2)
+            $timer.Add_Tick({
+                $controls.StatusBarText.Text = "$Script:STATUS_READY_TEXT"
+                $controls.StatusBarText.Foreground = "$Script:COLOR_INACTIVE"
+                if ($null -ne $timer) {
+                    $timer.Stop()
+                }
+                $window.Close()
+            })
+            $timer.Start()
+        }
     }
     catch {
         # Fallback force close

@@ -6,15 +6,23 @@ WAU Settings GUI - Configure Winget-AutoUpdate settings after installation
 
 .DESCRIPTION
 Provides a user-friendly interface to modify every aspect of WAU settings including:
-- Notification levels
 - Update intervals and timing
-- Managing scheduled tasks
-- Creating/removing shortcuts
+- Notification levels
 - Configuring list and mods paths
 - Additional options like running at logon, user context, etc.
+- Creating/removing shortcuts
 - Managing log files
-- Updating WAU configuration in the registry   
 - Starting WAU manually
+- Screenshot functionality for documentation
+- GPO management integration
+- Real-time status information display showing version details, last run times, and current configuration state
+- Developer tools for advanced troubleshooting:
+  - Task scheduler access
+  - Registry editor access
+  - GUID path exploration
+  - List file management
+  - MSI transform creation
+  - Configuration backup/import (i.e. for sharing settings)
 
 .NOTES
 Must be run as Administrator

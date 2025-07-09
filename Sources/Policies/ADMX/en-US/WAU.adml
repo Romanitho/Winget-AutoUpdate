@@ -48,6 +48,12 @@
         include.
 
         If this policy is disabled or not configured, GPO Whitelist is not used.</string>
+      <string id="PinnedApps_Name">Application GPO Pinned Apps</string>
+      <string id="PinnedApps_Explain">Provide the WinGet IDs of applications you want to
+        pin to a specific version.
+        Use the format AppID=Version (e.g., Microsoft.PowerToys=0.70.*)
+
+        If this policy is disabled or not configured, GPO Pinned Apps is not used.</string>
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
       <string id="UseWhiteList_Explain">This policy setting specifies whether to use a
         Whitelist or not.
@@ -192,6 +198,9 @@
       </presentation>
       <presentation id="WhiteList">
         <listBox refId="WhiteList">WhiteList:</listBox>
+      </presentation>
+      <presentation id="PinnedApps">
+        <listBox refId="PinnedApps">Pinned Apps:</listBox>
       </presentation>
       <presentation id="ListPath">
         <textBox refId="ListPath">

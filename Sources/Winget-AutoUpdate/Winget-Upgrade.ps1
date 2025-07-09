@@ -24,7 +24,9 @@ Write-ToLog "Reading WAUConfig";
 $Script:WAUConfig = Get-WAUConfig;
 
 if ($WAUConfig.WAU_ActivateGPOManagement -eq 1) {
-    Write-ToLog "WAU Policies management Enabled.";
+    Write-ToLog "WAU Policies management Enabled."
+    Write-ToLog "Syncing Winget Pins with WAU Configuration"
+    Sync-WingetPins
 }
 #endregion Get settings and Domain/Local Policies (GPO) if activated.
 

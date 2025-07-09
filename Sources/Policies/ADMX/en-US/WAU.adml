@@ -185,6 +185,36 @@
 
         If this policy is disabled or not configured, the default is always the
         built-in winget.</string>
+      <string id="EnablePinManagement_Name">Enable WAU Pin Management</string>
+      <string id="EnablePinManagement_Explain">This policy setting enables or disables WAU Pin Management.
+        
+        When enabled, WAU will manage application pins using winget's native pin functionality.
+        This allows you to pin applications to specific versions to prevent unwanted updates.
+        
+        Pin configurations can be provided via GPO (Pinned Apps policy), external path, or local configuration file.
+        
+        If this policy is disabled or not configured, pin management is disabled and no pins will be applied.</string>
+      <string id="PinnedApps_Name">Application GPO Pinned Apps</string>
+      <string id="PinnedApps_Explain">Provide the WinGet IDs and versions of applications you want to pin.
+        Format: AppID=Version (e.g., Microsoft.VisualStudioCode=1.85.*)
+        
+        Supports version patterns:
+        - Exact versions: 1.85.0
+        - Wildcard patterns: 1.85.*, 1.*
+        - Range patterns: >=1.85.0
+
+        Note: This policy requires "Enable WAU Pin Management" to be enabled.
+
+        If this policy is disabled or not configured, GPO Pinned Apps is not used.</string>
+      <string id="PinnedAppsPath_Name">Get Pinned Apps from external Path (URL/UNC/Local)</string>
+      <string id="PinnedAppsPath_Explain">If this policy is enabled, you can set a
+        (URL/UNC/Local) Path to external pinned apps configuration other than the default.
+
+        The external file should contain pinned app configurations in the format:
+        AppID=Version (one per line)
+
+        If this policy is disabled or not configured, the default local pinned_apps.txt
+        file is used (WAU InstallLocation).</string>
     </stringTable>
     <presentationTable>
       <presentation id="BlackList">
@@ -230,6 +260,14 @@
       <presentation id="WingetSourceCustom">
         <textBox refId="WingetSourceCustom">
           <label>Name of custom winget source:</label>
+        </textBox>
+      </presentation>
+      <presentation id="PinnedApps">
+        <listBox refId="PinnedApps">Pinned Apps (AppID=Version):</listBox>
+      </presentation>
+      <presentation id="PinnedAppsPath">
+        <textBox refId="PinnedAppsPath">
+          <label>(URL/UNC/Local) Path:</label>
         </textBox>
       </presentation>
     </presentationTable>

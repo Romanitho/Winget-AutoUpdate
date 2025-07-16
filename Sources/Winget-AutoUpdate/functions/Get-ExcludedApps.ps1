@@ -24,18 +24,23 @@ function Get-ExcludedApps {
         $RegValueName = 'WAU_URIList';
 
         if (Test-Path -Path $RegPath) {
-            $RegKey = Get-Item -Path $RegPath;
-            $WAUURI = $RegKey.GetValue($RegValueName);
-            Write-ToLog "-> Excluded apps from URI is activated"
-            if ($null -ne $WAUURI) {
-                $resp = Invoke-WebRequest -Uri $WAUURI -UseDefaultCredentials;
-                if ($resp.BaseResponse.StatusCode -eq [System.Net.HttpStatusCode]::OK) {
-                    $resp.Content.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries) |
-                    ForEach-Object {
-                        $AppIds += $_
+            try {
+                $RegKey = Get-Item -Path $RegPath;
+                $WAUURI = $RegKey.GetValue($RegValueName);
+                Write-ToLog "-> Excluded apps from URI is activated"
+                if ($null -ne $WAUURI) {
+                    $resp = Invoke-WebRequest -Uri $WAUURI -UseDefaultCredentials;
+                    if ($resp.BaseResponse.StatusCode -eq [System.Net.HttpStatusCode]::OK) {
+                        $resp.Content.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries) |
+                        ForEach-Object {
+                            $AppIDs += $_
+                        }
+                        Write-ToLog "-> Successsfully loaded excluded apps list."
                     }
-                    Write-ToLog "-> Successsfully loaded excluded apps list."
                 }
+            }
+            catch {
+                Write-ToLog "-> Warning: Could not load excluded apps from URI - $($_.Exception.Message)"
             }
         }
 

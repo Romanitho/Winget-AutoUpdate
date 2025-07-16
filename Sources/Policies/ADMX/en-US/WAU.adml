@@ -53,6 +53,14 @@
         Whitelist or not.
 
         If this policy is disabled or not configured, the default is No.</string>
+      <string id="UseDualListing_Name">Use Dual Listing Mode (Both WhiteList and BlackList)</string>
+      <string id="UseDualListing_Explain">This policy setting specifies whether to use both
+        Whitelist and Blacklist together. When enabled, apps must be in the whitelist AND 
+        not in the blacklist to be updated. The blacklist always takes precedence over the 
+        whitelist. This is useful for managing exceptions where you want to allow most apps 
+        but block specific ones on certain devices.
+
+        If this policy is disabled or not configured, the default is No.</string>
       <string id="ListPath_Name">Get Black/White List from external Path
         (URL/UNC/GPO/Local)</string>
       <string id="ListPath_Explain">If this policy is enabled, you can set a

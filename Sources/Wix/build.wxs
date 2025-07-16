@@ -52,6 +52,9 @@
         <Property Id="USEWHITELIST" Value="0">
             <RegistrySearch Id="SearchUseWhiteList" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UseWhiteList"  />
         </Property>
+        <Property Id="USEDUALLISTING" Value="0">
+            <RegistrySearch Id="SearchUseDualListing" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UseDualListing"  />
+        </Property>
         <Property Id="BLACKLIST_PATH">
             <DirectorySearch Id="CheckBlacklistDir" Path="[CURRENTDIRECTORY]">
                 <FileSearch Id="CheckBlacklistFile" Name="excluded_apps.txt" />
@@ -314,6 +317,9 @@
 					</RegistryKey>
 					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UseWhiteList" Type="integer" Value="[USEWHITELIST]" />
+					</RegistryKey>
+					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
+						<RegistryValue Name="WAU_UseDualListing" Type="integer" Value="[USEDUALLISTING]" />
 					</RegistryKey>
 					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_ListPath" Type="string" Value="[LISTPATH_VALUE]" />

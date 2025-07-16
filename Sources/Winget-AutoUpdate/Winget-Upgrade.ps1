@@ -229,20 +229,34 @@ if (Test-Network) {
                 $ListPathClean = $($WAUConfig.WAU_ListPath.TrimEnd(" ", "\", "/"))
                 Write-ToLog "WAU uses External Lists from: $ListPathClean"
                 if ($ListPathClean -ne "GPO") {
-                    $NewList = Test-ListPath $ListPathClean $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
-                    if ($ReachNoPath) {
-                        Write-ToLog "Couldn't reach/find/compare/copy from $ListPathClean..." "Red"
-                        if ($ListPathClean -notlike "http*") {
-                            if (Test-Path -Path "$ListPathClean" -PathType Leaf) {
-                                Write-ToLog "PATH must end with a Directory, not a File..." "Red"
-                            }
+                    if ($WAUConfig.WAU_UseDualListing -eq 1) {
+                        $NewList = Test-DualListPath $ListPathClean $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                        if (-not $NewList.Success) {
+                            Write-ToLog "Error occurred while processing external lists from $ListPathClean" "Red"
                         }
-                        else {
-                            if ($ListPathClean -match "_apps.txt") {
-                                Write-ToLog "PATH must end with a Directory, not a File..." "Red"
-                            }
+                        if ($NewList.WhiteListUpdated) {
+                            Write-ToLog "Whitelist updated from external source" "Green"
                         }
-                        $Script:ReachNoPath = $False
+                        if ($NewList.BlackListUpdated) {
+                            Write-ToLog "Blacklist updated from external source" "Green"
+                        }
+                    }
+                    else {
+                        $NewList = Test-ListPath $ListPathClean $WAUConfig.WAU_UseWhiteList $WAUConfig.InstallLocation.TrimEnd(" ", "\")
+                        if ($ReachNoPath) {
+                            Write-ToLog "Couldn't reach/find/compare/copy from $ListPathClean..." "Red"
+                            if ($ListPathClean -notlike "http*") {
+                                if (Test-Path -Path "$ListPathClean" -PathType Leaf) {
+                                    Write-ToLog "PATH must end with a Directory, not a File..." "Red"
+                                }
+                            }
+                            else {
+                                if ($ListPathClean -match "_apps.txt") {
+                                    Write-ToLog "PATH must end with a Directory, not a File..." "Red"
+                                }
+                            }
+                            $Script:ReachNoPath = $False
+                        }
                     }
                     if ($NewList) {
                         if ($AlwaysDownloaded) {
@@ -320,7 +334,11 @@ if (Test-Network) {
         }
 
         #Get White or Black list
-        if ($WAUConfig.WAU_UseWhiteList -eq 1) {
+        if ($WAUConfig.WAU_UseDualListing -eq 1) {
+            Write-ToLog "WAU uses Dual Listing config (both whitelist and blacklist)"
+            $UseDualListing = $true
+        }
+        elseif ($WAUConfig.WAU_UseWhiteList -eq 1) {
             Write-ToLog "WAU uses White List config"
             $toUpdate = Get-IncludedApps
             $UseWhiteList = $true
@@ -332,7 +350,24 @@ if (Test-Network) {
 
         #Fix and count the array if GPO List as ERROR handling!
         if ($GPOList) {
-            if ($UseWhiteList) {
+            if ($UseDualListing) {
+                # For dual listing, we need both lists to exist
+                $toUpdate = Get-IncludedApps
+                $toSkip = Get-ExcludedApps
+                
+                if (-not $toUpdate -and -not $toSkip) {
+                    Write-ToLog "Warning: Dual listing mode enabled but neither whitelist nor blacklist exists in GPO. Using default behavior." "Yellow"
+                }
+                else {
+                    if ($toUpdate) {
+                        foreach ($app in $toUpdate) { Write-ToLog "Include app ${app}" }
+                    }
+                    if ($toSkip) {
+                        foreach ($app in $toSkip) { Write-ToLog "Exclude app ${app}" }
+                    }
+                }
+            }
+            elseif ($UseWhiteList) {
                 if (-not $toUpdate) {
                     Write-ToLog "Critical: Whitelist doesn't exist in GPO, exiting..." "Red"
                     New-Item "$WorkingDir\logs\error.txt" -Value "Whitelist doesn't exist in GPO" -Force
@@ -375,11 +410,22 @@ if (Test-Network) {
             if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq 1) {
                 Write-ToLog "Bypass system list in user context is Enabled."
                 $UseWhiteList = $false
+                $UseDualListing = $false
                 $toSkip = $null
             }
 
+            #If Dual Listing Mode
+            if ($UseDualListing) {
+                $ProcessedApps = Get-DualListApps -OutdatedApps $outdated
+                foreach ($ProcessedApp in $ProcessedApps) {
+                    Write-ToLog "$($ProcessedApp.App.Name) : $($ProcessedApp.Reason)" $(if ($ProcessedApp.ShouldUpdate) { "Green" } else { "Gray" })
+                    if ($ProcessedApp.ShouldUpdate) {
+                        Update-App $ProcessedApp.App
+                    }
+                }
+            }
             #If White List
-            if ($UseWhiteList) {
+            elseif ($UseWhiteList) {
                 #For each app, notify and update
                 foreach ($app in $outdated) {
                     #if current app version is unknown, skip it

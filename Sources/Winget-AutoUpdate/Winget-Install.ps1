@@ -309,9 +309,18 @@ if ("$env:PROCESSOR_ARCHITEW6432" -ne "ARM64") {
     }
 }
 
-#Config console output encoding
-$null = cmd /c '' #Tip for ISE
+# Workaround for ISE: Force UTF-8 output encoding by briefly invoking cmd.exe
+if ($psISE) {
+    try {
+        $null = Start-Process "cmd.exe" -ArgumentList "/c """ -NoNewWindow -Wait -WindowStyle Hidden
+    }
+    catch {
+        Write-ToLog "-> Unable to execute cmd.exe - skipping ISE output encoding workaround." "Red"
+    }
+}
+# Set UTF-8 encoding for all console output (e.g., Write-Output, Write-Host, etc.)
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+# Suppress progress bars (used by some cmdlets like Invoke-WebRequest)
 $Script:ProgressPreference = 'SilentlyContinue'
 
 #Check if current process is elevated (System or admin user)

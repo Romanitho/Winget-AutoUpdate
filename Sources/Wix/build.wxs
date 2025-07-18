@@ -200,6 +200,7 @@
                     <ComboBox Property="NOTIFICATIONLEVEL_VALUE">
                         <ListItem Value="Full" Text="Full" />
                         <ListItem Value="SuccessOnly" Text="Success only" />
+                        <ListItem Value="ErrorsOnly" Text="Errors only" />
                         <ListItem Value="None" Text="None" />
                     </ComboBox>
                 </Control>

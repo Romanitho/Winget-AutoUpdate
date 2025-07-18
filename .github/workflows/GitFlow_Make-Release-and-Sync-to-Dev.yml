@@ -24,6 +24,8 @@ jobs:
     # Run only when PR is merged (not just closed) and source branch is release/* or hotfix/*
     if: github.event.pull_request.merged == true && (startsWith(github.event.pull_request.head.ref, 'release/') || startsWith(github.event.pull_request.head.ref, 'hotfix/'))
     runs-on: windows-latest
+    outputs:
+      next_semver: ${{ steps.release_version.outputs.NextSemVer }}
     steps:
       # Step 1: Checkout the code from the main branch after merge
       - name: Checkout code
@@ -137,7 +139,7 @@ jobs:
         uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 0
-    
+
       # Step 5: Configure Git for merge back to develop
       - name: Configure Git
         shell: bash
@@ -152,9 +154,8 @@ jobs:
           # Checkout develop branch
           git checkout develop
           git pull origin develop
-
           # Merge main into develop with no fast-forward to preserve history
-          git merge --no-ff origin/main -m "Merge main into develop after the creation of release v${{ steps.release_version.outputs.NextSemVer }}"
+          git merge --no-ff origin/main -m "Merge main into develop after the creation of release v${{ needs.build.outputs.next_semver }}"
 
           # Push changes to develop branch
           git push origin develop

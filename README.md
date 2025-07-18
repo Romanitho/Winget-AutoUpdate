@@ -196,7 +196,7 @@ Instead of including the override parameters in the install string you can use a
 * A standard single installation: **-AppIDs Notepad++.Notepad++**
 * Multiple installations: **-AppIDs "7zip.7zip, Notepad++.Notepad++"**
 
-As a detection script you can download/edit **winget-detect.ps1** (change app to detect [**Application ID**]) in **Intune**/**SCCM** ([winget-detect.ps1](Sources/Winget-AutoUpdate/Tools/Detection/winget-detect.ps1))
+As a custom detection script you can download/edit [winget-detect.ps1](Sources/Winget-AutoUpdate/Tools/Detection/winget-detect.ps1) (change app to detect [**Application ID**]) in **Intune**/**SCCM**
 
 A nice feature is if you're already using the deprecated standalone script **winget-install.ps1** from the [old repo](https://github.com/Romanitho/Winget-Install) and have placed it somwhere locally on all clients you can make a **SymLink** in its place and keep using the old path (avoiding a lot of work) in your deployed applications (**Winget-Install.ps1** takes care of the SymLink logic).
 

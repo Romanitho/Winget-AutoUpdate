@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.8" schemaVersion="1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.9" schemaVersion="1.0"
   xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
   <displayName>WinGet-AutoUpdate</displayName>
   <description>WinGet-AutoUpdate GPO Management</description>
@@ -54,11 +54,10 @@
         Whitelist or not.
 
         If this policy is disabled or not configured, the default is No.</string>
-      <string id="ListPath_Name">Get Black/White List from external Path
-        (URL/UNC/GPO/Local)</string>
+      <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/GPO/Local)</string>
       <string id="ListPath_Explain">If this policy is enabled, you can set a
         (URL/UNC/GPO/Local) Path to external lists other than the default.
-        If "Application GPO Blacklist/Whitelist" is set in this GPO the Path can be:
+        If "Application GPO Blacklist/Whitelist" is set in this GPO the Path MUST be:
         GPO
 
         If this policy is disabled or not configured, the default ListPath is used
@@ -84,12 +83,14 @@
         configure the Notification Level:
         1. Full (Default)
         2. SuccessOnly
-        3. None
+        3. ErrorsOnly
+        4. None
 
         If this policy is not configured or disabled, Notification Level: (1. Full).</string>
       <string id="NotificationLevel_Full">1. Full (Default)</string>
       <string id="NotificationLevel_SuccessOnly">2. SuccessOnly</string>
-      <string id="NotificationLevel_None">3. None</string>
+      <string id="NotificationLevel_ErrorsOnly">3. ErrorsOnly</string>
+      <string id="NotificationLevel_None">4. None</string>
       <string id="UpdatesInterval_Name">Updates Interval</string>
       <string id="UpdatesInterval_Explain">If this policy is enabled, you can configure
         the Updates Interval:

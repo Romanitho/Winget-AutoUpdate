@@ -20,6 +20,10 @@ $RunSystem = ""
 $RunSwitch = ""
 $RunWait = $True
 
+# Beginning of Process Name to check for if running - optional wildcard (*) after, without .exe, multiple: "proc1*","proc2"
+# If found, it will return $False (to $preInstall-/UninstallResult), stop this script and request for the main script to skip the app.
+$SkipApp = @("")
+
 # Beginning of Process Name to Stop - optional wildcard (*) after, without .exe, multiple: "proc1*","proc2"
 $Proc = @("")
 
@@ -99,6 +103,10 @@ $User = $True
 <# MAIN #>
 if ($RunSystem) {
     Invoke-ModsApp $RunSystem $RunSwitch $RunWait ""
+}
+if ($SkipApp) {
+    $result = Skip-ModsProc $SkipApp
+    if ($result -eq $true) { return $false }
 }
 if ($Proc) {
     Stop-ModsProc $Proc

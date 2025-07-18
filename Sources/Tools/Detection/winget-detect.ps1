@@ -1,3 +1,12 @@
+<#
+.SYNOPSIS
+Helper script to use as detection method with Intune or SCCM.
+
+.DESCRIPTION
+This script uses `winget export` to detect if a specific application is installed.
+Intended for use as a detection rule script in Intune or SCCM deployments.
+#>
+
 #Change app to detect [Application ID]
 $AppToDetect = "Notepad++.Notepad++"
 

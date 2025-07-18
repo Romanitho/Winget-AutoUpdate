@@ -19,15 +19,6 @@ $Script:ProgressPreference = [System.Management.Automation.ActionPreference]::Si
 # Log initialization
 [string]$LogFile = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'updates.log');
 
-#region Get settings and Domain/Local Policies (GPO) if activated.
-Write-ToLog "Reading WAUConfig";
-$Script:WAUConfig = Get-WAUConfig;
-
-if ($WAUConfig.WAU_ActivateGPOManagement -eq 1) {
-    Write-ToLog "WAU Policies management Enabled.";
-}
-#endregion Get settings and Domain/Local Policies (GPO) if activated.
-
 # Default name of winget repository used within this script
 [string]$DefaultWingetRepoName = 'winget';
 
@@ -35,12 +26,10 @@ if ($WAUConfig.WAU_ActivateGPOManagement -eq 1) {
 # Defining a custom source even if not used below (failsafe suggested by github/sebneus mentioned in issues/823)
 [string]$Script:WingetSourceCustom = $DefaultWingetRepoName;
 
-# Defining custom repository for winget tool (only if GPO management is active)
-if ($Script:WAUConfig.WAU_ActivateGPOManagement) {
-    if ($null -ne $Script:WAUConfig.WAU_WingetSourceCustom) {
-        $Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
-        Write-ToLog "Selecting winget repository named '$($Script:WingetSourceCustom)'";
-    }
+# Defining custom repository for winget tool
+if ($null -ne $Script:WAUConfig.WAU_WingetSourceCustom) {
+    $Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
+    Write-ToLog "Selecting winget repository named '$($Script:WingetSourceCustom)'";
 }
 #endregion Winget Source Custom
 

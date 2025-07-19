@@ -19,6 +19,11 @@ $Script:ProgressPreference = [System.Management.Automation.ActionPreference]::Si
 # Log initialization
 [string]$LogFile = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'updates.log');
 
+#region Get settings and Domain/Local Policies (GPO) if activated.
+Write-ToLog "Reading WAUConfig";
+$Script:WAUConfig = Get-WAUConfig;
+#endregion Get settings and Domain/Local Policies (GPO) if activated.
+
 # Default name of winget repository used within this script
 [string]$DefaultWingetRepoName = 'winget';
 

@@ -372,31 +372,6 @@
         <decimal value="0" />
       </disabledValue>
     </policy>
-    <policy name="DesktopShortcut_Enable" class="Machine"
-      displayName="$(string.DesktopShortcut_Name)" explainText="$(string.DesktopShortcut_Explain)"
-      key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_DesktopShortcut">
-      <parentCategory ref="WAU" />
-      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0" />
-      <enabledValue>
-        <decimal value="1" />
-      </enabledValue>
-      <disabledValue>
-        <decimal value="0" />
-      </disabledValue>
-    </policy>
-    <policy name="StartMenuShortcut_Enable" class="Machine"
-      displayName="$(string.StartMenuShortcut_Name)"
-      explainText="$(string.StartMenuShortcut_Explain)"
-      key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_StartMenuShortcut">
-      <parentCategory ref="WAU" />
-      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0" />
-      <enabledValue>
-        <decimal value="1" />
-      </enabledValue>
-      <disabledValue>
-        <decimal value="0" />
-      </disabledValue>
-    </policy>
     <policy name="MaxLogFiles_Name" class="Machine" displayName="$(string.MaxLogFiles_Name)"
       explainText="$(string.MaxLogFiles_Explain)"
       key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.MaxLogFiles)">

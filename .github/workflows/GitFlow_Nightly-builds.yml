@@ -10,6 +10,8 @@ on:
   # Automated nightly builds at midnight
   schedule:
     - cron: "0 0 * * *"
+  # Manual trigger for testing purposes
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -91,16 +93,24 @@ jobs:
           $MsiBase = $NextSemver.Split("-")[0]  # Remove prerelease segment
           $MsiVersion = "$MsiBase.$commit_count_mod"
 
-          # Format the release name
-          $ReleaseName = "WAU $NextSemver [Nightly Build]"
+          # Format the release name based on trigger type
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $ReleaseName = "WAU $NextSemver [Pre-release Build]"
+            $ReleaseBodyIntro = "This is a **pre-release build** created from the latest changes in the develop branch."
+          } else {
+            $ReleaseName = "WAU $NextSemver [Nightly Build]"
+            $ReleaseBodyIntro = "This is an **automated nightly build** created from the latest changes in the develop branch."
+          }
 
           # Output all version information
           echo "MSI version: $MsiVersion"
           echo "Semver created: $NextSemver"
           echo "Release name: $ReleaseName"
+          echo "Release body intro: $ReleaseBodyIntro"
           echo "MsiVersion=$MsiVersion" >> $env:GITHUB_OUTPUT
           echo "NextSemVer=$NextSemver" >> $env:GITHUB_OUTPUT
           echo "ReleaseName=$ReleaseName" >> $env:GITHUB_OUTPUT
+          echo "ReleaseBodyIntro=$ReleaseBodyIntro" >> $env:GITHUB_OUTPUT
 
       # Step 5: Build the project and generate artifacts
       - name: Build project
@@ -165,7 +175,7 @@ jobs:
           name: ${{ steps.format_version.outputs.ReleaseName }}
           artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
           body: |
-            This is an **automated nightly build** created from the latest changes in the develop branch.
+            ${{ steps.format_version.outputs.ReleaseBodyIntro }}
 
             ⚠️ **Warning**: This build may contain unstable features and is intended for testing purposes only.
 

@@ -29,11 +29,10 @@ jobs:
     steps:
       # Step 1: Checkout the code from the main branch after merge
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
         with:
           lfs: "true"
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 2: Extract version from branch name and calculate build number
       - name: Get final Release Version
@@ -136,9 +135,10 @@ jobs:
     needs: build
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GH_PAT_SYNC }}
 
       # Step 5: Configure Git for merge back to develop
       - name: Configure Git

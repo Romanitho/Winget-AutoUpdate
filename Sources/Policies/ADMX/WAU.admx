@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <policyDefinitions xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="5.0"
   schemaVersion="1.0" xmlns="http://www.microsoft.com/GroupPolicy/PolicyDefinitions">
   <policyNamespaces>
     <target prefix="WAU" namespace="Romanitho.Policies.WAU" />
@@ -10,6 +10,7 @@
     <definitions>
       <definition name="SUPPORTED_WAU_1_16_0" displayName="$(string.SUPPORTED_WAU_1_16_0)" />
       <definition name="SUPPORTED_WAU_1_16_5" displayName="$(string.SUPPORTED_WAU_1_16_5)" />
+      <definition name="SUPPORTED_WAU_2_6_0" displayName="$(string.SUPPORTED_WAU_2_6_0)" />
       <definition name="SUPPORTED_WAU_EXPERIMENTAL"
         displayName="$(string.SUPPORTED_WAU_EXPERIMENTAL)" />
     </definitions>
@@ -161,6 +162,11 @@
           <item displayName="$(string.NotificationLevel_SuccessOnly)">
             <value>
               <string>SuccessOnly</string>
+            </value>
+          </item>
+          <item displayName="$(string.NotificationLevel_ErrorsOnly)">
+            <value>
+              <string>ErrorsOnly</string>
             </value>
           </item>
           <item displayName="$(string.NotificationLevel_None)">
@@ -366,31 +372,6 @@
         <decimal value="0" />
       </disabledValue>
     </policy>
-    <policy name="DesktopShortcut_Enable" class="Machine"
-      displayName="$(string.DesktopShortcut_Name)" explainText="$(string.DesktopShortcut_Explain)"
-      key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_DesktopShortcut">
-      <parentCategory ref="WAU" />
-      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0" />
-      <enabledValue>
-        <decimal value="1" />
-      </enabledValue>
-      <disabledValue>
-        <decimal value="0" />
-      </disabledValue>
-    </policy>
-    <policy name="StartMenuShortcut_Enable" class="Machine"
-      displayName="$(string.StartMenuShortcut_Name)"
-      explainText="$(string.StartMenuShortcut_Explain)"
-      key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_StartMenuShortcut">
-      <parentCategory ref="WAU" />
-      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0" />
-      <enabledValue>
-        <decimal value="1" />
-      </enabledValue>
-      <disabledValue>
-        <decimal value="0" />
-      </disabledValue>
-    </policy>
     <policy name="MaxLogFiles_Name" class="Machine" displayName="$(string.MaxLogFiles_Name)"
       explainText="$(string.MaxLogFiles_Explain)"
       key="Software\Policies\Romanitho\Winget-AutoUpdate" presentation="$(presentation.MaxLogFiles)">
@@ -418,6 +399,17 @@
       <supportedOn ref="WAU:SUPPORTED_WAU_EXPERIMENTAL" />
       <elements>
         <text id="WingetSourceCustom" valueName="WAU_WingetSourceCustom" />
+      </elements>
+    </policy>
+    <policy name="UpdatesTime_Delay" class="Machine"
+      displayName="$(string.UpdatesTimeDelay_Name)"
+      explainText="$(string.UpdatesTimeDelay_Explain)"
+      key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.UpdatesTimeDelayTime)">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_6_0" />
+      <elements>
+        <text id="UpdatesTimeDelayTime" valueName="WAU_UpdatesTimeDelay" />
       </elements>
     </policy>
   </policies>

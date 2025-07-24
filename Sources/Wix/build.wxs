@@ -262,7 +262,7 @@
         <SetProperty Id="AZUREBLOBURL_VALUE" After="AppSearch" Value="[AZUREBLOBURL]" Condition="AZUREBLOBURL" />
         <SetProperty Id="DONOTRUNONMETERED_VALUE" After="AppSearch" Value="#[DONOTRUNONMETERED]" Condition="DONOTRUNONMETERED" />
         <SetProperty Id="UPDATESATTIME_VALUE" After="AppSearch" Value="[UPDATESATTIME]" Condition="UPDATESATTIME" />
-        <SetProperty Id="UPDATESATTIMEDELAY_VALUE" After="AppSearch" Value="00:00" Condition="UPDATESATTIMEDELAY" />
+        <SetProperty Id="UPDATESATTIMEDELAY_VALUE" After="AppSearch" Value="[UPDATESATTIMEDELAY]" Condition="UPDATESATTIMEDELAY" />
         <SetProperty Id="BYPASSLISTFORUSERS_VALUE" After="AppSearch" Value="#[BYPASSLISTFORUSERS]" Condition="BYPASSLISTFORUSERS" />
         <SetProperty Id="MAXLOGFILES_VALUE" After="AppSearch" Value="#[MAXLOGFILES]" Condition="MAXLOGFILES" />
         <SetProperty Id="MAXLOGSIZE_VALUE" After="AppSearch" Value="#[MAXLOGSIZE]" Condition="MAXLOGSIZE" />

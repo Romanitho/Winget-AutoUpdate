@@ -106,6 +106,16 @@
           valuePrefix="" />
       </elements>
     </policy>
+    <policy name="PinnedApps_Enable" class="Machine" displayName="$(string.PinnedApps_Name)"
+      explainText="$(string.PinnedApps_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.PinnedApps)">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_1_16_0" />
+      <elements>
+        <list id="PinnedApps" key="Software\Policies\Romanitho\Winget-AutoUpdate\PinnedApps"
+          valuePrefix="" />
+      </elements>
+    </policy>
     <policy name="UseWhiteList_Enable" class="Machine" displayName="$(string.UseWhiteList_Name)"
       explainText="$(string.UseWhiteList_Explain)"
       key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_UseWhiteList">

@@ -81,6 +81,12 @@ Param(
             $upgradeList = $upgradeList | Where-Object { $SystemApps -notcontains $_.Id }
         }
 
+        #Filter out pinned apps that shouldn't be updated
+        $upgradeList = $upgradeList | Where-Object {
+            $PinStatus = Test-PinnedApp -AppId $_.Id -AvailableVersion $_.AvailableVersion
+            -not $PinStatus.ShouldSkip
+        }
+
         return $upgradeList | Sort-Object { Get-Random }
 
     }

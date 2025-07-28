@@ -42,7 +42,17 @@ If this policy is disabled or not configured, GPO Blacklist is not used.</string
       <string id="WhiteList_Name">Application GPO Whitelist</string>
       <string id="WhiteList_Explain">Provide the WinGet IDs of applications you want to include.
 
+<<<<<<< HEAD
 If this policy is disabled or not configured, GPO Whitelist is not used.</string>
+=======
+        If this policy is disabled or not configured, GPO Whitelist is not used.</string>
+      <string id="PinnedApps_Name">Application GPO Pinned Apps</string>
+      <string id="PinnedApps_Explain">Provide the WinGet IDs of applications you want to
+        pin to a specific version.
+        Use the format AppID=Version (e.g., Microsoft.PowerToys=0.70.*)
+
+        If this policy is disabled or not configured, GPO Pinned Apps is not used.</string>
+>>>>>>> 76aa69a99a57f8628818e4fa8a9f885876958ff5
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
       <string id="UseWhiteList_Explain">This policy setting specifies whether to use a Whitelist or not.
 
@@ -190,6 +200,9 @@ file is used (WAU InstallLocation).</string>
       </presentation>
       <presentation id="WhiteList">
         <listBox refId="WhiteList">WhiteList:</listBox>
+      </presentation>
+      <presentation id="PinnedApps">
+        <listBox refId="PinnedApps">Pinned Apps:</listBox>
       </presentation>
       <presentation id="ListPath">
         <textBox refId="ListPath">

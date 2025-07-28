@@ -10,6 +10,8 @@ on:
   # Automated nightly builds at midnight
   schedule:
     - cron: "0 0 * * *"
+  # Manual trigger for testing purposes
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -38,33 +40,41 @@ jobs:
         id: check_prs
         shell: powershell
         run: |
-          # Get the latest release of any type
+          # Get the latest release tag (any type)
           $LATEST_TAG = git tag -l --sort=-version:refname | Select-Object -First 1
           Write-Host "Latest release: $LATEST_TAG"
-
-          # Get merged PRs since last tag using Git directly
-          $MERGED_PRS = git log --merges --grep="Merge pull request" --oneline "$LATEST_TAG..${{ env.BRANCH }}"
-
-          # If merged PRs exist, set BUILD_NEEDED and determine release type
-          if ($MERGED_PRS) {
-            Write-Host "Found PRs merged to develop since latest tag:"
-            Write-Host $MERGED_PRS
-            echo "BUILD_NEEDED=true" >> $env:GITHUB_OUTPUT
-
-            # Determine release type
-            if ($LATEST_TAG -like "*-*") {
-              $RELEASE_TYPE = "prerelease"
-            }
-            else {
-              $RELEASE_TYPE = "preminor"
-            }
-            echo "RELEASE_TYPE=$RELEASE_TYPE" >> $env:GITHUB_OUTPUT
-            Write-Host "Next release: $RELEASE_TYPE"
-          } else {
-            # If no merged PRs, skip building
-            Write-Host "No PRs merged to ${{ env.BRANCH }} since latest tag. Skipping build."
-            echo "BUILD_NEEDED=false" >> $env:GITHUB_OUTPUT
+          
+          # Get all merged PRs since last tag (only merge commits from PRs)
+          $MERGED_PRS = git log --merges --grep="Merge pull request" --pretty=format:"%h %s" "$LATEST_TAG..develop"
+          
+          # Count merges
+          $MERGE_COUNT = ($MERGED_PRS | Measure-Object).Count
+          
+          if ($MERGE_COUNT -eq 0) {
+              Write-Host "No PRs merged to develop since last tag. Skipping build."
+              $BUILD_NEEDED = $false
           }
+          else {
+              Write-Host "Merged PRs since last tag (develop):"
+              Write-Host $MERGED_PRS
+          
+              if ($MERGE_COUNT -eq 1 -and $MERGED_PRS -match "Merge pull request #\d+ from .*/release/") {
+                  Write-Host "Only change since last tag is a release PR merge. Skipping build."
+                  $BUILD_NEEDED = $false
+              }
+              else {
+                  $BUILD_NEEDED = $true
+          
+                  # Set release type for output (adapts to your previous logic if you need it)
+                  if ($LATEST_TAG -like "*-*") {
+                      $RELEASE_TYPE = "prerelease"
+                  } else {
+                      $RELEASE_TYPE = "preminor"
+                  }
+                  echo "RELEASE_TYPE=$RELEASE_TYPE" >> $env:GITHUB_OUTPUT
+              }
+          }
+          echo "BUILD_NEEDED=$BUILD_NEEDED" >> $env:GITHUB_OUTPUT
 
       # Step 3: Generate new semantic version number
       - name: Auto Increment Semver Action
@@ -91,16 +101,24 @@ jobs:
           $MsiBase = $NextSemver.Split("-")[0]  # Remove prerelease segment
           $MsiVersion = "$MsiBase.$commit_count_mod"
 
-          # Format the release name
-          $ReleaseName = "WAU $NextSemver [Nightly Build]"
+          # Format the release name based on trigger type
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+            $ReleaseName = "WAU $NextSemver [Pre-release Build]"
+            $ReleaseBodyIntro = "This is a **pre-release build** created from the latest changes in the develop branch."
+          } else {
+            $ReleaseName = "WAU $NextSemver [Nightly Build]"
+            $ReleaseBodyIntro = "This is an **automated nightly build** created from the latest changes in the develop branch."
+          }
 
           # Output all version information
           echo "MSI version: $MsiVersion"
           echo "Semver created: $NextSemver"
           echo "Release name: $ReleaseName"
+          echo "Release body intro: $ReleaseBodyIntro"
           echo "MsiVersion=$MsiVersion" >> $env:GITHUB_OUTPUT
           echo "NextSemVer=$NextSemver" >> $env:GITHUB_OUTPUT
           echo "ReleaseName=$ReleaseName" >> $env:GITHUB_OUTPUT
+          echo "ReleaseBodyIntro=$ReleaseBodyIntro" >> $env:GITHUB_OUTPUT
 
       # Step 5: Build the project and generate artifacts
       - name: Build project
@@ -155,7 +173,7 @@ jobs:
 
       # Step 6: Create GitHub release with all artifacts
       - name: Create release
-        uses: ncipollo/release-action@440c8c1cb0ed28b9f43e4d1d670870f059653174 # v1.16.0
+        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
         if: steps.check_prs.outputs.BUILD_NEEDED == 'true'
         with:
           tag: v${{ steps.format_version.outputs.NextSemVer }}
@@ -165,7 +183,7 @@ jobs:
           name: ${{ steps.format_version.outputs.ReleaseName }}
           artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
           body: |
-            This is an **automated nightly build** created from the latest changes in the develop branch.
+            ${{ steps.format_version.outputs.ReleaseBodyIntro }}
 
             ⚠️ **Warning**: This build may contain unstable features and is intended for testing purposes only.
 

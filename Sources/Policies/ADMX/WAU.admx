@@ -422,6 +422,7 @@
         <text id="UpdatesTimeDelayTime" valueName="WAU_UpdatesTimeDelay" />
       </elements>
     </policy>
+<<<<<<< HEAD
     <policy name="EnablePinManagement_Enable" class="Machine"
       displayName="$(string.EnablePinManagement_Name)"
       explainText="$(string.EnablePinManagement_Explain)"
@@ -454,5 +455,7 @@
         <text id="PinnedAppsPath" valueName="WAU_PinnedAppsPath" />
       </elements>
     </policy>
+=======
+>>>>>>> b1620417244f7b64d63ee9570e85619b6d363a16
   </policies>
 </policyDefinitions>

@@ -43,6 +43,7 @@ If this policy is disabled or not configured, GPO Blacklist is not used.</string
       <string id="WhiteList_Explain">Provide the WinGet IDs of applications you want to include.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 If this policy is disabled or not configured, GPO Whitelist is not used.</string>
 =======
         If this policy is disabled or not configured, GPO Whitelist is not used.</string>
@@ -53,6 +54,9 @@ If this policy is disabled or not configured, GPO Whitelist is not used.</string
 
         If this policy is disabled or not configured, GPO Pinned Apps is not used.</string>
 >>>>>>> 76aa69a99a57f8628818e4fa8a9f885876958ff5
+=======
+If this policy is disabled or not configured, GPO Whitelist is not used.</string>
+>>>>>>> b1620417244f7b64d63ee9570e85619b6d363a16
       <string id="UseWhiteList_Name">Use WhiteList instead of BlackList</string>
       <string id="UseWhiteList_Explain">This policy setting specifies whether to use a Whitelist or not.
 
@@ -163,6 +167,7 @@ This helps prevent many devices from running the task at the exact same time. Th
 If this policy is enabled, the scheduled task will have a random delay set based on the time inputted.
 
 If this policy is disabled or not configured, the default no delay.</string>
+<<<<<<< HEAD
       <string id="EnablePinManagement_Name">Enable WAU Pin Management</string>
       <string id="EnablePinManagement_Explain">This policy setting enables or disables WAU Pin Management.
         
@@ -193,6 +198,8 @@ AppID=Version (one per line)
 
 If this policy is disabled or not configured, the default local pinned_apps.txt
 file is used (WAU InstallLocation).</string>
+=======
+>>>>>>> b1620417244f7b64d63ee9570e85619b6d363a16
     </stringTable>
     <presentationTable>
       <presentation id="BlackList">
@@ -248,6 +255,7 @@ file is used (WAU InstallLocation).</string>
           <label>Random delay HH:mm</label>
         </textBox>
       </presentation>
+<<<<<<< HEAD
       <presentation id="PinnedApps">
         <listBox refId="PinnedApps">Pinned Apps (AppID=Version):</listBox>
       </presentation>
@@ -256,6 +264,8 @@ file is used (WAU InstallLocation).</string>
           <label>(URL/UNC/Local) Path:</label>
         </textBox>
       </presentation>
+=======
+>>>>>>> b1620417244f7b64d63ee9570e85619b6d363a16
     </presentationTable>
   </resources>
 </policyDefinitionResources>

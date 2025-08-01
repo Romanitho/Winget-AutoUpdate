@@ -381,7 +381,7 @@ Add-Type -AssemblyName PresentationFramework
 Start-PopUp "Starting..."
 
 #Set config
-$null = cmd /c ''
+$null = & "$env:WINDIR\System32\cmd.exe" /c ""
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $Script:ProgressPreference = "SilentlyContinue"
 $Script:ErrorActionPreference = "SilentlyContinue"

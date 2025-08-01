@@ -32,8 +32,15 @@ function Test-Network {
             Write-ToLog "Connected !" "Green"
 
             #Check for metered connection
-            [void][Windows.Networking.Connectivity.NetworkInformation, Windows, ContentType = WindowsRuntime]
-            $cost = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile().GetConnectionCost()
+            try {
+                Add-Type -AssemblyName 'Windows.Networking, ContentType=WindowsRuntime' -ErrorAction Stop
+                #[void][Windows.Networking.Connectivity.NetworkInformation, Windows, ContentType = WindowsRuntime]
+                $cost = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile().GetConnectionCost()
+            }
+            catch {
+                Write-ToLog "Could not evaluate metered connection status - skipping check." "Gray"
+                return $true
+            }
 
             if ($cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or ($cost.NetworkCostType -ne "Unrestricted")) {
 

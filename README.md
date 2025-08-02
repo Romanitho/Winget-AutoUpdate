@@ -27,7 +27,7 @@ The following command will install WAU through winget itself in the newest versi
 winget install Romanitho.Winget-AutoUpdate
 ```
 #### Alternative installation (for home admin users)
-You can also download the latest release of the add-on [WAU Settings GUI (for Winget-AutoUpdate)](https://github.com/KnifMelti/WAU-Settings-GUI) and install it (this will install **WAU** and the **GUI** to manage every aspect of **Winget-AutoUpdate (WAU)** settings.
+You can also download the latest release of the add-on [WAU Settings GUI (for Winget-AutoUpdate)](https://github.com/KnifMelti/WAU-Settings-GUI) and install it (this will install both **WAU** and a **GUI** that provides a user-friendly portable standalone interface to modify every aspect of **Winget-AutoUpdate (WAU)** settings).
 
 ## Configurations
 ### Keep some apps out of Winget-AutoUpdate

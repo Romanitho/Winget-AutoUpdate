@@ -5,7 +5,7 @@
   <policyNamespaces>
     <target prefix="WAU" namespace="Romanitho.Policies.WAU" />
   </policyNamespaces>
-  <resources minRequiredRevision="4.8" fallbackCulture="en-us" />
+  <resources minRequiredRevision="5.0" fallbackCulture="en-us" />
   <supportedOn>
     <definitions>
       <definition name="SUPPORTED_WAU_1_16_0" displayName="$(string.SUPPORTED_WAU_1_16_0)" />

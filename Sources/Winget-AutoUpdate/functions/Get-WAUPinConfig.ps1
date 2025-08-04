@@ -137,44 +137,57 @@ Function Get-WAUPinConfig {
 }
 
 Function Apply-WAUPinConfig {
-    
+
     Param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [array]$PinConfigs
     )
 
     # Initialize logging if not already set
     Initialize-WAULogging -LogFileName "pin-operations.log"
 
-    try {
-        if ($PinConfigs.Count -eq 0) {
-            Write-ToLog "No pin configurations to apply" "Gray"
-            return $true
-        }
+    if ($PinConfigs.Count -eq 0) {
+        Write-ToLog "No pin configurations to apply" "Gray"
+        return $true
+    }
 
-        Write-ToLog "Applying $($PinConfigs.Count) pin configurations..." "Yellow"
-        
-        $successCount = 0
-        $failCount = 0
+    Write-ToLog "Applying $($PinConfigs.Count) pin configurations..." "Yellow"
 
-        foreach ($pinConfig in $PinConfigs) {
+    $successCount = 0
+    $failCount = 0
+
+    foreach ($pinConfig in $PinConfigs) {
+        try {
+            if ([string]::IsNullOrWhiteSpace($pinConfig.Id)) {
+                Write-ToLog "Skipping pin with empty Id (Source: $($pinConfig.Source))" "DarkGray"
+                $failCount++
+                continue
+            }
+
+            if ([string]::IsNullOrWhiteSpace($pinConfig.Version)) {
+                Write-ToLog "Skipping pin '$($pinConfig.Id)' due to empty Version (Source: $($pinConfig.Source))" "DarkGray"
+                $failCount++
+                continue
+            }
+
             $success = Set-WingetPin -Id $pinConfig.Id -Version $pinConfig.Version -Action "Add"
-            
+
             if ($success) {
+                Write-ToLog "Pinned $($pinConfig.Id)@$($pinConfig.Version) successfully" "Gray"
                 $successCount++
             }
             else {
+                Write-ToLog "Failed to pin $($pinConfig.Id)@$($pinConfig.Version)" "Red"
                 $failCount++
             }
         }
-
-        Write-ToLog "Pin application completed: $successCount successful, $failCount failed" "Green"
-        
-        return ($failCount -eq 0)
-
+        catch {
+            Write-ToLog "Exception during pinning $($pinConfig.Id): $($_.Exception.Message)" "Red"
+            $failCount++
+        }
     }
-    catch {
-        Write-ToLog "Error applying pin configurations: $($_.Exception.Message)" "Red"
-        return $false
-    }
+
+    Write-ToLog "Pin application completed: $successCount successful, $failCount failed" "Green"
+
+    return ($failCount -eq 0)
 }

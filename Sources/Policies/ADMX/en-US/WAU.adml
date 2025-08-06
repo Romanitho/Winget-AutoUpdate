@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="4.9" schemaVersion="1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="5.1" schemaVersion="1.0"
   xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
   <displayName>WinGet-AutoUpdate</displayName>
   <description>WinGet-AutoUpdate GPO Management</description>

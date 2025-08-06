@@ -2,11 +2,11 @@
 
 function Get-WingetOutdatedApps {
 
-Param(
-    [Parameter(Position=0,Mandatory=$True,HelpMessage="You MUST supply value for winget repo, we need it")]
-    [ValidateNotNullorEmpty()]
-    [string]$src
-)
+    Param(
+        [Parameter(Position = 0, Mandatory = $True, HelpMessage = "You MUST supply value for winget repo, we need it")]
+        [ValidateNotNullorEmpty()]
+        [string]$src
+    )
     class Software {
         [string]$Name
         [string]$Id
@@ -15,7 +15,13 @@ Param(
     }
 
     #Get list of available upgrades on winget format
-    $upgradeResult = & $Winget upgrade --source $src | Where-Object { $_ -notlike "   *" } | Out-String
+    try {
+        $upgradeResult = & $Winget upgrade --source $src | Where-Object { $_ -notlike "   *" } | Out-String
+    }
+    catch {
+        Write-ToLog "Error while recieving winget upgrade list: $_" "Red"
+        $upgradeResult = $null
+    }
 
     #Start Conversion of winget format to an array. Check if "-----" exists (Winget Error Handling)
     if (!($upgradeResult -match "-----")) {

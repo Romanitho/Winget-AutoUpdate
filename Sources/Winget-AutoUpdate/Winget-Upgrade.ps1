@@ -9,7 +9,7 @@ Get-ChildItem -Path "$($Script:WorkingDir)\functions" -File -Filter "*.ps1" -Dep
 <# MAIN #>
 
 # Config console output encoding
-$null = cmd /c '';
+$null = & "$env:WINDIR\System32\cmd.exe" /c ""
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8;
 $Script:ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue;
 

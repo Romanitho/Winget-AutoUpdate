@@ -167,10 +167,6 @@ jobs:
           echo " - WAU_ADMX.zip SHA256: $ADMXSHA"
           echo "admx_sha=$ADMXSHA" >> $env:GITHUB_OUTPUT
 
-          # Create installation counter file for tracking installs
-          echo "### Create install counter file ###"
-          echo "Install counter file." > WAU_InstallCounter
-
       # Step 6: Create GitHub release with all artifacts
       - name: Create release
         uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
@@ -181,7 +177,7 @@ jobs:
           prerelease: true
           generateReleaseNotes: true
           name: ${{ steps.format_version.outputs.ReleaseName }}
-          artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
+          artifacts: "WAU.msi,WAU_ADMX.zip"
           body: |
             ${{ steps.format_version.outputs.ReleaseBodyIntro }}
 
@@ -192,5 +188,3 @@ jobs:
             |---|---|---|
             |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
             |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU_ADMX.zip)|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
-
-            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>

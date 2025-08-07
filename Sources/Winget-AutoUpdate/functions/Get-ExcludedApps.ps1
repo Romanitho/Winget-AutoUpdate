@@ -15,29 +15,6 @@ function Get-ExcludedApps {
             Write-ToLog "Exclude app $app"
         }
     }
-    #blacklist pulled from URI
-    elseif ($URIList) {
-
-        $RegPath = "$WAU_GPORoot";
-        $RegValueName = 'WAU_URIList';
-
-        if (Test-Path -Path $RegPath) {
-            $RegKey = Get-Item -Path $RegPath;
-            $WAUURI = $RegKey.GetValue($RegValueName);
-            Write-ToLog "-> Excluded apps from URI is activated"
-            if ($null -ne $WAUURI) {
-                $resp = Invoke-WebRequest -Uri $WAUURI -UseDefaultCredentials;
-                if ($resp.BaseResponse.StatusCode -eq [System.Net.HttpStatusCode]::OK) {
-                    $resp.Content.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries) |
-                    ForEach-Object {
-                        $AppIds += $_
-                    }
-                    Write-ToLog "-> Successsfully loaded excluded apps list."
-                }
-            }
-        }
-
-    }
     #blacklist pulled from local file
     elseif (Test-Path "$WorkingDir\excluded_apps.txt") {
 

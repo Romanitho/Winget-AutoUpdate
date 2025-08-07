@@ -15,29 +15,6 @@ function Get-IncludedApps {
             Write-ToLog "Include app $app"
         }
     }
-    #whitelist pulled from URI
-    elseif ($URIList) {
-
-        $RegPath = "$WAU_GPORoot";
-        $RegValueName = 'WAU_URIList';
-
-        if (Test-Path -Path $RegPath) {
-            $RegKey = Get-Item -Path $RegPath;
-            $WAUURI = $RegKey.GetValue($RegValueName);
-            Write-ToLog "-> Included apps from URI is activated"
-            if ($null -ne $WAUURI) {
-                $resp = Invoke-WebRequest -Uri $WAUURI -UseDefaultCredentials;
-                if ($resp.BaseResponse.StatusCode -eq [System.Net.HttpStatusCode]::OK) {
-                    $resp.Content.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries) |
-                    ForEach-Object {
-                        $AppIds += $_
-                    }
-                    Write-ToLog "-> Successsfully loaded included apps list."
-                }
-            }
-        }
-
-    }
     #whitelist pulled from local file
     elseif (Test-Path "$WorkingDir\included_apps.txt") {
 

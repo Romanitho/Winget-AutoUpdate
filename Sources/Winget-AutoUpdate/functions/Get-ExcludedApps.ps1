@@ -4,18 +4,16 @@ function Get-ExcludedApps {
 
     $AppIDs = @()
 
-    #blacklist in registry
-    if ($GPOList) {
-
+    #blacklist in Policies registry
+    if (Test-Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList") {
         Write-ToLog "-> Excluded apps from GPO is activated"
-        if (Test-Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList") {
-            $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList").Property
-            foreach ($ValueName in $ValueNames) {
-                $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList" -Name $ValueName).Trim()
-            }
-            Write-ToLog "-> Successsfully loaded excluded apps list."
+        $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList").Property
+        foreach ($ValueName in $ValueNames) {
+            $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList" -Name $ValueName).Trim()
         }
-
+        foreach ($app in $AppIDs) {
+            Write-ToLog "Exclude app $app"
+        }
     }
     #blacklist pulled from URI
     elseif ($URIList) {

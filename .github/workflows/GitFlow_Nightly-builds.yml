@@ -2,7 +2,7 @@
 # - Checks for merged PRs since the last tag
 # - Creates a pre-release version if changes are detected
 # - Builds and packages the software
-# - Creates GitHub release with artifacts and download counters
+# - Creates GitHub release with artifacts
 
 name: GitFlow | Nightly Builds
 

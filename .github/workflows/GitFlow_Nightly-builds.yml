@@ -39,6 +39,8 @@ jobs:
       - name: Check for merged PRs since last tag
         id: check_prs
         shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           # Get the latest release tag (any type) from GitHub API
           $LATEST_TAG = (& gh api repos/${env:GITHUB_REPOSITORY}/tags --paginate | ConvertFrom-Json)[0].name

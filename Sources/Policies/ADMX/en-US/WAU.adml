@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="5.1" schemaVersion="1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" revision="5.2" schemaVersion="1.0"
   xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions">
   <displayName>WinGet-AutoUpdate</displayName>
   <description>WinGet-AutoUpdate GPO Management</description>
@@ -47,9 +47,9 @@ If this policy is disabled or not configured, GPO Whitelist is not used.</string
       <string id="UseWhiteList_Explain">This policy setting specifies whether to use a Whitelist or not.
 
 If this policy is disabled or not configured, the default is No.</string>
-      <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/GPO/Local)</string>
-      <string id="ListPath_Explain">If this policy is enabled, you can set a (URL/UNC/GPO/Local) Path to external lists other than the default.
-If "Application GPO Blacklist/Whitelist" is set in this GPO the Path MUST be: GPO
+      <string id="ListPath_Name">Get Black/White List from external Path (URL/UNC/Local)</string>
+      <string id="ListPath_Explain">If this policy is enabled, you can set a (URL/UNC/Local) Path to external lists other than the default.
+If "Application GPO Blacklist/Whitelist" is set, this policy setting is ignored.
 
 If this policy is disabled or not configured, the default ListPath is used (WAU InstallLocation).</string>
       <string id="ModsPath_Name">Get Mods from external Path (URL/UNC/Local/AzureBlob)</string>
@@ -163,7 +163,7 @@ If this policy is disabled or not configured, the default no delay.</string>
       </presentation>
       <presentation id="ListPath">
         <textBox refId="ListPath">
-          <label>(URL/UNC/GPO/Local) Path:</label>
+          <label>(URL/UNC/Local) Path:</label>
         </textBox>
       </presentation>
       <presentation id="ModsPath">

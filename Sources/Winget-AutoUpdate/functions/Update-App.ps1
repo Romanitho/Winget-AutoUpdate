@@ -2,6 +2,13 @@
 
 Function Update-App ($app) {
 
+    #Check if app is pinned and should be skipped
+    $PinStatus = Test-PinnedApp -AppId $app.Id -AvailableVersion $app.AvailableVersion
+    if ($PinStatus.ShouldSkip) {
+        Write-ToLog "Skipping $($app.Name) - Pinned to $($PinStatus.PinnedVersion)" "Yellow"
+        return
+    }
+
     #Get App Info
     $ReleaseNoteURL = Get-AppInfo $app.Id
     if ($ReleaseNoteURL) {

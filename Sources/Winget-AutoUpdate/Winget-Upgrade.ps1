@@ -185,6 +185,31 @@ if (Test-Network) {
 
     if ($Script:Winget) {
 
+        #Check if Winget Pin support is available and pin management is enabled
+        $Script:WingetPinSupported = Test-WingetPinSupport
+        if ($Script:WingetPinSupported -and ($WAUConfig.WAU_EnablePinManagement -eq 1)) {
+            Write-ToLog "WAU Pin Management is enabled" "Green"
+            $Script:PinConfigs = Get-WAUPinConfig
+            
+            if ($Script:PinConfigs.Count -gt 0) {
+                Write-ToLog "Applying pin configurations before checking for updates..." "DarkYellow"
+                $pinApplyResult = Apply-WAUPinConfig -PinConfigs $Script:PinConfigs
+                
+                if ($pinApplyResult) {
+                    Write-ToLog "Pin configurations applied successfully" "Green"
+                }
+                else {
+                    Write-ToLog "Some pin configurations failed to apply" "DarkYellow"
+                }
+            }
+        }
+        elseif ($Script:WingetPinSupported) {
+            Write-ToLog "WAU Pin Management is disabled - skipping pin configuration" "Gray"
+        }
+        else {
+            Write-ToLog "Winget pin support not available - skipping pin configuration" "Gray"
+        }
+
         if ($true -eq $IsSystem) {
 
             #Get Current Version

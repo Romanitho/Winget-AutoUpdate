@@ -1,0 +1,15 @@
+# WAU Pinned Apps Configuration
+# Format: AppID=Version
+# Use * for wildcard versions (e.g., 1.85.* for any 1.85.x version)
+# Use exact versions for specific pins (e.g., 1.85.0)
+# Lines starting with # are comments and will be ignored
+
+# Example pinned applications:
+# Microsoft.VisualStudioCode=1.85.*
+# Google.Chrome=120.*
+# Microsoft.PowerToys=0.70.*
+# Adobe.Acrobat.Reader.64-bit=23.008.20470
+# Mozilla.Firefox=121.*
+
+# Uncomment and modify the lines above to pin specific applications
+# You can also use GPO or external configuration paths for centralized management

@@ -412,5 +412,37 @@
         <text id="UpdatesTimeDelayTime" valueName="WAU_UpdatesTimeDelay" />
       </elements>
     </policy>
+    <policy name="EnablePinManagement_Enable" class="Machine"
+      displayName="$(string.EnablePinManagement_Name)"
+      explainText="$(string.EnablePinManagement_Explain)"
+      key="Software\Policies\Romanitho\Winget-AutoUpdate" valueName="WAU_EnablePinManagement">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_6_0" />
+      <enabledValue>
+        <decimal value="1" />
+      </enabledValue>
+      <disabledValue>
+        <decimal value="0" />
+      </disabledValue>
+    </policy>
+    <policy name="PinnedApps_Enable" class="Machine" displayName="$(string.PinnedApps_Name)"
+      explainText="$(string.PinnedApps_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.PinnedApps)">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_6_0" />
+      <elements>
+        <list id="PinnedApps" key="Software\Policies\Romanitho\Winget-AutoUpdate\PinnedApps"
+          valuePrefix="" />
+      </elements>
+    </policy>
+    <policy name="PinnedAppsPath_Enable" class="Machine" displayName="$(string.PinnedAppsPath_Name)"
+      explainText="$(string.PinnedAppsPath_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.PinnedAppsPath)">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_6_0" />
+      <elements>
+        <text id="PinnedAppsPath" valueName="WAU_PinnedAppsPath" />
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>

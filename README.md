@@ -39,7 +39,7 @@ You can update only pre-selected apps. To do so, create an "included_apps.txt" w
 
 > The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
 
-List and Mods folder content will be copied to WAU install location:  
+List and Mods folder content will be copied to WAU install location:
 ![explorer](https://github.com/user-attachments/assets/a37837b0-b61e-4ce7-b23c-fd8661585e40)
 
 
@@ -47,7 +47,7 @@ List and Mods folder content will be copied to WAU install location:
 You can choose which notification will be displayed: `Full`, `Success only`, `Errors only` or `None`.
 
 ### Notification language
-You can easily translate toast notifications by creating your locale xml config file (and share it with us :) ).
+You can easily translate toast notifications by creating your locale xml config file (and share it with us 😉).
 
 ### When does the script run?
 WAU runs ,by default, at logon. You can configure the frequency with options (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never).
@@ -110,7 +110,8 @@ It doesn't work to call Powershell in **CMD** to install **WAU** with the parame
 Instead you must escape **every** special character (notice the `%` escape too) like:<br>
 `-ListPath https://storagesample.blob.core.windows.net/sample-container^?v=2023-11-31^&sr=b^&sig=39Up9jzHkxhUIhFEjEh9594DIxe6cIRCgOVOICGSP%%3A377^&sp=rcw`
 
-If `-ListPath` is set to **GPO** the Black/White List can be managed from within the GPO itself under **Application GPO Blacklist**/**Application GPO Whitelist**. Thanks to [Weatherlights](https://github.com/Weatherlights) in [#256 (reply in thread)](https://github.com/Romanitho/Winget-AutoUpdate/discussions/256#discussioncomment-4710599)!
+
+If a blacklist or whitelist is configured via Group Policy (GPO), WAU will automatically use these settings. There is no longer a need to specify "GPO" as a value for `ListPath`, detection is automatic as soon as a list is defined in Group Policy.
 
 
 ### MODSPATH
@@ -162,7 +163,7 @@ Default value 6AM (06:00:00). Specify the time of the update interval execution 
 
 ### UPDATESATTIMEDELAY
 Default value is none (00:00). This setting specifies the delay for the scheduled task.
-A scheduled task random delay adds a random amount of wait time (up to the specified maximum) before the task starts. 
+A scheduled task random delay adds a random amount of wait time (up to the specified maximum) before the task starts.
 This helps prevent many devices from running the task at the exact same time. This is not applicable to "on logon" triggers.
 
 ### DONOTRUNONMETERED
@@ -268,4 +269,3 @@ Feel free to give us any suggestions or optimizations in code and support us by 
 [![GitHub release (release name instead of tag name)](https://img.shields.io/github/v/release/Romanitho/Winget-AutoUpdate?display_name=release&include_prereleases&label=Latest%20Release&style=flat-square)](https://github.com/Romanitho/Winget-AutoUpdate/releases/)
 
 </div>
-

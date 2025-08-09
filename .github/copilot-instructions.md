@@ -29,7 +29,7 @@
   - Use `Write-ToLog` for custom debug output.
 - **Deployment:**
   - MSI installer is built using Wix (see `Wix/`).
-- Deploy via Intune/SCCM by installing the MSI package (WAU.msi).
+  - Deploy via Intune/SCCM by installing the MSI package (WAU.msi).
 
 ## Project Conventions
 - **All functions are dot-sourced at runtime from the `functions/` directory.**

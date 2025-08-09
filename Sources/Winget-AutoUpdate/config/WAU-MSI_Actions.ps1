@@ -164,15 +164,6 @@ function Install-WingetAutoUpdate {
 
         }
 
-        #Add 1 to Github counter file
-        try {
-            Invoke-WebRequest -Uri "https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v$($WAUconfig.ProductVersion)/WAU_InstallCounter" -UseBasicParsing | Out-Null
-            Write-Host "-> Reported installation."
-        }
-        catch {
-            Write-Host "-> Not able to report installation."
-        }
-
         Write-Host "### WAU MSI Post actions succeeded! ###"
 
     }

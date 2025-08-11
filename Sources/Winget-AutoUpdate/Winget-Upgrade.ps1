@@ -27,7 +27,7 @@ $Script:ProgressPreference = [System.Management.Automation.ActionPreference]::Si
 [Int32]$Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId;
 #endregion
 
-#region Log header
+#region Execution context and logging
 # Preparation to run in current context
 if ($true -eq $IsSystem) {
 

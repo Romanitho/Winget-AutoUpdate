@@ -19,25 +19,6 @@ $Script:ProgressPreference = [System.Management.Automation.ActionPreference]::Si
 # Log initialization
 [string]$LogFile = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'updates.log');
 
-#region Get settings and Domain/Local Policies (GPO) if activated.
-Write-ToLog "Reading WAUConfig";
-$Script:WAUConfig = Get-WAUConfig;
-#endregion Get settings and Domain/Local Policies (GPO) if activated.
-
-# Default name of winget repository used within this script
-[string]$DefaultWingetRepoName = 'winget';
-
-#region Winget Source Custom
-# Defining a custom source even if not used below (failsafe suggested by github/sebneus mentioned in issues/823)
-[string]$Script:WingetSourceCustom = $DefaultWingetRepoName;
-
-# Defining custom repository for winget tool
-if ($null -ne $Script:WAUConfig.WAU_WingetSourceCustom) {
-    $Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
-    Write-ToLog "Selecting winget repository named '$($Script:WingetSourceCustom)'";
-}
-#endregion Winget Source Custom
-
 #region Checking execution context
 # Check if running account is system or interactive logon System(default) otherwise User
 [bool]$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem;
@@ -46,56 +27,13 @@ if ($null -ne $Script:WAUConfig.WAU_WingetSourceCustom) {
 [Int32]$Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId;
 #endregion
 
+#region Log header
 # Preparation to run in current context
 if ($true -eq $IsSystem) {
 
     #If log file doesn't exist, force create it
     if (!(Test-Path -Path $LogFile)) {
         Write-ToLog "New log file created";
-    }
-
-    # paths
-    [string]$IntuneLogsDir = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs";
-    [string]$fp0 = [System.IO.Path]::Combine($IntuneLogsDir, 'WAU-updates.log');
-    [string]$fp1 = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'install.log');
-    [string]$fp2 = [System.IO.Path]::Combine($IntuneLogsDir, 'WAU-install.log');
-
-    # Check if Intune Management Extension Logs folder exists
-    if (Test-Path -Path $IntuneLogsDir -PathType Container -ErrorAction SilentlyContinue) {
-
-        # Check if symlink WAU-updates.log exists, make symlink (doesn't work under ServiceUI)
-        if (!(Test-Path -Path $fp0 -ErrorAction SilentlyContinue)) {
-            New-Item -Path $fp0 -ItemType SymbolicLink -Value $LogFile -Force -ErrorAction SilentlyContinue | Out-Null;
-            Write-ToLog "SymLink for 'update' log file created in in $($IntuneLogsDir) folder";
-        }
-
-        # Check if install.log and symlink WAU-install.log exists, make symlink (doesn't work under ServiceUI)
-        if ( (Test-Path -Path $fp1 -ErrorAction SilentlyContinue) -and !(Test-Path -Path $fp2 -ErrorAction SilentlyContinue) ) {
-            New-Item -Path $fp2 -ItemType SymbolicLink -Value $fp1 -Force -Confirm:$False -ErrorAction SilentlyContinue | Out-Null;
-            Write-ToLog "SymLink for 'install' log file created in $($IntuneLogsDir) folder"
-        }
-        # Check if user install.log and symlink WAU-install-username.log exists, make symlink (doesn't work under ServiceUI)
-        # Get all user directories from C:\Users (excluding default/system profiles)
-        $UserDirs = Get-ChildItem -Path "C:\Users" -Directory | Where-Object {
-            ($_ -notmatch "Default") -and ($_ -notmatch "Public") -and ($_ -notmatch "All Users") -and ($_ -notmatch "Default User")
-        }
-        foreach ($UserDir in $UserDirs) {
-            # Define user-specific log path and log file
-            $UserLogPath = "$($UserDir.FullName)\AppData\Roaming\Winget-AutoUpdate\Logs"
-            $UserLogFile = "$UserLogPath\install_$($UserDir.Name).log"
-
-            # Check if the user's log file exists
-            if (Test-Path -Path $UserLogFile -ErrorAction SilentlyContinue) {
-                # Define the Symlink target
-                $UserLogLink = "${env:ProgramData}\Microsoft\IntuneManagementExtension\Logs\WAU-user_$($UserDir.Name).log"
-
-                # Create Symlink if it doesn't already exist
-                if (!(Test-Path -Path $UserLogLink -ErrorAction SilentlyContinue)) {
-                    New-Item -Path $UserLogLink -ItemType SymbolicLink -Value $UserLogFile -Force -ErrorAction SilentlyContinue | Out-Null
-                    Write-ToLog "Created Symlink for user log: $UserLogLink -> $UserLogFile"
-                }
-            }
-        }
     }
 
     #Check if running with session ID 0
@@ -130,6 +68,25 @@ if ($true -eq $IsSystem) {
 else {
     Write-ToLog -LogMsg "CHECK FOR APP UPDATES (User context)" -IsHeader
 }
+
+#region Get settings and Domain/Local Policies (GPO) if activated.
+Write-ToLog "Reading WAUConfig";
+$Script:WAUConfig = Get-WAUConfig;
+#endregion Get settings and Domain/Local Policies (GPO) if activated.
+
+# Default name of winget repository used within this script
+[string]$DefaultWingetRepoName = 'winget';
+
+#region Winget Source Custom
+# Defining a custom source even if not used below (failsafe suggested by github/sebneus mentioned in issues/823)
+[string]$Script:WingetSourceCustom = $DefaultWingetRepoName;
+
+# Defining custom repository for winget tool
+if ($null -ne $Script:WAUConfig.WAU_WingetSourceCustom) {
+    $Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
+    Write-ToLog "Selecting winget repository named '$($Script:WingetSourceCustom)'";
+}
+#endregion Winget Source Custom
 
 #region Log running context
 if ($true -eq $IsSystem) {

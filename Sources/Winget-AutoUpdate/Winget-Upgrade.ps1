@@ -47,7 +47,7 @@ if ($true -eq $IsSystem) {
             if ($explorerprocesses.Count -gt 0) {
                 Write-ToLog "Rerun WAU in system context with ServiceUI"
                 Start-Process `
-                    -FilePath $fp3 `
+                    -FilePath $ServiceUIexe `
                     -ArgumentList "-process:explorer.exe $env:windir\System32\conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File winget-upgrade.ps1" `
                     -WorkingDirectory $WorkingDir `
                     -Wait

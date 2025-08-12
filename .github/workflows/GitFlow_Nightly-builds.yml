@@ -2,7 +2,7 @@
 # - Checks for merged PRs since the last tag
 # - Creates a pre-release version if changes are detected
 # - Builds and packages the software
-# - Creates GitHub release with artifacts and download counters
+# - Creates GitHub release with artifacts
 
 name: GitFlow | Nightly Builds
 
@@ -39,20 +39,15 @@ jobs:
       - name: Check for merged PRs since last tag
         id: check_prs
         shell: powershell
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
-          # Get the latest release tag (any type) from GitHub API
-          $LATEST_TAG = (& gh api repos/${env:GITHUB_REPOSITORY}/tags --paginate | ConvertFrom-Json)[0].name
-          Write-Host "Latest release from GitHub: $LATEST_TAG"
-
-          if (-not $LATEST_TAG) {
-              Write-Host "No tag found, fallback to first commit."
-              $LATEST_TAG = (git rev-list --max-parents=0 HEAD)
-          }
+          # Get the latest release tag (any type)
+          $LATEST_TAG = git tag -l --sort=-version:refname | Select-Object -First 1
+          Write-Host "Latest release: $LATEST_TAG"
 
           # Get all merged PRs since last tag (only merge commits from PRs)
           $MERGED_PRS = git log --merges --grep="Merge pull request" --pretty=format:"%h %s" "$LATEST_TAG..develop"
+
+          # Count merges
           $MERGE_COUNT = ($MERGED_PRS | Measure-Object).Count
 
           if ($MERGE_COUNT -eq 0) {
@@ -61,9 +56,7 @@ jobs:
           }
           else {
               Write-Host "Merged PRs since last tag (develop):"
-              foreach ($pr in $MERGED_PRS) {
-                  Write-Host "- $pr"
-              }
+              Write-Host $MERGED_PRS
 
               if ($MERGE_COUNT -eq 1 -and $MERGED_PRS -match "Merge pull request #\d+ from .*/release/") {
                   Write-Host "Only change since last tag is a release PR merge. Skipping build."
@@ -71,6 +64,8 @@ jobs:
               }
               else {
                   $BUILD_NEEDED = $true
+
+                  # Set release type for output (adapts to your previous logic if you need it)
                   if ($LATEST_TAG -like "*-*") {
                       $RELEASE_TYPE = "prerelease"
                   } else {
@@ -163,18 +158,25 @@ jobs:
 
           # Package ADMX policy templates
           echo "### Zip ADMX ###"
-          Compress-Archive -Path .\Sources\Policies\ADMX -DestinationPath .\WAU_ADMX.zip -Force
+          $admxPath = ".\Sources\Policies\ADMX\WAU.admx"
+          try {
+              (Get-Content $admxPath -Raw -ErrorAction Stop) -match 'revision="([\d\.]+)"' | Out-Null
+              $ADMXversion = $matches[1]
+              $admxZip = "WAU_ADMX_$($ADMXversion).zip"
+          }
+          catch {
+              Write-Host "Error getting WAU ADMX version!"
+              $admxZip = "WAU_ADMX.zip"
+          }
+          Compress-Archive -Path .\Sources\Policies\ADMX -DestinationPath .\$admxZip -Force
           Get-Item .\*.zip
+          echo "admx_zip_name=$admxZip" >> $env:GITHUB_OUTPUT
 
           # Calculate ADMX package hash for verification
           echo "### Get ADMX zip SHA ###"
-          $ADMXSHA = (Get-FileHash .\WAU_ADMX.zip).hash
-          echo " - WAU_ADMX.zip SHA256: $ADMXSHA"
+          $ADMXSHA = (Get-FileHash .\$admxZip).hash
+          echo " - $admxZip SHA256: $ADMXSHA"
           echo "admx_sha=$ADMXSHA" >> $env:GITHUB_OUTPUT
-
-          # Create installation counter file for tracking installs
-          echo "### Create install counter file ###"
-          echo "Install counter file." > WAU_InstallCounter
 
       # Step 6: Create GitHub release with all artifacts
       - name: Create release
@@ -186,7 +188,7 @@ jobs:
           prerelease: true
           generateReleaseNotes: true
           name: ${{ steps.format_version.outputs.ReleaseName }}
-          artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
+          artifacts: "WAU.msi,${{ steps.build_project.outputs.admx_zip_name }}"
           body: |
             ${{ steps.format_version.outputs.ReleaseBodyIntro }}
 
@@ -196,6 +198,4 @@ jobs:
             |Files|Hash (SHA256)|Downloads|
             |---|---|---|
             |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
-            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU_ADMX.zip)|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
-
-            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>
+            |[${{ steps.build_project.outputs.admx_zip_name }}](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }})|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![${{ steps.build_project.outputs.admx_zip_name }}](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }}?style=flat-square&label=&color=blue)</picture>|

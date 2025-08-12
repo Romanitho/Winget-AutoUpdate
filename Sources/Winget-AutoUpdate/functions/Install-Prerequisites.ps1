@@ -91,8 +91,8 @@ function Install-Prerequisites {
             $WinGetAvailableVersion = ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).TrimStart("v")
         }
         catch {
-            #If fail set version to the latest version as of 2025-03-14
-            $WinGetAvailableVersion = "1.10.340"
+            #If fail set version to the latest version as of 2025-08-12
+            $WinGetAvailableVersion = "1.11.430"
         }
         try {
             #Get Admin Context Winget Location
@@ -139,7 +139,7 @@ function Install-Prerequisites {
             Remove-Item -Path $WingetInstaller -Force -ErrorAction SilentlyContinue
         }
         else {
-            Write-ToLog "-> WinGet is up to date: v$WinGetInstalledVersion" "Green"
+            Write-ToLog "-> WinGet is up to date." "Green"
         }
         Write-ToLog "Prerequisites checked. OK" "Green"
 

@@ -1,57 +1,57 @@
 #region LOAD FUNCTIONS
 # Get the Working Dir
-[string]$Script:WorkingDir = $PSScriptRoot;
+[string]$Script:WorkingDir = $PSScriptRoot
 
 # Get Functions
-Get-ChildItem -Path "$($Script:WorkingDir)\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-Object { . $_.FullName; }
+Get-ChildItem -Path "$($Script:WorkingDir)\functions" -File -Filter "*.ps1" -Depth 0 | ForEach-Object { . $_.FullName }
 #endregion LOAD FUNCTIONS
 
-<# MAIN #>
-
+#region INITIALIZATION
 # Config console output encoding
 $null = & "$env:WINDIR\System32\cmd.exe" /c ""
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;
-$Script:ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue;
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$Script:ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
 
 # Set GitHub Repo
-[string]$Script:GitHub_Repo = "Winget-AutoUpdate";
+[string]$Script:GitHub_Repo = "Winget-AutoUpdate"
 
 # Log initialization
-[string]$LogFile = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'updates.log');
+[string]$LogFile = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'updates.log')
+#endregion INITIALIZATION
 
-#region Checking execution context
+#region CONTEXT
 # Check if running account is system or interactive logon System(default) otherwise User
-[bool]$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem;
+[bool]$Script:IsSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
 
 # Check for current session ID (O = system without ServiceUI)
-[Int32]$Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId;
-#endregion
+[Int32]$Script:SessionID = [System.Diagnostics.Process]::GetCurrentProcess().SessionId
+#endregion CONTEXT
 
-#region Execution context and logging
+#region EXECUTION CONTEXT AND LOGGING
 # Preparation to run in current context
 if ($true -eq $IsSystem) {
 
     #If log file doesn't exist, force create it
     if (!(Test-Path -Path $LogFile)) {
-        Write-ToLog "New log file created";
+        Write-ToLog "New log file created"
     }
 
     #Check if running with session ID 0
     if ($SessionID -eq 0) {
         #Check if ServiceUI exists
-        [string]$fp3 = [System.IO.Path]::Combine($Script:WorkingDir, 'ServiceUI.exe');
-        [bool]$ServiceUI = Test-Path $fp3 -PathType Leaf;
-        if ($true -eq $ServiceUI) {
+        [string]$ServiceUIexe = [System.IO.Path]::Combine($Script:WorkingDir, 'ServiceUI.exe')
+        [bool]$IsServiceUI = Test-Path $ServiceUIexe -PathType Leaf
+        if ($true -eq $IsServiceUI) {
             #Check if any connected user
-            $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue);
+            $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
             if ($explorerprocesses.Count -gt 0) {
-                Write-ToLog "Rerun WAU in system context with ServiceUI";
+                Write-ToLog "Rerun WAU in system context with ServiceUI"
                 Start-Process `
                     -FilePath $fp3 `
                     -ArgumentList "-process:explorer.exe $env:windir\System32\conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File winget-upgrade.ps1" `
-                    -WorkingDirectory $WorkingDir;
-                Wait-Process "ServiceUI" -ErrorAction SilentlyContinue;
-                Exit 0;
+                    -WorkingDirectory $WorkingDir `
+                    -Wait
+                Exit 0
             }
             else {
                 Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
@@ -68,25 +68,23 @@ if ($true -eq $IsSystem) {
 else {
     Write-ToLog -LogMsg "CHECK FOR APP UPDATES (User context)" -IsHeader
 }
+#endregion EXECUTION CONTEXT AND LOGGING
 
-#region Get settings and Domain/Local Policies (GPO) if activated.
-Write-ToLog "Reading WAUConfig";
-$Script:WAUConfig = Get-WAUConfig;
-#endregion Get settings and Domain/Local Policies (GPO) if activated.
+#region CONFIG & POLICIES
+Write-ToLog "Reading WAUConfig"
+$Script:WAUConfig = Get-WAUConfig
+#endregion CONFIG & POLICIES
 
-# Default name of winget repository used within this script
-[string]$DefaultWingetRepoName = 'winget';
-
-#region Winget Source Custom
+#region WINGET SOURCE
 # Defining a custom source even if not used below (failsafe suggested by github/sebneus mentioned in issues/823)
-[string]$Script:WingetSourceCustom = $DefaultWingetRepoName;
+[string]$Script:WingetSourceCustom = 'winget'
 
 # Defining custom repository for winget tool
 if ($null -ne $Script:WAUConfig.WAU_WingetSourceCustom) {
-    $Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim();
-    Write-ToLog "Selecting winget repository named '$($Script:WingetSourceCustom)'";
+    $Script:WingetSourceCustom = $Script:WAUConfig.WAU_WingetSourceCustom.Trim()
+    Write-ToLog "Selecting winget repository named '$($Script:WingetSourceCustom)'"
 }
-#endregion Winget Source Custom
+#endregion WINGET SOURCE
 
 #region Log running context
 if ($true -eq $IsSystem) {
@@ -94,23 +92,23 @@ if ($true -eq $IsSystem) {
     # Maximum number of log files to keep. Default is 3. Setting MaxLogFiles to 0 will keep all log files.
     $MaxLogFiles = $WAUConfig.WAU_MaxLogFiles
     if ($null -eq $MaxLogFiles) {
-        [int32]$MaxLogFiles = 3;
+        [int32]$MaxLogFiles = 3
     }
     else {
-        [int32]$MaxLogFiles = $MaxLogFiles;
+        [int32]$MaxLogFiles = $MaxLogFiles
     }
 
     # Maximum size of log file.
-    $MaxLogSize = $WAUConfig.WAU_MaxLogSize;
+    $MaxLogSize = $WAUConfig.WAU_MaxLogSize
     if (!$MaxLogSize) {
-        [int64]$MaxLogSize = [int64]1MB; # in bytes, default is 1 MB = 1048576
+        [int64]$MaxLogSize = [int64]1MB # in bytes, default is 1 MB = 1048576
     }
     else {
-        [int64]$MaxLogSize = $MaxLogSize;
+        [int64]$MaxLogSize = $MaxLogSize
     }
 
     #LogRotation if System
-    [bool]$LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize;
+    [bool]$LogRotate = Invoke-LogRotation $LogFile $MaxLogFiles $MaxLogSize
     if ($false -eq $LogRotate) {
         Write-ToLog "An Exception occurred during Log Rotation..."
     }
@@ -119,60 +117,61 @@ if ($true -eq $IsSystem) {
 
 #region Run Scope Machine function if run as System
 if ($true -eq $IsSystem) {
-    Add-ScopeMachine;
+    Add-ScopeMachine
 }
 #endregion Run Scope Machine function if run as System
 
 #region Get Notif Locale function
-[string]$LocaleDisplayName = Get-NotifLocale;
-Write-ToLog "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan";
-#endregion
+[string]$LocaleDisplayName = Get-NotifLocale
+Write-ToLog "Notification Level: $($WAUConfig.WAU_NotificationLevel). Notification Language: $LocaleDisplayName" "Cyan"
+#endregion Get Notif Locale function
 
+#region MAIN
 #Check network connectivity
 if (Test-Network) {
 
     #Check prerequisites
     if ($true -eq $IsSystem) {
-        Install-Prerequisites;
+        Install-Prerequisites
     }
 
     #Check if Winget is installed and get Winget cmd
-    [string]$Script:Winget = Get-WingetCmd;
-    Write-ToLog "Selected winget instance: $($Script:Winget)";
+    [string]$Script:Winget = Get-WingetCmd
+    Write-ToLog "Selected winget instance: $($Script:Winget)"
 
     if ($Script:Winget) {
 
         if ($true -eq $IsSystem) {
 
             #Get Current Version
-            $WAUCurrentVersion = $WAUConfig.ProductVersion;
-            Write-ToLog "WAU current version: $WAUCurrentVersion";
+            $WAUCurrentVersion = $WAUConfig.ProductVersion
+            Write-ToLog "WAU current version: $WAUCurrentVersion"
 
             #Check if WAU update feature is enabled or not if run as System
-            $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate;
+            $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
             #If yes then check WAU update if run as System
             if ($WAUDisableAutoUpdate -eq 1) {
-                Write-ToLog "WAU AutoUpdate is Disabled." "Gray";
+                Write-ToLog "WAU AutoUpdate is Disabled." "Gray"
             }
             else {
-                Write-ToLog "WAU AutoUpdate is Enabled." "Green";
+                Write-ToLog "WAU AutoUpdate is Enabled." "Green"
                 #Get Available Version
-                $Script:WAUAvailableVersion = Get-WAUAvailableVersion;
+                $Script:WAUAvailableVersion = Get-WAUAvailableVersion
                 #Compare
                 if ((Compare-SemVer -Version1 $WAUCurrentVersion -Version2 $WAUAvailableVersion) -lt 0) {
                     #If new version is available, update it
-                    Write-ToLog "WAU Available version: $WAUAvailableVersion" "DarkYellow";
-                    Update-WAU;
+                    Write-ToLog "WAU Available version: $WAUAvailableVersion" "DarkYellow"
+                    Update-WAU
                 }
                 else {
-                    Write-ToLog "WAU is up to date." "Green";
+                    Write-ToLog "WAU is up to date." "Green"
                 }
             }
 
             #Delete previous list_/winget_error (if they exist) if run as System
-            [string]$fp4 = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'error.txt');
+            [string]$fp4 = [System.IO.Path]::Combine($Script:WorkingDir, 'logs', 'error.txt')
             if (Test-Path $fp4) {
-                Remove-Item $fp4 -Force;
+                Remove-Item $fp4 -Force
             }
 
             #Get External ListPath if run as System
@@ -272,7 +271,7 @@ if (Test-Network) {
 
         #Get outdated Winget packages
         Write-ToLog "Checking application updates on Winget Repository named '$($Script:WingetSourceCustom)' .." "DarkYellow"
-        $outdated = Get-WingetOutdatedApps -src $Script:WingetSourceCustom;
+        $outdated = Get-WingetOutdatedApps -src $Script:WingetSourceCustom
 
         #If something unusual happened or no update found
         if ($outdated -like "No update found.*") {
@@ -373,7 +372,7 @@ if (Test-Network) {
             Else {
                 #Get Winget system apps to escape them before running user context
                 Write-ToLog "User logged on, get a list of installed Winget apps in System context..."
-                Get-WingetSystemApps -src $Script:WingetSourceCustom;
+                Get-WingetSystemApps -src $Script:WingetSourceCustom
 
                 #Run user context scheduled task
                 Write-ToLog "Starting WAU in User context..."
@@ -389,6 +388,7 @@ if (Test-Network) {
         Exit 1
     }
 }
+#endregion MAIN
 
 #End
 Write-ToLog "End of process!" "Cyan"

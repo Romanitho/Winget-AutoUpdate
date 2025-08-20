@@ -37,8 +37,9 @@ Function Get-PinnedApps {
 
         if ($PinnedApps.Count -gt 0) {
             Write-ToLog "Found $($PinnedApps.Count) pinned app(s) in GPO configuration" "Green"
-            return $PinnedApps
         }
+        
+        return $PinnedApps
     }
 
     return @()

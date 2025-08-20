@@ -3,10 +3,33 @@
 Function Get-WingetPinnedApps {
 
     try {
-        #Get winget pin list
-        $pinResult = & $Winget pin list 2>&1
+        Write-ToLog "Getting current winget pins..." "Gray"
         
-        if ($LASTEXITCODE -ne 0) {
+        #Get winget pin list with timeout
+        $timeoutSeconds = 30
+        $job = Start-Job -ScriptBlock {
+            param($WingetPath)
+            & $WingetPath pin list 2>&1
+        } -ArgumentList $Winget
+        
+        $pinResult = $null
+        $exitCode = 1
+        if (Wait-Job $job -Timeout $timeoutSeconds) {
+            $pinResult = Receive-Job $job
+            if ($job.State -eq 'Completed') {
+                $exitCode = 0
+            }
+        }
+        else {
+            Write-ToLog "Winget pin list command timed out after $timeoutSeconds seconds" "Red"
+            Stop-Job $job -Force
+            Remove-Job $job -Force
+            return @()
+        }
+        
+        Remove-Job $job -Force
+        
+        if ($exitCode -ne 0) {
             Write-ToLog "Error getting winget pin list: $pinResult" "Red"
             return @()
         }

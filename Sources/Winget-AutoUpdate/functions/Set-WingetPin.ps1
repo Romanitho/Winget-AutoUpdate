@@ -15,14 +15,33 @@ Function Set-WingetPin {
     try {
         Write-ToLog "Setting pin for $AppId to version $Version..." "DarkYellow"
         
-        #Execute winget pin add command
-        $pinResult = & $Winget pin add --id $AppId --version $Version --source $Source 2>&1
+        #Execute winget pin add command with timeout
+        $timeoutSeconds = 60
+        $job = Start-Job -ScriptBlock {
+            param($WingetPath, $AppId, $Version, $Source)
+            & $WingetPath pin add --id $AppId --version $Version --source $Source 2>&1
+        } -ArgumentList $Winget, $AppId, $Version, $Source
         
-        if ($LASTEXITCODE -eq 0) {
-            Write-ToLog "Successfully pinned $AppId to version $Version" "Green"
-            return $true
+        $pinResult = $null
+        $completed = $false
+        $exitCode = 1
+        if (Wait-Job $job -Timeout $timeoutSeconds) {
+            $pinResult = Receive-Job $job
+            if ($job.State -eq 'Completed') {
+                $exitCode = 0
+            }
+            $completed = $true
         }
         else {
+            Write-ToLog "Winget pin add command timed out after $timeoutSeconds seconds for $AppId" "Red"
+            Stop-Job $job -Force
+            Remove-Job $job -Force
+            return $false
+        }
+        
+        Remove-Job $job -Force
+        
+        if (!$completed -or $exitCode -ne 0) {
             #Check if pin already exists
             $resultString = $pinResult | Out-String
             if ($resultString -match "already pinned" -or $resultString -match "Pin already exists") {
@@ -33,6 +52,10 @@ Function Set-WingetPin {
                 Write-ToLog "Failed to pin $AppId : $resultString" "Red"
                 return $false
             }
+        }
+        else {
+            Write-ToLog "Successfully pinned $AppId to version $Version" "Green"
+            return $true
         }
     }
     catch {

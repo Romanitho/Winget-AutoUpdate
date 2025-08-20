@@ -100,6 +100,11 @@ function Get-WingetOutdatedApps {
             if ($excludedCount -gt 0) {
                 Write-ToLog "Excluded $excludedCount pinned app(s) from upgrade list" "Gray"
             }
+            
+            #If all apps were excluded due to pinning, return appropriate message
+            if ($upgradeList.Count -eq 0 -and $originalCount -gt 0) {
+                return "No update found. All $originalCount available update(s) were excluded because applications are pinned."
+            }
         }
 
         return $upgradeList | Sort-Object { Get-Random }

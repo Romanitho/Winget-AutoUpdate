@@ -344,18 +344,34 @@ if (Test-Network) {
             
             try {
                 #Get GPO-defined pinned apps
+                Write-ToLog "Reading GPO pinned apps..." "Gray"
                 $gpoPinnedApps = Get-PinnedApps
                 
+                # Ensure we handle single item arrays properly
+                if ($gpoPinnedApps -and ($gpoPinnedApps -isnot [array])) {
+                    $gpoPinnedApps = @($gpoPinnedApps)
+                }
+                
+                Write-ToLog "GPO pinned apps retrieved: $($gpoPinnedApps.Count)" "Gray"
+                
                 #Get currently pinned apps from winget
+                Write-ToLog "Getting currently pinned apps from winget..." "Gray"
                 $Script:PinnedApps = Get-WingetPinnedApps
+                Write-ToLog "Current winget pins retrieved: $($Script:PinnedApps.Count)" "Gray"
                 
                 #Sync GPO pins with winget (only add new pins, respect existing ones)
-                if ($gpoPinnedApps.Count -gt 0) {
+                if ($gpoPinnedApps -and $gpoPinnedApps.Count -gt 0) {
                     Write-ToLog "Applying GPO pinned apps configuration..." "DarkYellow"
-                    Sync-WingetPins -DesiredPins $gpoPinnedApps -Source $Script:WingetSourceCustom
+                    $syncResult = Sync-WingetPins -DesiredPins $gpoPinnedApps -Source $Script:WingetSourceCustom
+                    Write-ToLog "Pin synchronization completed: $syncResult" "Gray"
                     
                     #Refresh the list of pinned apps after sync
+                    Write-ToLog "Refreshing pin list after sync..." "Gray"
                     $Script:PinnedApps = Get-WingetPinnedApps
+                    Write-ToLog "Final pin list retrieved: $($Script:PinnedApps.Count)" "Gray"
+                }
+                else {
+                    Write-ToLog "No GPO pins to apply or empty result from Get-PinnedApps" "Yellow"
                 }
                 
                 if ($Script:PinnedApps.Count -gt 0) {
@@ -367,9 +383,12 @@ if (Test-Network) {
                 else {
                     Write-ToLog "No apps are currently pinned" "Gray"
                 }
+                
+                Write-ToLog "Pin management completed, continuing with update process..." "Green"
             }
             catch {
                 Write-ToLog "Error handling pinned apps: $($_.Exception.Message)" "Red"
+                Write-ToLog "Continuing with update process without pin management..." "Yellow"
                 $Script:PinnedApps = @()
             }
         }

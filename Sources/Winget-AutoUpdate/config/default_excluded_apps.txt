@@ -1,3 +1,4 @@
+AnyDesk.AnyDesk
 Brave.Brave*
 Google.Chrome*
 Microsoft.Edge*

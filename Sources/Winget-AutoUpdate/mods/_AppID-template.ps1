@@ -51,6 +51,10 @@ $AllVersions = $False
 # Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1*","lnk2"
 $Lnk = @("")
 
+# Create Start Menu Shortcuts, without .lnk, multiple: "lnk1","lnk2"
+$Shortcuts = @("")
+$ShortcutsTargets = @("") # Must match the order of $Shortcuts
+
 # Registry _value_ (DWord/String) to add in existing registry Key (Key created if not existing). Example:
 # $AddKey = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
 # $AddValue = "WAU_BypassListForUsers"
@@ -128,6 +132,9 @@ if ($AppUninst) {
 }
 if ($Lnk) {
     Remove-ModsLnk $Lnk
+}
+if ($Shortcuts) {
+    Add-Shortcuts $Shortcuts $ShortcutsTargets
 }
 if ($AddKey -and $AddValue -and $AddTypeData -and $AddType) {
     Add-ModsReg $AddKey $AddValue $AddTypeData $AddType

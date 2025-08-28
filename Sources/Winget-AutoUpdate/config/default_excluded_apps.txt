@@ -9,3 +9,4 @@ Mozilla.Firefox*
 Opera.Opera*
 TeamViewer.TeamViewer*
 Romanitho.Winget-AutoUpdate
+KnifMelti.WAU-Settings-GUI

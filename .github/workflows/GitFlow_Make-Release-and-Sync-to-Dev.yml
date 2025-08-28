@@ -29,7 +29,7 @@ jobs:
     steps:
       # Step 1: Checkout the code from the main branch after merge
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_PAT_SYNC }}
           lfs: "true"
@@ -99,18 +99,25 @@ jobs:
 
           # Package ADMX policy templates
           echo "### Zip ADMX ###"
-          Compress-Archive -Path .\Sources\Policies\ADMX -DestinationPath .\WAU_ADMX.zip -Force
+          $admxPath = ".\Sources\Policies\ADMX\WAU.admx"
+          try {
+              (Get-Content $admxPath -Raw -ErrorAction Stop) -match 'revision="([\d\.]+)"' | Out-Null
+              $ADMXversion = $matches[1]
+              $admxZip = "WAU_ADMX_$($ADMXversion).zip"
+          }
+          catch {
+              Write-Host "Error getting WAU ADMX version!"
+              $admxZip = "WAU_ADMX.zip"
+          }
+          Compress-Archive -Path .\Sources\Policies\ADMX -DestinationPath .\$admxZip -Force
           Get-Item .\*.zip
+          echo "admx_zip_name=$admxZip" >> $env:GITHUB_OUTPUT
 
           # Calculate ADMX package hash for verification
           echo "### Get ADMX zip SHA ###"
-          $ADMXSHA = (Get-FileHash .\WAU_ADMX.zip).hash
-          echo " - WAU_ADMX.zip SHA256: $ADMXSHA"
+          $ADMXSHA = (Get-FileHash .\$admxZip).hash
+          echo " - $admxZip SHA256: $ADMXSHA"
           echo "admx_sha=$ADMXSHA" >> $env:GITHUB_OUTPUT
-
-          # Create installation counter file for tracking installs
-          echo "### Create install counter file ###"
-          echo "Install counter file." > WAU_InstallCounter
 
       # Step 4: Create stable GitHub release with all artifacts
       - name: Create release
@@ -120,15 +127,13 @@ jobs:
           prerelease: false  # This is a stable release
           generateReleaseNotes: true
           name: WAU ${{ steps.release_version.outputs.NextSemVer }}
-          artifacts: "WAU.msi,WAU_ADMX.zip,WAU_InstallCounter"
+          artifacts: "WAU.msi,${{ steps.build_project.outputs.admx_zip_name }}"
           body: |
             ## Files
             |Files|Hash (SHA256)|Downloads|
             |---|---|---|
             |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
-            |[WAU_ADMX.zip](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.NextSemVer }}/WAU_ADMX.zip)|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![WAU_ADMX.zip](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU_ADMX.zip?style=flat-square&label=&color=blue)</picture>|
-
-            <picture>![Install counter](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU_InstallCounter?style=flat-square&label=Total%20reported%20installations%20for%20this%20release&color=blue)</picture>
+            |[${{ steps.build_project.outputs.admx_zip_name }}](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }})|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![${{ steps.build_project.outputs.admx_zip_name }}](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }}?style=flat-square&label=&color=blue)</picture>|
 
   sync:
     name: Sync develop with main
@@ -136,7 +141,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT_SYNC }}

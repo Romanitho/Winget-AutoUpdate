@@ -28,7 +28,7 @@ jobs:
     steps:
       # Step 1: Checkout the develop branch for nightly builds
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           lfs: "true"
           fetch-depth: 0

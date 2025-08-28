@@ -412,5 +412,15 @@
         <text id="UpdatesTimeDelayTime" valueName="WAU_UpdatesTimeDelay" />
       </elements>
     </policy>
+    <policy name="PinnedApps_Enable" class="Machine" displayName="$(string.PinnedApps_Name)"
+      explainText="$(string.PinnedApps_Explain)" key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.PinnedApps)">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_6_0" />
+      <elements>
+        <list id="PinnedApps" key="Software\Policies\Romanitho\Winget-AutoUpdate\PinnedApps"
+          valuePrefix="" />
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>

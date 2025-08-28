@@ -5,7 +5,10 @@ function Get-WingetOutdatedApps {
     Param(
         [Parameter(Position = 0, Mandatory = $True, HelpMessage = "You MUST supply value for winget repo, we need it")]
         [ValidateNotNullorEmpty()]
-        [string]$src
+        [string]$src,
+        
+        [Parameter(Position = 1, Mandatory = $False, HelpMessage = "Array of pinned apps to exclude")]
+        [array]$ExcludePinnedApps = @()
     )
     class Software {
         [string]$Name
@@ -85,6 +88,23 @@ function Get-WingetOutdatedApps {
         if ($IsSystem -eq $false) {
             $SystemApps = Get-Content -Path "$WorkingDir\config\winget_system_apps.txt" -ErrorAction SilentlyContinue
             $upgradeList = $upgradeList | Where-Object { $SystemApps -notcontains $_.Id }
+        }
+
+        #Exclude pinned apps from the upgrade list
+        if ($ExcludePinnedApps.Count -gt 0) {
+            $pinnedAppIds = $ExcludePinnedApps | Select-Object -ExpandProperty AppId
+            $originalCount = $upgradeList.Count
+            $upgradeList = $upgradeList | Where-Object { $pinnedAppIds -notcontains $_.Id }
+            $excludedCount = $originalCount - $upgradeList.Count
+            
+            if ($excludedCount -gt 0) {
+                Write-ToLog "Excluded $excludedCount pinned app(s) from upgrade list" "Gray"
+            }
+            
+            #If all apps were excluded due to pinning, return appropriate message
+            if ($upgradeList.Count -eq 0 -and $originalCount -gt 0) {
+                return "No update found. All $originalCount available update(s) were excluded because applications are pinned."
+            }
         }
 
         return $upgradeList | Sort-Object { Get-Random }

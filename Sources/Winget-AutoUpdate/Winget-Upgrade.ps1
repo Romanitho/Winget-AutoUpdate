@@ -49,8 +49,8 @@ if ($true -eq $IsSystem) {
                 Start-Process `
                     -FilePath $ServiceUIexe `
                     -ArgumentList "-process:explorer.exe $env:windir\System32\conhost.exe --headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File winget-upgrade.ps1" `
-                    -WorkingDirectory $WorkingDir `
-                    -Wait
+                    -WorkingDirectory $WorkingDir
+                Wait-Process "ServiceUI" -ErrorAction SilentlyContinue
                 Exit 0
             }
             else {

@@ -269,9 +269,85 @@ if (Test-Network) {
             $toSkip = Get-ExcludedApps
         }
 
-        #Get outdated Winget packages
+#Fix and count the array if GPO List as ERROR handling!
+        if ($GPOList) {
+            if ($UseWhiteList) {
+                if (-not $toUpdate) {
+                    Write-ToLog "Critical: Whitelist doesn't exist in GPO, exiting..." "Red"
+                    New-Item "$WorkingDir\logs\error.txt" -Value "Whitelist doesn't exist in GPO" -Force
+                    Exit 1
+                }
+                foreach ($app in $toUpdate) { Write-ToLog "Include app ${app}" }
+            }
+            else {
+                if (-not $toSkip) {
+                    Write-ToLog "Critical: Blacklist doesn't exist in GPO, exiting..." "Red"
+                    New-Item "$WorkingDir\logs\error.txt" -Value "Blacklist doesn't exist in GPO" -Force
+                    Exit 1
+                }
+                foreach ($app in $toSkip) { Write-ToLog "Exclude app ${app}" }
+            }
+        }
+
+        #Handle winget pinning functionality (if run as System)
+        $Script:PinnedApps = @()
+        if ($true -eq $IsSystem) {
+            Write-ToLog "Checking for pinned apps configuration..." "DarkYellow"
+            
+            try {
+                #Get GPO-defined pinned apps
+                Write-ToLog "Reading GPO pinned apps..." "Gray"
+                $gpoPinnedApps = Get-PinnedApps
+                
+                # Ensure we handle single item arrays properly
+                if ($gpoPinnedApps -and ($gpoPinnedApps -isnot [array])) {
+                    $gpoPinnedApps = @($gpoPinnedApps)
+                }
+                
+                Write-ToLog "GPO pinned apps retrieved: $($gpoPinnedApps.Count)" "Gray"
+                
+                #Get currently pinned apps from winget
+                Write-ToLog "Getting currently pinned apps from winget..." "Gray"
+                $Script:PinnedApps = Get-WingetPinnedApps
+                Write-ToLog "Current winget pins retrieved: $($Script:PinnedApps.Count)" "Gray"
+                
+                #Sync GPO pins with winget (only add new pins, respect existing ones)
+                if ($gpoPinnedApps -and $gpoPinnedApps.Count -gt 0) {
+                    Write-ToLog "Applying GPO pinned apps configuration..." "DarkYellow"
+                    $syncResult = Sync-WingetPins -DesiredPins $gpoPinnedApps -Source $Script:WingetSourceCustom
+                    Write-ToLog "Pin synchronization completed: $syncResult" "Gray"
+                    
+                    #Refresh the list of pinned apps after sync
+                    Write-ToLog "Refreshing pin list after sync..." "Gray"
+                    $Script:PinnedApps = Get-WingetPinnedApps
+                    Write-ToLog "Final pin list retrieved: $($Script:PinnedApps.Count)" "Gray"
+                }
+                else {
+                    Write-ToLog "No GPO pins to apply or empty result from Get-PinnedApps" "Yellow"
+                }
+                
+                if ($Script:PinnedApps.Count -gt 0) {
+                    Write-ToLog "Total apps currently pinned: $($Script:PinnedApps.Count)" "Green"
+                    foreach ($pinnedApp in $Script:PinnedApps) {
+                        Write-ToLog "  - $($pinnedApp.AppId) pinned to version $($pinnedApp.Version)" "Gray"
+                    }
+                }
+                else {
+                    Write-ToLog "No apps are currently pinned" "Gray"
+                }
+                
+                Write-ToLog "Pin management completed, continuing with update process..." "Green"
+            }
+            catch {
+                Write-ToLog "Error handling pinned apps: $($_.Exception.Message)" "Red"
+                Write-ToLog "Continuing with update process without pin management..." "Yellow"
+                $Script:PinnedApps = @()
+            }
+        }
+
+        #Get outdated Winget packages (excluding pinned apps)
         Write-ToLog "Checking application updates on Winget Repository named '$($Script:WingetSourceCustom)' .." "DarkYellow"
-        $outdated = Get-WingetOutdatedApps -src $Script:WingetSourceCustom
+        $outdated = Get-WingetOutdatedApps -src $Script:WingetSourceCustom -ExcludePinnedApps $Script:PinnedApps;
 
         #If something unusual happened or no update found
         if ($outdated -like "No update found.*") {

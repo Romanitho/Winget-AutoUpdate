@@ -153,6 +153,22 @@ This helps prevent many devices from running the task at the exact same time. Th
 If this policy is enabled, the scheduled task will have a random delay set based on the time inputted.
 
 If this policy is disabled or not configured, the default no delay.</string>
+      <string id="PinnedApps_Name">Application GPO Pinned Apps</string>
+      <string id="PinnedApps_Explain">Specify applications to pin to specific versions using winget pin functionality.
+This allows creating update rings by preventing updates beyond specified versions.
+
+Format: AppId=Version
+Examples:
+- Mozilla.Firefox=130.0.1 (exact version)
+- Microsoft.Edge=120.* (any patch version in 120.x)
+- Google.Chrome=118.0.* (any patch version in 118.0.x)
+
+Notes:
+- Only adds new pins; respects existing pins by default
+- Supports exact versions (1.2.3) and wildcard patterns (1.2.*)
+- Apps with active pins will be excluded from updates
+
+If this policy is disabled or not configured, no GPO pins are applied.</string>
     </stringTable>
     <presentationTable>
       <presentation id="BlackList">
@@ -204,6 +220,9 @@ If this policy is disabled or not configured, the default no delay.</string>
         <textBox refId="UpdatesTimeDelayTime">
           <label>Random delay HH:mm</label>
         </textBox>
+      </presentation>
+      <presentation id="PinnedApps">
+        <listBox refId="PinnedApps">Pinned Apps (AppId=Version):</listBox>
       </presentation>
     </presentationTable>
   </resources>

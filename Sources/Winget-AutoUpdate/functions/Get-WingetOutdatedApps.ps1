@@ -90,20 +90,59 @@ function Get-WingetOutdatedApps {
             $upgradeList = $upgradeList | Where-Object { $SystemApps -notcontains $_.Id }
         }
 
-        #Exclude pinned apps from the upgrade list
+        #Handle pinned apps: allow upgrades TO pinned version, but not beyond
         if ($ExcludePinnedApps.Count -gt 0) {
-            $pinnedAppIds = $ExcludePinnedApps | Select-Object -ExpandProperty AppId
             $originalCount = $upgradeList.Count
-            $upgradeList = $upgradeList | Where-Object { $pinnedAppIds -notcontains $_.Id }
-            $excludedCount = $originalCount - $upgradeList.Count
+            $modifiedList = @()
+            $excludedCount = 0
+            $pinnedUpgradeCount = 0
+            
+            foreach ($app in $upgradeList) {
+                $pinnedApp = $ExcludePinnedApps | Where-Object { $_.AppId -eq $app.Id }
+                
+                if ($pinnedApp) {
+                    #App is pinned - check if we should upgrade to pinned version
+                    try {
+                        $comparison = Compare-SemVer -Version1 $app.Version -Version2 $pinnedApp.Version
+                        
+                        if ($comparison -lt 0) {
+                            #Current version < pinned version: allow upgrade TO pinned version
+                            Write-ToLog "$($app.Name) is pinned to v$($pinnedApp.Version) - will upgrade from v$($app.Version)" "DarkYellow"
+                            $app.AvailableVersion = $pinnedApp.Version
+                            $modifiedList += $app
+                            $pinnedUpgradeCount++
+                        }
+                        else {
+                            #Current version >= pinned version: exclude from upgrades
+                            Write-ToLog "$($app.Name) is pinned to v$($pinnedApp.Version) - current v$($app.Version) is up to date" "Gray"
+                            $excludedCount++
+                        }
+                    }
+                    catch {
+                        Write-ToLog "Error comparing versions for $($app.Name): $($_.Exception.Message)" "Yellow"
+                        #On error, exclude the app to be safe
+                        $excludedCount++
+                    }
+                }
+                else {
+                    #App is not pinned, keep it in the list
+                    $modifiedList += $app
+                }
+            }
+            
+            $upgradeList = $modifiedList
             
             if ($excludedCount -gt 0) {
-                Write-ToLog "Excluded $excludedCount pinned app(s) from upgrade list" "Gray"
+                Write-ToLog "Excluded $excludedCount pinned app(s) that are at or above pinned version" "Gray"
+            }
+            
+            if ($pinnedUpgradeCount -gt 0) {
+                Write-ToLog "Allowing $pinnedUpgradeCount pinned app(s) to upgrade to pinned version" "Green"
             }
             
             #If all apps were excluded due to pinning, return appropriate message
             if ($upgradeList.Count -eq 0 -and $originalCount -gt 0) {
-                return "No update found. All $originalCount available update(s) were excluded because applications are pinned."
+                return "No update found. All $originalCount available update(s) were excluded because applications are at or above pinned versions."
             }
         }
 

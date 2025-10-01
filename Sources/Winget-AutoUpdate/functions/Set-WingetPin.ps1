@@ -105,33 +105,44 @@ Function Sync-WingetPins {
     )
 
     try {
+        Write-ToLog "Starting pin synchronization (clean and reset approach)..." "DarkYellow"
+        
         #Get currently pinned apps
         $currentPins = Get-WingetPinnedApps
         
+        $pinsRemoved = 0
         $pinsAdded = 0
-        $pinsSkipped = 0
         
-        #Add new pins from GPO
-        foreach ($desiredPin in $DesiredPins) {
-            $existingPin = $currentPins | Where-Object { $_.AppId -eq $desiredPin.AppId }
-            
-            if ($existingPin) {
-                Write-ToLog "$($desiredPin.AppId) is already pinned to version '$($existingPin.Version)' - respecting existing pin" "Yellow"
-                $pinsSkipped++
+        #Remove all existing pins to avoid version mismatch issues
+        if ($currentPins -and $currentPins.Count -gt 0) {
+            Write-ToLog "Removing $($currentPins.Count) existing pin(s) to ensure clean state..." "DarkYellow"
+            foreach ($currentPin in $currentPins) {
+                if (Remove-WingetPin -AppId $currentPin.AppId -Source $Source) {
+                    $pinsRemoved++
+                    Write-ToLog "Removed pin for $($currentPin.AppId)" "Gray"
+                }
             }
-            else {
+            Write-ToLog "Removed $pinsRemoved pin(s)" "Green"
+        }
+        else {
+            Write-ToLog "No existing pins to remove" "Gray"
+        }
+        
+        #Apply fresh pins from GPO
+        if ($DesiredPins -and $DesiredPins.Count -gt 0) {
+            Write-ToLog "Applying $($DesiredPins.Count) pin(s) from GPO configuration..." "DarkYellow"
+            foreach ($desiredPin in $DesiredPins) {
                 if (Set-WingetPin -AppId $desiredPin.AppId -Version $desiredPin.Version -Source $Source) {
                     $pinsAdded++
                 }
             }
+            
+            if ($pinsAdded -gt 0) {
+                Write-ToLog "Successfully applied $pinsAdded pin(s) from GPO configuration" "Green"
+            }
         }
-        
-        if ($pinsAdded -gt 0) {
-            Write-ToLog "Applied $pinsAdded new pin(s) from GPO configuration" "Green"
-        }
-        
-        if ($pinsSkipped -gt 0) {
-            Write-ToLog "Skipped $pinsSkipped app(s) that were already pinned" "Gray"
+        else {
+            Write-ToLog "No GPO pins to apply" "Gray"
         }
         
         return $true

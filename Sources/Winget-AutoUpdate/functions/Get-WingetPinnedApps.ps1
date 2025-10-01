@@ -70,9 +70,9 @@ Function Get-WingetPinnedApps {
         $header = $lines[$headerLine]
         $idStart = $header.IndexOf("Id")
         $versionStart = $header.IndexOf("Version")
-        $sourceStart = $header.IndexOf("Source")
+        $pinnedVersionStart = $header.IndexOf("Pinned version")
 
-        if ($idStart -eq -1 -or $versionStart -eq -1) {
+        if ($idStart -eq -1 -or $versionStart -eq -1 -or $pinnedVersionStart -eq -1) {
             Write-ToLog "Could not determine column positions in winget pin output" "Yellow"
             return @()
         }
@@ -91,30 +91,28 @@ Function Get-WingetPinnedApps {
             try {
                 #Extract columns based on positions
                 $appId = ""
-                $version = ""
+                $pinnedVersion = ""
                 
+                # Extract just the Id column (between Id and Version)
                 if ($versionStart -lt $line.Length) {
                     $appId = $line.Substring($idStart, $versionStart - $idStart).Trim()
-                    
-                    if ($sourceStart -ne -1 -and $sourceStart -lt $line.Length) {
-                        $version = $line.Substring($versionStart, $sourceStart - $versionStart).Trim()
-                    }
-                    else {
-                        $version = $line.Substring($versionStart).Trim()
-                    }
                 }
                 else {
                     $appId = $line.Substring($idStart).Trim()
-                    $version = ""
+                }
+                
+                # Extract the Pinned version column
+                if ($pinnedVersionStart -lt $line.Length) {
+                    $pinnedVersion = $line.Substring($pinnedVersionStart).Trim()
                 }
 
                 if (-not [string]::IsNullOrWhiteSpace($appId)) {
                     $pinnedApp = [PSCustomObject]@{
                         AppId = $appId
-                        Version = $version
+                        Version = $pinnedVersion
                     }
                     $pinnedApps += $pinnedApp
-                    Write-ToLog "Found pinned app: $appId = $version" "Gray"
+                    Write-ToLog "Found pinned app: $appId = $pinnedVersion" "Gray"
                 }
             }
             catch {

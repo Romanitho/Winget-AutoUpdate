@@ -46,7 +46,7 @@ function Test-Network {
                 return $true
             }
 
-            if ($cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or ($networkCostTypeName -ne "Unrestricted")) {
+            if ($cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or ($networkCostTypeName -ne "Unrestricted" -and $networkCostTypeName -ne "Unknown")) {
                 Write-ToLog "Metered connection detected." "Yellow"
 
                 if ($WAUConfig.WAU_DoNotRunOnMetered -eq 1) {

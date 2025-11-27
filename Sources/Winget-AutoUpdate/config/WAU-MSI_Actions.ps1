@@ -158,7 +158,7 @@ function Install-WingetAutoUpdate {
                     $acl.SetAccessRuleProtection($true, $true)
                     $acl.Access | ForEach-Object { $acl.RemoveAccessRule($_) }
 
-                    # Add permissions: SYSTEM, Admins = Full; Users, Authenticated = ReadExecute
+                    # Add permissions: SYSTEM, Admins = Full; Users, Authenticated = ReadAndExecute
                     Add-ACLRule -acl $acl -sid "S-1-5-18" -access "FullControl"
                     Add-ACLRule -acl $acl -sid "S-1-5-32-544" -access "FullControl"
                     Add-ACLRule -acl $acl -sid "S-1-5-32-545" -access "ReadAndExecute"

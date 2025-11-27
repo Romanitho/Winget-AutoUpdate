@@ -39,6 +39,6 @@ Function Get-NotifLocale {
     [xml]$Script:NotifLocale = Get-Content $LocaleFile -Encoding UTF8 -ErrorAction SilentlyContinue
 
     # Return the language display name
-    Return $LocaleDisplayName
+    return $LocaleDisplayName
 
 }

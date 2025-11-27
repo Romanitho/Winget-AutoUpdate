@@ -1,18 +1,24 @@
-#Function to check the connectivity
+<#
+.SYNOPSIS
+    Tests internet connectivity and metered connection status.
 
+.DESCRIPTION
+    Verifies network using NCSI probes with 30-minute timeout.
+    Respects WAU_DoNotRunOnMetered setting.
+
+.OUTPUTS
+    Boolean: True if connected and allowed to proceed.
+#>
 function Test-Network {
 
-    # Init
-    $timeout = 0
-
-    #Test connectivity during 30 min then timeout
     Write-ToLog "Checking internet connection..." "Yellow"
 
+    # Get NCSI settings
     try {
         $NlaRegKey = "HKLM:\SYSTEM\CurrentControlSet\Services\NlaSvc\Parameters\Internet"
-        $ncsiHost = Get-ItemPropertyValue -Path $NlaRegKey -Name ActiveWebProbeHost
-        $ncsiPath = Get-ItemPropertyValue -Path $NlaRegKey -Name ActiveWebProbePath
-        $ncsiContent = Get-ItemPropertyValue -Path $NlaRegKey -Name ActiveWebProbeContent
+        $ncsiHost = Get-ItemPropertyValue $NlaRegKey -Name ActiveWebProbeHost
+        $ncsiPath = Get-ItemPropertyValue $NlaRegKey -Name ActiveWebProbePath
+        $ncsiContent = Get-ItemPropertyValue $NlaRegKey -Name ActiveWebProbeContent
     }
     catch {
         $ncsiHost = "www.msftconnecttest.com"
@@ -20,71 +26,53 @@ function Test-Network {
         $ncsiContent = "Microsoft Connect Test"
     }
 
-    while ($timeout -lt 1800) {
+    # Test connectivity (30 min timeout)
+    for ($timeout = 0; $timeout -lt 1800; $timeout += 10) {
         try {
-            $ncsiResponse = Invoke-WebRequest -Uri "http://$($ncsiHost)/$($ncsiPath)" -UseBasicParsing -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome); # DevSkim: ignore DS137138 Insecure URL
+            $response = Invoke-WebRequest -Uri "http://${ncsiHost}/${ncsiPath}" -UseBasicParsing -UserAgent ([Microsoft.PowerShell.Commands.PSUserAgent]::Chrome) # DevSkim: ignore DS137138
         }
-        catch {
-            $ncsiResponse = $false
-        }
+        catch { $response = $null }
 
-        if (($ncsiResponse) -and ($ncsiResponse.StatusCode -eq 200) -and ($ncsiResponse.content -eq $ncsiContent)) {
-            Write-ToLog "Connected !" "Green"
+        if ($response -and $response.StatusCode -eq 200 -and $response.Content -eq $ncsiContent) {
+            Write-ToLog "Connected!" "Green"
 
-            # Check for metered connection
+            # Check metered connection
             try {
                 [void][Windows.Networking.Connectivity.NetworkInformation, Windows, ContentType = WindowsRuntime]
                 $cost = [Windows.Networking.Connectivity.NetworkInformation]::GetInternetConnectionProfile().GetConnectionCost()
-
-                $networkCostTypeName = [Windows.Networking.Connectivity.NetworkCostType]::GetName(
-                    [Windows.Networking.Connectivity.NetworkCostType],
-                    $cost.NetworkCostType
-                )
+                $networkCostTypeName = [Windows.Networking.Connectivity.NetworkCostType]::GetName([Windows.Networking.Connectivity.NetworkCostType], $cost.NetworkCostType)
             }
             catch {
-                Write-ToLog "Could not evaluate metered connection status - skipping check." "Gray"
+                Write-ToLog "Could not check metered status - continuing" "Gray"
                 return $true
             }
 
-            if ($cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or ($networkCostTypeName -ne "Unrestricted")) {
-                Write-ToLog "Metered connection detected." "Yellow"
+            $isMetered = $cost.ApproachingDataLimit -or $cost.OverDataLimit -or $cost.Roaming -or $cost.BackgroundDataUsageRestricted -or $networkCostTypeName -ne "Unrestricted"
 
+            if ($isMetered) {
+                Write-ToLog "Metered connection detected." "Yellow"
                 if ($WAUConfig.WAU_DoNotRunOnMetered -eq 1) {
-                    Write-ToLog "WAU is configured to bypass update checking on metered connection"
+                    Write-ToLog "WAU configured to skip on metered connection"
                     return $false
                 }
-                else {
-                    Write-ToLog "WAU is configured to force update checking on metered connection"
-                    return $true
-                }
+                Write-ToLog "WAU configured to continue on metered connection"
             }
-            else {
-                return $true
-            }
+            return $true
         }
-        else {
-            Start-Sleep 10
-            $timeout += 10
 
-            if ($timeout -eq 300) {
-                Write-ToLog "Notify 'No connection' sent." "Yellow"
+        Start-Sleep 10
 
-                $Title = $NotifLocale.local.outputs.output[0].title
-                $Message = $NotifLocale.local.outputs.output[0].message
-                $MessageType = "warning"
-                $Balise = "Connection"
-                Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise
-            }
+        # Notify after 5 minutes
+        if ($timeout -eq 300) {
+            Write-ToLog "No connection notification sent." "Yellow"
+            Start-NotifTask -Title $NotifLocale.local.outputs.output[0].title `
+                -Message $NotifLocale.local.outputs.output[0].message -MessageType "warning" -Balise "Connection"
         }
     }
 
-    Write-ToLog "Timeout. No internet connection !" "Red"
-
-    $Title = $NotifLocale.local.outputs.output[1].title
-    $Message = $NotifLocale.local.outputs.output[1].message
-    $MessageType = "error"
-    $Balise = "Connection"
-    Start-NotifTask -Title $Title -Message $Message -MessageType $MessageType -Balise $Balise
-
+    # Timeout
+    Write-ToLog "Timeout - No internet connection!" "Red"
+    Start-NotifTask -Title $NotifLocale.local.outputs.output[1].title `
+        -Message $NotifLocale.local.outputs.output[1].message -MessageType "error" -Balise "Connection"
     return $false
 }

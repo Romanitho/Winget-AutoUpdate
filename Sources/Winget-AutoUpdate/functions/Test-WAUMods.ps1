@@ -1,3 +1,35 @@
+<#
+.SYNOPSIS
+    Executes and processes WAU mods script with action-based responses.
+
+.DESCRIPTION
+    Runs the _WAU-mods.ps1 script and handles its output to control WAU behavior.
+    Supports two modes:
+    - Legacy: Exit code 1 triggers WAU re-run
+    - Action-based: JSON output with instructions (Rerun, Abort, Postpone, Reboot, Continue)
+
+.PARAMETER WorkingDir
+    The WAU installation directory.
+
+.PARAMETER WAUConfig
+    The WAU configuration object.
+
+.PARAMETER GitHub_Repo
+    The GitHub repository name for WAU. Defaults to "Winget-AutoUpdate".
+
+.EXAMPLE
+    Test-WAUMods -WorkingDir "C:\Program Files\Winget-AutoUpdate" -WAUConfig $config
+
+.NOTES
+    Supported JSON actions:
+    - Rerun: Restart WAU immediately
+    - Abort: Stop WAU execution
+    - Postpone: Create scheduled task to run WAU later
+    - Reboot: Trigger system reboot (supports SCCM integration)
+    - Continue: Continue normal WAU execution
+
+    JSON format: { "Action": "Rerun", "Message": "text", "ExitCode": 0 }
+#>
 function Test-WAUMods {
     param (
         [Parameter(Mandatory=$true)]

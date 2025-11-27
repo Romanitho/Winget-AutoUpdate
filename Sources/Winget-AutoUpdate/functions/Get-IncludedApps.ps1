@@ -1,28 +1,32 @@
-#Function to get the allow List apps
+<#
+.SYNOPSIS
+    Retrieves the list of included (whitelisted) applications.
 
+.DESCRIPTION
+    Returns application IDs to include in automatic updates (whitelist mode).
+    Priority: GPO registry > local file.
+
+.OUTPUTS
+    Array of application IDs to include.
+#>
 function Get-IncludedApps {
 
-    $AppIDs = @()
+    $GPOPath = "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList"
+    $LocalFile = "$WorkingDir\included_apps.txt"
 
-    #whitelist in Policies registry
-    if (Test-Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList") {
+    # GPO takes priority
+    if (Test-Path $GPOPath) {
         Write-ToLog "-> Included apps from GPO is activated"
-        $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList").Property
-        foreach ($ValueName in $ValueNames) {
-            $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\WhiteList" -Name $ValueName).Trim()
-        }
-        foreach ($app in $AppIDs) {
-            Write-ToLog "Include app $app"
+        $AppIDs = (Get-Item $GPOPath).Property | ForEach-Object {
+            $id = (Get-ItemPropertyValue $GPOPath -Name $_).Trim()
+            Write-ToLog "Include app $id"
+            $id
         }
     }
-    #whitelist pulled from local file
-    elseif (Test-Path "$WorkingDir\included_apps.txt") {
-
-        $AppIDs = (Get-Content -Path "$WorkingDir\included_apps.txt").Trim()
-        Write-ToLog "-> Successsfully loaded local included apps list."
-
+    elseif (Test-Path $LocalFile) {
+        Write-ToLog "-> Successfully loaded local included apps list."
+        $AppIDs = (Get-Content $LocalFile).Trim()
     }
 
-    return $AppIDs | Where-Object { $_.length -gt 0 }
-
+    return $AppIDs | Where-Object { $_ }
 }

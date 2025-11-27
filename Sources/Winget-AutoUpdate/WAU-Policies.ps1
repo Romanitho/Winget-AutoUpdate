@@ -1,23 +1,31 @@
 <#
 .SYNOPSIS
-Handle GPO/Polices
+    Applies Group Policy settings to WAU scheduled tasks.
 
 .DESCRIPTION
-Daily update settings from policies
+    Reads WAU configuration from GPO registry keys and updates the
+    Winget-AutoUpdate scheduled task triggers accordingly.
+    Handles daily, bi-daily, weekly, bi-weekly, and monthly schedules,
+    as well as logon triggers and time delays.
+
+.NOTES
+    This script is executed by the WAU-Policies scheduled task.
+    GPO registry path: HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate
+    Logs applied settings to: logs\LatestAppliedSettings.txt
 #>
 
-#Import functions
+# Import configuration function
 . "$PSScriptRoot\functions\Get-WAUConfig.ps1"
 
-#Check if GPO Management is detected
+# Check if GPO management is enabled
 $GPOManagementDetected = Get-ItemProperty "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate" -ErrorAction SilentlyContinue
 
 if ($GPOManagementDetected) {
 
-    #Get WAU settings
+    # Load WAU configuration (with GPO overrides)
     $WAUConfig = Get-WAUConfig
 
-    #Log init
+    # Initialize logging
     $GPOLogDirectory = Join-Path -Path $WAUConfig.InstallLocation -ChildPath "logs"
     if (!(Test-Path -Path $GPOLogDirectory)) {
         New-Item -ItemType Directory -Path $GPOLogDirectory -Force | Out-Null
@@ -25,21 +33,19 @@ if ($GPOManagementDetected) {
     $GPOLogFile = Join-Path -Path $GPOLogDirectory -ChildPath "LatestAppliedSettings.txt"
     Set-Content -Path $GPOLogFile -Value "###  POLICY CYCLE - $(Get-Date)  ###`n"
 
-    #Get Winget-AutoUpdate scheduled task
+    # Get current scheduled task configuration
     $WAUTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -ErrorAction SilentlyContinue
-
-    #Update 'Winget-AutoUpdate' scheduled task settings
     $currentTriggers = $WAUTask.Triggers
     $configChanged = $false
 
-    #Check if LogOn trigger setting has changed
+    # === Check if LogOn trigger setting has changed ===
     $hasLogonTrigger = $currentTriggers | Where-Object { $_.CimClass.CimClassName -eq "MSFT_TaskLogonTrigger" }
     if (($WAUConfig.WAU_UpdatesAtLogon -eq 1 -and -not $hasLogonTrigger) -or
         ($WAUConfig.WAU_UpdatesAtLogon -ne 1 -and $hasLogonTrigger)) {
         $configChanged = $true
     }
 
-    #Check if schedule type has changed
+    # === Detect current schedule type ===
     $currentIntervalType = "None"
     foreach ($trigger in $currentTriggers) {
         if ($trigger.CimClass.CimClassName -eq "MSFT_TaskDailyTrigger" -and $trigger.DaysInterval -eq 1) {
@@ -72,7 +78,7 @@ if ($GPOManagementDetected) {
         $configChanged = $true
     }
 
-    #Check if delay has changed
+    # === Check if delay has changed ===
     $randomDelay = [TimeSpan]::ParseExact($WAUConfig.WAU_UpdatesTimeDelay, "hh\:mm", $null)
     $timeTrigger = $currentTriggers | Where-Object { $_.CimClass.CimClassName -ne "MSFT_TaskLogonTrigger" } | Select-Object -First 1
     if ($timeTrigger.RandomDelay -match '^PT(?:(\d+)H)?(?:(\d+)M)?$') {
@@ -84,7 +90,7 @@ if ($GPOManagementDetected) {
         $configChanged = $true
     }
 
-    #Check if schedule time has changed
+    # === Check if schedule time has changed ===
     if ($currentIntervalType -ne "None" -and $currentIntervalType -ne "Never") {
         if ($timeTrigger) {
             $currentTime = [DateTime]::Parse($timeTrigger.StartBoundary).ToString("HH:mm:ss")
@@ -94,12 +100,16 @@ if ($GPOManagementDetected) {
         }
     }
 
-    #Only update triggers if configuration has changed
+    # === Update triggers if configuration changed ===
     if ($configChanged) {
         $taskTriggers = @()
+
+        # Add logon trigger if enabled
         if ($WAUConfig.WAU_UpdatesAtLogon -eq 1) {
             $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
         }
+
+        # Add time-based trigger based on interval type
         if ($WAUConfig.WAU_UpdatesInterval -eq "Daily") {
             $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUConfig.WAU_UpdatesAtTime -RandomDelay $randomDelay
         }
@@ -116,20 +126,18 @@ if ($GPOManagementDetected) {
             $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUConfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $randomDelay
         }
 
-        #If trigger(s) set
+        # Apply new triggers or disable task
         if ($taskTriggers) {
-            #Edit scheduled task
             Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Trigger $taskTriggers | Out-Null
         }
-        #If not, remove trigger(s)
         else {
-            #Remove by setting past due date
+            # Disable by setting a past due date
             $tasktriggers = New-ScheduledTaskTrigger -Once -At "01/01/1970"
             Set-ScheduledTask -TaskPath $WAUTask.TaskPath -TaskName $WAUTask.TaskName -Trigger $tasktriggers | Out-Null
         }
     }
 
-    #Log latest applied config
+    # Log applied configuration
     Add-Content -Path $GPOLogFile -Value "`nLatest applied settings:"
     $WAUConfig.PSObject.Properties | Where-Object { $_.Name -like "WAU_*" } | Select-Object Name, Value | Out-File -Encoding default -FilePath $GPOLogFile -Append
 

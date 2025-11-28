@@ -1,13 +1,36 @@
+<#
+.SYNOPSIS
+    MSI installer post-actions script for WAU.
+
+.DESCRIPTION
+    Handles installation and uninstallation tasks for the WAU MSI package.
+    Creates scheduled tasks and configures permissions.
+
+.PARAMETER AppListPath
+    Path to the app list file (excluded_apps.txt or included_apps.txt).
+
+.PARAMETER InstallPath
+    WAU installation directory.
+
+.PARAMETER CurrentDir
+    Current working directory for the installer.
+
+.PARAMETER Upgrade
+    Upgrade product code when performing an upgrade.
+
+.PARAMETER Uninstall
+    Switch to trigger uninstallation instead of installation.
+#>
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $false)] [string] $AppListPath,
-    [Parameter(Mandatory = $false)] [string] $InstallPath,
-    [Parameter(Mandatory = $false)] [string] $CurrentDir,
-    [Parameter(Mandatory = $false)] [string] $Upgrade,
-    [Parameter(Mandatory = $False)] [Switch] $Uninstall = $false
+    [string]$AppListPath,
+    [string]$InstallPath,
+    [string]$CurrentDir,
+    [string]$Upgrade,
+    [switch]$Uninstall
 )
 
-#For troubleshooting
+# Debug output
 Write-Output "AppListPath:  $AppListPath"
 Write-Output "InstallPath:  $InstallPath"
 Write-Output "CurrentDir:   $CurrentDir"
@@ -32,179 +55,164 @@ function Add-ACLRule {
 }
 
 function Install-WingetAutoUpdate {
-
     Write-Host "### Post install actions ###"
 
     try {
-
-        # Clean potential old v1 install
+        # Clean old v1 installation if present
         $OldConfRegPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Winget-AutoUpdate"
         $OldWAUConfig = Get-ItemProperty $OldConfRegPath -ErrorAction SilentlyContinue
         if ($OldWAUConfig.InstallLocation) {
-            Write-Host "-> Cleanning old v1 WAU version ($($OldWAUConfig.DisplayVersion))"
+            Write-Host "-> Cleaning old v1 WAU version ($($OldWAUConfig.DisplayVersion))"
             Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File ""$($OldWAUConfig.InstallLocation)\WAU-Uninstall.ps1""" -Wait
         }
 
-        #Get WAU config
+        # Get WAU config from registry
         $WAUconfig = Get-ItemProperty "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate"
         Write-Output "-> WAU Config:"
         Write-Output $WAUconfig
 
-        # Settings for the scheduled task for Updates (System)
+        # Create scheduled tasks
         Write-Host "-> Installing WAU scheduled tasks"
-        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($InstallPath)winget-upgrade.ps1`""
+
+        # Main update task (System context)
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"${InstallPath}winget-upgrade.ps1`""
         $taskTriggers = @()
+
         if ($WAUconfig.WAU_UpdatesAtLogon -eq 1) {
-            $tasktriggers += New-ScheduledTaskTrigger -AtLogOn
+            $taskTriggers += New-ScheduledTaskTrigger -AtLogOn
         }
-        if ($WAUconfig.WAU_UpdatesInterval -eq "Daily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUconfig.WAU_UpdatesAtTime -RandomDelay $WAUconfig.WAU_UpdatesTimeDelay
+
+        # Interval-based trigger
+        $time = $WAUconfig.WAU_UpdatesAtTime
+        $delay = $WAUconfig.WAU_UpdatesTimeDelay
+        switch ($WAUconfig.WAU_UpdatesInterval) {
+            "Daily"    { $taskTriggers += New-ScheduledTaskTrigger -Daily -At $time -RandomDelay $delay }
+            "BiDaily"  { $taskTriggers += New-ScheduledTaskTrigger -Daily -At $time -DaysInterval 2 -RandomDelay $delay }
+            "Weekly"   { $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $time -DaysOfWeek 2 -RandomDelay $delay }
+            "BiWeekly" { $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $time -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay $delay }
+            "Monthly"  { $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $time -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $delay }
         }
-        elseif ($WAUconfig.WAU_UpdatesInterval -eq "BiDaily") {
-            $tasktriggers += New-ScheduledTaskTrigger -Daily -At $WAUconfig.WAU_UpdatesAtTime -DaysInterval 2 -RandomDelay $WAUconfig.WAU_UpdatesTimeDelay
-        }
-        elseif ($WAUconfig.WAU_UpdatesInterval -eq "Weekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUconfig.WAU_UpdatesAtTime -DaysOfWeek 2 -RandomDelay $WAUconfig.WAU_UpdatesTimeDelay
-        }
-        elseif ($WAUconfig.WAU_UpdatesInterval -eq "BiWeekly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUconfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay $WAUconfig.WAU_UpdatesTimeDelay
-        }
-        elseif ($WAUconfig.WAU_UpdatesInterval -eq "Monthly") {
-            $tasktriggers += New-ScheduledTaskTrigger -Weekly -At $WAUconfig.WAU_UpdatesAtTime -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $WAUconfig.WAU_UpdatesTimeDelay
-        }
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
+
+        $taskPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-        # Set up the task, and register it
-        if ($taskTriggers) {
-            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTriggers
+
+        $taskParams = @{
+            Action    = $taskAction
+            Principal = $taskPrincipal
+            Settings  = $taskSettings
         }
-        else {
-            $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
-        }
+        if ($taskTriggers) { $taskParams.Trigger = $taskTriggers }
+
+        $task = New-ScheduledTask @taskParams
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
-        # Settings for the scheduled task in User context
+        # User context task
         $taskAction = New-ScheduledTaskAction -Execute "conhost.exe" -Argument "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File winget-upgrade.ps1" -WorkingDirectory $InstallPath
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
+        $taskPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00
-        # Set up the task for user apps
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskPrincipal -Settings $taskSettings
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UserContext' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
-        # Settings for the scheduled task for Notifications
+        # Notification task
         $taskAction = New-ScheduledTaskAction -Execute "conhost.exe" -Argument "--headless powershell.exe -NoProfile -ExecutionPolicy Bypass -File WAU-Notify.ps1" -WorkingDirectory $InstallPath
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -GroupId S-1-5-11
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
-        # Set up the task, and register it
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskPrincipal -Settings $taskSettings
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Notify' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
-        # Settings for the GPO scheduled task
-        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$($InstallPath)WAU-Policies.ps1`""
-        $tasktrigger = New-ScheduledTaskTrigger -Daily -At 6am
-        $taskUserPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
+        # GPO policies task
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"${InstallPath}WAU-Policies.ps1`""
+        $taskTrigger = New-ScheduledTaskTrigger -Daily -At 6am
+        $taskPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:05:00
-        # Set up the task, and register it
-        $task = New-ScheduledTask -Action $taskAction -Principal $taskUserPrincipal -Settings $taskSettings -Trigger $taskTrigger
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskPrincipal -Settings $taskSettings -Trigger $taskTrigger
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Policies' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
-        #Set task readable/runnable for all users
+        # Set task permissions for all users
         $scheduler = New-Object -ComObject "Schedule.Service"
         $scheduler.Connect()
         $task = $scheduler.GetFolder("WAU").GetTask("Winget-AutoUpdate")
-        $sec = $task.GetSecurityDescriptor(0xF)
-        $sec = $sec + '(A;;GRGX;;;AU)'
+        $sec = $task.GetSecurityDescriptor(0xF) + '(A;;GRGX;;;AU)'
         $task.SetSecurityDescriptor($sec, 0)
 
-        #Copy App list to install folder (exept on self update)
+        # Copy app list (except on self-update)
         if ($AppListPath -and ($AppListPath -notlike "$InstallPath*")) {
             Write-Output "-> Copying $AppListPath to $InstallPath"
             Copy-Item -Path $AppListPath -Destination $InstallPath
         }
 
-        #Copy Mods to install folder
+        # Copy mods folder if present
         $ModsFolder = Join-Path $CurrentDir "Mods"
         if (Test-Path $ModsFolder) {
             Write-Output "-> Copying $ModsFolder to $InstallPath"
-            Copy-Item -Path $ModsFolder -Destination "$InstallPath" -Recurse
+            Copy-Item -Path $ModsFolder -Destination $InstallPath -Recurse
         }
 
-        #Secure folders if not installed to ProgramFiles
+        # Secure folders if not in Program Files
         if ($InstallPath -notlike "$env:ProgramFiles*") {
-
             Write-Output "-> Securing functions and mods folders"
-            $directories = @("$InstallPath\functions", "$InstallPath\mods")
 
-            foreach ($directory in $directories) {
+            foreach ($dir in @("$InstallPath\functions", "$InstallPath\mods")) {
                 try {
-                    #Get dir
-                    $dirPath = Get-Item -Path $directory
-                    #Get ACL
+                    $dirPath = Get-Item -Path $dir
                     $acl = Get-Acl -Path $dirPath.FullName
-                    #Disable inheritance
-                    $acl.SetAccessRuleProtection($True, $True)
-                    #Remove any existing rules
+                    $acl.SetAccessRuleProtection($true, $true)
                     $acl.Access | ForEach-Object { $acl.RemoveAccessRule($_) }
 
-                    # Add new ACL rules
-                    Add-ACLRule -acl $acl -sid "S-1-5-18" -access "FullControl"         # SYSTEM Full
-                    Add-ACLRule -acl $acl -sid "S-1-5-32-544" -access "FullControl"     # Administrators Full
-                    Add-ACLRule -acl $acl -sid "S-1-5-32-545" -access "ReadAndExecute"  # Local Users ReadAndExecute
-                    Add-ACLRule -acl $acl -sid "S-1-5-11" -access "ReadAndExecute"      # Authenticated Users ReadAndExecute
+                    # Add permissions: SYSTEM, Admins = Full; Users, Authenticated = ReadAndExecute
+                    Add-ACLRule -acl $acl -sid "S-1-5-18" -access "FullControl"
+                    Add-ACLRule -acl $acl -sid "S-1-5-32-544" -access "FullControl"
+                    Add-ACLRule -acl $acl -sid "S-1-5-32-545" -access "ReadAndExecute"
+                    Add-ACLRule -acl $acl -sid "S-1-5-11" -access "ReadAndExecute"
 
-                    # Save the updated ACL to the directory
                     Set-Acl -Path $dirPath.FullName -AclObject $acl
-
-                    Write-Host "Permissions for '$directory' have been updated successfully."
+                    Write-Host "Permissions for '$dir' updated successfully."
                 }
                 catch {
-                    Write-Host "Error setting ACL for '$directory' : $($_.Exception.Message)"
+                    Write-Host "Error setting ACL for '$dir': $($_.Exception.Message)"
                 }
             }
-
         }
 
         Write-Host "### WAU MSI Post actions succeeded! ###"
-
     }
     catch {
-        Write-Host "### WAU Installation failed! Error $_. ###"
-        return $False
+        Write-Host "### WAU Installation failed! Error: $_. ###"
+        return $false
     }
 }
 
 
 function Uninstall-WingetAutoUpdate {
-
     Write-Host "### Uninstalling WAU started! ###"
 
+    # Remove scheduled tasks
     Write-Host "-> Removing scheduled tasks."
-    Get-ScheduledTask -TaskName "Winget-AutoUpdate" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-    Get-ScheduledTask -TaskName "Winget-AutoUpdate-Notify" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-    Get-ScheduledTask -TaskName "Winget-AutoUpdate-UserContext" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
-    Get-ScheduledTask -TaskName "Winget-AutoUpdate-Policies" -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$False
+    @("Winget-AutoUpdate", "Winget-AutoUpdate-Notify", "Winget-AutoUpdate-UserContext", "Winget-AutoUpdate-Policies") | ForEach-Object {
+        Get-ScheduledTask -TaskName $_ -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false
+    }
 
-    #If upgrade, keep app list and mods. Else, remove.
+    # Keep app lists and mods on upgrade, remove on full uninstall
     if ($Upgrade -like "#{*}") {
         Write-Output "-> Upgrade detected. Keeping *.txt and mods app lists"
     }
     else {
-        $AppLists = Get-Item (Join-Path "$InstallPath" "*_apps.txt")
+        $AppLists = Get-Item (Join-Path $InstallPath "*_apps.txt") -ErrorAction SilentlyContinue
         if ($AppLists) {
             Write-Output "-> Removing items: $AppLists"
             Remove-Item $AppLists -Force
         }
-        Remove-Item "$InstallPath\mods" -Recurse -Force
+        Remove-Item "$InstallPath\mods" -Recurse -Force -ErrorAction SilentlyContinue
     }
 
-    $ConfFolder = Get-Item (Join-Path "$InstallPath" "config") -ErrorAction SilentlyContinue
+    # Remove config folder
+    $ConfFolder = Get-Item (Join-Path $InstallPath "config") -ErrorAction SilentlyContinue
     if ($ConfFolder) {
         Write-Output "-> Removing item: $ConfFolder"
         Remove-Item $ConfFolder -Force -Recurse
     }
 
     Write-Host "### Uninstallation done! ###"
-    Start-sleep 1
+    Start-Sleep 1
 }
 
 
@@ -213,12 +221,9 @@ function Uninstall-WingetAutoUpdate {
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $Script:ProgressPreference = 'SilentlyContinue'
 
-
-# Uninstall
 if ($Uninstall) {
     Uninstall-WingetAutoUpdate
 }
-# Install
 else {
     Install-WingetAutoUpdate
 }

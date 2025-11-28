@@ -1,24 +1,23 @@
+<#
+.SYNOPSIS
+    Verifies application installation at expected version.
+
+.PARAMETER AppName
+    WinGet package identifier.
+
+.PARAMETER AppVer
+    Expected version prefix.
+
+.OUTPUTS
+    Boolean: True if installed at version.
+#>
 Function Confirm-Installation ($AppName, $AppVer) {
 
-    #Set json export file
     $JsonFile = "$env:TEMP\InstalledApps.json"
-
-    #Get installed apps and version in json file
     & $Winget export -s winget -o $JsonFile --include-versions | Out-Null
 
-    #Get json content
-    $Json = Get-Content $JsonFile -Raw | ConvertFrom-Json
+    $Packages = (Get-Content $JsonFile -Raw | ConvertFrom-Json).Sources.Packages
+    $match = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -like "$AppVer*" }
 
-    #Get apps and version in hashtable
-    $Packages = $Json.Sources.Packages
-
-    # Search for specific app and version
-    $Apps = $Packages | Where-Object { $_.PackageIdentifier -eq $AppName -and $_.Version -like "$AppVer*" }
-
-    if ($Apps) {
-        return $true
-    }
-    else {
-        return $false
-    }
+    return [bool]$match
 }

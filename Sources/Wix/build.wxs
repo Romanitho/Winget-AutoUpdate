@@ -296,75 +296,35 @@
 		</ComponentGroup>
 		<StandardDirectory Id="ProgramFiles6432Folder">
 			<Directory Id="INSTALLDIR" Name="Winget-AutoUpdate">
-				<Component Id="CompReg" >
+				<Component Id="CompReg">
+					<!-- WAU Configuration Registry Keys -->
 					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="ProductVersion" Type="string" Value="$(var.NextSemVer)" KeyPath="yes" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="InstallLocation" Type="string" Value="[INSTALLDIR]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_NotificationLevel" Type="string" Value="[NOTIFICATIONLEVEL_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UserContext" Type="integer" Value="[USERCONTEXT]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_DisableAutoUpdate" Type="integer" Value="[DISABLEWAUAUTOUPDATE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UpdatesInterval" Type="string" Value="[UPDATESINTERVAL_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UpdatesAtLogon" Type="integer" Value="[UPDATESATLOGON]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UseWhiteList" Type="integer" Value="[USEWHITELIST]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_ListPath" Type="string" Value="[LISTPATH_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_ModsPath" Type="string" Value="[MODSPATH_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_AzureBlobSASURL" Type="string" Value="[AZUREBLOBURL_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_DoNotRunOnMetered" Type="string" Value="[DONOTRUNONMETERED_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UpdatesAtTime" Type="string" Value="[UPDATESATTIME_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UpdatesTimeDelay" Type="string" Value="[UPDATESATTIMEDELAY_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_BypassListForUsers" Type="string" Value="[BYPASSLISTFORUSERS_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_MaxLogFiles" Type="string" Value="[MAXLOGFILES_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_MaxLogSize" Type="string" Value="[MAXLOGSIZE_VALUE]" />
-					</RegistryKey>
-					<RegistryKey Key="SOFTWARE\[Manufacturer]\[ProductName]" Root="HKLM">
 						<RegistryValue Name="WAU_UpdatePrerelease" Type="integer" Value="[UPDATEPRERELEASE]" />
+						<RegistryValue Name="WAU_AppInstallerShortcut" Type="integer" Value="[APPINSTALLERSHORTCUT]" />
+						<RegistryValue Name="WAU_DesktopShortcut" Type="integer" Value="[DESKTOPSHORTCUT]" />
+						<RegistryValue Name="WAU_StartMenuShortcut" Type="integer" Value="[STARTMENUSHORTCUT]" />
 					</RegistryKey>
+					<!-- Toast Notification Registry Keys -->
 					<RegistryKey Key="AppUserModelId\Windows.SystemToast.WAU.Notification" Root="HKCR">
 						<RegistryValue Name="DisplayName" Type="expandable" Value="Application Update" />
-					</RegistryKey>
-					<RegistryKey Key="AppUserModelId\Windows.SystemToast.WAU.Notification" Root="HKCR">
 						<RegistryValue Name="IconUri" Type="expandable" Value="%SystemRoot%\system32\@WindowsUpdateToastIcon.png" />
-					</RegistryKey>
-                    <RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
-						<RegistryValue Name="WAU_AppInstallerShortcut" Type="integer" Value="[APPINSTALLERSHORTCUT]" />
-					</RegistryKey>
-					<RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
-						<RegistryValue Name="WAU_DesktopShortcut" Type="integer" Value="[DESKTOPSHORTCUT]" />
-					</RegistryKey>
-					<RegistryKey Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]">
-						<RegistryValue Name="WAU_StartMenuShortcut" Type="integer" Value="[STARTMENUSHORTCUT]" />
 					</RegistryKey>
 				</Component>
 			</Directory>

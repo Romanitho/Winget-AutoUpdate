@@ -1,18 +1,38 @@
+<#
+.SYNOPSIS
+    Ensures all WinGet prerequisites are installed and up-to-date.
+
+.DESCRIPTION
+    Checks and installs the following prerequisites for WinGet:
+    - Microsoft Visual C++ 2015-2022 Redistributable
+    - Microsoft.VCLibs.140.00.UWPDesktop (UWP dependency)
+    - Microsoft.UI.Xaml.2.8 (UI framework dependency)
+    - WinGet CLI (App Installer) itself
+
+.EXAMPLE
+    Install-Prerequisites
+
+.NOTES
+    Must run with administrative privileges.
+    Downloads installers from Microsoft's official sources.
+    Falls back to Store update if WinGet installation fails.
+#>
 function Install-Prerequisites {
 
     try {
 
         Write-ToLog "Checking prerequisites..." "Yellow"
 
-        #Check if Visual C++ 2022 is installed
+        # === Check Visual C++ 2015-2022 Redistributable ===
         $Visual2022 = "Microsoft Visual C++ 2015-2022 Redistributable*"
         $VisualMinVer = "14.40.0.0"
         $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.GetValue("DisplayName") -like $Visual2022 -and $_.GetValue("DisplayVersion") -gt $VisualMinVer }
+
         if (!($path)) {
             try {
                 Write-ToLog "MS Visual C++ 2015-2022 is not installed" "Red"
 
-                #Get proc architecture
+                # Determine processor architecture for correct installer
                 if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
                     $OSArch = "arm64"
                 }
@@ -23,7 +43,7 @@ function Install-Prerequisites {
                     $OSArch = "x86"
                 }
 
-                #Download and install
+                # Download and install VC++ Redistributable
                 $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
                 $Installer = "$env:TEMP\VC_redist.$OSArch.exe"
                 Write-ToLog "-> Downloading $SourceURL..."
@@ -40,16 +60,18 @@ function Install-Prerequisites {
             }
         }
 
-        #Check if Microsoft.VCLibs.140.00.UWPDesktop is installed
+        # === Check Microsoft.VCLibs.140.00.UWPDesktop ===
         if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {
             try {
                 Write-ToLog "Microsoft.VCLibs.140.00.UWPDesktop is not installed" "Red"
-                #Download
+
+                # Download VCLibs package
                 $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
                 $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
                 Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
                 Invoke-WebRequest -Uri $VCLibsUrl -OutFile $VCLibsFile -UseBasicParsing
-                #Install
+
+                # Install package
                 Write-ToLog "-> Installing Microsoft.VCLibs.140.00.UWPDesktop..."
                 Add-AppxProvisionedPackage -Online -PackagePath $VCLibsFile -SkipLicense | Out-Null
                 Write-ToLog "-> Microsoft.VCLibs.140.00.UWPDesktop installed successfully." "Green"
@@ -62,16 +84,18 @@ function Install-Prerequisites {
             }
         }
 
-        #Check if Microsoft.UI.Xaml.2.8 is installed
+        # === Check Microsoft.UI.Xaml.2.8 ===
         if (!(Get-AppxPackage -Name 'Microsoft.UI.Xaml.2.8' -AllUsers)) {
             try {
                 Write-ToLog "Microsoft.UI.Xaml.2.8 is not installed" "Red"
-                #Download
+
+                # Download UI.Xaml package
                 $UIXamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
                 $UIXamlFile = "$env:TEMP\Microsoft.UI.Xaml.2.8.x64.appx"
                 Write-ToLog "-> Downloading Microsoft.UI.Xaml.2.8..."
                 Invoke-WebRequest -Uri $UIXamlUrl -OutFile $UIXamlFile -UseBasicParsing
-                #Install
+
+                # Install package
                 Write-ToLog "-> Installing Microsoft.UI.Xaml.2.8..."
                 Add-AppxProvisionedPackage -Online -PackagePath $UIXamlFile -SkipLicense | Out-Null
                 Write-ToLog "-> Microsoft.UI.Xaml.2.8 installed successfully." "Green"
@@ -84,71 +108,68 @@ function Install-Prerequisites {
             }
         }
 
-        #Check if Winget is installed (and up to date)
+        # === Check WinGet CLI ===
         try {
-            #Get latest WinGet info
+            # Get latest WinGet version from GitHub
             $WinGeturl = 'https://api.github.com/repos/microsoft/winget-cli/releases/latest'
             $WinGetAvailableVersion = ((Invoke-WebRequest $WinGeturl -UseBasicParsing | ConvertFrom-Json)[0].tag_name).TrimStart("v")
         }
         catch {
-            #If fail set version to the latest version as of 2025-08-12
+            # Fallback to known version if API fails
             $WinGetAvailableVersion = "1.11.430"
         }
+
         try {
-            #Get Admin Context Winget Location
+            # Get currently installed WinGet version
             $WingetInfo = (Get-Item "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
-            #If multiple versions, pick most recent one
             $WingetCmd = $WingetInfo[-1].FileName
-            #Get current Winget Version
             $WingetInstalledVersion = (& $WingetCmd -v).Trim().TrimStart("v")
         }
         catch {
             Write-ToLog "WinGet is not installed" "Red"
             $WinGetInstalledVersion = "0.0.0"
         }
+
         Write-ToLog "WinGet installed version: $WinGetInstalledVersion | WinGet available version: $WinGetAvailableVersion"
-        #Check if the currently installed version is less than the available version
+
+        # Install WinGet if outdated
         if ((Compare-SemVer -Version1 $WinGetInstalledVersion -Version2 $WinGetAvailableVersion) -lt 0) {
-            #Install WinGet MSIXBundle in SYSTEM context
             try {
-                #Download WinGet MSIXBundle
+                # Download WinGet MSIXBundle
                 Write-ToLog "-> Downloading WinGet MSIXBundle for App Installer..."
                 $WinGetURL = "https://github.com/microsoft/winget-cli/releases/download/v$WinGetAvailableVersion/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
                 $WingetInstaller = "$env:TEMP\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
                 Invoke-WebRequest -Uri $WinGetURL -OutFile $WingetInstaller -UseBasicParsing
 
-                #Install
+                # Install WinGet
                 Write-ToLog "-> Installing WinGet MSIXBundle for App Installer..."
                 Add-AppxProvisionedPackage -Online -PackagePath $WingetInstaller -SkipLicense | Out-Null
                 Write-ToLog "-> WinGet MSIXBundle (v$WinGetAvailableVersion) for App Installer installed successfully!" "green"
 
-                #Reset WinGet Sources
+                # Reset WinGet sources after installation
                 $WingetInfo = (Get-Item "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
-                #If multiple versions, pick most recent one
                 $WingetCmd = $WingetInfo[-1].FileName
                 & $WingetCmd source reset --force
                 Write-ToLog "-> WinGet sources reset." "green"
             }
             catch {
                 Write-ToLog "-> Failed to install WinGet MSIXBundle for App Installer..." "red"
-                #Force Store Apps to update
+                # Try to update via Microsoft Store as fallback
                 Update-StoreApps
             }
 
-            #Remove WinGet MSIXBundle
+            # Cleanup installer
             Remove-Item -Path $WingetInstaller -Force -ErrorAction SilentlyContinue
         }
         else {
             Write-ToLog "-> WinGet is up to date." "Green"
         }
+
         Write-ToLog "Prerequisites checked. OK" "Green"
 
     }
     catch {
-
-        Write-ToLog "Prerequisites checked failed" "Red"
-
+        Write-ToLog "Prerequisites check failed" "Red"
     }
-
 
 }

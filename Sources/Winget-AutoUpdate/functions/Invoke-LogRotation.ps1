@@ -1,47 +1,73 @@
-#Function to rotate the logs
+<#
+.SYNOPSIS
+    Manages log file rotation and archival.
 
+.DESCRIPTION
+    Rotates log files when they exceed the maximum size, archiving old
+    logs with timestamps. Maintains a configurable maximum number of
+    archived log files by deleting the oldest when necessary.
+
+.PARAMETER LogFile
+    Full path to the log file to manage.
+
+.PARAMETER MaxLogFiles
+    Maximum number of log files to keep (0 = unlimited, 1 = no rotation).
+
+.PARAMETER MaxLogSize
+    Maximum log file size in bytes before rotation occurs.
+
+.OUTPUTS
+    Boolean: True on success, False if an error occurred.
+
+.EXAMPLE
+    Invoke-LogRotation "C:\logs\updates.log" 3 1048576
+
+.NOTES
+    Archived logs are named with timestamp: filename_yyyyMMddHHmmss.ext
+#>
 function Invoke-LogRotation {
     [OutputType([Bool])]
     param(
-        [string]$LogFile, 
-        [Int32]$MaxLogFiles, 
+        [string]$LogFile,
+        [Int32]$MaxLogFiles,
         [Int64]$MaxLogSize
     )
 
-    # if MaxLogFiles is 1 just keep the original one and let it grow
+    # If MaxLogFiles is 1, keep original file without rotation (let it grow)
     if (-not($MaxLogFiles -eq 1)) {
         try {
-            # get current size of log file
+            # Get current log file size
             $currentSize = (Get-Item $LogFile).Length
 
-            # get log name
+            # Parse log file path components
             $logFileName = Split-Path $LogFile -Leaf
             $logFilePath = Split-Path $LogFile
             $logFileNameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension($logFileName)
             $logFileNameExtension = [System.IO.Path]::GetExtension($logFileName)
 
+            # Check if rotation is needed
             if ($currentSize -ge $MaxLogSize) {
 
-                # construct name of archived log file
+                # Create archived filename with timestamp
                 $newLogFileName = $logFileNameWithoutExtension + (Get-Date -Format 'yyyyMMddHHmmss').ToString() + $logFileNameExtension
-                # rename old log file
+
+                # Rename current log to archived name
                 Rename-Item -Path $LogFile -NewName $newLogFileName -Force -Confirm:$false
 
-                # create new file
+                # Create new empty log file
                 Write-ToLog "New log file created"
 
-                # if MaxLogFiles is 0 don't delete any old archived log files
+                # Clean up old archives if MaxLogFiles > 0
                 if (-not($MaxLogFiles -eq 0)) {
 
-                    # set filter to search for archived log files
+                    # Build filter pattern for archived log files
                     $archivedLogFileFilter = $logFileNameWithoutExtension + '??????????????' + $logFileNameExtension
 
-                    # get archived log files
+                    # Find all archived log files
                     $oldLogFiles = Get-Item -Path "$(Join-Path -Path $logFilePath -ChildPath $archivedLogFileFilter)"
 
                     if ([bool]$oldLogFiles) {
-                        # compare found log files to MaxLogFiles parameter of the log object, and delete oldest until we are
-                        # back to the correct number
+                        # Delete oldest files if count exceeds maximum
                         if (($oldLogFiles.Count + 1) -gt $MaxLogFiles) {
                             [int]$numTooMany = (($oldLogFiles.Count) + 1) - $MaxLogFiles
                             $oldLogFiles | Sort-Object 'LastWriteTime' | Select-Object -First $numTooMany | Remove-Item
@@ -49,15 +75,15 @@ function Invoke-LogRotation {
                     }
                 }
 
-                #Log Header
+                # Log rotation event
                 Write-ToLog -LogMsg "CHECK FOR APP UPDATES (System context)" -IsHeader
                 Write-ToLog -LogMsg "Max Log Size reached: $MaxLogSize bytes - Rotated Logs"
             }
-            # end of try block
-            Return $true;
+
+            Return $true
         }
         catch {
-            Return $false;
+            Return $false
         }
     }
 }

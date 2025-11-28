@@ -1,34 +1,37 @@
-#Function to get the Block List apps
+<#
+.SYNOPSIS
+    Retrieves the list of excluded (blacklisted) applications.
 
+.DESCRIPTION
+    Returns application IDs to exclude from automatic updates.
+    Priority: GPO registry > local file > default file.
+
+.OUTPUTS
+    Array of application IDs to exclude.
+#>
 function Get-ExcludedApps {
 
-    $AppIDs = @()
+    $GPOPath = "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList"
+    $LocalFile = "$WorkingDir\excluded_apps.txt"
+    $DefaultFile = "$WorkingDir\config\default_excluded_apps.txt"
 
-    #blacklist in Policies registry
-    if (Test-Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList") {
+    # GPO takes priority
+    if (Test-Path $GPOPath) {
         Write-ToLog "-> Excluded apps from GPO is activated"
-        $ValueNames = (Get-Item -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList").Property
-        foreach ($ValueName in $ValueNames) {
-            $AppIDs += (Get-ItemPropertyValue -Path "HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList" -Name $ValueName).Trim()
-        }
-        foreach ($app in $AppIDs) {
-            Write-ToLog "Exclude app $app"
+        $AppIDs = (Get-Item $GPOPath).Property | ForEach-Object {
+            $id = (Get-ItemPropertyValue $GPOPath -Name $_).Trim()
+            Write-ToLog "Exclude app $id"
+            $id
         }
     }
-    #blacklist pulled from local file
-    elseif (Test-Path "$WorkingDir\excluded_apps.txt") {
-
-        $AppIDs = (Get-Content -Path "$WorkingDir\excluded_apps.txt").Trim()
-        Write-ToLog "-> Successsfully loaded local excluded apps list."
-
+    elseif (Test-Path $LocalFile) {
+        Write-ToLog "-> Successfully loaded local excluded apps list."
+        $AppIDs = (Get-Content $LocalFile).Trim()
     }
-    #blacklist pulled from default file
-    elseif (Test-Path "$WorkingDir\config\default_excluded_apps.txt") {
-
-        $AppIDs = (Get-Content -Path "$WorkingDir\config\default_excluded_apps.txt").Trim()
-        Write-ToLog "-> Successsfully loaded default excluded apps list."
-
+    elseif (Test-Path $DefaultFile) {
+        Write-ToLog "-> Successfully loaded default excluded apps list."
+        $AppIDs = (Get-Content $DefaultFile).Trim()
     }
 
-    return $AppIDs | Where-Object { $_.length -gt 0 }
+    return $AppIDs | Where-Object { $_ }
 }

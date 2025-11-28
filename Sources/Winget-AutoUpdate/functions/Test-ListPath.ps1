@@ -1,94 +1,76 @@
-#Function to check Block/Allow List External Path
+<#
+.SYNOPSIS
+    Syncs app list from external source.
 
+.DESCRIPTION
+    Downloads included/excluded apps list from URL, UNC, or local path if newer.
+
+.PARAMETER ListPath
+    External path (URL, UNC, or local).
+
+.PARAMETER UseWhiteList
+    True for included_apps.txt, false for excluded_apps.txt.
+
+.PARAMETER WingetUpdatePath
+    Local WAU installation directory.
+
+.OUTPUTS
+    Boolean: True if updated, False otherwise.
+#>
 function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
-    # URL, UNC or Local Path
-    if ($UseWhiteList) {
-        $ListType = "included_apps.txt"
-    }
-    else {
-        $ListType = "excluded_apps.txt"
-    }
 
-    # Get local and external list paths
-    $LocalList = -join ($WingetUpdatePath, "\", $ListType)
-    $ExternalList = -join ($ListPath, "\", $ListType)
-
-    # Check if a list exists
-    if (Test-Path "$LocalList") {
-        $dateLocal = (Get-Item "$LocalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+    $ListType = if ($UseWhiteList) { "included_apps.txt" } else { "excluded_apps.txt" }
+    $LocalList = Join-Path $WingetUpdatePath $ListType
+    $dateLocal = $null
+    if (Test-Path $LocalList) {
+        $dateLocal = (Get-Item $LocalList).LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
     }
 
-    # If path is URL
+    # URL path
     if ($ListPath -like "http*") {
-        $ExternalList = -join ($ListPath, "/", $ListType)
+        $ExternalList = "$ListPath/$ListType"
 
-        # Test if $ListPath contains the character "?" (testing for SAS token)
-        if ($Listpath -match "\?") {
-            # Split the URL into two strings at the "?" substring
-            $splitPath = $ListPath.Split("`?")
-
-            # Assign the first string (up to "?") to the variable $resourceURI
-            $resourceURI = $splitPath[0]
-
-            # Assign the second string (after "?" to the end) to the variable $sasToken
-            $sasToken = $splitPath[1]
-
-            # Join the parts and add "/$ListType?" in between the parts
-            $ExternalList = -join ($resourceURI, "/$ListType`?", $sasToken)
+        # Handle SAS token URLs
+        if ($ListPath -match "\?") {
+            $parts = $ListPath.Split("?")
+            $ExternalList = "$($parts[0])/$ListType`?$($parts[1])"
         }
 
-        $wc = New-Object System.Net.WebClient
         try {
-            $wc.OpenRead("$ExternalList").Close() | Out-Null
+            $wc = New-Object System.Net.WebClient
+            $wc.OpenRead($ExternalList).Close() | Out-Null
             $dateExternal = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
-            if ($dateExternal -and $dateExternal -gt $dateLocal) {
-                try {
-                    $wc.DownloadFile($ExternalList, $LocalList)
-                }
-                catch {
-                    $Script:ReachNoPath = $True
-                    return $False
-                }
+
+            if (-not $dateLocal -or $dateExternal -gt $dateLocal) {
+                $wc.DownloadFile($ExternalList, $LocalList)
                 return $true
             }
         }
         catch {
             try {
-                $wc.OpenRead("$ExternalList").Close() | Out-Null
                 $wc.DownloadFile($ExternalList, $LocalList)
-                $Script:AlwaysDownloaded = $True
+                $Script:AlwaysDownloaded = $true
                 return $true
             }
             catch {
-                $Script:ReachNoPath = $True
-                return $False
+                $Script:ReachNoPath = $true
+                return $false
             }
         }
     }
-    # If path is UNC or local
+    # UNC or local path
     else {
-        if (Test-Path -Path $ExternalList) {
-            try {
-                $dateExternal = (Get-Item "$ExternalList").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
-            }
-            catch {
-                $Script:ReachNoPath = $True
-                return $False
-            }
-            if ($dateExternal -gt $dateLocal) {
-                try {
-                    Copy-Item $ExternalList -Destination $LocalList -Force
-                }
-                catch {
-                    $Script:ReachNoPath = $True
-                    return $False
-                }
-                return $True
+        $ExternalList = Join-Path $ListPath $ListType
+        if (Test-Path $ExternalList) {
+            $dateExternal = (Get-Item $ExternalList).LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
+            if (-not $dateLocal -or $dateExternal -gt $dateLocal) {
+                Copy-Item $ExternalList -Destination $LocalList -Force
+                return $true
             }
         }
         else {
-            $Script:ReachNoPath = $True
-            return $False
+            $Script:ReachNoPath = $true
+            return $false
         }
     }
 }

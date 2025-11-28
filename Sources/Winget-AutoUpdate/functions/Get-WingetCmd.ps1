@@ -1,30 +1,38 @@
-#Function to get the winget command regarding execution context (User, System...)
+<#
+.SYNOPSIS
+    Retrieves the path to the Winget executable.
 
-Function Get-WingetCmd
-{
+.DESCRIPTION
+    Locates winget.exe from system context (WindowsApps) or user context.
+    Returns the most recent version when multiple exist.
+
+.OUTPUTS
+    String: Full path to winget.exe, or empty if not found.
+#>
+Function Get-WingetCmd {
     [OutputType([String])]
-    $WingetCmd = [string]::Empty;
 
-    #Get WinGet Path
-    # default winget path (in system context)
-    [string]$ps = "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe";
+    $systemPath = "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe"
+    $userPath = "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe"
 
-    #default winget path (in user context)
-    [string]$pu = "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe";
+    # Try system context first (newest version)
+    try {
+        $WingetInfo = (Get-Item $systemPath -ErrorAction Stop).VersionInfo |
+            Sort-Object FileVersionRaw -Descending |
+            Select-Object -First 1
 
-    #Get Admin Context Winget Location
-    $WingetInfo = (Get-Item -Path $ps -ErrorAction Stop).VersionInfo | Sort-Object -Property FileVersionRaw -Descending | Select-Object -First 1;
-    #If multiple versions, pick most recent one
-    $WingetCmd = $WingetInfo.FileName;
-
-    if ([String]::IsNullOrEmpty($WingetCmd))
-    {
-        #Get User context Winget Location
-        if (Test-Path -Path $pu -PathType Leaf)
-        {
-            $WingetCmd = $pu;
+        if ($WingetInfo.FileName) {
+            return $WingetInfo.FileName
         }
     }
+    catch {
+        # System context not found, try user context
+    }
 
-    return $WingetCmd;
+    # Fall back to user context
+    if (Test-Path $userPath) {
+        return $userPath
+    }
+
+    return [string]::Empty
 }

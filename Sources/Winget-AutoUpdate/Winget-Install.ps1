@@ -167,7 +167,10 @@ function Install-App ($AppID, $AppArgs) {
         elseif ($ModsArguments) {
             Write-ToLog "-> Arguments (winget-level): $ModsArguments" # Winget parameters with -h
             $argArray = ConvertTo-WingetArgumentArray $ModsArguments
-            $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", "winget") + $argArray + @("-h") + @($AppArgs -split " ")
+            $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", "winget") + $argArray + @("-h")
+            if (-not [string]::IsNullOrWhiteSpace($AppArgs)) {
+                $WingetArgs += @($AppArgs -split " ")
+            }
         }
         else {
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "

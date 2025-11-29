@@ -101,7 +101,13 @@ function Test-ModsInstall ($AppID) {
             $ModsCustom = (Get-Content "$Mods\$AppID-custom.txt" -Raw).Trim()
         }
         if (Test-Path "$Mods\$AppID-arguments.txt") {
-            $ModsArguments = (Get-Content "$Mods\$AppID-arguments.txt" -Raw).Trim()
+            # Read file and filter out comments and empty lines
+            $lines = Get-Content "$Mods\$AppID-arguments.txt" | Where-Object { 
+                $_.Trim() -ne "" -and -not $_.TrimStart().StartsWith("#") 
+            }
+            if ($lines) {
+                $ModsArguments = ($lines -join " ").Trim()
+            }
         }
         if (Test-Path "$Mods\$AppID-install.ps1") {
             $ModsInstall = "$Mods\$AppID-install.ps1"
@@ -160,7 +166,7 @@ function Install-App ($AppID, $AppArgs) {
         }
         elseif ($ModsArguments) {
             Write-ToLog "-> Arguments (winget-level): $ModsArguments" # Winget parameters with -h
-            $argArray = Parse-WingetArguments $ModsArguments
+            $argArray = ConvertTo-WingetArgumentArray $ModsArguments
             $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", "winget") + $argArray + @("-h") + @($AppArgs -split " ")
         }
         else {

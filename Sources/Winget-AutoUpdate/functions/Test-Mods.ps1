@@ -36,7 +36,15 @@ function Test-Mods ($app) {
         if (Test-Path "$Mods\$app-preinstall.ps1") { $result.PreInstall = "$Mods\$app-preinstall.ps1" }
         if (Test-Path "$Mods\$app-override.txt") { $result.Override = (Get-Content "$Mods\$app-override.txt" -Raw).Trim() }
         if (Test-Path "$Mods\$app-custom.txt") { $result.Custom = (Get-Content "$Mods\$app-custom.txt" -Raw).Trim() }
-        if (Test-Path "$Mods\$app-arguments.txt") { $result.Arguments = (Get-Content "$Mods\$app-arguments.txt" -Raw).Trim() }
+        if (Test-Path "$Mods\$app-arguments.txt") { 
+            # Read file and filter out comments and empty lines
+            $lines = Get-Content "$Mods\$app-arguments.txt" | Where-Object { 
+                $_.Trim() -ne "" -and -not $_.TrimStart().StartsWith("#") 
+            }
+            if ($lines) {
+                $result.Arguments = ($lines -join " ").Trim()
+            }
+        }
         if (Test-Path "$Mods\$app-install.ps1") {
             $result.Install = "$Mods\$app-install.ps1"
             $result.Upgrade = "$Mods\$app-install.ps1"

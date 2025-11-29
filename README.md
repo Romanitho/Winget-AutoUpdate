@@ -260,8 +260,15 @@ This uses the **content** as a native **winget --custom** parameter when upgradi
 
 #### Arguments (Winget-level parameters) ⭐ NEW
 Use **AppID**`-arguments.txt` to pass **winget parameters** (not installer arguments, with `-h` silent mode).
+
+💡 **Locale Tip:** Many applications revert to English or system default language during WAU upgrades because winget doesn't remember the original installation locale. To prevent this:
+- **Best solution:** Use locale-specific package IDs in `included_apps.txt` (e.g., `Mozilla.Firefox.sv-SE` instead of `Mozilla.Firefox`)
+- **Alternative:** Create `{AppID}-arguments.txt` with `--locale` parameter to force language on every upgrade
+
 > Example for language control ([#1073](https://github.com/Romanitho/Winget-AutoUpdate/issues/1073)):<br>
-**Mozilla.Firefox-arguments.txt** with the content `--locale pl-PL`
+**Mozilla.Firefox-arguments.txt** with the content `--locale pl-PL`<br>
+*This prevents Firefox from reverting to English after WAU upgrades.*<br>
+*Better solution: Use `Mozilla.Firefox.pl` in included_apps.txt instead of `Mozilla.Firefox`.*
 
 > Example for dependency issues ([#1075](https://github.com/Romanitho/Winget-AutoUpdate/issues/1075)):<br>
 **Cloudflare.Warp-arguments.txt** with the content `--skip-dependencies`
@@ -271,13 +278,25 @@ Use **AppID**`-arguments.txt` to pass **winget parameters** (not installer argum
 
 **Common use cases:**
 - `--locale <locale>` - Force application language (e.g., `pl-PL`, `en-US`, `de-DE`)
+  - 💡 **Recommended alternative:** Use locale-specific package IDs when available (e.g., `Mozilla.Firefox.sv-SE`, `Mozilla.Firefox.de`, `Mozilla.Firefox.ESR.pl`) to get latest versions
 - `--skip-dependencies` - Skip dependency installations when they conflict
 - `--architecture <arch>` - Force architecture (`x86`, `x64`, `arm64`)
 - `--version <version>` - Pin to specific version
 - `--ignore-security-hash` - Bypass hash verification
 - `--ignore-local-archive-malware-scan` - Skip AV scanning
 
-**Priority:** Override > Custom > Arguments > Default
+⚠️ **Important:** When combining `--locale` and `--version`, the specific version must have an installer available for that locale. Not all versions support all locales. Check available versions with `winget show --id <AppID> --versions`.
+
+💡 **Locale Best Practice:** Search for locale-specific packages with `winget search <AppName>` to see if your language has a dedicated package ID (e.g., `Mozilla.Firefox.sv-SE` for Swedish Firefox). These packages are maintained with the latest versions in your preferred language.
+
+**Command-line usage:** You can also pass arguments when calling `Winget-Install.ps1`:
+```powershell
+.\winget-install.ps1 -AppIDs "Mozilla.Firefox --locale sv-SE"
+.\winget-install.ps1 -AppIDs "7zip.7zip, Notepad++.Notepad++"
+.\winget-install.ps1 -AppIDs "Adobe.Acrobat.Reader.64-bit --scope machine --override \"-sfx_nu /sAll /msi EULA_ACCEPT=YES\""
+```
+
+**Priority:** Override > Custom > Arguments (file) > Arguments (command-line) > Default
 
 See [_AppID-arguments-template.txt](Sources/Winget-AutoUpdate/mods/_AppID-arguments-template.txt) for more examples.
 

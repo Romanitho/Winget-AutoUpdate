@@ -165,16 +165,15 @@ function Install-App ($AppID, $AppArgs) {
             Write-ToLog "-> Arguments (customizing default): $ModsCustom" # With -h (user customizes default)
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom" -split " "
         }
-        elseif ($ModsArguments) {
-            Write-ToLog "-> Arguments (winget-level): $ModsArguments" # Winget parameters with -h
-            $argArray = ConvertTo-WingetArgumentArray $ModsArguments
+        elseif ($ModsArguments -or (-not [string]::IsNullOrWhiteSpace($AppArgs))) {
+            # Prioritize ModsArguments from file over AppArgs from command line
+            $finalArgs = if ($ModsArguments) { $ModsArguments } else { $AppArgs }
+            Write-ToLog "-> Arguments (winget-level): $finalArgs" # Winget parameters with -h
+            $argArray = ConvertTo-WingetArgumentArray $finalArgs
             $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", "winget") + $argArray + @("-h")
-            if (-not [string]::IsNullOrWhiteSpace($AppArgs)) {
-                $WingetArgs += @($AppArgs -split " ")
-            }
         }
         else {
-            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
+            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h" -split " "
         }
 
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
@@ -228,7 +227,14 @@ function Uninstall-App ($AppID, $AppArgs) {
 
         #Uninstall App
         Write-ToLog "-> Uninstalling $AppID..." "DarkYellow"
-        $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
+        if (-not [string]::IsNullOrWhiteSpace($AppArgs)) {
+            Write-ToLog "-> Arguments (winget-level): $AppArgs"
+            $argArray = ConvertTo-WingetArgumentArray $AppArgs
+            $WingetArgs = @("uninstall", "--id", $AppID, "-e", "--accept-source-agreements") + $argArray + @("-h")
+        }
+        else {
+            $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h" -split " "
+        }
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
         & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 

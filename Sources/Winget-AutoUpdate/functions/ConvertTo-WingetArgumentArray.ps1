@@ -27,7 +27,7 @@
 #>
 function ConvertTo-WingetArgumentArray {
     [CmdletBinding()]
-    [OutputType([string[]])]
+    [OutputType([System.Object[]])]
     param(
         [Parameter(Mandatory = $false)]
         [string]$ArgumentString

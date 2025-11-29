@@ -76,9 +76,23 @@ Passes additional **winget parameters** (not installer arguments). Uses `-h` (si
 - `--ignore-security-hash` - Bypass hash verification
 - `--ignore-local-archive-malware-scan` - Skip malware scanning
 
-**Priority order:** `Override` > `Custom` > `Arguments` > `Default`
+💡 **Locale Tip:** For applications with locale-specific package IDs (e.g., `Mozilla.Firefox.sv-SE`, `Mozilla.Firefox.de`), use the locale-specific package ID in your `included_apps.txt` instead of the base ID. This prevents WAU from reverting the application language to English during upgrades.
+
+If you must use the base package ID (e.g., `Mozilla.Firefox`), create a `{AppID}-arguments.txt` with `--locale` parameter to force the language during every upgrade.
+
+⚠️ **Important:** When combining `--locale` and `--version`, the specific version must have an installer available for that locale in the winget manifest. Not all versions support all locales.
+
+**Priority order:** `Override` > `Custom` > `Arguments (file)` > `Arguments (command-line)` > `Default`
 - If `-override.txt` exists, both `-custom.txt` and `-arguments.txt` are ignored
 - If `-custom.txt` exists, `-arguments.txt` is ignored
+- If `-arguments.txt` exists, command-line arguments are ignored
 - `-arguments.txt` is only used if neither override nor custom exists
+
+**Command-line usage:** You can also pass arguments when calling `Winget-Install.ps1`:
+```powershell
+.\winget-install.ps1 -AppIDs "Mozilla.Firefox --locale sv-SE"
+.\winget-install.ps1 -AppIDs "7zip.7zip --version 23.01 --architecture x64"
+```
+Note: File-based `-arguments.txt` has priority over command-line arguments.
 
 **Template:** See `_AppID-arguments-template.txt` for more examples and documentation.

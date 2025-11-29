@@ -100,6 +100,9 @@ function Test-ModsInstall ($AppID) {
         if (Test-Path "$Mods\$AppID-custom.txt") {
             $ModsCustom = (Get-Content "$Mods\$AppID-custom.txt" -Raw).Trim()
         }
+        if (Test-Path "$Mods\$AppID-arguments.txt") {
+            $ModsArguments = (Get-Content "$Mods\$AppID-arguments.txt" -Raw).Trim()
+        }
         if (Test-Path "$Mods\$AppID-install.ps1") {
             $ModsInstall = "$Mods\$AppID-install.ps1"
         }
@@ -108,7 +111,7 @@ function Test-ModsInstall ($AppID) {
         }
     }
 
-    return $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsInstall, $ModsInstalled
+    return $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsArguments, $ModsInstall, $ModsInstalled
 }
 
 #Check if uninstall modifications exist in "mods" directory
@@ -132,8 +135,8 @@ function Test-ModsUninstall ($AppID) {
 function Install-App ($AppID, $AppArgs) {
     $IsInstalled = Confirm-Installation $AppID
     if (!($IsInstalled) -or $AllowUpgrade ) {
-        #Check if mods exist (or already exist) for preinstall/override/custom/install/installed
-        $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsInstall, $ModsInstalled = Test-ModsInstall $($AppID)
+        #Check if mods exist (or already exist) for preinstall/override/custom/arguments/install/installed
+        $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsArguments, $ModsInstall, $ModsInstalled = Test-ModsInstall $($AppID)
 
         #If PreInstall script exist
         if ($ModsPreInstall) {
@@ -154,6 +157,11 @@ function Install-App ($AppID, $AppArgs) {
         elseif ($ModsCustom) {
             Write-ToLog "-> Arguments (customizing default): $ModsCustom" # With -h (user customizes default)
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom" -split " "
+        }
+        elseif ($ModsArguments) {
+            Write-ToLog "-> Arguments (winget-level): $ModsArguments" # Winget parameters with -h
+            $argArray = Parse-WingetArguments $ModsArguments
+            $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", "winget") + $argArray + @("-h") + @($AppArgs -split " ")
         }
         else {
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "

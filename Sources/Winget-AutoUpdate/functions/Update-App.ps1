@@ -24,7 +24,7 @@ Function Update-App ($app) {
         }
         elseif ($ModsArguments) {
             # Parse arguments respecting quotes and spaces
-            $argArray = Parse-WingetArguments $ModsArguments
+            $argArray = ConvertTo-WingetArgumentArray $ModsArguments
             return @{ Params = $params + $argArray + "-h"; Log = "$Command (arguments): $ModsArguments" }
         }
         return @{ Params = $params + "-h"; Log = $Command }

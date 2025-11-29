@@ -14,18 +14,18 @@
     Array of individual argument strings
 
 .EXAMPLE
-    Parse-WingetArguments "--skip-dependencies"
+    ConvertTo-WingetArgumentArray "--skip-dependencies"
     Returns: @("--skip-dependencies")
 
 .EXAMPLE
-    Parse-WingetArguments '--locale "en-US" --architecture x64'
+    ConvertTo-WingetArgumentArray '--locale "en-US" --architecture x64'
     Returns: @("--locale", "en-US", "--architecture", "x64")
 
 .EXAMPLE
-    Parse-WingetArguments "--override '-sfx_nu /sAll /msi EULA_ACCEPT=YES'"
+    ConvertTo-WingetArgumentArray "--override '-sfx_nu /sAll /msi EULA_ACCEPT=YES'"
     Returns: @("--override", "-sfx_nu /sAll /msi EULA_ACCEPT=YES")
 #>
-function Parse-WingetArguments {
+function ConvertTo-WingetArgumentArray {
     [CmdletBinding()]
     [OutputType([string[]])]
     param(
@@ -51,10 +51,12 @@ function Parse-WingetArguments {
     $pattern = '(?:"([^"]*)"|''([^'']*)''|(\S+))'
     
     try {
-        $matches = [regex]::Matches($ArgumentString, $pattern)
+        # Use [regex]::Matches() to find all argument tokens
+        $regex = [regex]::new($pattern)
+        $regexMatches = $regex.Matches($ArgumentString)
         
         $result = @()
-        foreach ($match in $matches) {
+        foreach ($match in $regexMatches) {
             # Get the captured value from whichever group matched
             $value = if ($match.Groups[1].Success) { 
                 # Double-quoted value
@@ -82,6 +84,7 @@ function Parse-WingetArguments {
         Write-ToLog "Falling back to simple space split" "Yellow"
         
         # Fallback to simple split if regex parsing fails
-        return $ArgumentString.Trim() -split '\s+'
+        $fallbackResult = $ArgumentString.Trim() -split '\s+'
+        return $fallbackResult
     }
 }

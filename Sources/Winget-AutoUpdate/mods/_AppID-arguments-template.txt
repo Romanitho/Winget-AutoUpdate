@@ -1,0 +1,76 @@
+# AppID-arguments.txt Template
+
+# This file allows you to specify additional winget-level arguments for a specific application.
+# These arguments affect winget's behavior (not the installer itself).
+#
+# Priority order: Override > Custom > Arguments > Default
+# - If {AppID}-override.txt exists, this file is IGNORED
+# - If {AppID}-custom.txt exists, this file is IGNORED
+# - Arguments are added BEFORE the -h (silent) flag
+#
+# Naming: Replace {AppID} with the actual WinGet App ID
+# Example: Mozilla.Firefox-arguments.txt
+#          Cloudflare.Warp-arguments.txt
+#          Microsoft.VisualStudio.2022.Community-arguments.txt
+
+# COMMON USE CASES:
+
+# 1. Set application locale (Issue #1073)
+# Example for Polish Firefox:
+--locale pl-PL
+
+# Example for English Visual Studio:
+# --locale en-US
+
+# 2. Skip dependency installations (Issue #1075)
+# Useful when dependency versions conflict:
+# --skip-dependencies
+
+# 3. Force specific architecture
+# On multi-architecture systems:
+# --architecture x64
+# --architecture x86
+# --architecture arm64
+
+# 4. Pin to specific version
+# Prevent auto-upgrade to latest:
+# --version 120.0.1
+
+# 5. Ignore security hash mismatches
+# When winget manifest hash is outdated:
+# --ignore-security-hash
+
+# 6. Ignore malware scan
+# On restrictive systems with AV issues:
+# --ignore-local-archive-malware-scan
+
+# 7. Force uninstall before install
+# For problematic upgrades:
+# --uninstall-previous
+
+# 8. Custom repository authentication
+# For private repos:
+# --header "Authorization: Bearer TOKEN123"
+
+# MULTIPLE ARGUMENTS:
+# You can combine multiple arguments on one line or separate lines:
+
+# Single line example:
+# --locale en-US --skip-dependencies --architecture x64
+
+# Multi-line example (all will be combined):
+# --locale en-US
+# --skip-dependencies
+# --architecture x64
+
+# QUOTED VALUES:
+# Use quotes for values containing spaces:
+# --locale "en-US"
+# --custom "SETTING=Value With Spaces"
+
+# NOTES:
+# - These are WINGET parameters, not installer arguments
+# - For installer arguments, use {AppID}-custom.txt (adds to defaults)
+# - For full installer control, use {AppID}-override.txt (replaces all defaults)
+# - Arguments are parsed respecting quotes (both single and double)
+# - Empty lines and lines starting with # are ignored

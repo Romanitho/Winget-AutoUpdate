@@ -242,17 +242,44 @@ Share your mods with the community:<br>
 <https://github.com/Romanitho/Winget-AutoUpdate/discussions/categories/mods>
 
 ### Winget native parameters
-Another finess is the **AppID** followed by the `-override` suffix as a **text file** (.**txt**) that you can place under the **mods** folder.
+You can customize winget behavior per-app using **text files** (.**txt**) placed in the **mods** folder:
+
+#### Override (Full installer control)
+Use **AppID**`-override.txt` to replace ALL installer arguments (without `-h` silent mode).
 > Example:<br>
 **Adobe.Acrobat.Reader.64-bit-override.txt** with the content `"-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1"`
 
-This will use the **content** of the text file as a native **winget --override** parameter when upgrading.
+This uses the **content** as a native **winget --override** parameter when upgrading.
 
-Likewise you can use the **AppID** followed by the `-custom` suffix as a **text file** (.**txt**) that you can place under the **mods** folder (*Arguments to be passed on to the installer in addition to the defaults*).
+#### Custom (Add installer arguments)
+Use **AppID**`-custom.txt` to add extra arguments to the installer (with `-h` silent mode).
 > Example:<br>
 **Adobe.Acrobat.Reader.64-bit-custom.txt** with the content `"DISABLEDESKTOPSHORTCUT=1"`
 
-This will use the **content** of the text file as a native **winget --custom** parameter when upgrading.
+This uses the **content** as a native **winget --custom** parameter when upgrading.
+
+#### Arguments (Winget-level parameters) ⭐ NEW
+Use **AppID**`-arguments.txt` to pass **winget parameters** (not installer arguments, with `-h` silent mode).
+> Example for language control ([#1073](https://github.com/Romanitho/Winget-AutoUpdate/issues/1073)):<br>
+**Mozilla.Firefox-arguments.txt** with the content `--locale pl-PL`
+
+> Example for dependency issues ([#1075](https://github.com/Romanitho/Winget-AutoUpdate/issues/1075)):<br>
+**Cloudflare.Warp-arguments.txt** with the content `--skip-dependencies`
+
+> Example with multiple parameters:<br>
+**Microsoft.VisualStudio.2022.Community-arguments.txt** with the content `--locale en-US --architecture x64`
+
+**Common use cases:**
+- `--locale <locale>` - Force application language (e.g., `pl-PL`, `en-US`, `de-DE`)
+- `--skip-dependencies` - Skip dependency installations when they conflict
+- `--architecture <arch>` - Force architecture (`x86`, `x64`, `arm64`)
+- `--version <version>` - Pin to specific version
+- `--ignore-security-hash` - Bypass hash verification
+- `--ignore-local-archive-malware-scan` - Skip AV scanning
+
+**Priority:** Override > Custom > Arguments > Default
+
+See [_AppID-arguments-template.txt](Sources/Winget-AutoUpdate/mods/_AppID-arguments-template.txt) for more examples.
 
 
 ## Known issues

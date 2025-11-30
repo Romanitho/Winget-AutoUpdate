@@ -185,6 +185,54 @@ function Remove-ModsLnk ($Lnk) {
     Return $removedCount
 }
 
+function Add-ProgramsShortcuts ($Shortcuts, $ShortcutsTargets) {
+    $programsPath = "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs"
+    $createdCount = 0
+    
+    # Validate arrays match in length
+    if ($Shortcuts.Count -ne $ShortcutsTargets.Count) {
+        Return $createdCount
+    }
+    
+    # Create WScript.Shell COM object
+    $WshShell = New-Object -ComObject WScript.Shell -ErrorAction SilentlyContinue
+    if (!$WshShell) {
+        Return $createdCount
+    }
+    
+    # Iterate through shortcuts
+    for ($i = 0; $i -lt $Shortcuts.Count; $i++) {
+        $shortcutName = $Shortcuts[$i]
+        $targetPath = $ShortcutsTargets[$i]
+        
+        # Skip empty entries
+        if ([string]::IsNullOrEmpty($shortcutName) -or [string]::IsNullOrEmpty($targetPath)) {
+            continue
+        }
+        
+        # Construct full shortcut path
+        $shortcutPath = Join-Path $programsPath "$shortcutName.lnk"
+        
+        # Create parent directory if it doesn't exist
+        $shortcutDir = Split-Path $shortcutPath -Parent
+        if (!(Test-Path $shortcutDir)) {
+            New-Item -Path $shortcutDir -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
+        }
+        
+        # Verify target exists
+        if (Test-Path $targetPath) {
+            # Create shortcut
+            $shortcut = $WshShell.CreateShortcut($shortcutPath)
+            $shortcut.TargetPath = $targetPath
+            $shortcut.WorkingDirectory = Split-Path $targetPath -Parent
+            $shortcut.Save()
+            $createdCount++
+        }
+    }
+    
+    Return $createdCount
+}
+
 function Add-ModsReg ($AddKey, $AddValue, $AddTypeData, $AddType) {
     if ($AddKey -like "HKEY_LOCAL_MACHINE*") {
         $AddKey = $AddKey.replace("HKEY_LOCAL_MACHINE", "HKLM:")

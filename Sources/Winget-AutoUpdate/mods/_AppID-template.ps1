@@ -51,7 +51,9 @@ $AllVersions = $False
 # Beginning of Desktop Link Name to Remove - optional wildcard (*) after, without .lnk, multiple: "lnk1*","lnk2"
 $Lnk = @("")
 
-# Create Start Menu Shortcuts, without .lnk, multiple: "lnk1","lnk2"
+# Create Start Menu Shortcuts, without .lnk, multiple: "lnk1","lnk2". Example:
+# $Shortcuts = @("dnGrep\dnGrep")
+# $ShortcutsTargets = @("${env:ProgramFiles}\dnGrep\dnGrep.exe")
 $Shortcuts = @("")
 $ShortcutsTargets = @("") # Must match the order of $Shortcuts
 
@@ -134,7 +136,7 @@ if ($Lnk) {
     Remove-ModsLnk $Lnk
 }
 if ($Shortcuts) {
-    Add-Shortcuts $Shortcuts $ShortcutsTargets
+    Add-ProgramsShortcuts $Shortcuts $ShortcutsTargets
 }
 if ($AddKey -and $AddValue -and $AddTypeData -and $AddType) {
     Add-ModsReg $AddKey $AddValue $AddTypeData $AddType

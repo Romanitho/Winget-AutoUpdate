@@ -22,14 +22,14 @@
 # This happens because winget doesn't remember the locale used during initial install.
 #
 # RECOMMENDED SOLUTION: Use locale-specific package IDs when available
-# Example: Mozilla.Firefox.sv-SE, Mozilla.Firefox.pl-PL, Mozilla.Firefox.de
+# Example: Mozilla.Firefox.sv-SE, Mozilla.Firefox.pl, Mozilla.Firefox.de
 # Add the locale-specific App ID to WAU's included_apps.txt instead of the base ID.
 # Then WAU will upgrade the correct language version automatically.
 #
 # ALTERNATIVE SOLUTION: Use --locale parameter in {AppID}-arguments.txt
 # This forces the locale during every upgrade, even if the base package ID is used.
 # Example for Polish Firefox (if using Mozilla.Firefox base ID):
-# --locale pl-PL
+# --locale pl
 #
 # Example for English Visual Studio:
 # --locale en-US

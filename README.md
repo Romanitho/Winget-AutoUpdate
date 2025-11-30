@@ -266,7 +266,7 @@ Use **AppID**`-arguments.txt` to pass **winget parameters** (not installer argum
 - **Alternative:** Create `{AppID}-arguments.txt` with `--locale` parameter to force language on every upgrade
 
 > Example for language control ([#1073](https://github.com/Romanitho/Winget-AutoUpdate/issues/1073)):<br>
-**Mozilla.Firefox-arguments.txt** with the content `--locale pl-PL`<br>
+**Mozilla.Firefox-arguments.txt** with the content `--locale pl`<br>
 *This prevents Firefox from reverting to English after WAU upgrades.*<br>
 *Better solution: Use `Mozilla.Firefox.pl` in included_apps.txt instead of `Mozilla.Firefox`.*
 

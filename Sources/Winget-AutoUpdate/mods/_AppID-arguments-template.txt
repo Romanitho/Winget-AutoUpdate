@@ -48,7 +48,7 @@
 # --architecture x86
 # --architecture arm64
 
-# 4. Pin to specific version
+# 4. Pin to specific version (but WAU will still try upgrading...)
 # Prevent auto-upgrade to latest:
 # --version 120.0.1
 # WARNING: When combining --locale and --version, the specific version

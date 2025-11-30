@@ -135,7 +135,7 @@ if ($AppUninst) {
 if ($Lnk) {
     Remove-ModsLnk $Lnk
 }
-if ($Shortcuts) {
+if ($Shortcuts -and $Shortcuts[0]) {
     Add-ProgramsShortcuts $Shortcuts $ShortcutsTargets
 }
 if ($AddKey -and $AddValue -and $AddTypeData -and $AddType) {

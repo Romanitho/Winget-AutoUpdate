@@ -52,6 +52,10 @@ $AllVersions = $False
 $Lnk = @("")
 
 # Create Start Menu Shortcuts, without .lnk, multiple: "lnk1","lnk2". Example:
+# - Supports subdirectories in shortcut names (e.g., "Folder\ShortcutName")
+# - $Shortcuts and $ShortcutsTargets arrays must match in length and order
+# - Shortcuts are only created if the target file exists
+# Example:
 # $Shortcuts = @("dnGrep\dnGrep")
 # $ShortcutsTargets = @("${env:ProgramFiles}\dnGrep\dnGrep.exe")
 $Shortcuts = @("")

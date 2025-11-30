@@ -189,8 +189,8 @@ function Add-ProgramsShortcuts ($Shortcuts, $ShortcutsTargets) {
     $programsPath = "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs"
     $createdCount = 0
     
-    # Validate arrays match in length
-    if ($Shortcuts.Count -ne $ShortcutsTargets.Count) {
+    # Validate arrays match in length and are not just empty placeholders
+    if ($Shortcuts.Count -ne $ShortcutsTargets.Count -or ($Shortcuts.Count -eq 1 -and [string]::IsNullOrEmpty($Shortcuts[0]))) {
         Return $createdCount
     }
     
@@ -224,7 +224,10 @@ function Add-ProgramsShortcuts ($Shortcuts, $ShortcutsTargets) {
             # Create shortcut
             $shortcut = $WshShell.CreateShortcut($shortcutPath)
             $shortcut.TargetPath = $targetPath
-            $shortcut.WorkingDirectory = Split-Path $targetPath -Parent
+            $parentPath = Split-Path $targetPath -Parent
+            if (![string]::IsNullOrEmpty($parentPath)) {
+                $shortcut.WorkingDirectory = $parentPath
+            }
             $shortcut.Save()
             $createdCount++
         }

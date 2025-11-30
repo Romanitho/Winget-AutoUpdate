@@ -53,8 +53,7 @@ Passes additional **winget parameters** (not installer arguments). Uses `-h` (si
 > Example:  
 >  **Mozilla.Firefox-arguments.txt** with the content:
 >  ```
->  --locale pl-PL
->  ```
+>  --locale pl
 
 > Example:  
 >  **Cloudflare.Warp-arguments.txt** with the content:

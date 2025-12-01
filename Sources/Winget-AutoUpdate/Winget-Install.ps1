@@ -71,6 +71,7 @@ else {
 . "$realPath\functions\Write-ToLog.ps1"
 . "$realPath\functions\Confirm-Installation.ps1"
 . "$realPath\functions\Compare-SemVer.ps1"
+. "$realPath\functions\ConvertTo-WingetArgumentArray.ps1"
 
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {
@@ -100,6 +101,15 @@ function Test-ModsInstall ($AppID) {
         if (Test-Path "$Mods\$AppID-custom.txt") {
             $ModsCustom = (Get-Content "$Mods\$AppID-custom.txt" -Raw).Trim()
         }
+        if (Test-Path "$Mods\$AppID-arguments.txt") {
+            # Read file and filter out comments and empty lines
+            $lines = Get-Content "$Mods\$AppID-arguments.txt" | Where-Object { 
+                $_.Trim() -ne "" -and -not $_.TrimStart().StartsWith("#") 
+            }
+            if ($lines) {
+                $ModsArguments = ($lines -join " ").Trim()
+            }
+        }
         if (Test-Path "$Mods\$AppID-install.ps1") {
             $ModsInstall = "$Mods\$AppID-install.ps1"
         }
@@ -108,7 +118,7 @@ function Test-ModsInstall ($AppID) {
         }
     }
 
-    return $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsInstall, $ModsInstalled
+    return $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsArguments, $ModsInstall, $ModsInstalled
 }
 
 #Check if uninstall modifications exist in "mods" directory
@@ -132,8 +142,8 @@ function Test-ModsUninstall ($AppID) {
 function Install-App ($AppID, $AppArgs) {
     $IsInstalled = Confirm-Installation $AppID
     if (!($IsInstalled) -or $AllowUpgrade ) {
-        #Check if mods exist (or already exist) for preinstall/override/custom/install/installed
-        $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsInstall, $ModsInstalled = Test-ModsInstall $($AppID)
+        #Check if mods exist (or already exist) for preinstall/override/custom/arguments/install/installed
+        $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsArguments, $ModsInstall, $ModsInstalled = Test-ModsInstall $($AppID)
 
         #If PreInstall script exist
         if ($ModsPreInstall) {
@@ -155,8 +165,15 @@ function Install-App ($AppID, $AppArgs) {
             Write-ToLog "-> Arguments (customizing default): $ModsCustom" # With -h (user customizes default)
             $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom" -split " "
         }
+        elseif ($ModsArguments -or (-not [string]::IsNullOrWhiteSpace($AppArgs))) {
+            # Prioritize ModsArguments from file over AppArgs from command line
+            $finalArgs = if ($ModsArguments) { $ModsArguments } else { $AppArgs }
+            Write-ToLog "-> Arguments (winget-level): $finalArgs" # Winget parameters with -h
+            $argArray = ConvertTo-WingetArgumentArray $finalArgs
+            $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", "winget") + $argArray + @("-h")
+        }
         else {
-            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h $AppArgs" -split " "
+            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h" -split " "
         }
 
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
@@ -210,7 +227,14 @@ function Uninstall-App ($AppID, $AppArgs) {
 
         #Uninstall App
         Write-ToLog "-> Uninstalling $AppID..." "DarkYellow"
-        $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h $AppArgs" -split " "
+        if (-not [string]::IsNullOrWhiteSpace($AppArgs)) {
+            Write-ToLog "-> Arguments (winget-level): $AppArgs"
+            $argArray = ConvertTo-WingetArgumentArray $AppArgs
+            $WingetArgs = @("uninstall", "--id", $AppID, "-e", "--accept-source-agreements") + $argArray + @("-h")
+        }
+        else {
+            $WingetArgs = "uninstall --id $AppID -e --accept-source-agreements -h" -split " "
+        }
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
         & "$Winget" $WingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 

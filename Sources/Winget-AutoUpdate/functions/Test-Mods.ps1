@@ -4,13 +4,13 @@
 
 .DESCRIPTION
     Searches for app-specific scripts that customize the install/upgrade process.
-    Hooks: preinstall, override, custom, upgrade, install, installed, notinstalled.
+    Hooks: preinstall, override, custom, arguments, upgrade, install, installed, notinstalled.
 
 .PARAMETER app
     The WinGet application ID to check.
 
 .OUTPUTS
-    Array: [PreInstall, Override, Custom, Upgrade, Install, Installed, NotInstalled]
+    Array: [PreInstall, Override, Custom, Arguments, Upgrade, Install, Installed, NotInstalled]
 #>
 function Test-Mods ($app) {
 
@@ -19,6 +19,7 @@ function Test-Mods ($app) {
         PreInstall   = $null
         Override     = $null
         Custom       = $null
+        Arguments    = $null
         Upgrade      = $null
         Install      = $null
         Installed    = $null
@@ -35,6 +36,15 @@ function Test-Mods ($app) {
         if (Test-Path "$Mods\$app-preinstall.ps1") { $result.PreInstall = "$Mods\$app-preinstall.ps1" }
         if (Test-Path "$Mods\$app-override.txt") { $result.Override = (Get-Content "$Mods\$app-override.txt" -Raw).Trim() }
         if (Test-Path "$Mods\$app-custom.txt") { $result.Custom = (Get-Content "$Mods\$app-custom.txt" -Raw).Trim() }
+        if (Test-Path "$Mods\$app-arguments.txt") { 
+            # Read file and filter out comments and empty lines
+            $lines = Get-Content "$Mods\$app-arguments.txt" | Where-Object { 
+                $_.Trim() -ne "" -and -not $_.TrimStart().StartsWith("#") 
+            }
+            if ($lines) {
+                $result.Arguments = ($lines -join " ").Trim()
+            }
+        }
         if (Test-Path "$Mods\$app-install.ps1") {
             $result.Install = "$Mods\$app-install.ps1"
             $result.Upgrade = "$Mods\$app-install.ps1"
@@ -44,5 +54,5 @@ function Test-Mods ($app) {
         if (Test-Path "$Mods\$app-notinstalled.ps1") { $result.NotInstalled = "$Mods\$app-notinstalled.ps1" }
     }
 
-    return $result.PreInstall, $result.Override, $result.Custom, $result.Upgrade, $result.Install, $result.Installed, $result.NotInstalled
+    return $result.PreInstall, $result.Override, $result.Custom, $result.Arguments, $result.Upgrade, $result.Install, $result.Installed, $result.NotInstalled
 }

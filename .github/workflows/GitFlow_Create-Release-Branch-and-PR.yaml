@@ -35,7 +35,7 @@ jobs:
 
       # Step 2: Checkout the develop branch which contains all approved features
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: develop  # Always create releases from develop branch
           fetch-depth: 0

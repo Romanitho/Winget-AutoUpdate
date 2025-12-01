@@ -12,7 +12,7 @@
 Function Update-App ($app) {
 
     # Helper function to build winget command parameters
-    function Get-WingetParams ($Command, $ModsOverride, $ModsCustom) {
+    function Get-WingetParams ($Command, $ModsOverride, $ModsCustom, $ModsArguments) {
         $params = @($Command, "--id", $app.Id, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", "winget")
         if ($Command -eq "install") { $params += "--force" }
 
@@ -21,6 +21,11 @@ Function Update-App ($app) {
         }
         elseif ($ModsCustom) {
             return @{ Params = $params + @("-h", "--custom", $ModsCustom); Log = "$Command (custom): $ModsCustom" }
+        }
+        elseif ($ModsArguments) {
+            # Parse arguments respecting quotes and spaces
+            $argArray = ConvertTo-WingetArgumentArray $ModsArguments
+            return @{ Params = $params + $argArray + @("-h"); Log = "$Command (arguments): $ModsArguments" }
         }
         return @{ Params = $params + "-h"; Log = $Command }
     }
@@ -36,7 +41,7 @@ Function Update-App ($app) {
         -MessageType "info" -Balise $app.Name -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
 
     # Load mods
-    $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled = Test-Mods $app.Id
+    $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsArguments, $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled = Test-Mods $app.Id
 
     Write-ToLog "##########   WINGET UPGRADE: $($app.Id)   ##########" "Gray"
 
@@ -50,7 +55,7 @@ Function Update-App ($app) {
     }
 
     # Try upgrade first
-    $cmd = Get-WingetParams "upgrade" $ModsOverride $ModsCustom
+    $cmd = Get-WingetParams "upgrade" $ModsOverride $ModsCustom $ModsArguments
     Write-ToLog "-> $($cmd.Log)"
     & $Winget $cmd.Params | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 
@@ -68,7 +73,7 @@ Function Update-App ($app) {
         for ($retry = 1; $retry -le $maxRetry -and -not $ConfirmInstall; $retry++) {
             Write-ToLog "-> Upgrade failed, trying install ($retry/$maxRetry)..." "DarkYellow"
 
-            $cmd = Get-WingetParams "install" $ModsOverride $ModsCustom
+            $cmd = Get-WingetParams "install" $ModsOverride $ModsCustom $ModsArguments
             Write-ToLog "-> $($cmd.Log)"
             & $Winget $cmd.Params | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
 

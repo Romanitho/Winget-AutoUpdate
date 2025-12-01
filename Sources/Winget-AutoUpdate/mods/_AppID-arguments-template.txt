@@ -1,0 +1,105 @@
+# AppID-arguments.txt Template
+
+# This file allows you to specify additional winget-level arguments for a specific application.
+# These arguments affect winget's behavior (not the installer itself).
+#
+# Priority order: Override > Custom > Arguments (file) > Arguments (command-line) > Default
+# - If {AppID}-override.txt exists, this file is IGNORED
+# - If {AppID}-custom.txt exists, this file is IGNORED
+# - If this file exists, command-line arguments are IGNORED
+# - Arguments are added BEFORE the -h (silent) flag
+#
+# Naming: Replace {AppID} with the actual WinGet App ID
+# Example: Mozilla.Firefox-arguments.txt
+#          Cloudflare.Warp-arguments.txt
+#          Microsoft.VisualStudio.2022.Community-arguments.txt
+
+# COMMON USE CASES:
+
+# 1. Set application locale (Issue #1073)
+# PROBLEM: When WAU upgrades applications, winget may revert the language to
+# English or system default, ignoring the user's previous installation choice.
+# This happens because winget doesn't remember the locale used during initial install.
+#
+# RECOMMENDED SOLUTION: Use locale-specific package IDs when available
+# Example: Mozilla.Firefox.sv-SE, Mozilla.Firefox.pl, Mozilla.Firefox.de
+# Add the locale-specific App ID to WAU's included_apps.txt instead of the base ID.
+# Then WAU will upgrade the correct language version automatically.
+#
+# ALTERNATIVE SOLUTION: Use --locale parameter in {AppID}-arguments.txt
+# This forces the locale during every upgrade, even if the base package ID is used.
+# Example for Polish Firefox (if using Mozilla.Firefox base ID):
+# --locale pl
+#
+# Example for English Visual Studio:
+# --locale en-US
+#
+# NOTE: Locale-specific package IDs are preferred as they always have
+# the latest version. The --locale parameter only works if that specific
+# version has an installer for the requested locale.
+
+# 2. Skip dependency installations (Issue #1075)
+# Useful when dependency versions conflict:
+# --skip-dependencies
+
+# 3. Force specific architecture
+# On multi-architecture systems:
+# --architecture x64
+# --architecture x86
+# --architecture arm64
+
+# 4. Pin to specific version (but WAU will still try upgrading...)
+# Prevent auto-upgrade to latest:
+# --version 120.0.1
+# WARNING: When combining --locale and --version, the specific version
+# must have an installer available for that locale in the winget manifest.
+
+# 5. Ignore security hash mismatches
+# When winget manifest hash is outdated:
+# --ignore-security-hash
+
+# 6. Ignore malware scan
+# On restrictive systems with AV issues:
+# --ignore-local-archive-malware-scan
+
+# 7. Force uninstall before install
+# For problematic upgrades:
+# --uninstall-previous
+
+# 8. Custom repository authentication
+# For private repos:
+# --header "Authorization: Bearer TOKEN123"
+
+# MULTIPLE ARGUMENTS:
+# You can combine multiple arguments on one line or separate lines:
+
+# Single line example:
+# --locale en-US --skip-dependencies --architecture x64
+
+# Multi-line example (all will be combined):
+# --locale en-US
+# --skip-dependencies
+# --architecture x64
+
+# QUOTED VALUES:
+# Use quotes for values containing spaces:
+# --locale "en-US"
+# --custom "SETTING=Value With Spaces"
+
+# COMMAND-LINE USAGE:
+# You can also pass arguments directly when calling Winget-Install.ps1:
+#   winget-install.ps1 -AppIDs "Mozilla.Firefox --locale sv-SE"
+#   winget-install.ps1 -AppIDs "7zip.7zip --version 23.01 --architecture x64"
+#
+# Note: File-based arguments have priority over command-line arguments.
+# If this file exists, command-line arguments for this app are ignored.
+#
+# IMPORTANT: When combining --locale and --version, ensure the specific
+# version has an installer for that locale. Not all versions support all locales.
+
+# NOTES:
+# - These are WINGET parameters, not installer arguments
+# - For installer arguments, use {AppID}-custom.txt (adds to defaults)
+# - For full installer control, use {AppID}-override.txt (replaces all defaults)
+# - Arguments are parsed respecting quotes (both single and double)
+# - Empty lines and lines starting with # are ignored

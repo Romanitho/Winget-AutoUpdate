@@ -57,7 +57,33 @@ Function Update-App ($app) {
     # Try upgrade first
     $cmd = Get-WingetParams "upgrade" $ModsOverride $ModsCustom $ModsArguments
     Write-ToLog "-> $($cmd.Log)"
-    & $Winget $cmd.Params | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+
+    # Capture output to check for pinning
+    $upgradeOutput = & $Winget $cmd.Params 2>&1 | Where-Object { $_ -notlike "   *" } | 
+        Tee-Object -file $LogFile -Append | Out-String
+
+    # Check if package is pinned or requires explicit upgrade
+    # Matches various winget messages indicating pinning or RequireExplicitUpgrade:
+    # - "cannot be upgraded using winget"
+    # - "require explicit targeting for upgrade"
+    # - "package(s) are pinned" or "packages are pinned"
+    # - "Please use the method provided by the publisher"
+    if ($upgradeOutput -match "cannot be upgraded using winget" -or 
+        $upgradeOutput -match "explicit targeting for upgrade" -or
+        $upgradeOutput -match "package.*pinned" -or
+        $upgradeOutput -match "use the method provided by the publisher") {
+        
+        Write-ToLog "-> $($app.Name) is pinned or requires explicit upgrade" "Yellow"
+        Write-ToLog "-> Skipping automatic upgrade for this package" "Yellow"
+        
+        # Send notification about pinned package
+        Start-NotifTask -Title ($NotifLocale.local.outputs.output[4].title -f $app.Name) `
+            -Message "Package is pinned and requires explicit upgrade. Please upgrade manually if needed." `
+            -MessageType "warning" -Balise $app.Name -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
+        
+        Write-ToLog "##########   FINISHED: $($app.Id)   ##########" "Gray"
+        return  # Exit function early - do NOT try install as fallback
+    }
 
     if ($ModsUpgrade) {
         Write-ToLog "Running upgrade mod..." "DarkYellow"
@@ -66,7 +92,7 @@ Function Update-App ($app) {
 
     $ConfirmInstall = Confirm-Installation $app.Id $app.AvailableVersion
 
-    # Fallback to install if upgrade failed
+    # Fallback to install if upgrade failed (but NOT if pinned - already handled above)
     if (-not $ConfirmInstall) {
         $maxRetry = if (Test-PendingReboot) { Write-ToLog "-> Pending reboot detected, limiting retries" "Yellow"; 1 } else { 2 }
 

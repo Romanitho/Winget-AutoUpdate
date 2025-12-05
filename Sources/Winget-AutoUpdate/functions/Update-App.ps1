@@ -63,15 +63,15 @@ Function Update-App ($app) {
         Tee-Object -file $LogFile -Append | Out-String
 
     # Check if package is pinned or requires explicit upgrade
-    # Matches various winget messages indicating pinning or RequireExplicitUpgrade:
-    # - "cannot be upgraded using winget"
-    # - "require explicit targeting for upgrade"
-    # - "package(s) are pinned" or "packages are pinned"
-    # - "Please use the method provided by the publisher"
-    if ($upgradeOutput -match "cannot be upgraded using winget" -or 
-        $upgradeOutput -match "explicit targeting for upgrade" -or
-        $upgradeOutput -match "package.*pinned" -or
-        $upgradeOutput -match "use the method provided by the publisher") {
+    # Extract patterns to a variable for maintainability and future localization
+    $PinnedPatterns = @(
+        "cannot be upgraded using winget",
+        "explicit targeting for upgrade",
+        "package.*pinned",
+        "use the method provided by the publisher"
+    )
+    $isPinned = $PinnedPatterns | Where-Object { $upgradeOutput -match $_ }
+    if ($isPinned) {
         
         Write-ToLog "-> $($app.Name) is pinned or requires explicit upgrade" "Yellow"
         Write-ToLog "-> Skipping automatic upgrade for this package" "Yellow"

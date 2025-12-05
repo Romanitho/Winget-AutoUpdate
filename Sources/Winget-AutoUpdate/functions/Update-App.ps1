@@ -78,7 +78,7 @@ Function Update-App ($app) {
         
         # Send notification about pinned package
         Start-NotifTask -Title ($NotifLocale.local.outputs.output[4].title -f $app.Name) `
-            -Message "Package is pinned and requires explicit upgrade. Please upgrade manually if needed." `
+            -Message ($NotifLocale.local.outputs.output[4].message -f $app.Name) `
             -MessageType "warning" -Balise $app.Name -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
         
         Write-ToLog "##########   FINISHED: $($app.Id)   ##########" "Gray"

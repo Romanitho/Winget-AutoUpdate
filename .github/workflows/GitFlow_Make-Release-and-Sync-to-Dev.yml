@@ -29,7 +29,7 @@ jobs:
     steps:
       # Step 1: Checkout the code from the main branch after merge
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_PAT_SYNC }}
           lfs: "true"
@@ -121,7 +121,7 @@ jobs:
 
       # Step 4: Create stable GitHub release with all artifacts
       - name: Create release
-        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
         with:
           tag: v${{ steps.release_version.outputs.NextSemVer }}
           prerelease: false  # This is a stable release
@@ -141,7 +141,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT_SYNC }}

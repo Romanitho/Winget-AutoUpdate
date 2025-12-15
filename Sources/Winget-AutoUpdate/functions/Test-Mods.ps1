@@ -1,47 +1,58 @@
-#Function to check if modification exists within 'mods' directory
+<#
+.SYNOPSIS
+    Checks for application modification scripts in the mods folder.
 
+.DESCRIPTION
+    Searches for app-specific scripts that customize the install/upgrade process.
+    Hooks: preinstall, override, custom, arguments, upgrade, install, installed, notinstalled.
+
+.PARAMETER app
+    The WinGet application ID to check.
+
+.OUTPUTS
+    Array: [PreInstall, Override, Custom, Arguments, Upgrade, Install, Installed, NotInstalled]
+#>
 function Test-Mods ($app) {
 
-    #Takes care of a null situation
-    $ModsPreInstall = $null
-    $ModsOverride = $null
-    $ModsCustom = $null
-    $ModsUpgrade = $null
-    $ModsInstall = $null
-    $ModsInstalled = $null
-    $ModsNotInstalled = $null
-
     $Mods = "$WorkingDir\mods"
-
-    if (Test-Path "$Mods\_WAU-notinstalled.ps1") {
-        $ModsNotInstalled = "$Mods\_WAU-notinstalled.ps1"
+    $result = @{
+        PreInstall   = $null
+        Override     = $null
+        Custom       = $null
+        Arguments    = $null
+        Upgrade      = $null
+        Install      = $null
+        Installed    = $null
+        NotInstalled = $null
     }
 
+    # Global fallback for failed installs
+    if (Test-Path "$Mods\_WAU-notinstalled.ps1") {
+        $result.NotInstalled = "$Mods\_WAU-notinstalled.ps1"
+    }
+
+    # App-specific mods
     if (Test-Path "$Mods\$app-*") {
-        if (Test-Path "$Mods\$app-preinstall.ps1") {
-            $ModsPreInstall = "$Mods\$app-preinstall.ps1"
-        } 
-        if (Test-Path "$Mods\$app-override.txt") {
-            $ModsOverride = (Get-Content "$Mods\$app-override.txt" -Raw).Trim()
-        }
-        if (Test-Path "$Mods\$app-custom.txt") {
-            $ModsCustom = (Get-Content "$Mods\$app-custom.txt" -Raw).Trim()
+        if (Test-Path "$Mods\$app-preinstall.ps1") { $result.PreInstall = "$Mods\$app-preinstall.ps1" }
+        if (Test-Path "$Mods\$app-override.txt") { $result.Override = (Get-Content "$Mods\$app-override.txt" -Raw).Trim() }
+        if (Test-Path "$Mods\$app-custom.txt") { $result.Custom = (Get-Content "$Mods\$app-custom.txt" -Raw).Trim() }
+        if (Test-Path "$Mods\$app-arguments.txt") { 
+            # Read file and filter out comments and empty lines
+            $lines = Get-Content "$Mods\$app-arguments.txt" | Where-Object { 
+                $_.Trim() -ne "" -and -not $_.TrimStart().StartsWith("#") 
+            }
+            if ($lines) {
+                $result.Arguments = ($lines -join " ").Trim()
+            }
         }
         if (Test-Path "$Mods\$app-install.ps1") {
-            $ModsInstall = "$Mods\$app-install.ps1"
-            $ModsUpgrade = "$Mods\$app-install.ps1"
+            $result.Install = "$Mods\$app-install.ps1"
+            $result.Upgrade = "$Mods\$app-install.ps1"
         }
-        if (Test-Path "$Mods\$app-upgrade.ps1") {
-            $ModsUpgrade = "$Mods\$app-upgrade.ps1"
-        }
-        if (Test-Path "$Mods\$app-installed.ps1") {
-            $ModsInstalled = "$Mods\$app-installed.ps1"
-        }
-        if (Test-Path "$Mods\$app-notinstalled.ps1") {
-            $ModsNotInstalled = "$Mods\$app-notinstalled.ps1"
-        }
+        if (Test-Path "$Mods\$app-upgrade.ps1") { $result.Upgrade = "$Mods\$app-upgrade.ps1" }
+        if (Test-Path "$Mods\$app-installed.ps1") { $result.Installed = "$Mods\$app-installed.ps1" }
+        if (Test-Path "$Mods\$app-notinstalled.ps1") { $result.NotInstalled = "$Mods\$app-notinstalled.ps1" }
     }
 
-    return $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled
-
+    return $result.PreInstall, $result.Override, $result.Custom, $result.Arguments, $result.Upgrade, $result.Install, $result.Installed, $result.NotInstalled
 }

@@ -2,13 +2,13 @@
 	<outputs>
 		<output id="0">
 			<!--Check network connection-->
-			<title>Prüfen Sie Ihre Internet Verbindung.</title>
+			<title>Prüfen Sie Ihre Internetverbindung.</title>
 			<!--Unable to check for software updates at this time!-->
 			<message>Es konnte nicht nach Updates gesucht werden!</message>
 		</output>
 		<output id="1">
 			<!--No internet connction-->
-			<title>Keine Internet Verbindung!</title>
+			<title>Keine Internetverbindung!</title>
 			<!--Updates could not be verified-->
 			<message>Updates konnten nicht verifiziert werden.</message>
 		</output>
@@ -28,7 +28,7 @@
 			<!--{App} could not be updated-->
 			<title>{0} konnte nicht aktualisiert werden!</title>
 			<!--Please contact support-->
-			<message>Bitte wenden sie sich an den Support.</message>
+			<message>Bitte wenden Sie sich an den Support.</message>
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->

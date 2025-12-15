@@ -30,11 +30,68 @@ A script **Template** for an all-purpose mod (`_WAU-notinstalled-template.ps1`) 
 Name it `_WAU-notinstalled.ps1` for activation
 
 ### Winget native parameters:
-Another finess is the **AppID** followed by the `-override` or `-custom` suffix as a **text file** (**.txt**).
+You can customize winget behavior per-app using **text files** (**.txt**) with specific suffixes:
+
+#### 1. **AppID-override.txt** (Full installer control)
+Replaces ALL default installer arguments. Does NOT use `-h` (silent mode).
 > Example:  
->  **Adobe.Acrobat.Reader.64-bit-override.txt** with the content `"-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1"`
+>  **Adobe.Acrobat.Reader.64-bit-override.txt** with the content:
+>  ```
+>  "-sfx_nu /sAll /rs /msi EULA_ACCEPT=YES DISABLEDESKTOPSHORTCUT=1"
+>  ```
+
+#### 2. **AppID-custom.txt** (Add to installer arguments)
+Adds extra arguments to the default installer arguments. Uses `-h` (silent mode).
+> Example:  
+>  **ShareX.ShareX-custom.txt** with the content:
+>  ```
+>  /MERGETASKS=!CreateDesktopIcon
+>  ```
+
+#### 3. **AppID-arguments.txt** (Winget-level parameters) ⭐ NEW
+Passes additional **winget parameters** (not installer arguments). Uses `-h` (silent mode).
+> Example:  
+>  **Mozilla.Firefox-arguments.txt** with the content:
+>  ```
+>  --locale pl
 
 > Example:  
->  **ShareX.ShareX-custom.txt** with the content `/MERGETASKS=!CreateDesktopIcon`
+>  **Cloudflare.Warp-arguments.txt** with the content:
+>  ```
+>  --skip-dependencies
+>  ```
 
-This will use the **content** of the text file as a native **winget --override** respectively **winget --custom** parameter in **WAU upgrading**.
+> Example:  
+>  **Microsoft.VisualStudio.2022.Community-arguments.txt** with multiple arguments:
+>  ```
+>  --locale en-US --architecture x64 --skip-dependencies
+>  ```
+
+**Common use cases for `-arguments.txt`:**
+- `--locale <locale>` - Set application language (e.g., `pl-PL`, `en-US`, `de-DE`)
+- `--skip-dependencies` - Skip dependency installations
+- `--architecture <arch>` - Force specific architecture (`x86`, `x64`, `arm64`)
+- `--version <version>` - Pin to specific version
+- `--ignore-security-hash` - Bypass hash verification
+- `--ignore-local-archive-malware-scan` - Skip malware scanning
+
+💡 **Locale Tip:** For applications with locale-specific package IDs (e.g., `Mozilla.Firefox.sv-SE`, `Mozilla.Firefox.de`), use the locale-specific package ID in your `included_apps.txt` instead of the base ID. This prevents WAU from reverting the application language to English during upgrades.
+
+If you must use the base package ID (e.g., `Mozilla.Firefox`), create a `{AppID}-arguments.txt` with `--locale` parameter to force the language during every upgrade.
+
+⚠️ **Important:** When combining `--locale` and `--version`, the specific version must have an installer available for that locale in the winget manifest. Not all versions support all locales.
+
+**Priority order:** `Override` > `Custom` > `Arguments (file)` > `Arguments (command-line)` > `Default`
+- If `-override.txt` exists, both `-custom.txt` and `-arguments.txt` are ignored
+- If `-custom.txt` exists, `-arguments.txt` is ignored
+- If `-arguments.txt` exists, command-line arguments are ignored
+- `-arguments.txt` is only used if neither override nor custom exists
+
+**Command-line usage:** You can also pass arguments when calling `Winget-Install.ps1`:
+```powershell
+.\winget-install.ps1 -AppIDs "Mozilla.Firefox --locale sv-SE"
+.\winget-install.ps1 -AppIDs "7zip.7zip --version 23.01 --architecture x64"
+```
+Note: File-based `-arguments.txt` has priority over command-line arguments.
+
+**Template:** See `_AppID-arguments-template.txt` for more examples and documentation.

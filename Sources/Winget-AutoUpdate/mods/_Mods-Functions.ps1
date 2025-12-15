@@ -185,6 +185,41 @@ function Remove-ModsLnk ($Lnk) {
     Return $removedCount
 }
 
+<#
+.SYNOPSIS
+    Creates Start Menu shortcuts for applications.
+
+.DESCRIPTION
+    Creates shortcuts (.lnk files) in the Start Menu Programs folder
+    for specified applications. Supports subdirectories in shortcut names
+    and validates that target files exist before creating shortcuts.
+
+.PARAMETER Shortcuts
+    Array of shortcut names (without .lnk extension). Supports subdirectories
+    using backslash (e.g., "Folder\ShortcutName"). Must match the length and
+    order of the ShortcutsTargets array.
+
+.PARAMETER ShortcutsTargets
+    Array of full paths to target executables or files. Must match the length
+    and order of the Shortcuts array.
+
+.OUTPUTS
+    Integer count of shortcuts successfully created.
+
+.EXAMPLE
+    Add-ProgramsShortcuts @("MyApp") @("C:\Program Files\MyApp\MyApp.exe")
+    Creates a shortcut named "MyApp.lnk" in the Start Menu Programs folder.
+
+.EXAMPLE
+    Add-ProgramsShortcuts @("Tools\dnGrep") @("${env:ProgramFiles}\dnGrep\dnGrep.exe")
+    Creates a shortcut in the "Tools" subfolder of the Start Menu Programs folder.
+
+.EXAMPLE
+    $shortcuts = @("App1", "Folder\App2")
+    $targets = @("C:\Apps\App1.exe", "C:\Apps\App2.exe")
+    Add-ProgramsShortcuts $shortcuts $targets
+    Creates multiple shortcuts, with App2 placed in a subfolder.
+#>
 function Add-ProgramsShortcuts ($Shortcuts, $ShortcutsTargets) {
     $programsPath = "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs"
     $createdCount = 0

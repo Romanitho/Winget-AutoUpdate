@@ -95,7 +95,7 @@ jobs:
                   Write-Host "`n[INFO] Searching for merged PRs between $TAG_COMMIT and HEAD..." -ForegroundColor Cyan
                   
                   # Get all merged PRs to the branch since the tag commit
-                  $MERGED_PRS = git log $BRANCH --merges --grep="Merge pull request" --pretty=format:"%h %s" "$TAG_COMMIT..HEAD"
+                  $MERGED_PRS = git log --merges --grep="Merge pull request" --pretty=format:"%h %s" "$TAG_COMMIT..HEAD"
 
                   # Count merges
                   $MERGE_COUNT = ($MERGED_PRS | Measure-Object).Count

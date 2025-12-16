@@ -1,0 +1,7 @@
+# Gitleaks ignore file
+# This file contains fingerprints of false positive detections
+# Format: <commit-sha>:<file-path>:<rule-id>:<line-number>
+
+# False positive: GitHub user-attachments asset ID in README.md
+# This is a legitimate GitHub CDN URL, not an AWS access token
+291d8bc059d3d31e94b611ee887c3acca7cc0d8d:README.md:aws-access-token:41

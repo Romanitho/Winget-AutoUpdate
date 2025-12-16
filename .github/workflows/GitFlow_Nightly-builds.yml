@@ -70,7 +70,6 @@ jobs:
               Write-Host "`n[AUTO] Scheduled nightly build - checking for changes..." -ForegroundColor Cyan
 
               # Get the commit date of the latest tag (compatible with PowerShell 5.1)
-              $TAG_DATE = git log -1 --format=%ct $LATEST_TAG
               $TAG_DATE_FORMATTED = git log -1 --format=%ci $LATEST_TAG
               Write-Host "[INFO] Tag creation date: $TAG_DATE_FORMATTED" -ForegroundColor Green
 

@@ -44,27 +44,22 @@ jobs:
           Write-Host "Checking for new changes since last release" -ForegroundColor Cyan
           Write-Host "========================================" -ForegroundColor Cyan
           
-          # Initialize variables with default values
-          $BUILD_NEEDED = $false
-          $RELEASE_TYPE = "prerelease"
+          # Initialize RELEASE_TYPE with a default value to handle edge cases
+          $RELEASE_TYPE = "preminor"
           
           # Get the latest release tag to determine release type
           $LATEST_TAG = git tag -l --sort=-version:refname | Select-Object -First 1
           Write-Host "`n[INFO] Latest release tag: $LATEST_TAG" -ForegroundColor Green
           
-          # Determine release type based on previous tag (if tag exists)
-          if ($LATEST_TAG) {
-              if ($LATEST_TAG -like "*-*") {
-                  # Previous tag is a prerelease -> increment suffix (e.g., v2.9.1-0 -> v2.9.1-1)
-                  $RELEASE_TYPE = "prerelease"
-                  Write-Host "[INFO] Previous tag is a prerelease -> using 'prerelease' to increment suffix" -ForegroundColor Cyan
-              } else {
-                  # Previous tag is stable -> create first prerelease (e.g., v2.9.0 -> v2.10.0-0)
-                  $RELEASE_TYPE = "preminor"
-                  Write-Host "[INFO] Previous tag is stable -> using 'preminor' to create first prerelease" -ForegroundColor Cyan
-              }
+          # Determine release type based on previous tag
+          if ($LATEST_TAG -like "*-*") {
+              # Previous tag is a prerelease -> increment suffix (e.g., v2.9.1-0 -> v2.9.1-1)
+              $RELEASE_TYPE = "prerelease"
+              Write-Host "[INFO] Previous tag is a prerelease -> using 'prerelease' to increment suffix" -ForegroundColor Cyan
           } else {
-              Write-Host "[WARN] No existing tag found, using default 'prerelease' type" -ForegroundColor Yellow
+              # Previous tag is stable -> create first prerelease (e.g., v2.9.0 -> v2.10.0-0)
+              $RELEASE_TYPE = "preminor"
+              Write-Host "[INFO] Previous tag is stable -> using 'preminor' to create first prerelease" -ForegroundColor Cyan
           }
           
           # Manual trigger always builds
@@ -77,7 +72,7 @@ jobs:
               # Automated nightly: check for changes first
               Write-Host "`n[AUTO] Scheduled nightly build - checking for changes..." -ForegroundColor Cyan
 
-              # Get the commit date of the latest tag for display
+              # Get the commit date of the latest tag (compatible with PowerShell 5.1)
               $TAG_DATE_FORMATTED = git log -1 --format=%ci $LATEST_TAG
               Write-Host "[INFO] Tag creation date: $TAG_DATE_FORMATTED" -ForegroundColor Green
 
@@ -99,7 +94,7 @@ jobs:
               else {
                   Write-Host "`n[INFO] Searching for merged PRs between $TAG_COMMIT and HEAD..." -ForegroundColor Cyan
                   
-                  # Get all merged PRs since the tag commit (HEAD already represents current branch)
+                  # Get all merged PRs to the branch since the tag commit
                   $MERGED_PRS = git log --merges --grep="Merge pull request" --pretty=format:"%h %s" "$TAG_COMMIT..HEAD"
 
                   # Count merges

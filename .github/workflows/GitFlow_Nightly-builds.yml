@@ -44,8 +44,8 @@ jobs:
           Write-Host "Checking for new changes since last release" -ForegroundColor Cyan
           Write-Host "========================================" -ForegroundColor Cyan
           
-          # Initialize RELEASE_TYPE with a default value to handle edge cases
-          $RELEASE_TYPE = "preminor"
+          # Initialize BUILD_NEEDED with default value
+          $BUILD_NEEDED = $false
           
           # Get the latest release tag to determine release type
           $LATEST_TAG = git tag -l --sort=-version:refname | Select-Object -First 1

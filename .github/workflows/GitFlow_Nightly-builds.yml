@@ -40,41 +40,94 @@ jobs:
         id: check_prs
         shell: powershell
         run: |
-          # Get the latest release tag (any type)
+          Write-Host "========================================" -ForegroundColor Cyan
+          Write-Host "Checking for new changes since last release" -ForegroundColor Cyan
+          Write-Host "========================================" -ForegroundColor Cyan
+          
+          # Initialize BUILD_NEEDED with default value
+          $BUILD_NEEDED = $false
+          
+          # Get the latest release tag to determine release type
           $LATEST_TAG = git tag -l --sort=-version:refname | Select-Object -First 1
-          Write-Host "Latest release: $LATEST_TAG"
-
-          # Get all merged PRs since last tag (only merge commits from PRs)
-          $MERGED_PRS = git log --merges --grep="Merge pull request" --pretty=format:"%h %s" "$LATEST_TAG..develop"
-
-          # Count merges
-          $MERGE_COUNT = ($MERGED_PRS | Measure-Object).Count
-
-          if ($MERGE_COUNT -eq 0) {
-              Write-Host "No PRs merged to develop since last tag. Skipping build."
-              $BUILD_NEEDED = $false
+          Write-Host "`n[INFO] Latest release tag: $LATEST_TAG" -ForegroundColor Green
+          
+          # Determine release type based on previous tag
+          if ($LATEST_TAG -like "*-*") {
+              # Previous tag is a prerelease -> increment suffix (e.g., v2.9.1-0 -> v2.9.1-1)
+              $RELEASE_TYPE = "prerelease"
+              Write-Host "[INFO] Previous tag is a prerelease -> using 'prerelease' to increment suffix" -ForegroundColor Cyan
+          } else {
+              # Previous tag is stable -> create first prerelease (e.g., v2.9.0 -> v2.10.0-0)
+              $RELEASE_TYPE = "preminor"
+              Write-Host "[INFO] Previous tag is stable -> using 'preminor' to create first prerelease" -ForegroundColor Cyan
+          }
+          
+          # Manual trigger always builds
+          if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+              Write-Host "`n[MANUAL] Manual trigger detected - forcing build" -ForegroundColor Magenta
+              Write-Host "[BUILD] Building new prerelease version (type: $RELEASE_TYPE)." -ForegroundColor Green
+              $BUILD_NEEDED = $true
           }
           else {
-              Write-Host "Merged PRs since last tag (develop):"
-              Write-Host $MERGED_PRS
+              # Automated nightly: check for changes first
+              Write-Host "`n[AUTO] Scheduled nightly build - checking for changes..." -ForegroundColor Cyan
 
-              if ($MERGE_COUNT -eq 1 -and $MERGED_PRS -match "Merge pull request #\d+ from .*/release/") {
-                  Write-Host "Only change since last tag is a release PR merge. Skipping build."
+              # Get the commit date of the latest tag (compatible with PowerShell 5.1)
+              $TAG_DATE_FORMATTED = git log -1 --format=%ci $LATEST_TAG
+              Write-Host "[INFO] Tag creation date: $TAG_DATE_FORMATTED" -ForegroundColor Green
+
+              # Get tag commit SHA
+              $TAG_COMMIT = git rev-list -n 1 $LATEST_TAG
+              Write-Host "[INFO] Tag commit SHA: $TAG_COMMIT" -ForegroundColor Green
+              
+              # Get current branch and HEAD commit
+              $BRANCH = "${{ env.BRANCH }}"
+              $HEAD_COMMIT = git rev-parse HEAD
+              Write-Host "[INFO] Current branch: $BRANCH" -ForegroundColor Green
+              Write-Host "[INFO] Current HEAD: $HEAD_COMMIT" -ForegroundColor Green
+
+              # Check if tag commit is the same as HEAD
+              if ($TAG_COMMIT -eq $HEAD_COMMIT) {
+                  Write-Host "`n[SKIP] Tag commit is identical to current HEAD. No new changes." -ForegroundColor Yellow
                   $BUILD_NEEDED = $false
               }
               else {
-                  $BUILD_NEEDED = $true
+                  Write-Host "`n[INFO] Searching for merged PRs between $TAG_COMMIT and HEAD..." -ForegroundColor Cyan
+                  
+                  # Get all merged PRs to the branch since the tag commit
+                  $MERGED_PRS = git log --merges --grep="Merge pull request" --pretty=format:"%h %s" "$TAG_COMMIT..HEAD"
 
-                  # Set release type for output (adapts to your previous logic if you need it)
-                  if ($LATEST_TAG -like "*-*") {
-                      $RELEASE_TYPE = "prerelease"
-                  } else {
-                      $RELEASE_TYPE = "preminor"
+                  # Count merges
+                  $MERGE_COUNT = ($MERGED_PRS | Measure-Object).Count
+                  Write-Host "[INFO] Found $MERGE_COUNT merged PR(s)" -ForegroundColor Green
+
+                  if ($MERGE_COUNT -eq 0) {
+                      Write-Host "`n[SKIP] No PRs merged to $BRANCH since last tag. Skipping build." -ForegroundColor Yellow
+                      $BUILD_NEEDED = $false
                   }
-                  echo "RELEASE_TYPE=$RELEASE_TYPE" >> $env:GITHUB_OUTPUT
+                  else {
+                      Write-Host "`n[INFO] Merged PRs since last tag:" -ForegroundColor Cyan
+                      $MERGED_PRS | ForEach-Object { Write-Host "  - $_" -ForegroundColor White }
+
+                      if ($MERGE_COUNT -eq 1 -and $MERGED_PRS -match "Merge pull request #\d+ from .*/release/") {
+                          Write-Host "`n[SKIP] Only change since last tag is a release PR merge. Skipping build." -ForegroundColor Yellow
+                          $BUILD_NEEDED = $false
+                      }
+                      else {
+                          Write-Host "`n[BUILD] Building new prerelease version (type: $RELEASE_TYPE)." -ForegroundColor Green
+                          $BUILD_NEEDED = $true
+                      }
+                  }
               }
           }
+          
+          Write-Host "`n========================================" -ForegroundColor Cyan
+          Write-Host "Build needed: $BUILD_NEEDED" -ForegroundColor $(if ($BUILD_NEEDED -eq $true) { "Green" } else { "Yellow" })
+          Write-Host "Release type: $RELEASE_TYPE" -ForegroundColor Cyan
+          Write-Host "========================================" -ForegroundColor Cyan
+          
           echo "BUILD_NEEDED=$BUILD_NEEDED" >> $env:GITHUB_OUTPUT
+          echo "RELEASE_TYPE=$RELEASE_TYPE" >> $env:GITHUB_OUTPUT
 
       # Step 3: Generate new semantic version number
       - name: Auto Increment Semver Action

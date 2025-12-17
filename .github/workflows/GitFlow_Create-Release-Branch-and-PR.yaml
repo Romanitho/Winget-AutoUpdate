@@ -58,7 +58,7 @@ jobs:
       # Step 4: Create a pull request from release branch to main
       - name: Create Pull Request with GitHub CLI
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT_SYNC }}
         run: |
           # Use GitHub CLI to create a properly formatted Pull Request
           gh pr create \

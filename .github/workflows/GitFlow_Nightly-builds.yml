@@ -47,9 +47,11 @@ jobs:
           # Initialize BUILD_NEEDED with default value
           $BUILD_NEEDED = $false
           
-          # Get the latest release tag to determine release type
-          $LATEST_TAG = git tag -l --sort=-version:refname | Select-Object -First 1
-          Write-Host "`n[INFO] Latest release tag: $LATEST_TAG" -ForegroundColor Green
+          # Get the latest release tag (chronologically, not by version number)
+          # Note: We use -creatordate to get the most recently created tag, whether stable or prerelease
+          # This ensures we compare against the actual latest release, not a version-sorted one
+          $LATEST_TAG = git tag -l --sort=-creatordate | Select-Object -First 1
+          Write-Host "`n[INFO] Latest release tag (by date): $LATEST_TAG" -ForegroundColor Green
           
           # Determine release type based on previous tag
           if ($LATEST_TAG -like "*-*") {

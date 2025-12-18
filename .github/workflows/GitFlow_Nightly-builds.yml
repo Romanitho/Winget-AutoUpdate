@@ -47,25 +47,11 @@ jobs:
           # Initialize BUILD_NEEDED with default value
           $BUILD_NEEDED = $false
           
-          # Get the latest stable release tag (without prerelease suffix)
-          # Note: We prioritize stable releases over prereleases for comparison
-          # Git's version sort treats v2.10.0-0 as greater than v2.10.0, which is incorrect
-          # for our purposes. We want to compare against the latest stable release.
-          $LATEST_STABLE_TAG = git tag -l --sort=-version:refname | Where-Object { $_ -notlike "*-*" } | Select-Object -First 1
-          $LATEST_PRERELEASE_TAG = git tag -l --sort=-version:refname | Where-Object { $_ -like "*-*" } | Select-Object -First 1
-          
-          # Use the latest stable tag as our reference point
-          # If no stable tag exists, fall back to the latest prerelease
-          if ($LATEST_STABLE_TAG) {
-              $LATEST_TAG = $LATEST_STABLE_TAG
-              Write-Host "`n[INFO] Latest stable release tag: $LATEST_TAG" -ForegroundColor Green
-              if ($LATEST_PRERELEASE_TAG) {
-                  Write-Host "[INFO] Latest prerelease tag (ignored for comparison): $LATEST_PRERELEASE_TAG" -ForegroundColor DarkGray
-              }
-          } else {
-              $LATEST_TAG = $LATEST_PRERELEASE_TAG
-              Write-Host "`n[INFO] No stable release found, using latest prerelease: $LATEST_TAG" -ForegroundColor Yellow
-          }
+          # Get the latest release tag (chronologically, not by version number)
+          # Note: We use -creatordate to get the most recently created tag, whether stable or prerelease
+          # This ensures we compare against the actual latest release, not a version-sorted one
+          $LATEST_TAG = git tag -l --sort=-creatordate | Select-Object -First 1
+          Write-Host "`n[INFO] Latest release tag (by date): $LATEST_TAG" -ForegroundColor Green
           
           # Determine release type based on previous tag
           if ($LATEST_TAG -like "*-*") {

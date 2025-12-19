@@ -43,10 +43,10 @@ function Install-Prerequisites {
         if ($needsInstall) {
             try {
                 Write-ToLog "Installing VC++ Redistributable ($osArch)..."
-                $url = "https://aka.ms/vs/17/release/VC_redist.$osArch.exe"
+                $VCRedistUrl = "https://aka.ms/vs/17/release/VC_redist.$osArch.exe"
                 $installer = "$env:TEMP\VC_redist.$osArch.exe"
 
-                Invoke-WebRequest $url -OutFile $installer -UseBasicParsing
+                Invoke-WebRequest $VCRedistUrl -OutFile $installer -UseBasicParsing
                 Start-Process -FilePath $installer -ArgumentList "/quiet /norestart" -Wait
                 Write-ToLog "VC++ $osArch installed successfully." "Green"
             }

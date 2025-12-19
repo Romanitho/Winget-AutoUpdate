@@ -21,44 +21,45 @@ function Install-Prerequisites {
 
     try {
 
-        Write-ToLog "Checking prerequisites..." "Yellow"
+        Write-ToLog "Checking Microsoft Visual C++ 2015-2022 Redistributable..."
 
-        # === Check Visual C++ 2015-2022 Redistributable ===
-        $Visual2022 = "Microsoft Visual C++ 2015-2022 Redistributable*"
-        $VisualMinVer = "14.40.0.0"
-        $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.GetValue("DisplayName") -like $Visual2022 -and $_.GetValue("DisplayVersion") -gt $VisualMinVer }
+        $MinVersion = [version]"14.50.0.0"
+        $osArch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
 
-        if (!($path)) {
-            try {
-                Write-ToLog "MS Visual C++ 2015-2022 is not installed" "Red"
+        $regPath = "HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\$osArch"
+        $needsInstall = $true
 
-                # Determine processor architecture for correct installer
-                if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
-                    $OSArch = "arm64"
+        if (Test-Path $regPath) {
+            $v = Get-ItemProperty $regPath
+            if ($v.Installed -eq 1) {
+                $ver = [version]"$($v.Major).$($v.Minor).$($v.Bld).$($v.Rbld)"
+                if ($ver -ge $MinVersion) {
+                    Write-ToLog "VC++ $osArch already installed ($ver)" "Green"
+                    $needsInstall = $false
                 }
-                elseif ($env:PROCESSOR_ARCHITECTURE -like "*64*") {
-                    $OSArch = "x64"
-                }
-                else {
-                    $OSArch = "x86"
-                }
-
-                # Download and install VC++ Redistributable
-                $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
-                $Installer = "$env:TEMP\VC_redist.$OSArch.exe"
-                Write-ToLog "-> Downloading $SourceURL..."
-                Invoke-WebRequest $SourceURL -OutFile $Installer -UseBasicParsing
-                Write-ToLog "-> Installing VC_redist.$OSArch.exe..."
-                Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
-                Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully." "Green"
-            }
-            catch {
-                Write-ToLog "-> MS Visual C++ 2015-2022 installation failed." "Red"
-            }
-            finally {
-                Remove-Item $Installer -ErrorAction Ignore
             }
         }
+
+        if ($needsInstall) {
+            try {
+                Write-ToLog "Installing VC++ Redistributable ($osArch)..."
+                $url = "https://aka.ms/vs/17/release/VC_redist.$osArch.exe"
+                $installer = "$env:TEMP\VC_redist.$osArch.exe"
+
+                Invoke-WebRequest $url -OutFile $installer -UseBasicParsing
+                Start-Process -FilePath $installer -ArgumentList "/quiet /norestart" -Wait
+                Write-ToLog "VC++ $osArch installed successfully." "Green"
+            }
+            catch {
+                Write-ToLog "Failed to install VC++ $osArch" "Red"
+                throw
+            }
+            finally {
+                Remove-Item $installer -ErrorAction SilentlyContinue
+            }
+        }
+
+
 
         # === Check Microsoft.VCLibs.140.00.UWPDesktop ===
         if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {

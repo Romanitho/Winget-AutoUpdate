@@ -24,7 +24,7 @@ function Install-Prerequisites {
         Write-ToLog "Checking Microsoft Visual C++ 2015-2022 Redistributable..."
 
         $MinVersion = [version]"14.50.0.0"
-        $osArch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
+        $osArch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
 
         $regPath = "HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\$osArch"
         $needsInstall = $true

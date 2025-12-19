@@ -31,11 +31,20 @@ function Install-Prerequisites {
 
         if (Test-Path $regPath) {
             $v = Get-ItemProperty $regPath
-            if ($v.Installed -eq 1) {
-                $ver = [version]"$($v.Major).$($v.Minor).$($v.Bld).$($v.Rbld)"
-                if ($ver -ge $MinVersion) {
-                    Write-ToLog "VC++ $osArch already installed ($ver)" "Green"
-                    $needsInstall = $false
+            if ($v.Installed -eq 1 -and
+                $null -ne $v.Major -and
+                $null -ne $v.Minor -and
+                $null -ne $v.Bld   -and
+                $null -ne $v.Rbld) {
+                try {
+                    $ver = [version]"$($v.Major).$($v.Minor).$($v.Bld).$($v.Rbld)"
+                    if ($ver -ge $MinVersion) {
+                        Write-ToLog "VC++ $osArch already installed ($ver)" "Green"
+                        $needsInstall = $false
+                    }
+                }
+                catch {
+                    Write-ToLog "VC++ $osArch registry version information is invalid. Forcing reinstall." "Yellow"
                 }
             }
         }

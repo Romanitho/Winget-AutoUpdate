@@ -24,7 +24,16 @@ function Install-Prerequisites {
         Write-ToLog "Checking Microsoft Visual C++ 2015-2022 Redistributable..."
 
         $MinVersion = [version]"14.50.0.0"
-        $osArch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+
+        if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+            $osArch = "arm64"
+        }
+        elseif ($env:PROCESSOR_ARCHITECTURE -like "*64*") {
+            $osArch = "x64"
+        }
+        else {
+            $osArch = "x86"
+        }
 
         $regPath = "HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\$osArch"
         $needsInstall = $true
@@ -76,8 +85,8 @@ function Install-Prerequisites {
                 Write-ToLog "Microsoft.VCLibs.140.00.UWPDesktop is not installed" "Red"
 
                 # Download VCLibs package
-                $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-                $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
+                $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.$osArch.14.00.Desktop.appx"
+                $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.$osArch.14.00.Desktop.appx"
                 Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
                 Invoke-WebRequest -Uri $VCLibsUrl -OutFile $VCLibsFile -UseBasicParsing
 
@@ -100,8 +109,8 @@ function Install-Prerequisites {
                 Write-ToLog "Microsoft.UI.Xaml.2.8 is not installed" "Red"
 
                 # Download UI.Xaml package
-                $UIXamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
-                $UIXamlFile = "$env:TEMP\Microsoft.UI.Xaml.2.8.x64.appx"
+                $UIXamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.$osArch.appx"
+                $UIXamlFile = "$env:TEMP\Microsoft.UI.Xaml.2.8.$osArch.appx"
                 Write-ToLog "-> Downloading Microsoft.UI.Xaml.2.8..."
                 Invoke-WebRequest -Uri $UIXamlUrl -OutFile $UIXamlFile -UseBasicParsing
 

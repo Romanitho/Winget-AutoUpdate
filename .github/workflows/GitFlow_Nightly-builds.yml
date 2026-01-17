@@ -181,8 +181,8 @@ jobs:
         id: build_project
         shell: powershell
         run: |
-          # ServiceUI.exe is included in source; MDT is no longer required (MDT was decommissioned by Microsoft)
-          echo "### ServiceUI.exe already present in 'Sources\Winget-AutoUpdate' (MDT decommissioned by Microsoft) ###"
+          # ServiceUI.exe is included in source; MDT is no longer required (MDT has been deprecated by Microsoft – see https://learn.microsoft.com/mem/configmgr/mdt/)
+          echo "### ServiceUI.exe already present in 'Sources\Winget-AutoUpdate' (MDT not required) ###"
           Get-Item .\Sources\Winget-AutoUpdate\*
 
           # Install WiX tools for MSI creation

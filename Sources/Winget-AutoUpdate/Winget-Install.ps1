@@ -94,7 +94,7 @@ function Test-ModsInstall ($AppID) {
     if (Test-Path "$Mods\$AppID-*") {
         if (Test-Path "$Mods\$AppID-preinstall.ps1") {
             $ModsPreInstall = "$Mods\$AppID-preinstall.ps1"
-        } 
+        }
         if (Test-Path "$Mods\$AppID-override.txt") {
             $ModsOverride = (Get-Content "$Mods\$AppID-override.txt" -Raw).Trim()
         }
@@ -103,8 +103,8 @@ function Test-ModsInstall ($AppID) {
         }
         if (Test-Path "$Mods\$AppID-arguments.txt") {
             # Read file and filter out comments and empty lines
-            $lines = Get-Content "$Mods\$AppID-arguments.txt" | Where-Object { 
-                $_.Trim() -ne "" -and -not $_.TrimStart().StartsWith("#") 
+            $lines = Get-Content "$Mods\$AppID-arguments.txt" | Where-Object {
+                $_.Trim() -ne "" -and -not $_.TrimStart().StartsWith("#")
             }
             if ($lines) {
                 $ModsArguments = ($lines -join " ").Trim()
@@ -126,7 +126,7 @@ function Test-ModsUninstall ($AppID) {
     if (Test-Path "$Mods\$AppID-*") {
         if (Test-Path "$Mods\$AppID-preuninstall.ps1") {
             $ModsPreUninstall = "$Mods\$AppID-preuninstall.ps1"
-        } 
+        }
         if (Test-Path "$Mods\$AppID-uninstall.ps1") {
             $ModsUninstall = "$Mods\$AppID-uninstall.ps1"
         }
@@ -309,7 +309,7 @@ if ("$env:PROCESSOR_ARCHITEW6432" -ne "ARM64") {
 # Workaround for ISE: Force UTF-8 output encoding by briefly invoking cmd.exe
 if ($psISE) {
     try {
-        $null = Start-Process "cmd.exe" -ArgumentList "/c """ -NoNewWindow -Wait -WindowStyle Hidden
+        $null = Start-Process "cmd.exe" -ArgumentList "/c """ -NoNewWindow -Wait
     }
     catch {
         Write-ToLog "-> Unable to execute cmd.exe - skipping ISE output encoding workaround." "Red"

@@ -43,14 +43,16 @@ jobs:
           Write-Host "========================================" -ForegroundColor Cyan
           Write-Host "Checking for new changes since last release" -ForegroundColor Cyan
           Write-Host "========================================" -ForegroundColor Cyan
-          
+
           # Initialize BUILD_NEEDED with default value
           $BUILD_NEEDED = $false
-          
-          # Get the latest release tag to determine release type
-          $LATEST_TAG = git tag -l --sort=-version:refname | Select-Object -First 1
-          Write-Host "`n[INFO] Latest release tag: $LATEST_TAG" -ForegroundColor Green
-          
+
+          # Get the latest release tag (chronologically, not by version number)
+          # Note: We use -creatordate to get the most recently created tag, whether stable or prerelease
+          # This ensures we compare against the actual latest release, not a version-sorted one
+          $LATEST_TAG = git tag -l --sort=-creatordate | Select-Object -First 1
+          Write-Host "`n[INFO] Latest release tag (by date): $LATEST_TAG" -ForegroundColor Green
+
           # Determine release type based on previous tag
           if ($LATEST_TAG -like "*-*") {
               # Previous tag is a prerelease -> increment suffix (e.g., v2.9.1-0 -> v2.9.1-1)
@@ -61,7 +63,7 @@ jobs:
               $RELEASE_TYPE = "preminor"
               Write-Host "[INFO] Previous tag is stable -> using 'preminor' to create first prerelease" -ForegroundColor Cyan
           }
-          
+
           # Manual trigger always builds
           if ("${{ github.event_name }}" -eq "workflow_dispatch") {
               Write-Host "`n[MANUAL] Manual trigger detected - forcing build" -ForegroundColor Magenta
@@ -79,7 +81,7 @@ jobs:
               # Get tag commit SHA
               $TAG_COMMIT = git rev-list -n 1 $LATEST_TAG
               Write-Host "[INFO] Tag commit SHA: $TAG_COMMIT" -ForegroundColor Green
-              
+
               # Get current branch and HEAD commit
               $BRANCH = "${{ env.BRANCH }}"
               $HEAD_COMMIT = git rev-parse HEAD
@@ -93,7 +95,7 @@ jobs:
               }
               else {
                   Write-Host "`n[INFO] Searching for merged PRs between $TAG_COMMIT and HEAD..." -ForegroundColor Cyan
-                  
+
                   # Get all merged PRs to the branch since the tag commit
                   $MERGED_PRS = git log --merges --grep="Merge pull request" --pretty=format:"%h %s" "$TAG_COMMIT..HEAD"
 
@@ -120,12 +122,12 @@ jobs:
                   }
               }
           }
-          
+
           Write-Host "`n========================================" -ForegroundColor Cyan
           Write-Host "Build needed: $BUILD_NEEDED" -ForegroundColor $(if ($BUILD_NEEDED -eq $true) { "Green" } else { "Yellow" })
           Write-Host "Release type: $RELEASE_TYPE" -ForegroundColor Cyan
           Write-Host "========================================" -ForegroundColor Cyan
-          
+
           echo "BUILD_NEEDED=$BUILD_NEEDED" >> $env:GITHUB_OUTPUT
           echo "RELEASE_TYPE=$RELEASE_TYPE" >> $env:GITHUB_OUTPUT
 
@@ -179,14 +181,8 @@ jobs:
         id: build_project
         shell: powershell
         run: |
-          # Download and install Microsoft Deployment Toolkit
-          echo "### Get MDT from Microsoft ###"
-          wget https://download.microsoft.com/download/3/3/9/339BE62D-B4B8-4956-B58D-73C4685FC492/MicrosoftDeploymentToolkit_x64.msi -UseBasicParsing -OutFile .\MicrosoftDeploymentToolkit_x64.msi
-          Start-Process .\MicrosoftDeploymentToolkit_x64.msi -ArgumentList "/quiet /norestart" -Wait
-
-          # Extract ServiceUI for elevated notifications
-          echo "### Copy ServiceUI.exe x64 to 'Sources\Winget-AutoUpdate' folder ###"
-          Copy-Item -Path "C:\Program Files\Microsoft Deployment Toolkit\Templates\Distribution\Tools\x64\ServiceUI.exe" -Destination ".\Sources\Winget-AutoUpdate\ServiceUI.exe" -Force
+          # ServiceUI.exe is included in source; MDT is no longer required (MDT has been deprecated by Microsoft – see https://learn.microsoft.com/mem/configmgr/mdt/)
+          echo "### ServiceUI.exe already present in 'Sources\Winget-AutoUpdate' (MDT not required) ###"
           Get-Item .\Sources\Winget-AutoUpdate\*
 
           # Install WiX tools for MSI creation
@@ -251,4 +247,4 @@ jobs:
             |Files|Hash (SHA256)|Downloads|
             |---|---|---|
             |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
-            |[${{ steps.build_project.outputs.admx_zip_name }}](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }})|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![${{ steps.build_project.outputs.admx_zip_name }}](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }}?style=flat-square&label=&color=blue)</picture>|
+            |[${{ steps.build_project.outputs.admx_zip_name }}](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.format_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }})|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![${{ steps.build_project.outputs.admx_zip_name }}](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.format_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }}?style=flat-square&label=&color=blue)</picture>|  

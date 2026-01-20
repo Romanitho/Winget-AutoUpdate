@@ -23,42 +23,64 @@ function Install-Prerequisites {
 
         Write-ToLog "Checking prerequisites..." "Yellow"
 
-        # === Check Visual C++ 2015-2022 Redistributable ===
-        $Visual2022 = "Microsoft Visual C++ 2015-2022 Redistributable*"
-        $VisualMinVer = "14.40.0.0"
-        $path = Get-Item HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*, HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* | Where-Object { $_.GetValue("DisplayName") -like $Visual2022 -and $_.GetValue("DisplayVersion") -gt $VisualMinVer }
+        $MinVersion = [version]"14.50.0.0"
 
-        if (!($path)) {
-            try {
-                Write-ToLog "MS Visual C++ 2015-2022 is not installed" "Red"
+        # Determine OS architecture, not just the current PowerShell process architecture
+        $processorArch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
 
-                # Determine processor architecture for correct installer
-                if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
-                    $OSArch = "arm64"
-                }
-                elseif ($env:PROCESSOR_ARCHITECTURE -like "*64*") {
-                    $OSArch = "x64"
-                }
-                else {
-                    $OSArch = "x86"
-                }
+        if ($processorArch -eq "ARM64") {
+            $osArch = "arm64"
+        }
+        elseif ($processorArch -like "*64*") {
+            $osArch = "x64"
+        }
+        else {
+            $osArch = "x86"
+        }
 
-                # Download and install VC++ Redistributable
-                $SourceURL = "https://aka.ms/vs/17/release/VC_redist.$OSArch.exe"
-                $Installer = "$env:TEMP\VC_redist.$OSArch.exe"
-                Write-ToLog "-> Downloading $SourceURL..."
-                Invoke-WebRequest $SourceURL -OutFile $Installer -UseBasicParsing
-                Write-ToLog "-> Installing VC_redist.$OSArch.exe..."
-                Start-Process -FilePath $Installer -Args "/quiet /norestart" -Wait
-                Write-ToLog "-> MS Visual C++ 2015-2022 installed successfully." "Green"
-            }
-            catch {
-                Write-ToLog "-> MS Visual C++ 2015-2022 installation failed." "Red"
-            }
-            finally {
-                Remove-Item $Installer -ErrorAction Ignore
+        $regPath = "HKLM:\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\$osArch"
+        $needsInstall = $true
+
+        if (Test-Path $regPath) {
+            $v = Get-ItemProperty $regPath
+            if ($v.Installed -eq 1 -and
+                $null -ne $v.Major -and
+                $null -ne $v.Minor -and
+                $null -ne $v.Bld   -and
+                $null -ne $v.Rbld) {
+                try {
+                    $ver = [version]"$($v.Major).$($v.Minor).$($v.Bld).$($v.Rbld)"
+                    if ($ver -ge $MinVersion) {
+                        Write-ToLog "VC++ $osArch already installed ($ver)" "Green"
+                        $needsInstall = $false
+                    }
+                }
+                catch {
+                    Write-ToLog "VC++ $osArch registry version information is invalid. Forcing reinstall." "Yellow"
+                }
             }
         }
+
+        if ($needsInstall) {
+            try {
+                Write-ToLog "Installing VC++ Redistributable ($osArch)..."
+                $VCRedistUrl = "https://aka.ms/vs/17/release/VC_redist.$osArch.exe"
+                $installer = "$env:TEMP\VC_redist.$osArch.exe"
+
+                Invoke-WebRequest $VCRedistUrl -OutFile $installer -UseBasicParsing
+                Start-Process -FilePath $installer -ArgumentList "/quiet /norestart" -Wait
+                Write-ToLog "VC++ $osArch installed successfully." "Green"
+            }
+            catch {
+                Write-ToLog "Failed to install VC++ $osArch" "Red"
+                throw
+            }
+            finally {
+                Remove-Item $installer -ErrorAction SilentlyContinue
+            }
+        }
+
+
 
         # === Check Microsoft.VCLibs.140.00.UWPDesktop ===
         if (!(Get-AppxPackage -Name 'Microsoft.VCLibs.140.00.UWPDesktop' -AllUsers)) {
@@ -66,8 +88,8 @@ function Install-Prerequisites {
                 Write-ToLog "Microsoft.VCLibs.140.00.UWPDesktop is not installed" "Red"
 
                 # Download VCLibs package
-                $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-                $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.x64.14.00.Desktop.appx"
+                $VCLibsUrl = "https://aka.ms/Microsoft.VCLibs.$osArch.14.00.Desktop.appx"
+                $VCLibsFile = "$env:TEMP\Microsoft.VCLibs.$osArch.14.00.Desktop.appx"
                 Write-ToLog "-> Downloading Microsoft.VCLibs.140.00.UWPDesktop..."
                 Invoke-WebRequest -Uri $VCLibsUrl -OutFile $VCLibsFile -UseBasicParsing
 
@@ -90,8 +112,8 @@ function Install-Prerequisites {
                 Write-ToLog "Microsoft.UI.Xaml.2.8 is not installed" "Red"
 
                 # Download UI.Xaml package
-                $UIXamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
-                $UIXamlFile = "$env:TEMP\Microsoft.UI.Xaml.2.8.x64.appx"
+                $UIXamlUrl = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.$osArch.appx"
+                $UIXamlFile = "$env:TEMP\Microsoft.UI.Xaml.2.8.$osArch.appx"
                 Write-ToLog "-> Downloading Microsoft.UI.Xaml.2.8..."
                 Invoke-WebRequest -Uri $UIXamlUrl -OutFile $UIXamlFile -UseBasicParsing
 

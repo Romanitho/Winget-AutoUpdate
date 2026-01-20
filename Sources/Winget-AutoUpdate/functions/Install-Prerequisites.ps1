@@ -25,10 +25,13 @@ function Install-Prerequisites {
 
         $MinVersion = [version]"14.50.0.0"
 
-        if ($env:PROCESSOR_ARCHITECTURE -eq "ARM64") {
+        # Determine OS architecture, not just the current PowerShell process architecture
+        $processorArch = if ($env:PROCESSOR_ARCHITEW6432) { $env:PROCESSOR_ARCHITEW6432 } else { $env:PROCESSOR_ARCHITECTURE }
+
+        if ($processorArch -eq "ARM64") {
             $osArch = "arm64"
         }
-        elseif ($env:PROCESSOR_ARCHITECTURE -like "*64*") {
+        elseif ($processorArch -like "*64*") {
             $osArch = "x64"
         }
         else {

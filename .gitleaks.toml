@@ -1,6 +1,3 @@
 [allowlist]
-  description = "Allowlist for false positives"
-  
-  [[allowlist.paths]]
-  description = "Ignore image URLs in README"
-  regex = '''README\.md'''
+description = "Allowlist for false positives"
+paths = ['README\.md']

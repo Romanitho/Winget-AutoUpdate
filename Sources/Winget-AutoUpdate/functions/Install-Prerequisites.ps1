@@ -21,7 +21,7 @@ function Install-Prerequisites {
 
     try {
 
-        Write-ToLog "Checking Microsoft Visual C++ 2015-2022 Redistributable..."
+        Write-ToLog "Checking prerequisites..." "Yellow"
 
         $MinVersion = [version]"14.50.0.0"
 

@@ -76,21 +76,32 @@ function Install-WingetAutoUpdate {
 
         # Main update task (System context)
         $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"${InstallPath}winget-upgrade.ps1`""
-        $taskTriggers = @()
 
-        if ($WAUconfig.WAU_UpdatesAtLogon -eq 1) {
-            $taskTriggers += New-ScheduledTaskTrigger -AtLogOn
+        # Check for saved triggers from upgrade (preserves user customizations)
+        $savedTriggersPath = "$env:TEMP\WAU_TaskTriggers.xml"
+        if (Test-Path $savedTriggersPath) {
+            Write-Output "-> Restoring existing task triggers from upgrade"
+            $taskTriggers = Import-Clixml -Path $savedTriggersPath
+            Remove-Item $savedTriggersPath -Force -ErrorAction SilentlyContinue
         }
+        else {
+            # Fresh install: create triggers from registry settings
+            $taskTriggers = @()
 
-        # Interval-based trigger
-        $time = $WAUconfig.WAU_UpdatesAtTime
-        $delay = $WAUconfig.WAU_UpdatesTimeDelay
-        switch ($WAUconfig.WAU_UpdatesInterval) {
-            "Daily"    { $taskTriggers += New-ScheduledTaskTrigger -Daily -At $time -RandomDelay $delay }
-            "BiDaily"  { $taskTriggers += New-ScheduledTaskTrigger -Daily -At $time -DaysInterval 2 -RandomDelay $delay }
-            "Weekly"   { $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $time -DaysOfWeek 2 -RandomDelay $delay }
-            "BiWeekly" { $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $time -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay $delay }
-            "Monthly"  { $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $time -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $delay }
+            if ($WAUconfig.WAU_UpdatesAtLogon -eq 1) {
+                $taskTriggers += New-ScheduledTaskTrigger -AtLogOn
+            }
+
+            # Interval-based trigger
+            $time = $WAUconfig.WAU_UpdatesAtTime
+            $delay = $WAUconfig.WAU_UpdatesTimeDelay
+            switch ($WAUconfig.WAU_UpdatesInterval) {
+                "Daily"    { $taskTriggers += New-ScheduledTaskTrigger -Daily -At $time -RandomDelay $delay }
+                "BiDaily"  { $taskTriggers += New-ScheduledTaskTrigger -Daily -At $time -DaysInterval 2 -RandomDelay $delay }
+                "Weekly"   { $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $time -DaysOfWeek 2 -RandomDelay $delay }
+                "BiWeekly" { $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $time -DaysOfWeek 2 -WeeksInterval 2 -RandomDelay $delay }
+                "Monthly"  { $taskTriggers += New-ScheduledTaskTrigger -Weekly -At $time -DaysOfWeek 2 -WeeksInterval 4 -RandomDelay $delay }
+            }
         }
 
         $taskPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
@@ -185,15 +196,15 @@ function Install-WingetAutoUpdate {
 function Uninstall-WingetAutoUpdate {
     Write-Host "### Uninstalling WAU started! ###"
 
-    # Remove scheduled tasks
-    Write-Host "-> Removing scheduled tasks."
-    @("Winget-AutoUpdate", "Winget-AutoUpdate-Notify", "Winget-AutoUpdate-UserContext", "Winget-AutoUpdate-Policies") | ForEach-Object {
-        Get-ScheduledTask -TaskName $_ -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false
-    }
-
     # Keep app lists and mods on upgrade, remove on full uninstall
     if ($Upgrade -like "#{*}") {
         Write-Output "-> Upgrade detected. Keeping *.txt and mods app lists"
+        # Save main task triggers to preserve user customizations during upgrade
+        $existingTask = Get-ScheduledTask -TaskName 'Winget-AutoUpdate' -TaskPath '\WAU\' -ErrorAction SilentlyContinue
+        if ($existingTask) {
+            Write-Output "-> Saving existing task triggers for upgrade"
+            $existingTask.Triggers | Export-Clixml -Path "$env:TEMP\WAU_TaskTriggers.xml" -Force
+        }
     }
     else {
         $AppLists = Get-Item (Join-Path $InstallPath "*_apps.txt") -ErrorAction SilentlyContinue
@@ -202,6 +213,12 @@ function Uninstall-WingetAutoUpdate {
             Remove-Item $AppLists -Force
         }
         Remove-Item "$InstallPath\mods" -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    # Remove scheduled tasks
+    Write-Host "-> Removing scheduled tasks."
+    @("Winget-AutoUpdate", "Winget-AutoUpdate-Notify", "Winget-AutoUpdate-UserContext", "Winget-AutoUpdate-Policies") | ForEach-Object {
+        Get-ScheduledTask -TaskName $_ -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false
     }
 
     # Remove config folder

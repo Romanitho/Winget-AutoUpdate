@@ -412,5 +412,38 @@
         <text id="UpdatesTimeDelayTime" valueName="WAU_UpdatesTimeDelay" />
       </elements>
     </policy>
+    <policy name="UpdateDeadlineDays_Enable" class="Machine"
+      displayName="$(string.UpdateDeadlineDays_Name)"
+      explainText="$(string.UpdateDeadlineDays_Explain)"
+      key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.UpdateDeadlineDays)">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_6_0" />
+      <elements>
+        <text id="UpdateDeadlineDays" valueName="WAU_UpdateDeadlineDays" />
+      </elements>
+    </policy>
+    <policy name="CompanyName_Enable" class="Machine"
+      displayName="$(string.CompanyName_Name)"
+      explainText="$(string.CompanyName_Explain)"
+      key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.CompanyName)">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_6_0" />
+      <elements>
+        <text id="CompanyName" valueName="WAU_CompanyName" />
+      </elements>
+    </policy>
+    <policy name="ReminderIntervalDays_Enable" class="Machine"
+      displayName="$(string.ReminderIntervalDays_Name)"
+      explainText="$(string.ReminderIntervalDays_Explain)"
+      key="Software\Policies\Romanitho\Winget-AutoUpdate"
+      presentation="$(presentation.ReminderIntervalDays)">
+      <parentCategory ref="WAU" />
+      <supportedOn ref="WAU:SUPPORTED_WAU_2_6_0" />
+      <elements>
+        <text id="ReminderIntervalDays" valueName="WAU_ReminderIntervalDays" />
+      </elements>
+    </policy>
   </policies>
 </policyDefinitions>

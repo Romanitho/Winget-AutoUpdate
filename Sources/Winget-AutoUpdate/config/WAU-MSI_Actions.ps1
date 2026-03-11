@@ -127,6 +127,27 @@ function Install-WingetAutoUpdate {
         $task = New-ScheduledTask -Action $taskAction -Principal $taskPrincipal -Settings $taskSettings -Trigger $taskTrigger
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Policies' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
+        # UpdatePrompt task (SYSTEM via ServiceUI.exe -- shows WPF deadline dialog in user's desktop session)
+        # EncodedCommand is required because ServiceUI.exe strips quotes from the command line
+        # passed to CreateProcessAsUser, breaking paths with spaces (e.g. "Program Files").
+        $promptCmd = "& '${InstallPath}WAU-UpdatePrompt.ps1'"
+        $encodedCmd = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($promptCmd))
+        $taskAction = New-ScheduledTaskAction -Execute "${InstallPath}ServiceUI.exe" `
+            -Argument "-process:explorer.exe $PSHOME\powershell.exe -NoProfile -ExecutionPolicy Bypass -Sta -WindowStyle Hidden -EncodedCommand $encodedCmd" `
+            -WorkingDirectory $InstallPath
+        $taskPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
+        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:15:00 -MultipleInstances IgnoreNew
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskPrincipal -Settings $taskSettings
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UpdatePrompt' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
+
+        # UpdateNow task (SYSTEM -- installs updates triggered by user clicking "Update Now" in the deadline dialog)
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" `
+            -Argument "-NoProfile -ExecutionPolicy Bypass -File `"${InstallPath}WAU-UpdateNow.ps1`""
+        $taskPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
+        $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 03:00:00 -MultipleInstances IgnoreNew
+        $task = New-ScheduledTask -Action $taskAction -Principal $taskPrincipal -Settings $taskSettings
+        Register-ScheduledTask -TaskName 'Winget-AutoUpdate-UpdateNow' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
+
         # Set task permissions for all users
         $scheduler = New-Object -ComObject "Schedule.Service"
         $scheduler.Connect()
@@ -187,7 +208,7 @@ function Uninstall-WingetAutoUpdate {
 
     # Remove scheduled tasks
     Write-Host "-> Removing scheduled tasks."
-    @("Winget-AutoUpdate", "Winget-AutoUpdate-Notify", "Winget-AutoUpdate-UserContext", "Winget-AutoUpdate-Policies") | ForEach-Object {
+    @("Winget-AutoUpdate", "Winget-AutoUpdate-Notify", "Winget-AutoUpdate-UserContext", "Winget-AutoUpdate-Policies", "Winget-AutoUpdate-UpdatePrompt", "Winget-AutoUpdate-UpdateNow") | ForEach-Object {
         Get-ScheduledTask -TaskName $_ -ErrorAction SilentlyContinue | Unregister-ScheduledTask -Confirm:$false
     }
 

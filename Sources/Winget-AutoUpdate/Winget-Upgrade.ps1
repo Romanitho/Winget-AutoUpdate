@@ -141,6 +141,63 @@ if (Test-Network) {
 
     if ($Script:Winget) {
 
+        #region USER-CONTEXT UPDATE REQUEST
+        # When WAU-UpdateNow encounters user-scoped apps, it writes
+        # user-context-update.json and triggers the UserContext task.
+        # If that file exists, process those updates and exit.
+        if (-not $Script:IsSystem) {
+            $userUpdateJson = [System.IO.Path]::Combine($env:ProgramData, 'Winget-AutoUpdate', 'user-context-update.json')
+            if (Test-Path $userUpdateJson) {
+                $Script:InstallOK = 0
+                Write-ToLog "Processing user-context updates triggered by UpdateNow" "Cyan"
+                try {
+                    $userApps = @(Get-Content -Path $userUpdateJson -Raw -Encoding UTF8 | ConvertFrom-Json)
+                }
+                catch {
+                    Write-ToLog "ERROR: Could not parse user-context-update.json" "Red"
+                    Remove-Item -Path $userUpdateJson -Force -ErrorAction SilentlyContinue
+                    Exit 1
+                }
+                foreach ($app in $userApps) {
+                    Write-ToLog "-> $($app.Name) : $($app.Version) -> $($app.AvailableVersion)"
+                    Update-App $app
+                }
+                try {
+                    Remove-Item -Path $userUpdateJson -Force -ErrorAction Stop
+                }
+                catch {
+                    Write-ToLog "WARNING: Could not delete user-context-update.json -- $($_.Exception.Message)" "Yellow"
+                }
+                if ($Script:InstallOK -gt 0) {
+                    Write-ToLog "$Script:InstallOK user-context apps updated" "Green"
+                }
+
+                # Remove only updated apps from user-context-outdated.csv.
+                # Deleting the entire file would cause the next SYSTEM cycle to
+                # purge deadline registry entries for apps that weren't updated
+                # (they wouldn't be in $deadlineApps), resetting their clocks.
+                $userOutdatedPath = [System.IO.Path]::Combine($env:ProgramData, 'Winget-AutoUpdate', 'user-context-outdated.csv')
+                if (Test-Path $userOutdatedPath) {
+                    $updatedIds = @($userApps | ForEach-Object { $_.Id })
+                    $remaining = @(Import-Csv -Path $userOutdatedPath -Encoding UTF8 |
+                        Where-Object { $_.Id -notin $updatedIds })
+                    if ($remaining.Count -gt 0) {
+                        $remaining | Export-Csv -Path $userOutdatedPath -NoTypeInformation -Encoding UTF8 -Force
+                        Write-ToLog "Removed $($updatedIds.Count) updated apps from user-context-outdated.csv ($($remaining.Count) remaining)"
+                    }
+                    else {
+                        Remove-Item -Path $userOutdatedPath -Force -ErrorAction SilentlyContinue
+                        Write-ToLog "Cleared user-context-outdated.csv (all apps updated)"
+                    }
+                }
+
+                Write-ToLog "End of user-context update process" "Cyan"
+                Start-Sleep 3
+                Exit 0
+            }
+        }
+        #endregion USER-CONTEXT UPDATE REQUEST
+
         if ($true -eq $IsSystem) {
 
             #Get Current Version
@@ -269,6 +326,53 @@ if (Test-Network) {
             $toSkip = Get-ExcludedApps
         }
 
+        #region DEADLINE CONFIG
+        # Read update deadline settings. Both contexts need to know if deadline mode
+        # is active: SYSTEM manages deadlines, user context detects user-scoped apps.
+        # DeadlineDays = 0 means deadline mode is disabled -- normal silent update behaviour applies.
+        [int]$DeadlineDays = 0
+        [int]$ReminderIntervalDays = 2
+        if ($null -ne $WAUConfig.WAU_UpdateDeadlineDays) {
+            try { $DeadlineDays = [int]$WAUConfig.WAU_UpdateDeadlineDays } catch {}
+        }
+        if ($null -ne $WAUConfig.WAU_ReminderIntervalDays) {
+            try { $ReminderIntervalDays = [int]$WAUConfig.WAU_ReminderIntervalDays } catch {}
+        }
+        if ($Script:IsSystem -and $DeadlineDays -le 0) {
+            # When deadline mode is disabled, purge any leftover registry entries so that
+            # re-enabling deadline mode later does not treat old entries as instantly overdue.
+            $DeadlineRegPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\UpdateDeadlines"
+            if (Test-Path $DeadlineRegPath) {
+                Remove-Item -Path $DeadlineRegPath -Recurse -Force -ErrorAction SilentlyContinue
+                Write-ToLog "Deadline mode disabled -- registry entries purged"
+            }
+        }
+        # Ensure ProgramData shared directory exists and is writable by user context.
+        # SYSTEM creates the directory with Modify permission for Authenticated Users
+        # so that user context can create, overwrite, and delete JSON files there.
+        if ($Script:IsSystem -and $DeadlineDays -gt 0 -and $WAUConfig.WAU_UserContext -eq 1) {
+            $sharedDir = [System.IO.Path]::Combine($env:ProgramData, 'Winget-AutoUpdate')
+            if (-not (Test-Path $sharedDir)) {
+                New-Item -ItemType Directory -Path $sharedDir -Force | Out-Null
+            }
+            try {
+                $acl = Get-Acl $sharedDir
+                $authUsersRule = New-Object System.Security.AccessControl.FileSystemAccessRule(
+                    'Authenticated Users', 'Modify', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
+                if (-not ($acl.Access | Where-Object {
+                    $_.IdentityReference -eq 'NT AUTHORITY\Authenticated Users' -and
+                    $_.FileSystemRights -band [System.Security.AccessControl.FileSystemRights]::Modify
+                })) {
+                    $acl.SetAccessRule($authUsersRule)
+                    Set-Acl $sharedDir $acl
+                }
+            }
+            catch {
+                Write-ToLog "Could not set ACL on shared directory: $($_.Exception.Message)" "Yellow"
+            }
+        }
+        #endregion DEADLINE CONFIG
+
         #Get outdated Winget packages
         Write-ToLog "Checking application updates on Winget Repository named '$($Script:WingetSourceCustom)' .." "DarkYellow"
         $outdated = Get-WingetOutdatedApps -src $Script:WingetSourceCustom
@@ -297,50 +401,256 @@ if (Test-Network) {
                 $toSkip = $null
             }
 
-            #If White List
-            if ($UseWhiteList) {
-                #For each app, notify and update
-                foreach ($app in $outdated) {
-                    #if current app version is unknown, skip it
-                    if ($($app.Version) -eq "Unknown") {
-                        Write-ToLog "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
+            #region DEADLINE MODE
+            # In user context, skip all updates when deadline mode is active --
+            # the SYSTEM task manages updates via the deadline prompt workflow.
+            if ($DeadlineDays -gt 0 -and -not $Script:IsSystem) {
+                # User context + deadline mode: detect outdated apps and save for
+                # SYSTEM to merge into deadline tracking on its next run.
+                if ($UseWhiteList) {
+                    $userEligible = @($outdated | Where-Object {
+                        $id = $_.Id
+                        ($toUpdate -contains $id) -or ($toUpdate | Where-Object { $id -like $_ })
+                    })
+                }
+                else {
+                    $userEligible = @($outdated | Where-Object {
+                        $id = $_.Id
+                        -not ($toSkip -contains $id) -and -not ($toSkip | Where-Object { $id -like $_ })
+                    })
+                }
+
+                $userOutdatedDir = [System.IO.Path]::Combine($env:ProgramData, 'Winget-AutoUpdate')
+                if (-not (Test-Path $userOutdatedDir)) { New-Item -ItemType Directory -Path $userOutdatedDir -Force | Out-Null }
+                $userOutdatedPath = [System.IO.Path]::Combine($userOutdatedDir, 'user-context-outdated.csv')
+                # Clean up old JSON format if present (migrated to CSV)
+                $oldJsonPath = [System.IO.Path]::Combine($userOutdatedDir, 'user-context-outdated.json')
+                if (Test-Path $oldJsonPath) { Remove-Item -Path $oldJsonPath -Force -ErrorAction SilentlyContinue }
+                if ($userEligible.Count -gt 0) {
+                    $userEligible | Select-Object Name, Id, Version, AvailableVersion |
+                        Export-Csv -Path $userOutdatedPath -NoTypeInformation -Encoding UTF8 -Force -ErrorAction Stop
+                    Write-ToLog "$($userEligible.Count) user-context outdated apps written for deadline tracking" "Cyan"
+                }
+                else {
+                    if (Test-Path $userOutdatedPath) {
+                        Remove-Item -Path $userOutdatedPath -Force -ErrorAction SilentlyContinue
                     }
-                    #if app is in "include list", update it
-                    elseif ($toUpdate -contains $app.Id) {
-                        Update-App $app -src $Script:WingetSourceCustom
-                    }
-                    #if app with wildcard is in "include list", update it
-                    elseif ($toUpdate | Where-Object { $app.Id -like $_ }) {
-                        Write-ToLog "$($app.Name) is wildcard in the include list."
-                        Update-App $app -src $Script:WingetSourceCustom
-                    }
-                    #else, skip it
-                    else {
-                        Write-ToLog "$($app.Name) : Skipped upgrade because it is not in the included app list" "Gray"
-                    }
+                    Write-ToLog "No user-context apps eligible for deadline tracking" "Gray"
                 }
             }
-            #If Black List or default
-            else {
-                #For each app, notify and update
-                foreach ($app in $outdated) {
-                    #if current app version is unknown, skip it
-                    if ($($app.Version) -eq "Unknown") {
-                        Write-ToLog "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
-                    }
-                    #if app is in "excluded list", skip it
-                    elseif ($toSkip -contains $app.Id) {
-                        Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
-                    }
-                    #if app with wildcard is in "excluded list", skip it
-                    elseif ($toSkip | Where-Object { $app.Id -like $_ }) {
-                        Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
-                    }
-                    # else, update it
-                    else {
-                        Update-App $app -src $Script:WingetSourceCustom
+            elseif ($DeadlineDays -gt 0 -and $Script:IsSystem) {
+
+                Write-ToLog "Deadline mode active - $DeadlineDays days to forced update" "Cyan"
+
+                # Filter outdated apps through whitelist/blacklist before deadline processing.
+                # Without this, excluded apps (e.g. WAU itself) would get deadline-tracked.
+                if ($UseWhiteList) {
+                    $deadlineApps = @($outdated | Where-Object {
+                        $id = $_.Id
+                        ($toUpdate -contains $id) -or ($toUpdate | Where-Object { $id -like $_ })
+                    })
+                    $skippedCount = $outdated.Count - $deadlineApps.Count
+                    if ($skippedCount -gt 0) {
+                        Write-ToLog "$skippedCount apps excluded from deadline tracking (not in whitelist)" "Gray"
                     }
                 }
+                else {
+                    $deadlineApps = @($outdated | Where-Object {
+                        $id = $_.Id
+                        -not ($toSkip -contains $id) -and -not ($toSkip | Where-Object { $id -like $_ })
+                    })
+                    $skippedCount = $outdated.Count - $deadlineApps.Count
+                    if ($skippedCount -gt 0) {
+                        Write-ToLog "$skippedCount apps excluded from deadline tracking (in blacklist)" "Gray"
+                    }
+                }
+
+                # Merge user-context outdated apps if UserContext is enabled.
+                # The CSV file is written by the user-context run on the previous cycle.
+                # CSV is used instead of JSON to avoid PS 5.1 ConvertFrom-Json
+                # serialization artifacts that corrupt object properties on round-trip.
+                if ($WAUConfig.WAU_UserContext -eq 1) {
+                    $userOutdatedPath = [System.IO.Path]::Combine($env:ProgramData, 'Winget-AutoUpdate', 'user-context-outdated.csv')
+                    if (Test-Path $userOutdatedPath) {
+                        try {
+                            $userContextApps = @(Import-Csv -Path $userOutdatedPath -Encoding UTF8)
+                            foreach ($uApp in $userContextApps) {
+                                if (-not $uApp.Id) { continue }
+                                if (-not ($deadlineApps | Where-Object { $_.Id -eq $uApp.Id })) {
+                                    $uApp | Add-Member -NotePropertyName 'Scope' -NotePropertyValue 'user' -Force
+                                    $deadlineApps += $uApp
+                                }
+                            }
+                            Write-ToLog "$($userContextApps.Count) user-context apps merged for deadline tracking"
+                        }
+                        catch {
+                            Write-ToLog "WARNING: Could not read user-context-outdated.csv -- $($_.Exception.Message)" "Yellow"
+                        }
+                    }
+                }
+
+                # Tag machine-scope apps
+                foreach ($mApp in $deadlineApps) {
+                    if (-not ($mApp.PSObject.Properties.Name -contains 'Scope')) {
+                        $mApp | Add-Member -NotePropertyName 'Scope' -NotePropertyValue 'machine' -Force
+                    }
+                }
+
+                # Step 1: Sync deadline registry.
+                # First call with -OutdatedApps purges entries for apps no longer outdated
+                # (e.g. user self-updated outside WAU). Second call refreshes our working list.
+                $null = Get-UpdateDeadlines -OutdatedApps $deadlineApps
+                foreach ($app in $deadlineApps) {
+                    Set-UpdateDeadline -App $app -DeadlineDays $DeadlineDays
+                }
+                $deadlines = Get-UpdateDeadlines
+
+                # Step 2: Split into overdue (past deadline) and pending (deadline not yet reached).
+                $today = (Get-Date).Date
+                $overdueEntries = @($deadlines | Where-Object { $_.Deadline.Date -lt $today })
+                $pendingEntries = @($deadlines | Where-Object { $_.Deadline.Date -ge $today })
+
+                # User-scoped overdue apps cannot be force-updated by SYSTEM.
+                # Move them to pending so they appear in the prompt instead.
+                $overdueUserIds = @($overdueEntries | ForEach-Object {
+                    $appId = $_.AppId
+                    $app = $deadlineApps | Where-Object { $_.Id -eq $appId } | Select-Object -First 1
+                    if ($app -and $app.Scope -eq 'user') { $appId }
+                })
+                if ($overdueUserIds.Count -gt 0) {
+                    $pendingEntries = @($pendingEntries) + @($overdueEntries | Where-Object { $_.AppId -in $overdueUserIds })
+                    $overdueEntries = @($overdueEntries | Where-Object { $_.AppId -notin $overdueUserIds })
+                    Write-ToLog "$($overdueUserIds.Count) overdue user-scoped apps moved to prompt" "DarkYellow"
+                }
+
+                Write-ToLog "Deadline summary: $($overdueEntries.Count) overdue (machine), $($pendingEntries.Count) pending"
+
+                # Step 3: Forced background update for overdue apps -- no dialog shown.
+                if ($overdueEntries.Count -gt 0) {
+                    Write-ToLog "Processing $($overdueEntries.Count) overdue apps" "DarkYellow"
+                    foreach ($entry in $overdueEntries) {
+                        $app = $deadlineApps | Where-Object { $_.Id -eq $entry.AppId } | Select-Object -First 1
+                        if ($app -and $app.Version -ne "Unknown") {
+                            Write-ToLog "Forced update (deadline reached): $($app.Name)"
+                            Update-App $app
+                            if (Confirm-Installation $app.Id $app.AvailableVersion) {
+                                $DeadlineAppRegPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\UpdateDeadlines\$($app.Id)"
+                                if (Test-Path $DeadlineAppRegPath) {
+                                    Remove-Item -Path $DeadlineAppRegPath -Recurse -Force -ErrorAction SilentlyContinue
+                                    Write-ToLog "Deadline entry purged (update confirmed): $($app.Id)"
+                                }
+                            }
+                            else {
+                                Write-ToLog "$($app.Name) : forced update could not be confirmed -- deadline entry preserved" "Yellow"
+                            }
+                        }
+                        elseif ($app -and $app.Version -eq "Unknown") {
+                            Write-ToLog "$($app.Name) : Skipped forced update because current version is 'Unknown'" "Gray"
+                        }
+                    }
+                }
+
+                # Step 4: Show deadline prompt for pending apps if a user is logged in and
+                # the snooze window has expired.
+                if ($pendingEntries.Count -gt 0) {
+                    $explorerprocesses = @(Get-CimInstance -Query "SELECT * FROM Win32_Process WHERE Name='explorer.exe'" -ErrorAction SilentlyContinue)
+                    if ($explorerprocesses.Count -eq 0) {
+                        Write-ToLog "No user logged on -- skipping update prompt for $($pendingEntries.Count) pending apps" "Gray"
+                    }
+                    else {
+                        # Check snooze: if NextPromptTime is set and hasn't elapsed, skip the prompt.
+                        $showPrompt = $true
+                        try {
+                            $WAURegPath = 'HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate'
+                            $nptStr = (Get-ItemProperty -Path $WAURegPath -Name 'NextPromptTime' -ErrorAction SilentlyContinue).NextPromptTime
+                            if ($nptStr) {
+                                $npt = [DateTime]::Parse($nptStr)
+                                if ((Get-Date) -lt $npt) {
+                                    $showPrompt = $false
+                                    Write-ToLog "Update prompt snoozed until $($npt.ToString('g'))" "Gray"
+                                }
+                            }
+                        }
+                        catch {
+                            # Parse failure -- show the prompt (fail open)
+                        }
+
+                        if ($showPrompt) {
+                            # Build the pending apps payload, enriching each deadline entry with
+                            # live name/version data from the current winget outdated list.
+                            $promptApps = @(foreach ($entry in $pendingEntries) {
+                                $app = $deadlineApps | Where-Object { $_.Id -eq $entry.AppId } | Select-Object -First 1
+                                if ($app) {
+                                    [PSCustomObject]@{
+                                        Name             = $app.Name
+                                        Id               = $app.Id
+                                        Version          = $app.Version
+                                        AvailableVersion = $entry.AvailableVersion
+                                        Deadline         = $entry.Deadline.ToString('yyyy-MM-dd')
+                                        Scope            = if ($app.Scope) { $app.Scope } else { 'machine' }
+                                    }
+                                }
+                            })
+
+                            if ($promptApps.Count -gt 0) {
+                                $companyName = if ($WAUConfig.WAU_CompanyName) { $WAUConfig.WAU_CompanyName } else { '' }
+                                Start-UpdatePromptTask -PendingApps $promptApps -ReminderIntervalDays $ReminderIntervalDays -CompanyName $companyName
+                                Write-ToLog "Update prompt fired for $($promptApps.Count) apps"
+                            }
+                        }
+                    }
+                }
+
+            }
+            #endregion DEADLINE MODE
+            else {
+
+                #If White List
+                if ($UseWhiteList) {
+                    #For each app, notify and update
+                    foreach ($app in $outdated) {
+                        #if current app version is unknown, skip it
+                        if ($($app.Version) -eq "Unknown") {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
+                        }
+                        #if app is in "include list", update it
+                        elseif ($toUpdate -contains $app.Id) {
+                            Update-App $app
+                        }
+                        #if app with wildcard is in "include list", update it
+                        elseif ($toUpdate | Where-Object { $app.Id -like $_ }) {
+                            Write-ToLog "$($app.Name) is wildcard in the include list."
+                            Update-App $app
+                        }
+                        #else, skip it
+                        else {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is not in the included app list" "Gray"
+                        }
+                    }
+                }
+                #If Black List or default
+                else {
+                    #For each app, notify and update
+                    foreach ($app in $outdated) {
+                        #if current app version is unknown, skip it
+                        if ($($app.Version) -eq "Unknown") {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
+                        }
+                        #if app is in "excluded list", skip it
+                        elseif ($toSkip -contains $app.Id) {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is in the excluded app list" "Gray"
+                        }
+                        #if app with wildcard is in "excluded list", skip it
+                        elseif ($toSkip | Where-Object { $app.Id -like $_ }) {
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
+                        }
+                        # else, update it
+                        else {
+                            Update-App $app
+                        }
+                    }
+                }
+
             }
 
             if ($InstallOK -gt 0) {

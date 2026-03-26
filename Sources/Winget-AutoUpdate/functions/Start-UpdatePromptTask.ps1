@@ -74,8 +74,13 @@ function Start-UpdatePromptTask {
     # in the logged-in user's desktop session. The main task exits immediately after.
     $promptTask = Get-ScheduledTask -TaskName "Winget-AutoUpdate-UpdatePrompt" -ErrorAction SilentlyContinue
     if ($promptTask) {
-        $promptTask | Start-ScheduledTask
-        Write-ToLog "Winget-AutoUpdate-UpdatePrompt task triggered"
+        try {
+            $promptTask | Start-ScheduledTask -ErrorAction Stop
+            Write-ToLog "Winget-AutoUpdate-UpdatePrompt task triggered"
+        }
+        catch {
+            Write-ToLog "WARNING: Failed to start Winget-AutoUpdate-UpdatePrompt task -- $($_.Exception.Message)" "Yellow"
+        }
     }
     else {
         Write-ToLog "WARNING: Winget-AutoUpdate-UpdatePrompt task not found -- update prompt will not be shown" "Yellow"

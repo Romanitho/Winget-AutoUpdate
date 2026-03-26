@@ -38,7 +38,7 @@ function Set-UpdateDeadline {
 
     if (Test-Path $AppRegPath) {
 
-        # Entry exists -- only update AvailableVersion if a newer version is now available.
+        # Entry exists -- update AvailableVersion when it changes.
         # FirstDetected and Deadline are intentionally preserved (deadline never resets).
         $existing = Get-ItemProperty -Path $AppRegPath -ErrorAction SilentlyContinue
         if ($existing.AvailableVersion -ne $App.AvailableVersion) {

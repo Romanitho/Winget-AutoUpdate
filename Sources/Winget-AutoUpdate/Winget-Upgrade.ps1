@@ -357,12 +357,22 @@ if (Test-Network) {
             }
             try {
                 $acl = Get-Acl $sharedDir
+                $authUsersSid = New-Object System.Security.Principal.SecurityIdentifier('S-1-5-11')
                 $authUsersRule = New-Object System.Security.AccessControl.FileSystemAccessRule(
-                    'Authenticated Users', 'Modify', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
-                if (-not ($acl.Access | Where-Object {
-                    $_.IdentityReference -eq 'NT AUTHORITY\Authenticated Users' -and
-                    $_.FileSystemRights -band [System.Security.AccessControl.FileSystemRights]::Modify
-                })) {
+                    $authUsersSid, 'Modify', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
+                $hasModifyForAuthUsers = $false
+                foreach ($ace in $acl.Access) {
+                    try {
+                        $aceSid = $ace.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier])
+                    }
+                    catch { continue }
+                    if ($aceSid -eq $authUsersSid -and
+                        ($ace.FileSystemRights -band [System.Security.AccessControl.FileSystemRights]::Modify)) {
+                        $hasModifyForAuthUsers = $true
+                        break
+                    }
+                }
+                if (-not $hasModifyForAuthUsers) {
                     $acl.SetAccessRule($authUsersRule)
                     Set-Acl $sharedDir $acl
                 }
@@ -427,9 +437,14 @@ if (Test-Network) {
                 $oldJsonPath = [System.IO.Path]::Combine($userOutdatedDir, 'user-context-outdated.json')
                 if (Test-Path $oldJsonPath) { Remove-Item -Path $oldJsonPath -Force -ErrorAction SilentlyContinue }
                 if ($userEligible.Count -gt 0) {
-                    $userEligible | Select-Object Name, Id, Version, AvailableVersion |
-                        Export-Csv -Path $userOutdatedPath -NoTypeInformation -Encoding UTF8 -Force -ErrorAction Stop
-                    Write-ToLog "$($userEligible.Count) user-context outdated apps written for deadline tracking" "Cyan"
+                    try {
+                        $userEligible | Select-Object Name, Id, Version, AvailableVersion |
+                            Export-Csv -Path $userOutdatedPath -NoTypeInformation -Encoding UTF8 -Force -ErrorAction Stop
+                        Write-ToLog "$($userEligible.Count) user-context outdated apps written for deadline tracking" "Cyan"
+                    }
+                    catch {
+                        Write-ToLog "Failed to write user-context-outdated.csv: $($_.Exception.Message)" "Red"
+                    }
                 }
                 else {
                     if (Test-Path $userOutdatedPath) {

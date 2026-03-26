@@ -76,14 +76,14 @@ function Get-UpdateDeadlines {
         $deadline = $null
 
         try {
-            $firstDetected = [DateTime]::Parse($props.FirstDetected)
+            $firstDetected = [DateTime]::ParseExact($props.FirstDetected, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
         }
         catch {
             Write-ToLog "WARNING: Unparseable FirstDetected for $appId ('$($props.FirstDetected)')" "Yellow"
         }
 
         try {
-            $deadline = [DateTime]::Parse($props.Deadline)
+            $deadline = [DateTime]::ParseExact($props.Deadline, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
         }
         catch {
             Write-ToLog "WARNING: Unparseable Deadline for $appId ('$($props.Deadline)')" "Yellow"

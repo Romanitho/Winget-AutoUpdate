@@ -77,7 +77,10 @@ if (-not $pendingData.Apps -or @($pendingData.Apps).Count -eq 0) {
 
 $reminderDays = 2
 if ($pendingData.Config -and $null -ne $pendingData.Config.ReminderIntervalDays) {
-    $reminderDays = [int]$pendingData.Config.ReminderIntervalDays
+    $parsedReminderDays = 0
+    if ([int]::TryParse([string]$pendingData.Config.ReminderIntervalDays, [ref]$parsedReminderDays) -and $parsedReminderDays -ge 1) {
+        $reminderDays = $parsedReminderDays
+    }
 }
 $companyName = ''
 if ($pendingData.Config -and $pendingData.Config.CompanyName) {
@@ -91,7 +94,10 @@ $appRows = [System.Collections.Generic.List[WauAppRow]]::new()
 
 foreach ($app in @($pendingData.Apps)) {
     $deadline = $null
-    try { $deadline = [DateTime]::Parse($app.Deadline) } catch { continue }
+    try {
+        if ([string]::IsNullOrWhiteSpace($app.Deadline)) { continue }
+        $deadline = [DateTime]::ParseExact($app.Deadline, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
+    } catch { continue }
 
     $daysLeft = ($deadline - $today).Days
 
@@ -405,7 +411,15 @@ if ($script:Action -eq 'UpdateNow') {
         catch { }
     }
     else {
-        # Full update -- clear any stale NextPromptTime from a previous partial snooze
+        # Full update: rewrite pending-updates.json from in-memory data to guard against
+        # a race where the main SYSTEM cycle overwrites the file while the prompt is open.
+        $jsonOut = [ordered]@{
+            Config = $pendingData.Config
+            Apps   = $pendingData.Apps
+        }
+        $jsonOut | ConvertTo-Json -Depth 5 | Set-Content -Path $JsonPath -Encoding UTF8 -Force
+
+        # Clear any stale NextPromptTime from a previous partial snooze
         Remove-ItemProperty -Path $WAURegPath -Name 'NextPromptTime' -ErrorAction SilentlyContinue
     }
 

@@ -314,7 +314,7 @@ $script:AllowClose = $false
 # Block the X button -- users must choose Remind or Update.
 # Button handlers set AllowClose before calling Close().
 $window.Add_Closing({
-    param($sender, $e)
+    param($eventSender, $e)
     if (-not $script:AllowClose) {
         $e.Cancel = $true
     }

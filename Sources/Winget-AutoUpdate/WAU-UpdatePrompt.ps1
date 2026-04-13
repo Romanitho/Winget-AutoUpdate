@@ -289,7 +289,7 @@ else {
     $instructionTxt.Text = "Check the box next to apps you're ready to update now, or update all at once. If you don't update all apps now, you will be reminded in $reminderDays $dayLabel."
 }
 
-# Set window icon from WAU's info.png if available
+# Set window icon from WAU's notify_icon.png if available
 $iconPath = Join-Path $PSScriptRoot 'icons\notify_icon.png'
 if (Test-Path $iconPath) {
     $bitmap = New-Object System.Windows.Media.Imaging.BitmapImage

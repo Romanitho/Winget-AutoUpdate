@@ -102,9 +102,9 @@ if ($machineApps.Count -gt 0) {
     foreach ($app in $machineApps) {
         Write-ToLog "-> $($app.Name) : $($app.Version) -> $($app.AvailableVersion)"
 
-        Update-App $app
+        Update-App $app -src $Script:WingetSourceCustom
 
-        if (Confirm-Installation $app.Id $app.AvailableVersion) {
+        if (Confirm-Installation $app.Id $app.AvailableVersion $Script:WingetSourceCustom) {
             $AppRegPath = Join-Path $DeadlineRegBase $app.Id
             if (Test-Path $AppRegPath) {
                 Remove-Item -Path $AppRegPath -Recurse -Force -ErrorAction SilentlyContinue

@@ -160,7 +160,7 @@ if (Test-Network) {
                 }
                 foreach ($app in $userApps) {
                     Write-ToLog "-> $($app.Name) : $($app.Version) -> $($app.AvailableVersion)"
-                    Update-App $app
+                    Update-App $app -src $Script:WingetSourceCustom
                 }
                 try {
                     Remove-Item -Path $userUpdateJson -Force -ErrorAction Stop
@@ -547,8 +547,8 @@ if (Test-Network) {
                         $app = $deadlineApps | Where-Object { $_.Id -eq $entry.AppId } | Select-Object -First 1
                         if ($app -and $app.Version -ne "Unknown") {
                             Write-ToLog "Forced update (deadline reached): $($app.Name)"
-                            Update-App $app
-                            if (Confirm-Installation $app.Id $app.AvailableVersion) {
+                            Update-App $app -src $Script:WingetSourceCustom
+                            if (Confirm-Installation $app.Id $app.AvailableVersion $Script:WingetSourceCustom) {
                                 $DeadlineAppRegPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\UpdateDeadlines\$($app.Id)"
                                 if (Test-Path $DeadlineAppRegPath) {
                                     Remove-Item -Path $DeadlineAppRegPath -Recurse -Force -ErrorAction SilentlyContinue
@@ -630,12 +630,12 @@ if (Test-Network) {
                         }
                         #if app is in "include list", update it
                         elseif ($toUpdate -contains $app.Id) {
-                            Update-App $app
+                            Update-App $app -src $Script:WingetSourceCustom
                         }
                         #if app with wildcard is in "include list", update it
                         elseif ($toUpdate | Where-Object { $app.Id -like $_ }) {
                             Write-ToLog "$($app.Name) is wildcard in the include list."
-                            Update-App $app
+                            Update-App $app -src $Script:WingetSourceCustom
                         }
                         #else, skip it
                         else {
@@ -661,7 +661,7 @@ if (Test-Network) {
                         }
                         # else, update it
                         else {
-                            Update-App $app
+                            Update-App $app -src $Script:WingetSourceCustom
                         }
                     }
                 }

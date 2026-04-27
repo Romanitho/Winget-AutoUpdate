@@ -313,6 +313,11 @@ $script:AllowClose = $false
 
 # Block the X button -- users must choose Remind or Update.
 # Button handlers set AllowClose before calling Close().
+# OS-initiated session ends (logoff/shutdown/restart) flip AllowClose so
+# Windows is not blocked by the dialog reporting "this app is preventing sign-out."
+[Microsoft.Win32.SystemEvents]::add_SessionEnding({
+    $script:AllowClose = $true
+})
 $window.Add_Closing({
     param($eventSender, $e)
     if (-not $script:AllowClose) {

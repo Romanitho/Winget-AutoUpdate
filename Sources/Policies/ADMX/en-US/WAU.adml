@@ -11,6 +11,7 @@
       <string id="SUPPORTED_WAU_1_16_0">Winget-AutoUpdate version 1.16.0 or later</string>
       <string id="SUPPORTED_WAU_1_16_5">Winget-AutoUpdate version 1.16.5 or later</string>
       <string id="SUPPORTED_WAU_2_6_0">Winget-AutoUpdate version 2.6.0 or later</string>
+      <string id="SUPPORTED_WAU_3_0_0">Winget-AutoUpdate version 3.0.0 or later</string>
       <string id="SUPPORTED_WAU_EXPERIMENTAL">Winget-AutoUpdate Experimental, subject to change, do not use on PROD</string>
       <string id="ActivateGPOManagement_Name">Activate WAU GPO Management [DEPRECATED]</string>
       <string id="ActivateGPOManagement_Explain">This policy setting is deprecated and will be removed in a future version. The GPO Management is now always enabled when GPO policies are configured.
@@ -164,7 +165,7 @@ If this policy is disabled or not configured, the default text "Your organizatio
 
 The value sets the number of days from first detection until the update is forced silently in the background.
 
-Setting this to 0 (or disabling / not configuring this policy) restores the default silent update behaviour and clears all stored deadline data.
+Setting this to 0 (or disabling / not configuring this policy) restores the default silent update behavior and clears all stored deadline data.
 
 Default: 0 (disabled).
 

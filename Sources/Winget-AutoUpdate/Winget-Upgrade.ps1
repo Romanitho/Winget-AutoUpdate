@@ -158,9 +158,18 @@ if (Test-Network) {
                     Remove-Item -Path $userUpdateJson -Force -ErrorAction SilentlyContinue
                     Exit 1
                 }
+                # Track per-app success via $Script:InstallOK delta so that only
+                # confirmed-updated apps are dropped from user-context-outdated.csv.
+                # Update-App already calls Confirm-Installation and increments
+                # $Script:InstallOK on success -- no need to re-confirm here.
+                $updatedIds = [System.Collections.Generic.List[string]]::new()
                 foreach ($app in $userApps) {
                     Write-ToLog "-> $($app.Name) : $($app.Version) -> $($app.AvailableVersion)"
+                    $before = $Script:InstallOK
                     Update-App $app -src $Script:WingetSourceCustom
+                    if ($Script:InstallOK -gt $before) {
+                        $updatedIds.Add($app.Id)
+                    }
                 }
                 try {
                     Remove-Item -Path $userUpdateJson -Force -ErrorAction Stop
@@ -172,22 +181,28 @@ if (Test-Network) {
                     Write-ToLog "$Script:InstallOK user-context apps updated" "Green"
                 }
 
-                # Remove only updated apps from user-context-outdated.csv.
-                # Deleting the entire file would cause the next SYSTEM cycle to
-                # purge deadline registry entries for apps that weren't updated
-                # (they wouldn't be in $deadlineApps), resetting their clocks.
+                # Remove only successfully-updated apps from user-context-outdated.csv.
+                # Failed updates stay in the CSV so the next SYSTEM cycle re-merges
+                # them into deadline tracking and their FirstDetected/Deadline
+                # registry entries are preserved (no clock reset on failure).
+                # Deleting the entire file would purge deadline entries for apps
+                # that weren't updated (they wouldn't be in $deadlineApps).
                 $userOutdatedPath = [System.IO.Path]::Combine($env:ProgramData, 'Winget-AutoUpdate', 'user-context-outdated.csv')
                 if (Test-Path $userOutdatedPath) {
-                    $updatedIds = @($userApps | ForEach-Object { $_.Id })
-                    $remaining = @(Import-Csv -Path $userOutdatedPath -Encoding UTF8 |
-                        Where-Object { $_.Id -notin $updatedIds })
-                    if ($remaining.Count -gt 0) {
-                        $remaining | Export-Csv -Path $userOutdatedPath -NoTypeInformation -Encoding UTF8 -Force
-                        Write-ToLog "Removed $($updatedIds.Count) updated apps from user-context-outdated.csv ($($remaining.Count) remaining)"
+                    if ($updatedIds.Count -eq 0) {
+                        Write-ToLog "No user-context apps successfully updated; user-context-outdated.csv unchanged" "Yellow"
                     }
                     else {
-                        Remove-Item -Path $userOutdatedPath -Force -ErrorAction SilentlyContinue
-                        Write-ToLog "Cleared user-context-outdated.csv (all apps updated)"
+                        $remaining = @(Import-Csv -Path $userOutdatedPath -Encoding UTF8 |
+                            Where-Object { $_.Id -notin $updatedIds })
+                        if ($remaining.Count -gt 0) {
+                            $remaining | Export-Csv -Path $userOutdatedPath -NoTypeInformation -Encoding UTF8 -Force
+                            Write-ToLog "Removed $($updatedIds.Count) updated apps from user-context-outdated.csv ($($remaining.Count) remaining)"
+                        }
+                        else {
+                            Remove-Item -Path $userOutdatedPath -Force -ErrorAction SilentlyContinue
+                            Write-ToLog "Cleared user-context-outdated.csv (all apps updated)"
+                        }
                     }
                 }
 
@@ -464,7 +479,7 @@ if (Test-Network) {
                         $id = $_.Id
                         ($toUpdate -contains $id) -or ($toUpdate | Where-Object { $id -like $_ })
                     })
-                    $skippedCount = $outdated.Count - $deadlineApps.Count
+                    $skippedCount = @($outdated).Count - $deadlineApps.Count
                     if ($skippedCount -gt 0) {
                         Write-ToLog "$skippedCount apps excluded from deadline tracking (not in whitelist)" "Gray"
                     }
@@ -474,7 +489,7 @@ if (Test-Network) {
                         $id = $_.Id
                         -not ($toSkip -contains $id) -and -not ($toSkip | Where-Object { $id -like $_ })
                     })
-                    $skippedCount = $outdated.Count - $deadlineApps.Count
+                    $skippedCount = @($outdated).Count - $deadlineApps.Count
                     if ($skippedCount -gt 0) {
                         Write-ToLog "$skippedCount apps excluded from deadline tracking (in blacklist)" "Gray"
                     }

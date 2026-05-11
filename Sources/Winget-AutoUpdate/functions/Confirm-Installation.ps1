@@ -9,13 +9,19 @@
     Expected version prefix.
 
 .PARAMETER src
-    The WinGet source to query (e.g. "winget", "msstore"). Required; passed
-    directly to `winget export -s`.
+    The WinGet source to query (e.g. "winget", "msstore"). Defaults to
+    "winget".
 
 .OUTPUTS
     Boolean: True if installed at version.
 #>
-Function Confirm-Installation ($AppName, $AppVer, $src) {
+Function Confirm-Installation ($AppName, $AppVer, $src = "winget") {
+    if ([string]::IsNullOrWhiteSpace($src)) {
+        $src = "winget"
+    }
+    else {
+        $src = $src.Trim()
+    }
 
     $JsonFile = "$env:TEMP\InstalledApps.json"
     & $Winget export -s $src -o $JsonFile --include-versions | Out-Null

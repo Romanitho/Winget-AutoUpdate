@@ -21,6 +21,9 @@ Used to specify logpath. Default is same folder as Winget-Autoupdate project
 Adds the app to the Winget-AutoUpdate White List. More info: https://github.com/Romanitho/Winget-AutoUpdate
 If '-Uninstall' is used, it removes the app from WAU White List.
 
+.PARAMETER Source
+Specify the WinGet source to use for package operations (for example "winget" or "msstore"). Default is "winget".
+
 .EXAMPLE
 .\winget-install.ps1 -AppIDs 7zip.7zip
 
@@ -38,6 +41,9 @@ If '-Uninstall' is used, it removes the app from WAU White List.
 
 .EXAMPLE
 .\winget-install.ps1 -AppIDs "Notepad++.Notepad++" -AllowUpgrade
+
+.EXAMPLE
+.\winget-install.ps1 -AppIDs 9WZDNCRFJ3PT -Source msstore
 #>
 
 [CmdletBinding()]

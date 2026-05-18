@@ -30,18 +30,26 @@ winget install Romanitho.Winget-AutoUpdate
 You can also download the latest release of the add-on [WAU Settings GUI (for Winget-AutoUpdate)](https://github.com/KnifMelti/WAU-Settings-GUI) and install it (this will install both **WAU** and a **GUI** that provides a user-friendly portable standalone interface to modify every aspect of **Winget-AutoUpdate (WAU)**).
 
 ## Configurations
-### Keep some apps out of Winget-AutoUpdate
-- #### BlockList
-You can exclude apps from update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update):
-Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.txt'. (File must be placed in the same folder as WAU.msi).
-- #### AllowList
-You can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and place it in the same folder as WAU.msi during install.
-
-> The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
-
-List and Mods folder content will be copied to WAU install location:  
+Please note, include/exclude lists and any Mods folder content can be placed next to the .msi installer to be copied to the WAU install location during install:  
 <img width="474" height="308" alt="423074783-a37837b0-b61e-4ce7-b23c-fd8661585e40" src="https://github.com/user-attachments/assets/323fc50c-2400-4fa2-937d-83a0f0c2392d" />
 
+### Keep some apps out of Winget-AutoUpdate
+WAU supports two mutually exclusive list modes. Blocklist (default - excluded_apps.txt) and Allowlist (included_apps.txt). 
+- Each list should be one winget package ID per line (not the app name or display string - use the ID from `winget list` or `winget search`).
+- Each list can contain wildcards (*). For instance `Mozilla.Firefox*` will match all Firefox variants.
+
+#### BlockList
+You can exclude apps from the update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update).
+- Place `excluded_apps.txt` in the WAU install folder (for example `C:\Program Files\Winget-AutoUpdate\excluded_apps.txt`)
+- It is not recommended to edit `config\default_excluded_apps.txt` as it may be overwritten on WAU app update.
+
+#### AllowList
+You can update only pre-selected apps by enabling allowlist mode.
+- Set WAU_UseWhiteList=1 in the WAU configuration registry key under `HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate`
+- On 64-bit Windows WAU may also consider the 32-bit registry view `HKLM:\SOFTWARE\WOW6432Node\Romanitho\Winget-AutoUpdate`
+- Place `included_apps.txt` in the WAU install folder (for example `C:\Program Files\Winget-AutoUpdate\included_apps.txt`)
+
+If allowlist mode is enabled, WAU reads `included_apps.txt` and ignores `excluded_apps.txt`. Otherwise, WAU ignores `included_apps.txt`.
 
 ### Notification Level
 You can choose which notification will be displayed: `Full`, `Success only`, `Errors only` or `None`.
@@ -50,10 +58,10 @@ You can choose which notification will be displayed: `Full`, `Success only`, `Er
 You can easily translate toast notifications by creating your locale xml config file (and share it with us 😉).
 
 ### When does the script run?
-WAU runs ,by default, at logon. You can configure the frequency with options (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never).
+WAU runs by default, at logon. You can configure the frequency with options (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never).
 
 ### Log location
-You can find logs in install location, in logs folder for priviledged executions. For user runs (Winget-Install.ps1) a log file will be created at %AppData%\Winget-AutoUpdate\Logs .<br>
+You can find logs in install location, in logs folder for privileged executions. For user runs (Winget-Install.ps1) a log file will be created at %AppData%\Winget-AutoUpdate\Logs .<br>
 If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**<br>
 If you are deploying winget Apps with [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) a **SymLink** (WAU-install.log & WAU-user_%username%.log) is also created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
 
@@ -71,7 +79,7 @@ We might want to stop WAU on metered connection (to save cellular data on connec
 To force WAU to run on metered connections anyway, run new installation with `-RunOnMetered` parameter.
 
 ### System & user context
-WAU runs with system and user contexts. This way, even apps installed on User's scope are updated. Shorcuts for manually run can also be installed.
+WAU runs with system and user contexts. This way, even apps installed on User's scope are updated. Shortcuts for manually run can also be installed.
 
 ### Default install location
 By default, scripts and components will be placed in "Program Files" location (inside a Winget-AutoUpdate folder).

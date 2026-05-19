@@ -12,6 +12,16 @@ on:
     - cron: "0 0 * * *"
   # Manual trigger for testing purposes
   workflow_dispatch:
+    inputs:
+      version_level:
+        description: "Version level for the pre-release bump when the previous release is stable (e.g. premajor → v3.0.0-0)"
+        required: false
+        default: "preminor"
+        type: choice
+        options:
+          - prepatch
+          - preminor
+          - premajor
 
 permissions:
   contents: write
@@ -60,8 +70,14 @@ jobs:
               Write-Host "[INFO] Previous tag is a prerelease -> using 'prerelease' to increment suffix" -ForegroundColor Cyan
           } else {
               # Previous tag is stable -> create first prerelease (e.g., v2.9.0 -> v2.10.0-0)
-              $RELEASE_TYPE = "preminor"
-              Write-Host "[INFO] Previous tag is stable -> using 'preminor' to create first prerelease" -ForegroundColor Cyan
+              # For manual dispatch, honour the version_level input; fall back to 'preminor' for scheduled runs
+              if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+                  $RELEASE_TYPE = "${{ inputs.version_level }}"
+                  Write-Host "[INFO] Previous tag is stable -> using user-selected '$RELEASE_TYPE' to create first prerelease" -ForegroundColor Cyan
+              } else {
+                  $RELEASE_TYPE = "preminor"
+                  Write-Host "[INFO] Previous tag is stable -> using 'preminor' to create first prerelease" -ForegroundColor Cyan
+              }
           }
 
           # Manual trigger always builds

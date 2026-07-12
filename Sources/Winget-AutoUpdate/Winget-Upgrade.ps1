@@ -164,7 +164,7 @@ if (Test-Network) {
                 # $Script:InstallOK on success -- no need to re-confirm here.
                 $updatedIds = [System.Collections.Generic.List[string]]::new()
                 foreach ($app in $userApps) {
-                    Write-ToLog "-> $($app.Name) : $($app.Version) -> $($app.AvailableVersion)"
+                    Write-ToLog "→ $($app.Name) : $($app.Version) → $($app.AvailableVersion)"
                     $before = $Script:InstallOK
                     Update-App $app -src $Script:WingetSourceCustom
                     if ($Script:InstallOK -gt $before) {
@@ -411,7 +411,7 @@ if (Test-Network) {
             #Log list of app to update
             foreach ($app in $outdated) {
                 #List available updates
-                $Log = "-> Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
+                $Log = "→ Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
                 $Log | Write-Host
                 $Log | Out-File -FilePath $LogFile -Append
             }

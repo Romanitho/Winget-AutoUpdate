@@ -2,57 +2,57 @@
 	<outputs>
 		<output id="0">
 			<!--Check network connection-->
-			<title>Controleer de netwerkverbinding.</title>
+			<title>Controleer de netwerkverbinding</title>
 			<!--Unable to check for software updates at this time!-->
-			<message>Er kan op dit moment niet gecontroleerd worden op software updates!</message>
+			<message>Er kan op dit moment niet op software-updates worden gecontroleerd.</message>
 		</output>
 		<output id="1">
-			<!--No internet connction-->
-			<title>Geen internetverbinding.</title>
+			<!--No internet connection-->
+			<title>Geen internetverbinding</title>
 			<!--Updates could not be verified-->
-			<message>Updates konden niet worden gecontroleerd.</message>
+			<message>Er kon niet op updates worden gecontroleerd.</message>
 		</output>
 		<output id="2">
 			<!--{App} will be updated-->
-			<title>{0} zal geüpdatet worden !</title>
+			<title>{0} wordt bijgewerkt</title>
 			<!--{v1.0} to {v2.0}-->
-			<message>{0} to {1}</message>
+			<message>{0} naar {1}</message>
 		</output>
 		<output id="3">
 			<!--{App} updated-->
-			<title>{0} is geüpdatet.</title>
+			<title>{0} is bijgewerkt</title>
 			<!--Installed version: {v1.0}-->
 			<message>Geïnstalleerde versie: {0}</message>
 		</output>
 		<output id="4">
 			<!--{App} could not be updated-->
-			<title>{0} kan niet worden geüpdatet!</title>
+			<title>{0} kon niet worden bijgewerkt</title>
 			<!--Please contact support-->
 			<message>Neem contact op met support.</message>
 		</output>
 		<output id="5">
 			<!--Logs are not available yet-->
-			<message>Logs zijn nog niet beschikbaar !</message>
+			<message>Er zijn nog geen logs beschikbaar.</message>
 		</output>
 		<output id="6">
 			<!--Starting a manual check for updated apps-->
-			<message>Start een manuele controle op software updates...</message>
+			<message>Bezig met zoeken naar software-updates...</message>
 		</output>
 		<output id="7">
 			<!--Couldn't start a manual check for updated apps-->
-			<message>Kon geen manuele controle op software updates starten!</message>
+			<message>Kon geen handmatige controle op software-updates starten.</message>
 		</output>
 		<output id="8">
-			<!--Check for updated apps already running-->
-			<message>Er wordt al naar software updates gezocht...</message>
+			<!--A check for updated apps already running-->
+			<message>Er wordt al naar software-updates gezocht...</message>
 		</output>
 		<output id="9">
 			<!--Manual check for updated apps completed-->
-			<message>Manuele controle op software updates voltooid...</message>
+			<message>Handmatige controle op software-updates voltooid.</message>
 		</output>
 		<output id="10">
 			<!--See changelog-->
-			<message>Zie changelog</message>
+			<message>Bekijk changelog</message>
 		</output>
 		<output id="11">
 			<!--Open log file-->

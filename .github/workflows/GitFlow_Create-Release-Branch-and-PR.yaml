@@ -26,7 +26,7 @@ jobs:
     steps:
       # Step 1: Calculate the next version number based on the selected increment type
       - name: Auto Increment Semver Action
-        uses: MCKanpolat/auto-semver-action@632a84f5d1232fe655c7a85684ba3105c28b3fec # 1.0.11
+        uses: MCKanpolat/auto-semver-action@b8d990235cabc199538f9d0ac9ff485acdeb7b96 # 3
         id: versioning
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

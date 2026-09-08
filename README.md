@@ -61,10 +61,16 @@ Add (or remove) the apps' ID you want to disable autoupdate to 'excluded_apps.tx
 
 You can update only pre-selected apps. To do so, create an "included_apps.txt" with the apps' ID of the apps you want to auto-update and place it in the same folder as WAU.msi during install.
 
-> The lists can contain Wildcard (*). For instance ```Mozilla.Firefox*``` will take care of all Firefox channels.
+#### BlockList
+You can exclude apps from the update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update).
+- Place `excluded_apps.txt` in the WAU install folder (for example `C:\Program Files\Winget-AutoUpdate\excluded_apps.txt`)
+- It is not recommended to edit `config\default_excluded_apps.txt` as it may be overwritten on WAU app update.
 
-List and Mods folder content will be copied to WAU install location:  
-<img width="474" height="308" alt="423074783-a37837b0-b61e-4ce7-b23c-fd8661585e40" src="https://github.com/user-attachments/assets/323fc50c-2400-4fa2-937d-83a0f0c2392d" />
+#### AllowList
+You can update only pre-selected apps by enabling allowlist mode.
+- Set WAU_UseWhiteList=1 in the WAU configuration registry key under `HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate`
+- On 64-bit Windows WAU may also consider the 32-bit registry view `HKLM:\SOFTWARE\WOW6432Node\Romanitho\Winget-AutoUpdate`
+- Place `included_apps.txt` in the WAU install folder (for example `C:\Program Files\Winget-AutoUpdate\included_apps.txt`)
 
 ### Notification Level
 

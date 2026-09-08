@@ -29,7 +29,7 @@ jobs:
     steps:
       # Step 1: Checkout the code from the main branch after merge
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: ${{ secrets.GH_PAT_SYNC }}
           lfs: "true"
@@ -120,6 +120,7 @@ jobs:
           tag: v${{ steps.release_version.outputs.NextSemVer }}
           prerelease: false  # This is a stable release
           generateReleaseNotes: true
+          immutableCreate: true
           name: WAU ${{ steps.release_version.outputs.NextSemVer }}
           artifacts: "WAU.msi,${{ steps.build_project.outputs.admx_zip_name }}"
           body: |
@@ -136,7 +137,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GH_PAT_SYNC }}

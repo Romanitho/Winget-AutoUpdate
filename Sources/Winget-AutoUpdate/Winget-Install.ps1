@@ -1,11 +1,9 @@
 <#
 .SYNOPSIS
 Install apps with Winget through Intune or SCCM.
-(Can be used standalone.) - Deprecated in favor of Winget-AutoUpdate.
 
 .DESCRIPTION
 Allow to run Winget in System Context to install your apps.
-(https://github.com/Romanitho/Winget-Install) - Deprecated in favor of Winget-AutoUpdate.
 
 .PARAMETER AppIDs
 Forward Winget App ID to install. For multiple apps, separate with ",". Case sensitive.
@@ -22,6 +20,9 @@ Used to specify logpath. Default is same folder as Winget-Autoupdate project
 .PARAMETER WAUWhiteList
 Adds the app to the Winget-AutoUpdate White List. More info: https://github.com/Romanitho/Winget-AutoUpdate
 If '-Uninstall' is used, it removes the app from WAU White List.
+
+.PARAMETER Source
+Specify the WinGet source to use for package operations (for example "winget" or "msstore"). Default is "winget".
 
 .EXAMPLE
 .\winget-install.ps1 -AppIDs 7zip.7zip
@@ -40,6 +41,9 @@ If '-Uninstall' is used, it removes the app from WAU White List.
 
 .EXAMPLE
 .\winget-install.ps1 -AppIDs "Notepad++.Notepad++" -AllowUpgrade
+
+.EXAMPLE
+.\winget-install.ps1 -AppIDs 9WZDNCRFJ3PT -Source msstore
 #>
 
 [CmdletBinding()]
@@ -48,7 +52,8 @@ param(
     [Parameter(Mandatory = $False)] [Switch] $Uninstall,
     [Parameter(Mandatory = $False)] [String] $LogPath,
     [Parameter(Mandatory = $False)] [Switch] $WAUWhiteList,
-    [Parameter(Mandatory = $False)] [Switch] $AllowUpgrade
+    [Parameter(Mandatory = $False)] [Switch] $AllowUpgrade,
+    [Parameter(Mandatory = $False)] [String] $Source = "winget"
 )
 
 
@@ -76,7 +81,7 @@ else {
 #Check if App exists in Winget Repository
 function Confirm-Exist ($AppID) {
     #Check is app exists in the winget repository
-    $WingetApp = & $winget show --Id $AppID -e --accept-source-agreements -s winget | Out-String
+    $WingetApp = & $winget show --Id $AppID -e --accept-source-agreements -s $Source | Out-String
 
     #Return if AppID exists
     if ($WingetApp -match [regex]::Escape($AppID)) {
@@ -139,8 +144,8 @@ function Test-ModsUninstall ($AppID) {
 }
 
 #Install function
-function Install-App ($AppID, $AppArgs) {
-    $IsInstalled = Confirm-Installation $AppID
+function Install-App ($AppID, $AppArgs, $Source = 'winget') {
+    $IsInstalled = Confirm-Installation $AppID -src $Source
     if (!($IsInstalled) -or $AllowUpgrade ) {
         #Check if mods exist (or already exist) for preinstall/override/custom/arguments/install/installed
         $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsArguments, $ModsInstall, $ModsInstalled = Test-ModsInstall $($AppID)
@@ -159,21 +164,21 @@ function Install-App ($AppID, $AppArgs) {
         Write-ToLog "-> Installing $AppID..." "DarkYellow"
         if ($ModsOverride) {
             Write-ToLog "-> Arguments (overriding default): $ModsOverride" # Without -h (user overrides default)
-            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget --override $ModsOverride" -split " "
+            $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", $Source, "--override", $ModsOverride)
         }
         elseif ($ModsCustom) {
             Write-ToLog "-> Arguments (customizing default): $ModsCustom" # With -h (user customizes default)
-            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h --custom $ModsCustom" -split " "
+            $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", $Source, "-h", "--custom", $ModsCustom)
         }
         elseif ($ModsArguments -or (-not [string]::IsNullOrWhiteSpace($AppArgs))) {
             # Prioritize ModsArguments from file over AppArgs from command line
             $finalArgs = if ($ModsArguments) { $ModsArguments } else { $AppArgs }
             Write-ToLog "-> Arguments (winget-level): $finalArgs" # Winget parameters with -h
             $argArray = ConvertTo-WingetArgumentArray $finalArgs
-            $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", "winget") + $argArray + @("-h")
+            $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", $Source) + $argArray + @("-h")
         }
         else {
-            $WingetArgs = "install --id $AppID -e --accept-package-agreements --accept-source-agreements -s winget -h" -split " "
+            $WingetArgs = @("install", "--id", $AppID, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", $Source, "-h")
         }
 
         Write-ToLog "-> Running: `"$Winget`" $WingetArgs"
@@ -185,7 +190,7 @@ function Install-App ($AppID, $AppArgs) {
         }
 
         #Check if install is ok
-        $IsInstalled = Confirm-Installation $AppID
+        $IsInstalled = Confirm-Installation $AppID -src $Source
         if ($IsInstalled) {
             Write-ToLog "-> $AppID successfully installed." "Green"
 
@@ -209,8 +214,8 @@ function Install-App ($AppID, $AppArgs) {
 }
 
 #Uninstall function
-function Uninstall-App ($AppID, $AppArgs) {
-    $IsInstalled = Confirm-Installation $AppID
+function Uninstall-App ($AppID, $AppArgs, $Source = 'winget') {
+    $IsInstalled = Confirm-Installation $AppID -src $Source
     if ($IsInstalled) {
         #Check if mods exist (or already exist) for preuninstall/uninstall/uninstalled
         $ModsPreUninstall, $ModsUninstall, $ModsUninstalled = Test-ModsUninstall $AppID
@@ -244,7 +249,7 @@ function Uninstall-App ($AppID, $AppArgs) {
         }
 
         #Check if uninstall is ok
-        $IsInstalled = Confirm-Installation $AppID
+        $IsInstalled = Confirm-Installation $AppID -src $Source
         if (!($IsInstalled)) {
             Write-ToLog "-> $AppID successfully uninstalled." "Green"
             if ($ModsUninstalled) {
@@ -399,14 +404,14 @@ if ($Winget) {
 
         #Install or Uninstall command
         if ($Uninstall) {
-            Uninstall-App $AppID $AppArgs
+            Uninstall-App $AppID $AppArgs $Source
         }
         else {
             #Check if app exists on Winget Repo
             $Exists = Confirm-Exist $AppID
             if ($Exists) {
                 #Install
-                Install-App $AppID $AppArgs
+                Install-App $AppID $AppArgs $Source
             }
         }
 

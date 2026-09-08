@@ -8,12 +8,21 @@
 
 .PARAMETER app
     PSCustomObject with Name, Id, Version, AvailableVersion properties.
+
+.PARAMETER src
+    The WinGet source to use (e.g. 'winget', 'msstore'). Defaults to 'winget'.
 #>
-Function Update-App ($app) {
+Function Update-App ($app, $src = "winget") {
+    if ([string]::IsNullOrWhiteSpace($src)) {
+        $src = "winget"
+    }
+    else {
+        $src = $src.Trim()
+    }
 
     # Helper function to build winget command parameters
     function Get-WingetParams ($Command, $ModsOverride, $ModsCustom, $ModsArguments) {
-        $params = @($Command, "--id", $app.Id, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", "winget")
+        $params = @($Command, "--id", $app.Id, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", $src)
         if ($Command -eq "install") { $params += "--force" }
 
         if ($ModsOverride) {
@@ -50,7 +59,7 @@ Function Update-App ($app) {
     }
 
     # Get release notes for notification button
-    $ReleaseNoteURL = Get-AppInfo $app.Id
+    $ReleaseNoteURL = Get-AppInfo $app.Id $src
     $Button1Text = if ($ReleaseNoteURL) { $NotifLocale.local.outputs.output[10].message } else { $null }
 
     # Send "updating" notification
@@ -80,7 +89,7 @@ Function Update-App ($app) {
         & $ModsUpgrade
     }
 
-    $ConfirmInstall = Confirm-Installation $app.Id $app.AvailableVersion
+    $ConfirmInstall = Confirm-Installation $app.Id $app.AvailableVersion $src
 
     # Fallback to install if upgrade failed
     if (-not $ConfirmInstall) {
@@ -98,7 +107,7 @@ Function Update-App ($app) {
                 & $ModsInstall
             }
 
-            $ConfirmInstall = Confirm-Installation $app.Id $app.AvailableVersion
+            $ConfirmInstall = Confirm-Installation $app.Id $app.AvailableVersion $src
         }
     }
 

@@ -49,16 +49,16 @@ function Wait-ModsProc ($Wait) {
     Return
 }
 
-function Install-WingetID ($WingetIDInst) {
+function Install-WingetID ($WingetIDInst, $src = 'winget') {
     foreach ($app in $WingetIDInst) {
-        & $Winget install --id $app -e --accept-package-agreements --accept-source-agreements -s winget -h
+        & $Winget install --id $app -e --accept-package-agreements --accept-source-agreements -s $src -h
     }
     Return
 }
 
-function Uninstall-WingetID ($WingetIDUninst) {
+function Uninstall-WingetID ($WingetIDUninst, $src = 'winget') {
     foreach ($app in $WingetIDUninst) {
-        & $Winget uninstall --id $app -e --accept-source-agreements -s winget -h
+        & $Winget uninstall --id $app -e --accept-source-agreements -s $src -h
     }
     Return
 }
@@ -188,37 +188,37 @@ function Remove-ModsLnk ($Lnk) {
 function Add-ProgramsShortcuts ($Shortcuts, $ShortcutsTargets) {
     $programsPath = "${env:ProgramData}\Microsoft\Windows\Start Menu\Programs"
     $createdCount = 0
-    
+
     # Validate arrays match in length and are not just empty placeholders
     if ($Shortcuts.Count -ne $ShortcutsTargets.Count -or ($Shortcuts.Count -eq 1 -and [string]::IsNullOrEmpty($Shortcuts[0]))) {
         Return $createdCount
     }
-    
+
     # Create WScript.Shell COM object
     $WshShell = New-Object -ComObject WScript.Shell -ErrorAction SilentlyContinue
     if (!$WshShell) {
         Return $createdCount
     }
-    
+
     # Iterate through shortcuts
     for ($i = 0; $i -lt $Shortcuts.Count; $i++) {
         $shortcutName = $Shortcuts[$i]
         $targetPath = $ShortcutsTargets[$i]
-        
+
         # Skip empty entries
         if ([string]::IsNullOrEmpty($shortcutName) -or [string]::IsNullOrEmpty($targetPath)) {
             continue
         }
-        
+
         # Construct full shortcut path
         $shortcutPath = Join-Path $programsPath "$shortcutName.lnk"
-        
+
         # Create parent directory if it doesn't exist
         $shortcutDir = Split-Path $shortcutPath -Parent
         if (!(Test-Path $shortcutDir)) {
             New-Item -Path $shortcutDir -ItemType Directory -Force -ErrorAction SilentlyContinue | Out-Null
         }
-        
+
         # Verify target exists
         if (Test-Path $targetPath) {
             # Create shortcut
@@ -232,7 +232,7 @@ function Add-ProgramsShortcuts ($Shortcuts, $ShortcutsTargets) {
             $createdCount++
         }
     }
-    
+
     Return $createdCount
 }
 

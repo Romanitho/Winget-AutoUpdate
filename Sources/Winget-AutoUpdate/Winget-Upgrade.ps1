@@ -164,7 +164,7 @@ if (Test-Network) {
                 # $Script:InstallOK on success -- no need to re-confirm here.
                 $updatedIds = [System.Collections.Generic.List[string]]::new()
                 foreach ($app in $userApps) {
-                    Write-ToLog "-> $($app.Name) : $($app.Version) -> $($app.AvailableVersion)"
+                    Write-ToLog "→ $($app.Name) : $($app.Version) → $($app.AvailableVersion)"
                     $before = $Script:InstallOK
                     Update-App $app -src $Script:WingetSourceCustom
                     if ($Script:InstallOK -gt $before) {
@@ -217,7 +217,7 @@ if (Test-Network) {
 
             #Get Current Version
             $WAUCurrentVersion = $WAUConfig.ProductVersion
-            Write-ToLog "WAU current version: $WAUCurrentVersion"
+            Write-ToLog "Current WAU version: $WAUCurrentVersion"
 
             #Check if WAU update feature is enabled or not if run as System
             $WAUDisableAutoUpdate = $WAUConfig.WAU_DisableAutoUpdate
@@ -232,7 +232,7 @@ if (Test-Network) {
                 #Compare
                 if ((Compare-SemVer -Version1 $WAUCurrentVersion -Version2 $WAUAvailableVersion) -lt 0) {
                     #If new version is available, update it
-                    Write-ToLog "WAU Available version: $WAUAvailableVersion" "DarkYellow"
+                    Write-ToLog "Available WAU version: $WAUAvailableVersion" "DarkYellow"
                     Update-WAU
                 }
                 else {
@@ -411,7 +411,7 @@ if (Test-Network) {
             #Log list of app to update
             foreach ($app in $outdated) {
                 #List available updates
-                $Log = "-> Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
+                $Log = "→ Available update : $($app.Name). Current version : $($app.Version). Available version : $($app.AvailableVersion)."
                 $Log | Write-Host
                 $Log | Out-File -FilePath $LogFile -Append
             }
@@ -421,7 +421,7 @@ if (Test-Network) {
 
             #Trick under user context when -BypassListForUsers is used
             if ($IsSystem -eq $false -and $WAUConfig.WAU_BypassListForUsers -eq 1) {
-                Write-ToLog "Bypass system list in user context is Enabled."
+                Write-ToLog "Bypassing the system list in user context is Enabled."
                 $UseWhiteList = $false
                 $toSkip = $null
             }
@@ -575,7 +575,7 @@ if (Test-Network) {
                             }
                         }
                         elseif ($app -and $app.Version -eq "Unknown") {
-                            Write-ToLog "$($app.Name) : Skipped forced update because current version is 'Unknown'" "Gray"
+                            Write-ToLog "$($app.Name) : Skipped forced update because the current version is 'Unknown'" "Gray"
                         }
                     }
                 }
@@ -649,7 +649,7 @@ if (Test-Network) {
                         }
                         #if app with wildcard is in "include list", update it
                         elseif ($toUpdate | Where-Object { $app.Id -like $_ }) {
-                            Write-ToLog "$($app.Name) is wildcard in the include list."
+                            Write-ToLog "$($app.Name) is wildcarded in the include list."
                             Update-App $app -src $Script:WingetSourceCustom
                         }
                         #else, skip it
@@ -664,7 +664,7 @@ if (Test-Network) {
                     foreach ($app in $outdated) {
                         #if current app version is unknown, skip it
                         if ($($app.Version) -eq "Unknown") {
-                            Write-ToLog "$($app.Name) : Skipped upgrade because current version is 'Unknown'" "Gray"
+                            Write-ToLog "$($app.Name) : Skipped upgrade because the current version is 'Unknown'" "Gray"
                         }
                         #if app is in "excluded list", skip it
                         elseif ($toSkip -contains $app.Id) {
@@ -672,7 +672,7 @@ if (Test-Network) {
                         }
                         #if app with wildcard is in "excluded list", skip it
                         elseif ($toSkip | Where-Object { $app.Id -like $_ }) {
-                            Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcard* in the excluded app list" "Gray"
+                            Write-ToLog "$($app.Name) : Skipped upgrade because it is *wildcarded* in the excluded app list" "Gray"
                         }
                         # else, update it
                         else {
@@ -684,12 +684,12 @@ if (Test-Network) {
             }
 
             if ($InstallOK -gt 0) {
-                Write-ToLog "$InstallOK apps updated ! No more update." "Green"
+                Write-ToLog "$InstallOK apps updated! No more updates." "Green"
             }
         }
 
         if ($InstallOK -eq 0 -or !$InstallOK) {
-            Write-ToLog "No new update." "Green"
+            Write-ToLog "No new updates." "Green"
         }
 
         # Test if _WAU-mods-postsys.ps1 exists: Mods for WAU (postsys) - if Network is active/any Winget is installed/running as SYSTEM _after_ SYSTEM updates
@@ -722,8 +722,8 @@ if (Test-Network) {
         }
     }
     else {
-        Write-ToLog "Critical: Winget not installed or detected, exiting..." "red"
-        New-Item "$WorkingDir\logs\error.txt" -Value "Winget not installed or detected" -Force
+        Write-ToLog "Critical: Winget is not installed or detected, exiting..." "red"
+        New-Item "$WorkingDir\logs\error.txt" -Value "Winget is not installed or detected" -Force
         Write-ToLog "End of process!" "Cyan"
         Exit 1
     }

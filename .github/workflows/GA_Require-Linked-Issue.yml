@@ -1,0 +1,52 @@
+# This workflow enforces the "issue first" contribution rule:
+# - Pull requests from external contributors must reference an existing issue (open or closed) (e.g. "Fixes #123")
+# - Non-compliant pull requests are commented and closed automatically
+# - Owner, members, collaborators and bots are not affected
+# SECURITY: pull_request_target is required to comment/close PRs from forks.
+# Never checkout or execute the PR code in this workflow.
+# The PR body is untrusted input: it is only passed through env variables, never injected with ${{ }} in the script.
+name: GitFlow | Require Linked Issue
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions: {}
+
+jobs:
+  check:
+    name: Check linked issue
+    runs-on: ubuntu-latest
+    permissions:
+      issues: read
+      pull-requests: write
+    if: >-
+      !contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.pull_request.author_association)
+      && github.event.pull_request.user.type != 'Bot'
+    steps:
+      - name: Check linked issue
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # Remove HTML comments (hidden template hints), then find the first "Fixes/Closes/Resolves #123"
+          ISSUE=$(printf '%s' "$PR_BODY" \
+            | perl -0pe 's/<!--.*?-->//gs' \
+            | grep -oiE '\b(close[sd]?|fix(e[sd])?|resolve[sd]?):?[[:space:]]+#[0-9]+' \
+            | head -n 1 | grep -oE '[0-9]+$' || true)
+
+          # The referenced number must exist and be an issue (not a pull request)
+          if [[ -n "$ISSUE" ]] && [[ "$(gh api "repos/$GH_REPO/issues/$ISSUE" --jq '.pull_request == null' 2>/dev/null)" == "true" ]]; then
+            echo "PR #$PR_NUMBER is linked to issue #$ISSUE"
+            exit 0
+          fi
+
+          echo "No valid linked issue found, closing PR #$PR_NUMBER"
+          gh pr close "$PR_NUMBER" --comment "Thanks for your interest in the project.
+
+          Pull requests must be linked to an issue. Please open an issue first to discuss the change, then submit a new pull request referencing it (e.g. \`Fixes #123\`).
+
+          See [CONTRIBUTING.md](https://github.com/$GH_REPO/blob/main/CONTRIBUTING.md#before-opening-a-pull-request) for details."

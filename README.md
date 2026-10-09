@@ -114,9 +114,9 @@ Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy 
 
 If the external Path is a Private Azure Container protected by a SAS token (**resourceURI?sasToken**), every special character should be escaped at installation time.<br>
 It doesn't work to call Powershell in **CMD** to install **WAU** with the parameter:<br>
-`-ListPath https://storagesample.blob.core.windows.net/sample-container?v=2023-11-31&sr=b&sig=39Up9jzHkxhUIhFEjEh9594DIxe6cIRCgOVOICGSP%3A377&sp=rcw`<br>
+`-ListPath https://storagesample.blob.core.windows.net/sample-container?v=2023-11-31&sr=b&sig=PLACEHOLDER_FOR_YOUR_AZURE_SAS_TOKEN&sp=rcw`<br>
 Instead you must escape **every** special character (notice the `%` escape too) like:<br>
-`-ListPath https://storagesample.blob.core.windows.net/sample-container^?v=2023-11-31^&sr=b^&sig=39Up9jzHkxhUIhFEjEh9594DIxe6cIRCgOVOICGSP%%3A377^&sp=rcw`
+`-ListPath https://storagesample.blob.core.windows.net/sample-container^?v=2023-11-31^&sr=b^&sig=PLACEHOLDER_FOR_YOUR_AZURE_SAS_TOKEN^&sp=rcw`
 
 
 If a blacklist or whitelist is configured via Group Policy (GPO), WAU will automatically use these settings. There is no longer a need to specify "GPO" as a value for `ListPath`, detection is automatic as soon as a list is defined in Group Policy.

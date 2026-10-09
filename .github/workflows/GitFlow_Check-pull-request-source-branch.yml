@@ -38,12 +38,12 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
         run: |
-          # Les variables sont maintenant définies dans l'environnement plutôt qu'injectées directement
+          # Variables are passed through the environment instead of being injected directly
           MAIN_BRANCH="${{ env.MAIN_BRANCH }}"
           VALID_PATTERN="${{ env.VALID_PATTERNS }}"
-          
+
           echo "Checking PR from '$HEAD_REF' to '$BASE_REF'"
-          
+
           # Perform the validation
           if [[ "$BASE_REF" == "$MAIN_BRANCH" ]]; then
             if [[ ! "$HEAD_REF" =~ $VALID_PATTERN ]]; then

@@ -1,5 +1,5 @@
 ---
-name: Close inactive issues
+name: Close inactive issues and PRs
 on:
   schedule:
     - cron: "30 1 * * *"
@@ -7,19 +7,29 @@ on:
 permissions: read-all
 
 jobs:
-  close-issues:
+  stale:
     runs-on: ubuntu-latest
     permissions:
+      actions: write        # used by stale to manage its state cache
       issues: write
       pull-requests: write
     steps:
       - uses: actions/stale@v10.2.0
         with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Issues
           days-before-issue-stale: 30
           days-before-issue-close: 14
           stale-issue-label: "stale"
           stale-issue-message: "This issue is stale because it has been open for 30 days with no activity."
           close-issue-message: "This issue was closed because it has been inactive for 14 days since being marked as stale."
-          days-before-pr-stale: -1
-          days-before-pr-close: -1
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Pull requests (no comment when marked stale, short message on close)
+          # Release PRs and Dependabot PRs are never closed automatically
+          days-before-pr-stale: 30
+          days-before-pr-close: 14
+          stale-pr-label: "stale"
+          exempt-pr-labels: "release,dependencies"
+          exempt-draft-pr: true
+          close-pr-message: "Closing this pull request as it is not planned for inclusion at this time. Thanks for your interest in the project."

@@ -1,9 +1,11 @@
 # This workflow completes the GitFlow release process:
-# - Triggers automatically when a PR from release/* or hotfix/* to main is merged
-# - Extracts version number from branch name
-# - Builds stable release artifacts (not nightly builds)
-# - Creates GitHub release with download stats
-# - Synchronizes develop branch with main to maintain GitFlow integrity
+# - Triggers automatically when a PR to main is merged
+# - For release/* or hotfix/* branches:
+#   - Extracts version number from branch name
+#   - Builds stable release artifacts (not nightly builds)
+#   - Creates GitHub release with download stats
+# - For every merged PR (with or without release):
+#   - Synchronizes develop branch with main to maintain GitFlow integrity
 
 name: GitFlow | Make Release and resync to develop
 
@@ -26,6 +28,7 @@ jobs:
     runs-on: windows-latest
     outputs:
       next_semver: ${{ steps.release_version.outputs.NextSemVer }}
+
     steps:
       # Step 1: Checkout the code from the main branch after merge
       - name: Checkout code
@@ -48,16 +51,19 @@ jobs:
             # Fetch the latest stable version for hotfix
             LATEST_TAG=$(git tag -l --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
             echo "Latest stable version: $LATEST_TAG"
+
             # Calculate the new hotfix version by incrementing patch number
             IFS='.' read -r -a version_parts <<< "${LATEST_TAG/v/}"
             PATCH=$((version_parts[2] + 1))
             VERSION="${version_parts[0]}.${version_parts[1]}.$PATCH"
             echo "Version generated for hotfix: $VERSION"
           fi
+
           # Get the commit count and apply modulo 65535 (MSI version component limit)
           commit_count=$(git rev-list --count HEAD)
           commit_count_mod=$((commit_count % 65535))
           NEW_VERSION="$VERSION.$commit_count_mod"
+
           echo "Final version: $NEW_VERSION"
           echo "MsiVersion=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "NextSemVer=$VERSION" >> $GITHUB_OUTPUT
@@ -129,12 +135,26 @@ jobs:
             |---|---|---|
             |[WAU.msi](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.NextSemVer }}/WAU.msi) (x64)|`${{ steps.build_project.outputs.msi_sha }}`|<picture>![WAU.msi](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/WAU.msi?style=flat-square&label=&color=blue)</picture>|
             |[${{ steps.build_project.outputs.admx_zip_name }}](https://github.com/Romanitho/Winget-AutoUpdate/releases/download/v${{ steps.release_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }})|`${{ steps.build_project.outputs.admx_sha }}`|<picture>![${{ steps.build_project.outputs.admx_zip_name }}](https://img.shields.io/github/downloads/Romanitho/Winget-AutoUpdate/v${{ steps.release_version.outputs.NextSemVer }}/${{ steps.build_project.outputs.admx_zip_name }}?style=flat-square&label=&color=blue)</picture>|
+
             ___
 
   sync:
     name: Sync develop with main
     runs-on: ubuntu-latest
     needs: build
+    # Run after every merged PR to main:
+    # - after a successful release (build = success)
+    # - or without release for other branches (build = skipped)
+    # Never sync if the release build failed or was cancelled
+    if: >-
+      always()
+      && github.event.pull_request.merged == true
+      && (needs.build.result == 'success' || needs.build.result == 'skipped')
+    # Avoid concurrent pushes to develop when several PRs are merged close together
+    concurrency:
+      group: sync-develop
+      cancel-in-progress: false
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -149,15 +169,25 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
 
-      # Step 6: Sync develop with main to ensure all release changes are in the develop branch
+      # Step 6: Sync develop with main to ensure all changes merged into main are in the develop branch
       - name: Sync develop with main
         shell: bash
+        env:
+          NEXT_SEMVER: ${{ needs.build.outputs.next_semver }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
+          if [[ -n "$NEXT_SEMVER" ]]; then
+            MSG="Merge main into develop after the creation of release v$NEXT_SEMVER"
+          else
+            MSG="Merge main into develop after merge of $HEAD_REF"
+          fi
+
           # Checkout develop branch
           git checkout develop
           git pull origin develop
+
           # Merge main into develop with no fast-forward to preserve history
-          git merge --no-ff origin/main -m "Merge main into develop after the creation of release v${{ needs.build.outputs.next_semver }}"
+          git merge --no-ff origin/main -m "$MSG"
 
           # Push changes to develop branch
           git push origin develop

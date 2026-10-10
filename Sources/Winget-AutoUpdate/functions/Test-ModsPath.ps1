@@ -5,7 +5,7 @@
 .DESCRIPTION
     Compares local mods folder with an external source and syncs changes.
     Supports three source types:
-    - HTTP/HTTPS URLs (requires directory listing)
+    - HTTPS URLs (requires directory listing)
     - Azure Blob Storage (uses AzCopy)
     - UNC/local paths
 
@@ -36,19 +36,54 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
     $LocalMods = -join ($WingetUpdatePath, "\", "mods")
     $ExternalMods = "$ModsPath"
 
+    function Invoke-WauHttpsRequest {
+        param([Parameter(Mandatory=$true)][string]$Uri, [ValidateSet('Get','Head')][string]$Method = 'Get')
+        $parsed = $null
+        if (-not [uri]::TryCreate($Uri, [UriKind]::Absolute, [ref]$parsed) -or $parsed.Scheme -ne 'https') {
+            throw "Remote mod URL must use HTTPS: $Uri"
+        }
+        $parameters = @{Uri=$parsed;UseBasicParsing=$true;ErrorAction='Stop'}
+        if ($Method -eq 'Head') { $parameters.Method = 'Head' }
+
+        try {
+            $response = Invoke-WebRequest @parameters
+            $finalUri = $null
+            if ($response.BaseResponse.ResponseUri) { $finalUri = $response.BaseResponse.ResponseUri }
+            elseif ($response.BaseResponse.RequestMessage.RequestUri) { $finalUri = $response.BaseResponse.RequestMessage.RequestUri }
+            if (-not $finalUri -or $finalUri.Scheme -ne 'https') { throw "HTTPS downgrade redirect rejected: $Uri" }
+            return $response
+        }
+        catch {
+
+            throw
+        }
+    }
+
+    function Test-WauRemoteModName ([string]$Name, [string[]]$Extensions) {
+        if ([string]::IsNullOrWhiteSpace($Name) -or [IO.Path]::GetFileName($Name) -ne $Name) { return $false }
+        if ($Name -notmatch '^[A-Za-z0-9_][A-Za-z0-9_.() +\-]{0,200}$') { return $false }
+        return $Extensions -contains [IO.Path]::GetExtension($Name).ToLowerInvariant()
+    }
     # Get list of local mod files and binaries
     $InternalModsNames = Get-ChildItem -Path $LocalMods -Name -Recurse -Include *.ps1, *.txt
     $InternalBinsNames = Get-ChildItem -Path $LocalMods"\bins" -Name -Recurse -Include *.exe
 
-    # === Handle HTTP/HTTPS URLs ===
-    if ($ExternalMods -like "http*") {
-        # Enable TLS 1.2 and TLS 1.1 for secure connections
-        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 #DevSkim: ignore DS440020,DS440020 Hard-coded SSL/TLS Protocol
-        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls11 #DevSkim: ignore DS440020,DS440020 Hard-coded SSL/TLS Protocol
+    # Remote modification sources can contain executable PowerShell and binary
+    # files. Never retrieve them over unencrypted HTTP.
+    if ($ExternalMods -match '(?i)^http://') {
+        Write-ToLog "Insecure HTTP mod source rejected. Use HTTPS: $ExternalMods" "Red"
+        $Script:ReachNoPath = $True
+        return $False
+    }
+
+    # === Handle HTTPS URLs ===
+    if ($ExternalMods -match '(?i)^https://') {
+        # Require TLS 1.2 for remote executable content
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 #DevSkim: ignore DS440020 Hard-coded SSL/TLS Protocol
 
         # Get directory listing from web server
         try {
-            $WebResponse = Invoke-WebRequest -Uri $ExternalMods -UseBasicParsing
+            $WebResponse = Invoke-WauHttpsRequest -Uri $ExternalMods
         }
         catch {
             $Script:ReachNoPath = $True
@@ -58,7 +93,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
         # --- Handle bins subfolder (executables) ---
         $ExternalBins = "$ModsPath/bins"
         if ($WebResponse -match "bins/") {
-            $BinResponse = Invoke-WebRequest -Uri $ExternalBins -UseBasicParsing
+            $BinResponse = Invoke-WauHttpsRequest -Uri $ExternalBins
             $BinLinks = $BinResponse.Links | Select-Object -ExpandProperty HREF
 
             # Clean directory paths from HREFs (IIS compatibility)
@@ -83,19 +118,18 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
 
             # Download newer external bins
             $CleanBinLinks = $BinLinks -replace "/.*/", ""
-            $wc = New-Object System.Net.WebClient
             $CleanBinLinks | ForEach-Object {
-                if ($_ -like "*.exe") {
+                if (Test-WauRemoteModName $_ @('.exe')) {
                     $dateExternalBin = ""
                     $dateLocalBin = ""
-                    $wc.OpenRead("$ExternalBins/$_").Close() | Out-Null
-                    $dateExternalBin = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
+                    $head = Invoke-WauHttpsRequest -Uri "$ExternalBins/$_" -Method Head
+                    $dateExternalBin = ([DateTime]$head.Headers['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
                     if (Test-Path -Path $LocalMods"\bins\"$_) {
                         $dateLocalBin = (Get-Item "$LocalMods\bins\$_").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                     }
                     if ($dateExternalBin -gt $dateLocalBin) {
                         $SaveBin = Join-Path -Path "$LocalMods\bins" -ChildPath $_
-                        Invoke-WebRequest -Uri "$ExternalBins/$_" -OutFile $SaveBin.Replace("%20", " ") -UseBasicParsing
+                        $null = Save-WauHttpsFile -Uri "$ExternalBins/$_" -Destination $SaveBin.Replace("%20", " ")
                     }
                 }
             }
@@ -126,14 +160,13 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
 
         # Download newer external mods
         $CleanLinks = $ModLinks -replace "/.*/", ""
-        $wc = New-Object System.Net.WebClient
         $CleanLinks | ForEach-Object {
-            if (($_ -like "*.ps1") -or ($_ -like "*.txt")) {
+            if (Test-WauRemoteModName $_ @('.ps1','.txt')) {
                 try {
                     $dateExternalMod = ""
                     $dateLocalMod = ""
-                    $wc.OpenRead("$ExternalMods/$_").Close() | Out-Null
-                    $dateExternalMod = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
+                    $head = Invoke-WauHttpsRequest -Uri "$ExternalMods/$_" -Method Head
+                    $dateExternalMod = ([DateTime]$head.Headers['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
                     if (Test-Path -Path $LocalMods"\"$_) {
                         $dateLocalMod = (Get-Item "$LocalMods\$_").LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
                     }
@@ -142,7 +175,7 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
                         try {
                             $SaveMod = Join-Path -Path "$LocalMods\" -ChildPath $_
                             $Mod = '{0}/{1}' -f $ModsPath.TrimEnd('/'), $_
-                            Invoke-WebRequest -Uri "$Mod" -OutFile $SaveMod -UseBasicParsing
+                            $null = Save-WauHttpsFile -Uri "$Mod" -Destination $SaveMod
                             $ModsUpdated++
                         }
                         catch {
@@ -162,6 +195,11 @@ function Test-ModsPath ($ModsPath, $WingetUpdatePath, $AzureBlobSASURL) {
     # === Handle Azure Blob Storage ===
     elseif ($ExternalMods -like "AzureBlob") {
         Write-ToLog "Azure Blob Storage set as mod source"
+        if ($AzureBlobSASURL -and $AzureBlobSASURL -notmatch '(?i)^https://') {
+            Write-ToLog "Insecure Azure Blob mod source rejected. Use HTTPS." "Red"
+            $Script:ReachNoPath = $True
+            return $False
+        }
         Write-ToLog "Checking AZCopy"
         Get-AZCopy $WingetUpdatePath
 

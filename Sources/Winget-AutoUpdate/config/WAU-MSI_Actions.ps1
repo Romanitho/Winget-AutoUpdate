@@ -127,13 +127,10 @@ function Install-WingetAutoUpdate {
         $task = New-ScheduledTask -Action $taskAction -Principal $taskPrincipal -Settings $taskSettings -Trigger $taskTrigger
         Register-ScheduledTask -TaskName 'Winget-AutoUpdate-Policies' -TaskPath 'WAU' -InputObject $task -Force | Out-Null
 
-        # UpdatePrompt task (SYSTEM via ServiceUI.exe -- shows WPF deadline dialog in user's desktop session)
-        # EncodedCommand is required because ServiceUI.exe strips quotes from the command line
-        # passed to CreateProcessAsUser, breaking paths with spaces (e.g. "Program Files").
-        $promptCmd = "& '${InstallPath}WAU-UpdatePrompt.ps1'"
-        $encodedCmd = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($promptCmd))
-        $taskAction = New-ScheduledTaskAction -Execute "${InstallPath}ServiceUI.exe" `
-            -Argument "-process:explorer.exe $PSHOME\powershell.exe -NoProfile -ExecutionPolicy Bypass -Sta -WindowStyle Hidden -EncodedCommand $encodedCmd" `
+        # UpdatePrompt task. The launcher reads the protected target SID and uses
+        # ServiceUI -session:<id>; process-name matching is ambiguous with RDP/FUS.
+        $taskAction = New-ScheduledTaskAction -Execute "powershell.exe" `
+            -Argument "-NoProfile -ExecutionPolicy Bypass -File `"${InstallPath}WAU-LaunchUpdatePrompt.ps1`"" `
             -WorkingDirectory $InstallPath
         $taskPrincipal = New-ScheduledTaskPrincipal -UserId S-1-5-18 -RunLevel Highest
         $taskSettings = New-ScheduledTaskSettingsSet -Compatibility Win8 -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 00:15:00 -MultipleInstances IgnoreNew
@@ -172,7 +169,7 @@ function Install-WingetAutoUpdate {
         if ($InstallPath -notlike "$env:ProgramFiles*") {
             Write-Output "-> Securing functions and mods folders"
 
-            foreach ($dir in @("$InstallPath\functions", "$InstallPath\mods")) {
+            foreach ($dir in @($InstallPath, "$InstallPath\functions", "$InstallPath\mods", "$InstallPath\config")) {
                 try {
                     $dirPath = Get-Item -Path $dir
                     $acl = Get-Acl -Path $dirPath.FullName

@@ -12,8 +12,8 @@
 Function Get-WingetCmd {
     [OutputType([String])]
 
-    $systemPath = "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe"
-    $userPath = "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe"
+    $programFiles = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles }
+    $systemPath = "$programFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe"
 
     # Try system context first (newest version)
     try {
@@ -26,10 +26,18 @@ Function Get-WingetCmd {
         }
     }
     catch {
-        # System context not found, try user context
+        # System context not found
     }
 
-    # Fall back to user context
+    # Security check: Never fall back to user profile when running as SYSTEM (prevents unprivileged LPE)
+    $isSystem = if ($null -ne $Script:IsSystem) { $Script:IsSystem }
+                else { [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem }
+    if ($isSystem) {
+        return [string]::Empty
+    }
+
+    # Fall back to user context only when running as standard user
+    $userPath = "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe"
     if (Test-Path $userPath) {
         return $userPath
     }

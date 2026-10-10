@@ -19,16 +19,30 @@ function Write-ToLog {
         [Switch]$IsHeader
     )
 
-    # Create log file with proper ACL if needed
-    if (!(Test-Path $LogFile)) {
+    # User and SYSTEM processes use separate logs. The SYSTEM audit log inherits
+    # its protected installation-directory ACL and is never writable by users.
+    $logDirectory = Split-Path -Parent $LogFile
+    if ($logDirectory -and -not (Test-Path -LiteralPath $logDirectory)) {
+        New-Item -ItemType Directory -Path $logDirectory -Force | Out-Null
+    }
+    if (-not (Test-Path -LiteralPath $LogFile)) {
         New-Item -ItemType File -Path $LogFile -Force | Out-Null
-        $acl = Get-Acl $LogFile
-        $rule = New-Object System.Security.AccessControl.FileSystemAccessRule(
-            (New-Object System.Security.Principal.SecurityIdentifier("S-1-5-11")),
-            "Modify", "Allow"
-        )
-        $acl.SetAccessRule($rule)
-        Set-Acl $LogFile $acl
+    }
+
+    $isSystemWriter = [Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
+    if ($isSystemWriter -and -not $Script:WauLogAclChecked) {
+        $acl = Get-Acl -LiteralPath $LogFile
+        $authenticatedUsers = 'S-1-5-11'
+        $changed = $false
+        foreach ($rule in @($acl.Access)) {
+            try { $ruleSid = $rule.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value } catch { continue }
+            if (-not $rule.IsInherited -and $ruleSid -eq $authenticatedUsers) {
+                $acl.RemoveAccessRuleSpecific($rule)
+                $changed = $true
+            }
+        }
+        if ($changed) { Set-Acl -LiteralPath $LogFile -AclObject $acl }
+        $Script:WauLogAclChecked = $true
     }
 
     # Format log entry

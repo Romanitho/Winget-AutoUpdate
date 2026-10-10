@@ -24,17 +24,21 @@ function Get-UpdateDeadlines {
 
     param(
         [Parameter(Mandatory = $false)]
-        [array]$OutdatedApps
-    )
+        [array]$OutdatedApps,
 
-    $DeadlineRegPath = "HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\UpdateDeadlines"
+        [Parameter(Mandatory = $false)]
+        [string]$DeadlineRegPath = 'HKLM:\SOFTWARE\Romanitho\Winget-AutoUpdate\UpdateDeadlines'
+    )
     $deadlines = @()
 
     if (-not (Test-Path $DeadlineRegPath)) {
         return $deadlines
     }
 
-    $entries = Get-ChildItem -Path $DeadlineRegPath -ErrorAction SilentlyContinue
+    $entries = Get-ChildItem -Path $DeadlineRegPath -Recurse -ErrorAction SilentlyContinue | Where-Object {
+        $values = Get-ItemProperty -LiteralPath $_.PSPath -ErrorAction SilentlyContinue
+        $values.FirstDetected -and $values.Deadline
+    }
     if (-not $entries) {
         return $deadlines
     }
@@ -45,25 +49,26 @@ function Get-UpdateDeadlines {
     if ($PSBoundParameters.ContainsKey('OutdatedApps')) {
         $outdatedIdSet = @{}
         foreach ($oa in $OutdatedApps) {
-            if ($oa.Id) { $outdatedIdSet[$oa.Id] = $true }
+            if ($oa.Id) { $outdatedIdSet[(Get-WauAppKey $oa)] = $true }
         }
     }
 
     foreach ($entry in $entries) {
 
-        $appId = $entry.PSChildName
+        $props = Get-ItemProperty -Path $entry.PSPath -ErrorAction SilentlyContinue
+        $appId = if ($props.IdentityKey) { [string]$props.IdentityKey } else { [string]$entry.PSChildName }
 
         # When OutdatedApps is supplied, purge entries for apps that are no longer outdated.
         # This covers apps the user updated manually outside of WAU.
         if ($null -ne $outdatedIdSet) {
             if (-not $outdatedIdSet.ContainsKey($appId)) {
                 Write-ToLog "Deadline purged (app no longer outdated): $appId"
-                Remove-Item -Path $entry.PSPath -Recurse -Force -ErrorAction SilentlyContinue
+                if ($props.PackageId -and $props.Scope) { Remove-WauUpdateDeadline -App $props -DeadlineRegPath $DeadlineRegPath }
+                else { Remove-Item -Path $entry.PSPath -Recurse -Force -ErrorAction SilentlyContinue }
                 continue
             }
         }
 
-        $props = Get-ItemProperty -Path $entry.PSPath -ErrorAction SilentlyContinue
         if (-not $props) {
             Write-ToLog "Deadline purged (unreadable registry entry): $appId" "Yellow"
             Remove-Item -Path $entry.PSPath -Recurse -Force -ErrorAction SilentlyContinue
@@ -75,15 +80,16 @@ function Get-UpdateDeadlines {
         $firstDetected = $null
         $deadline = $null
 
+        [string[]]$dateFormats = @('yyyy-MM-dd HH:mm:ss', 'yyyy-MM-ddTHH:mm:ss', 'yyyy-MM-dd')
         try {
-            $firstDetected = [DateTime]::ParseExact($props.FirstDetected, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
+            $firstDetected = [DateTime]::ParseExact($props.FirstDetected, $dateFormats, [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None)
         }
         catch {
             Write-ToLog "WARNING: Unparseable FirstDetected for $appId ('$($props.FirstDetected)')" "Yellow"
         }
 
         try {
-            $deadline = [DateTime]::ParseExact($props.Deadline, 'yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture)
+            $deadline = [DateTime]::ParseExact($props.Deadline, $dateFormats, [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::None)
         }
         catch {
             Write-ToLog "WARNING: Unparseable Deadline for $appId ('$($props.Deadline)')" "Yellow"
@@ -91,12 +97,19 @@ function Get-UpdateDeadlines {
 
         if (-not $firstDetected -or -not $deadline) {
             Write-ToLog "Deadline purged (corrupt date values): $appId" "Yellow"
-            Remove-Item -Path $entry.PSPath -Recurse -Force -ErrorAction SilentlyContinue
+            if ($props.PackageId -and $props.Scope) { Remove-WauUpdateDeadline -App $props -DeadlineRegPath $DeadlineRegPath }
+            else { Remove-Item -Path $entry.PSPath -Recurse -Force -ErrorAction SilentlyContinue }
             continue
         }
 
         $deadlines += [PSCustomObject]@{
             AppId            = $appId
+            Id               = $props.PackageId
+            PackageId        = $props.PackageId
+            Source           = $props.Source
+            Scope            = $props.Scope
+            UserSid          = $props.UserSid
+            IdentityKey      = $appId
             FirstDetected    = $firstDetected
             Deadline         = $deadline
             AvailableVersion = $props.AvailableVersion

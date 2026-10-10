@@ -23,11 +23,11 @@ This policy previously controlled whether GPO Management of Winget-AutoUpdate wa
 If this policy is disabled or not configured, the default is No.</string>
       <string id="DisableAutoUpdate_Name">Disable WAU AutoUpdate</string>
       <string id="DisableAutoUpdate_Explain">This policy setting specifies whether to Disable WAU AutoUpdate or not:
-By default, WAU AutoUpdate is enabled.
+By default, WAU AutoUpdate is disabled.
 It will not overwrite the configurations, icons (if personalised),
 excluded_apps list...
 
-If this policy is disabled or not configured, the default is No.</string>
+If this policy is disabled or not configured, the default is Yes (Disabled).</string>
       <string id="DoNotRunOnMetered_Name">Run WAU on metered connection</string>
       <string id="DoNotRunOnMetered_Explain">This policy setting specifies whether to Run WAU on metered connection or not.
 
@@ -154,12 +154,56 @@ This helps prevent many devices from running the task at the exact same time. Th
 If this policy is enabled, the scheduled task will have a random delay set based on the time inputted.
 
 If this policy is disabled or not configured, the default no delay.</string>
+      <string id="DeferralDays_Name">Package Update Deferral (Days)</string>
+      <string id="DeferralDays_Explain">This policy setting specifies the number of days to defer package updates after their release in winget-pkgs.
+
+If this policy is enabled, WAU will check when an available version was merged into the official winget repository. If the version is younger than the configured number of days, the update will be postponed.
+Individual packages can also override this via 'mods\&lt;AppID&gt;-deferral.txt' (e.g. set to 0 to exclude from deferral).
+
+If this policy is disabled or not configured, packages will not be deferred (default is 0 days).</string>
+      <string id="GitHubToken_Name">GitHub Personal Access Token (for Rate Limits)</string>
+      <string id="GitHubToken_Explain">This policy setting specifies an optional GitHub Personal Access Token (PAT).
+
+A token increases the GitHub API rate limit from 60 requests per hour to 5,000 requests per hour, which is helpful when resolving package release dates across many applications from the public 'microsoft/winget-pkgs' repository.
+
+Required Token Permissions:
+Because 'microsoft/winget-pkgs' is a public repository, minimal permissions are required:
+
+- Fine-grained Personal Access Token (Recommended):
+  * Repository access: Select "Public Repositories (read-only)".
+  * Repository permissions: No permissions required (or "Contents: Read-only").
+
+- Classic Personal Access Token (Tokens classic):
+  * Scopes: No scopes required! Leave all checkboxes unchecked. A classic token without any scopes selected grants the full 5,000 requests/hour for public data while following the principle of least privilege (no access to private repositories or write operations).
+
+If this policy is disabled or not configured, unauthenticated requests are used (or $env:GITHUB_TOKEN if defined).</string>
+      <string id="SharedCachePath_Name">Central Network Share Cache Path for Deferrals</string>
+      <string id="SharedCachePath_Explain">This policy setting specifies a central network folder path (e.g. \\server\share\wau\cache) where clients store and read package release dates.
+
+This enables a peer-to-peer central cache: The first client discovering a new version queries GitHub and stores the release date on the share. All other clients simply read the date, reducing GitHub API calls across the entire enterprise to a minimum.
+
+If this policy is disabled, not configured, or if the share is unreachable (e.g. mobile worker off VPN), the client automatically uses its local disk cache.</string>
       <string id="CompanyName_Name">Company name for deadline prompt dialog</string>
       <string id="CompanyName_Explain">If this policy is enabled, the deadline prompt dialog header will display the specified company name instead of "Your organization".
 
 For example, setting this to "Contoso" changes the header to "Contoso requires the following updates to be installed."
 
 If this policy is disabled or not configured, the default text "Your organization" is used.</string>
+      <string id="UpdateDeadlineHours_Name">Update deadline enforcement (hours)</string>
+      <string id="UpdateDeadlineHours_Explain">If this policy is enabled, WAU will track pending updates and display a deadline prompt dialog to logged-in users rather than silently installing updates.
+
+The value sets the number of hours from first detection until the update is forced silently in the background (e.g. 8 hours corresponds to a standard working day).
+
+Setting this to 0 (or disabling / not configuring this policy) restores the default silent update behavior and clears all stored deadline data.
+
+If both this policy and 'Update deadline enforcement (days)' are configured, this hours-based policy takes precedence.
+
+Default: 8 hours when enabled.
+
+Notes:
+- The deadline clock starts the first time WAU detects a pending update and resets only if the app is successfully updated. A version bump does not reset the clock.
+- If the device is offline the clock starts on the first run after reconnection.
+- On shared or multi-user machines the snooze state (NextPromptTime) is machine-wide: one user dismissing the dialog postpones it for all users on that machine.</string>
       <string id="UpdateDeadlineDays_Name">Update deadline enforcement (days)</string>
       <string id="UpdateDeadlineDays_Explain">If this policy is enabled, WAU will track pending updates and display a deadline prompt dialog to logged-in users rather than silently installing updates.
 
@@ -173,6 +217,18 @@ Notes:
 - The deadline clock starts the first time WAU detects a pending update and resets only if the app is successfully updated. A version bump does not reset the clock.
 - If the device is offline the clock starts on the first run after reconnection.
 - On shared or multi-user machines the snooze state (NextPromptTime) is machine-wide: one user dismissing the dialog postpones it for all users on that machine.</string>
+      <string id="ReminderIntervalHours_Name">Update deadline reminder interval (hours)</string>
+      <string id="ReminderIntervalHours_Explain">If this policy is enabled, you can set how many hours to wait before showing the deadline prompt dialog again after the user dismisses it ("Remind Me").
+
+This setting is only active when "Update deadline enforcement" is also configured and greater than 0.
+
+If both this policy and 'Update deadline reminder interval (days)' are configured, this hours-based policy takes precedence.
+
+Default: 2 hours.
+
+Notes:
+- The actual reminder frequency is bounded by WAU's run schedule (e.g. if WAU runs at Startup/Logon or periodic intervals).
+- On shared or multi-user machines the snooze state is machine-wide: one user's dismissal postpones the prompt for all users on that machine.</string>
       <string id="ReminderIntervalDays_Name">Update deadline reminder interval (days)</string>
       <string id="ReminderIntervalDays_Explain">If this policy is enabled, you can set how many days to wait before showing the deadline prompt dialog again after the user dismisses it ("Remind Me").
 
@@ -235,14 +291,39 @@ Notes:
           <label>Random delay HH:mm</label>
         </textBox>
       </presentation>
+      <presentation id="DeferralDays">
+        <textBox refId="DeferralDays">
+          <label>Deferral period in days (e.g. 7):</label>
+        </textBox>
+      </presentation>
+      <presentation id="GitHubToken">
+        <textBox refId="GitHubToken">
+          <label>GitHub Personal Access Token:</label>
+        </textBox>
+      </presentation>
+      <presentation id="SharedCachePath">
+        <textBox refId="SharedCachePath">
+          <label>Central network share path (e.g. \\server\share\cache):</label>
+        </textBox>
+      </presentation>
       <presentation id="CompanyName">
         <textBox refId="CompanyName">
           <label>Company name:</label>
         </textBox>
       </presentation>
+      <presentation id="UpdateDeadlineHours">
+        <textBox refId="UpdateDeadlineHours">
+          <label>Hours before forced update (0 = disabled, 8 = 1 workday):</label>
+        </textBox>
+      </presentation>
       <presentation id="UpdateDeadlineDays">
         <textBox refId="UpdateDeadlineDays">
           <label>Days before forced update (0 = disabled):</label>
+        </textBox>
+      </presentation>
+      <presentation id="ReminderIntervalHours">
+        <textBox refId="ReminderIntervalHours">
+          <label>Hours between reminder dialogs (e.g. 2):</label>
         </textBox>
       </presentation>
       <presentation id="ReminderIntervalDays">

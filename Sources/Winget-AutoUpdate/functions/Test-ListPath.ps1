@@ -19,7 +19,7 @@
 #>
 function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
     # Enable TLS 1.2 for secure connections
-    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 #DevSkim: ignore DS440020,DS440020 Hard-coded SSL/TLS Protocol
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 #DevSkim: ignore DS440020 Hard-coded SSL/TLS Protocol
         
     $ListType = if ($UseWhiteList) { "included_apps.txt" } else { "excluded_apps.txt" }
     $LocalList = Join-Path $WingetUpdatePath $ListType
@@ -28,36 +28,26 @@ function Test-ListPath ($ListPath, $UseWhiteList, $WingetUpdatePath) {
         $dateLocal = (Get-Item $LocalList).LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss")
     }
 
-    # URL path
-    if ($ListPath -like "http*") {
-        $ExternalList = "$ListPath/$ListType"
-
-        # Handle SAS token URLs
-        if ($ListPath -match "\?") {
-            $parts = $ListPath.Split("?")
-            $ExternalList = "$($parts[0])/$ListType`?$($parts[1])"
+    # URL path: policy lists must remain HTTPS on every redirect.
+    if ($ListPath -match '^[A-Za-z][A-Za-z0-9+.-]*://') {
+        if ($ListPath -notmatch '(?i)^https://') {
+            Write-ToLog 'Insecure remote app-list URL rejected; use HTTPS.' 'Red'
+            $Script:ReachNoPath = $true
+            return $false
         }
+        $parts = $ListPath -split '\?', 2
+        $ExternalList = $parts[0].TrimEnd('/') + '/' + $ListType
+        if ($parts.Count -eq 2) { $ExternalList += '?' + $parts[1] }
 
         try {
-            $wc = New-Object System.Net.WebClient
-            $wc.OpenRead($ExternalList).Close() | Out-Null
-            $dateExternal = ([DateTime]$wc.ResponseHeaders['Last-Modified']).ToString("yyyy-MM-dd HH:mm:ss")
-
-            if (-not $dateLocal -or $dateExternal -gt $dateLocal) {
-                $wc.DownloadFile($ExternalList, $LocalList)
-                return $true
-            }
+            $download = Save-WauHttpsFile -Uri $ExternalList -Destination $LocalList -OnlyIfNewer
+            if (-not $download.HasLastModified) { $Script:AlwaysDownloaded = $true }
+            return [bool]$download.Changed
         }
         catch {
-            try {
-                $wc.DownloadFile($ExternalList, $LocalList)
-                $Script:AlwaysDownloaded = $true
-                return $true
-            }
-            catch {
-                $Script:ReachNoPath = $true
-                return $false
-            }
+            Write-ToLog 'Remote app-list download failed; check URL, TLS and network access.' 'Yellow'
+            $Script:ReachNoPath = $true
+            return $false
         }
     }
     # UNC or local path

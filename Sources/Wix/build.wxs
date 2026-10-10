@@ -38,7 +38,7 @@
             <RegistrySearch Id="SearchUserContext" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UserContext"  />
         </Property>
         <Property Id="DISABLEWAUAUTOUPDATE" Secure="yes" />
-        <Property Id="DISABLEWAUAUTOUPDATE_REG" Value="#0">
+        <Property Id="DISABLEWAUAUTOUPDATE_REG" Value="#1">
             <RegistrySearch Id="SearchWAUSelfUpdate" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_DisableAutoUpdate"  />
         </Property>
         <Property Id="UPDATESINTERVAL" Secure="yes" />
@@ -114,6 +114,38 @@
         <Property Id="APPINSTALLERSHORTCUT" Secure="yes" />
         <Property Id="APPINSTALLERSHORTCUT_VALUE" Value="#0">
             <RegistrySearch Id="SearchAppInstallerShortcut" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_AppInstallerShortcut"  />
+        </Property>
+        <Property Id="DEFERRALDAYS" Secure="yes" />
+        <Property Id="DEFERRALDAYS_VALUE" Value="#0">
+            <RegistrySearch Id="SearchDeferralDays" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_DeferralDays" />
+        </Property>
+        <Property Id="GITHUBTOKEN" Secure="yes" />
+        <Property Id="GITHUBTOKEN_VALUE">
+            <RegistrySearch Id="SearchGitHubToken" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_GitHubToken" />
+        </Property>
+        <Property Id="SHAREDCACHEPATH" Secure="yes" />
+        <Property Id="SHAREDCACHEPATH_VALUE">
+            <RegistrySearch Id="SearchSharedCachePath" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_SharedCachePath" />
+        </Property>
+        <Property Id="UPDATEDEADLINEDAYS" Secure="yes" />
+        <Property Id="UPDATEDEADLINEDAYS_VALUE" Value="#0">
+            <RegistrySearch Id="SearchUpdateDeadlineDays" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdateDeadlineDays" />
+        </Property>
+        <Property Id="UPDATEDEADLINEHOURS" Secure="yes" />
+        <Property Id="UPDATEDEADLINEHOURS_VALUE" Value="#0">
+            <RegistrySearch Id="SearchUpdateDeadlineHours" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_UpdateDeadlineHours" />
+        </Property>
+        <Property Id="COMPANYNAME" Secure="yes" />
+        <Property Id="COMPANYNAME_VALUE">
+            <RegistrySearch Id="SearchCompanyName" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_CompanyName" />
+        </Property>
+        <Property Id="REMINDERINTERVALDAYS" Secure="yes" />
+        <Property Id="REMINDERINTERVALDAYS_VALUE" Value="#2">
+            <RegistrySearch Id="SearchReminderIntervalDays" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_ReminderIntervalDays" />
+        </Property>
+        <Property Id="REMINDERINTERVALHOURS" Secure="yes" />
+        <Property Id="REMINDERINTERVALHOURS_VALUE" Value="#2">
+            <RegistrySearch Id="SearchReminderIntervalHours" Type="raw" Root="HKLM" Key="SOFTWARE\[Manufacturer]\[ProductName]" Name="WAU_ReminderIntervalHours" />
         </Property>
 
         <!-- UI Config -->
@@ -208,9 +240,9 @@
                     <Publish Property="USERCONTEXT" Value="1" Order="1" Condition="USERCONTEXT_CHECKED" />
                     <Publish Property="USERCONTEXT" Value="0" Order="2" Condition="NOT USERCONTEXT_CHECKED" />
                 </Control>
-                <Control Type="CheckBox" Id="WAUAutoUpdateCheckBox" Width="190" Height="14" X="20" Y="100" Text="Disable WAU Auto Update" Property="DISABLEWAUAUTOUPDATE_CHECKED" CheckBoxValue="1">
-                    <Publish Property="DISABLEWAUAUTOUPDATE" Value="1" Order="1" Condition="DISABLEWAUAUTOUPDATE_CHECKED" />
-                    <Publish Property="DISABLEWAUAUTOUPDATE" Value="0" Order="2" Condition="NOT DISABLEWAUAUTOUPDATE_CHECKED" />
+                <Control Type="CheckBox" Id="WAUAutoUpdateCheckBox" Width="190" Height="14" X="20" Y="100" Text="Enable WAU Auto Update" Property="ENABLEWAUAUTOUPDATE_CHECKED" CheckBoxValue="1">
+                    <Publish Property="DISABLEWAUAUTOUPDATE" Value="0" Order="1" Condition="ENABLEWAUAUTOUPDATE_CHECKED" />
+                    <Publish Property="DISABLEWAUAUTOUPDATE" Value="1" Order="2" Condition="NOT ENABLEWAUAUTOUPDATE_CHECKED" />
                 </Control>
                 <Control Type="GroupBox" Id="RadioGroupText" Width="320" Height="58" X="20" Y="122" Text="Update interval" />
                 <Control Type="RadioButtonGroup" Id="UpdateIntervalRad" Property="UPDATESINTERVAL_VALUE" Width="300" Height="18" X="30" Y="136">
@@ -246,9 +278,9 @@
         <SetProperty Action="SetUSERCONTEXT_0" Id="USERCONTEXT" After="AppSearch" Value="0" Condition="(NOT USERCONTEXT) AND (USERCONTEXT_REG &lt;&gt; &quot;#1&quot;)" />
         <SetProperty Action="SetUSERCONTEXT_1" Id="USERCONTEXT" After="AppSearch" Value="1" Condition="(NOT USERCONTEXT) AND (USERCONTEXT_REG = &quot;#1&quot;)" />
         <SetProperty Id="USERCONTEXT_CHECKED" After="AppSearch" Value="1" Condition="USERCONTEXT_REG = &quot;#1&quot;" />
-        <SetProperty Action="SetDISABLEWAUAUTOUPDATE_0" Id="DISABLEWAUAUTOUPDATE" After="AppSearch" Value="0" Condition="(NOT DISABLEWAUAUTOUPDATE) AND (DISABLEWAUAUTOUPDATE_REG &lt;&gt; &quot;#1&quot;)" />
-        <SetProperty Action="SetDISABLEWAUAUTOUPDATE_1" Id="DISABLEWAUAUTOUPDATE" After="AppSearch" Value="1" Condition="(NOT DISABLEWAUAUTOUPDATE) AND (DISABLEWAUAUTOUPDATE_REG = &quot;#1&quot;)" />
-        <SetProperty Id="DISABLEWAUAUTOUPDATE_CHECKED" After="AppSearch" Value="1" Condition="DISABLEWAUAUTOUPDATE_REG = &quot;#1&quot;" />
+        <SetProperty Action="SetDISABLEWAUAUTOUPDATE_0" Id="DISABLEWAUAUTOUPDATE" After="AppSearch" Value="0" Condition="(NOT DISABLEWAUAUTOUPDATE) AND (DISABLEWAUAUTOUPDATE_REG = &quot;#0&quot;)" />
+        <SetProperty Action="SetDISABLEWAUAUTOUPDATE_1" Id="DISABLEWAUAUTOUPDATE" After="AppSearch" Value="1" Condition="(NOT DISABLEWAUAUTOUPDATE) AND (DISABLEWAUAUTOUPDATE_REG &lt;&gt; &quot;#0&quot;)" />
+        <SetProperty Id="ENABLEWAUAUTOUPDATE_CHECKED" After="AppSearch" Value="1" Condition="DISABLEWAUAUTOUPDATE_REG = &quot;#0&quot;" />
         <SetProperty Id="UPDATESINTERVAL_VALUE" After="AppSearch" Value="[UPDATESINTERVAL]" Condition="UPDATESINTERVAL" />
         <SetProperty Action="SetUPDATESATLOGON_0" Id="UPDATESATLOGON" After="AppSearch" Value="0" Condition="(NOT UPDATESATLOGON) AND (UPDATESATLOGON_REG &lt;&gt; &quot;#1&quot;)" />
         <SetProperty Action="SetUPDATESATLOGON_1" Id="UPDATESATLOGON" After="AppSearch" Value="1" Condition="(NOT UPDATESATLOGON) AND (UPDATESATLOGON_REG = &quot;#1&quot;)" />
@@ -268,6 +300,14 @@
         <SetProperty Id="MAXLOGSIZE_VALUE" After="AppSearch" Value="#[MAXLOGSIZE]" Condition="MAXLOGSIZE" />
         <SetProperty Action="SetUPDATEPRERELEASE_0" Id="UPDATEPRERELEASE" After="AppSearch" Value="0" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE &lt;&gt; &quot;#1&quot;)" />
         <SetProperty Action="SetUPDATEPRERELEASE_1" Id="UPDATEPRERELEASE" After="AppSearch" Value="1" Condition="(NOT UPDATEPRERELEASE) AND (UPDATEPRERELEASE_VALUE = &quot;#1&quot;)" />
+        <SetProperty Id="DEFERRALDAYS_VALUE" After="AppSearch" Value="#[DEFERRALDAYS]" Condition="DEFERRALDAYS" />
+        <SetProperty Id="GITHUBTOKEN_VALUE" After="AppSearch" Value="[GITHUBTOKEN]" Condition="GITHUBTOKEN" />
+        <SetProperty Id="SHAREDCACHEPATH_VALUE" After="AppSearch" Value="[SHAREDCACHEPATH]" Condition="SHAREDCACHEPATH" />
+        <SetProperty Id="UPDATEDEADLINEDAYS_VALUE" After="AppSearch" Value="#[UPDATEDEADLINEDAYS]" Condition="UPDATEDEADLINEDAYS" />
+        <SetProperty Id="UPDATEDEADLINEHOURS_VALUE" After="AppSearch" Value="#[UPDATEDEADLINEHOURS]" Condition="UPDATEDEADLINEHOURS" />
+        <SetProperty Id="COMPANYNAME_VALUE" After="AppSearch" Value="[COMPANYNAME]" Condition="COMPANYNAME" />
+        <SetProperty Id="REMINDERINTERVALDAYS_VALUE" After="AppSearch" Value="#[REMINDERINTERVALDAYS]" Condition="REMINDERINTERVALDAYS" />
+        <SetProperty Id="REMINDERINTERVALHOURS_VALUE" After="AppSearch" Value="#[REMINDERINTERVALHOURS]" Condition="REMINDERINTERVALHOURS" />
         <SetProperty Id="CA_PowerShell_Install" Before="CA_PowerShell_Install" Sequence="execute" Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot; -CurrentDir &quot;[CURRENTDIRECTORY]&quot;" />
         <SetProperty Id="CA_PowerShell_Uninstall" Before="CA_PowerShell_Uninstall" Sequence="execute" Value="&quot;[POWERSHELLEXE]&quot; -NoLogo -NonInteractive -NoProfile -ExecutionPolicy Bypass -File &quot;[INSTALLDIR]config\WAU-MSI_Actions.ps1&quot; &quot;[B_W_LIST_PATH]&quot; -InstallPath &quot;[INSTALLDIR]\&quot; -Upgrade &quot;#[UPGRADINGPRODUCTCODE]&quot; -Uninstall" />
 
@@ -320,6 +360,14 @@
 						<RegistryValue Name="WAU_AppInstallerShortcut" Type="integer" Value="[APPINSTALLERSHORTCUT]" />
 						<RegistryValue Name="WAU_DesktopShortcut" Type="integer" Value="[DESKTOPSHORTCUT]" />
 						<RegistryValue Name="WAU_StartMenuShortcut" Type="integer" Value="[STARTMENUSHORTCUT]" />
+						<RegistryValue Name="WAU_DeferralDays" Type="string" Value="[DEFERRALDAYS_VALUE]" />
+						<RegistryValue Name="WAU_GitHubToken" Type="string" Value="[GITHUBTOKEN_VALUE]" />
+						<RegistryValue Name="WAU_SharedCachePath" Type="string" Value="[SHAREDCACHEPATH_VALUE]" />
+						<RegistryValue Name="WAU_UpdateDeadlineDays" Type="string" Value="[UPDATEDEADLINEDAYS_VALUE]" />
+						<RegistryValue Name="WAU_UpdateDeadlineHours" Type="string" Value="[UPDATEDEADLINEHOURS_VALUE]" />
+						<RegistryValue Name="WAU_CompanyName" Type="string" Value="[COMPANYNAME_VALUE]" />
+						<RegistryValue Name="WAU_ReminderIntervalDays" Type="string" Value="[REMINDERINTERVALDAYS_VALUE]" />
+						<RegistryValue Name="WAU_ReminderIntervalHours" Type="string" Value="[REMINDERINTERVALHOURS_VALUE]" />
 					</RegistryKey>
 					<!-- Toast Notification Registry Keys -->
 					<RegistryKey Key="AppUserModelId\Windows.SystemToast.WAU.Notification" Root="HKCR">

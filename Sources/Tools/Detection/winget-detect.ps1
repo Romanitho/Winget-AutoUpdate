@@ -20,13 +20,15 @@ Function Get-WingetCmd {
     #Get WinGet Path
     try {
         #Get Admin Context Winget Location
-        $WingetInfo = (Get-Item "$env:ProgramFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
+        $programFiles = if ($env:ProgramW6432) { $env:ProgramW6432 } else { $env:ProgramFiles }
+        $WingetInfo = (Get-Item "$programFiles\WindowsApps\Microsoft.DesktopAppInstaller_*_8wekyb3d8bbwe\winget.exe").VersionInfo | Sort-Object -Property FileVersionRaw
         #If multiple versions, pick most recent one
         $WingetCmd = $WingetInfo[-1].FileName
     }
     catch {
-        #Get User context Winget Location
-        if (Test-Path "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe") {
+        #Get User context Winget Location (only when not running as SYSTEM)
+        $isSystem = [System.Security.Principal.WindowsIdentity]::GetCurrent().IsSystem
+        if (-not $isSystem -and (Test-Path "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe")) {
             $WingetCmd = "$env:LocalAppData\Microsoft\WindowsApps\Microsoft.DesktopAppInstaller_8wekyb3d8bbwe\winget.exe"
         }
     }

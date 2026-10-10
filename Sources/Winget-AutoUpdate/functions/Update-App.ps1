@@ -3,8 +3,8 @@
     Updates a single application using WinGet.
 
 .DESCRIPTION
-    Performs the complete update process: notification, pre-install mods,
-    WinGet upgrade/install with retry logic, post-install mods, result notification.
+    Runs a scope-bound WinGet upgrade (explicitly approved migration: install),
+    verifies the installed version in that scope, and reports the result.
 
 .PARAMETER app
     PSCustomObject with Name, Id, Version, AvailableVersion properties.
@@ -13,6 +13,31 @@
     The WinGet source to use (e.g. 'winget', 'msstore'). Defaults to 'winget'.
 #>
 Function Update-App ($app, $src = "winget") {
+    # Every update is tied to its installed scope.
+    if ($app.Scope -notin @('user', 'machine')) {
+        Write-ToLog "Refusing update without verified scope: $($app.Id)" 'Red'
+        return
+    }
+    $targetScope = $app.Scope
+    $migration = $app.Scope -eq 'user' -and $app.TargetScope -eq 'machine'
+    if ($migration) {
+        if ($app.ScopeMigrationApproved -ne $true) {
+            Write-ToLog "Scope migration not approved: $($app.Id)" 'Yellow'; return
+        }
+        if ((Get-WauInstallerSupport $app user $src) -ne 'Unavailable' -or
+            (Get-WauInstallerSupport $app machine $src) -ne 'Supported') {
+            Write-ToLog "Installer scope changed or could not be verified; migration cancelled: $($app.Id)" 'Yellow'; return
+        }
+        $targetScope = 'machine'
+    }
+    # An explicitly approved user-to-machine migration starts in the interactive
+    # user session so Windows can display the installer's UAC consent dialog.
+    if (($targetScope -eq 'machine') -ne $Script:IsSystem -and -not ($migration -and $app.ScopeMigrationApproved)) {
+        Write-ToLog "Wrong execution context for $($app.Id) ($targetScope)" 'Red'; return
+    }
+    if ($targetScope -eq 'user' -and $app.UserSid -ne [Security.Principal.WindowsIdentity]::GetCurrent().User.Value) {
+        Write-ToLog "Wrong user for $($app.Id)" 'Red'; return
+    }
     if ([string]::IsNullOrWhiteSpace($src)) {
         $src = "winget"
     }
@@ -21,20 +46,14 @@ Function Update-App ($app, $src = "winget") {
     }
 
     # Helper function to build winget command parameters
-    function Get-WingetParams ($Command, $ModsOverride, $ModsCustom, $ModsArguments) {
-        $params = @($Command, "--id", $app.Id, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", $src)
-        if ($Command -eq "install") { $params += "--force" }
+    function Get-WingetParams ($Command, $ModsArguments) {
+        $params = @($Command, "--id", $app.Id, "-e", "--accept-package-agreements", "--accept-source-agreements", "-s", $src,
+            '--scope', $targetScope, '--version', $app.AvailableVersion, '--disable-interactivity')
+        if ($Command -eq 'upgrade' -and $app.Version -eq 'Unknown') { $params += '--include-unknown' }
 
-        if ($ModsOverride) {
-            return @{ Params = $params + @("--override", $ModsOverride); Log = "$Command (override): $ModsOverride" }
-        }
-        elseif ($ModsCustom) {
-            return @{ Params = $params + @("-h", "--custom", $ModsCustom); Log = "$Command (custom): $ModsCustom" }
-        }
-        elseif ($ModsArguments) {
-            # Parse arguments respecting quotes and spaces
+        if ($ModsArguments) {
             $argArray = ConvertTo-WingetArgumentArray $ModsArguments
-            return @{ Params = $params + $argArray + @("-h"); Log = "$Command (arguments): $ModsArguments" }
+            return @{ Params = $params + $argArray + @('-h'); Log = "$Command (arguments): $ModsArguments" }
         }
         return @{ Params = $params + "-h"; Log = $Command }
     }
@@ -42,19 +61,25 @@ Function Update-App ($app, $src = "winget") {
     # Load mods
     $ModsPreInstall, $ModsOverride, $ModsCustom, $ModsArguments, $ModsUpgrade, $ModsInstall, $ModsInstalled, $ModsNotInstalled = Test-Mods $app.Id
 
-    # If arguments mod specifies --version, and no override/custom is present, pin AvailableVersion to that value
-    if ($ModsArguments -and -not $ModsOverride -and -not $ModsCustom) {
-        # Parse arguments respecting quotes and spaces, then look for --version
-        $modsArgArray = ConvertTo-WingetArgumentArray $ModsArguments
-        $versionIndex = [array]::IndexOf($modsArgArray, '--version')
-        if ($versionIndex -ge 0 -and ($versionIndex + 1) -lt $modsArgArray.Count) {
-            $pinnedVersion = $modsArgArray[$versionIndex + 1]
-            $app.AvailableVersion = $pinnedVersion
-            Write-ToLog "-> $($app.Name) version pinned to $($app.AvailableVersion) via arguments mod" "DarkYellow"
-            if ($app.Version -like "$($app.AvailableVersion)*") {
-                Write-ToLog "$($app.Name) $($app.Version) is already the pinned version, skipping." "Green"
-                return
+    # Custom installer switches can override ALLUSERS/scope behind WinGet's back.
+    # Do not run those in this scope-preserving pipeline.
+    if ($ModsOverride -or $ModsCustom -or $ModsPreInstall -or $ModsUpgrade -or $ModsInstall -or $ModsInstalled -or $ModsNotInstalled) {
+        Write-ToLog "Update skipped: installer mods require manual scope review ($($app.Id))." 'Yellow'; return
+    }
+    if ($ModsArguments) {
+        $arguments = @(ConvertTo-WingetArgumentArray $ModsArguments)
+        # Allow only known non-scope-changing options, with one value where needed.
+        $valid = $true
+        for ($i=0; $i -lt $arguments.Count; $i++) {
+            if ($arguments[$i] -eq '--skip-dependencies') { continue }
+            if ($arguments[$i] -in @('--locale', '--architecture', '-a')) {
+                $i++
+                if ($i -ge $arguments.Count -or $arguments[$i] -notmatch '^[A-Za-z0-9-]+$') { $valid = $false; break }
             }
+            else { $valid = $false; break }
+        }
+        if (-not $valid) {
+            Write-ToLog "Update skipped: mod would override the verified update plan ($($app.Id))." 'Yellow'; return
         }
     }
 
@@ -70,62 +95,26 @@ Function Update-App ($app, $src = "winget") {
 
     Write-ToLog "##########   WINGET UPGRADE: $($app.Id)   ##########" "Gray"
 
-    # Pre-install mod
-    if ($ModsPreInstall) {
-        Write-ToLog "Running pre-install mod for $($app.Id)..." "DarkYellow"
-        if ((& $ModsPreInstall) -eq $false) {
-            Write-ToLog "Pre-install requested skip" "Yellow"
-            return
-        }
-    }
-
-    # Try upgrade first
-    $cmd = Get-WingetParams "upgrade" $ModsOverride $ModsCustom $ModsArguments
+    # Only explicit migration consent permits an install instead of an upgrade.
+    $command = if ($migration) { 'install' } else { 'upgrade' }
+    $cmd = Get-WingetParams $command $ModsArguments
     Write-ToLog "-> $($cmd.Log)"
-    & $Winget $cmd.Params | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+    $wingetArgs = $cmd.Params
+    & $Winget @wingetArgs | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
+    $updateExitCode = $LASTEXITCODE
 
-    if ($ModsUpgrade) {
-        Write-ToLog "Running upgrade mod..." "DarkYellow"
-        & $ModsUpgrade
-    }
+    $ConfirmInstall = $updateExitCode -eq 0 -and (Confirm-Installation $app.Id $app.AvailableVersion $src -Scope $targetScope)
 
-    $ConfirmInstall = Confirm-Installation $app.Id $app.AvailableVersion $src
-
-    # Fallback to install if upgrade failed
-    if (-not $ConfirmInstall) {
-        $maxRetry = if (Test-PendingReboot) { Write-ToLog "-> Pending reboot detected, limiting retries" "Yellow"; 1 } else { 2 }
-
-        for ($retry = 1; $retry -le $maxRetry -and -not $ConfirmInstall; $retry++) {
-            Write-ToLog "-> Upgrade failed, trying install ($retry/$maxRetry)..." "DarkYellow"
-
-            $cmd = Get-WingetParams "install" $ModsOverride $ModsCustom $ModsArguments
-            Write-ToLog "-> $($cmd.Log)"
-            & $Winget $cmd.Params | Where-Object { $_ -notlike "   *" } | Tee-Object -file $LogFile -Append
-
-            if ($ModsInstall) {
-                Write-ToLog "Running install mod..." "DarkYellow"
-                & $ModsInstall
-            }
-
-            $ConfirmInstall = Confirm-Installation $app.Id $app.AvailableVersion $src
-        }
-    }
-
-    # Post-install mods
-    if ($ConfirmInstall -and $ModsInstalled) {
-        Write-ToLog "Running post-install mod..." "DarkYellow"
-        & $ModsInstalled
-    }
-    elseif (-not $ConfirmInstall -and $ModsNotInstalled) {
-        Write-ToLog "Running failure mod..." "DarkYellow"
-        & $ModsNotInstalled
-    }
+    # A failed upgrade stays failed. Never retry as an unscoped/forced install.
 
     Write-ToLog "##########   FINISHED: $($app.Id)   ##########" "Gray"
 
     # Result notification
     if ($ConfirmInstall) {
         Write-ToLog "$($app.Name) updated to $($app.AvailableVersion)!" "Green"
+        if ($migration) {
+            Write-ToLog "Machine installation confirmed. Original user installation was retained: $($app.Id)" "Yellow"
+        }
         Start-NotifTask -Title ($NotifLocale.local.outputs.output[3].title -f $app.Name) `
             -Message ($NotifLocale.local.outputs.output[3].message -f $app.AvailableVersion) `
             -MessageType "success" -Balise $app.Name -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
@@ -138,3 +127,5 @@ Function Update-App ($app, $src = "winget") {
             -MessageType "error" -Balise $app.Name -Button1Action $ReleaseNoteURL -Button1Text $Button1Text
     }
 }
+
+

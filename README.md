@@ -30,9 +30,6 @@ winget install Romanitho.Winget-AutoUpdate
 You can also download the latest release of the add-on [WAU Settings GUI (for Winget-AutoUpdate)](https://github.com/KnifMelti/WAU-Settings-GUI) and install it (this will install both **WAU** and a **GUI** that provides a user-friendly portable standalone interface to modify every aspect of **Winget-AutoUpdate (WAU)**).
 
 ## Configurations
-Please note, include/exclude lists and any Mods folder content can be placed next to the .msi installer to be copied to the WAU install location during install:  
-<img width="474" height="308" alt="423074783-a37837b0-b61e-4ce7-b23c-fd8661585e40" src="https://github.com/user-attachments/assets/323fc50c-2400-4fa2-937d-83a0f0c2392d" />
-
 ### Keep some apps out of Winget-AutoUpdate
 WAU supports two mutually exclusive list modes. Blocklist (default - excluded_apps.txt) and Allowlist (included_apps.txt). 
 - Each list should be one winget package ID per line (not the app name or display string - use the ID from `winget list` or `winget search`).
@@ -40,8 +37,13 @@ WAU supports two mutually exclusive list modes. Blocklist (default - excluded_ap
 
 #### BlockList
 You can exclude apps from the update job (for instance, apps you want to keep at a specific version or apps with built-in auto-update).
-- Place `excluded_apps.txt` in the WAU install folder (for example `C:\Program Files\Winget-AutoUpdate\excluded_apps.txt`)
-- It is not recommended to edit `config\default_excluded_apps.txt` as it may be overwritten on WAU app update.
+WAU supports **Mix & Match** exclusions: if multiple sources are present, they are automatically merged and deduplicated:
+- **Group Policy (GPO)**: Defined by administrators under `HKLM:\SOFTWARE\Policies\Romanitho\Winget-AutoUpdate\BlackList`.
+- **Machine Admin File**: Place `excluded_apps.txt` in the WAU install folder (e.g. `C:\Program Files\Winget-AutoUpdate\excluded_apps.txt`).
+- **User Profile File (Non-Admin)**: Standard users can manage their own exclusions in their personal user profile at `%LocalAppData%\Winget-AutoUpdate\excluded_apps.txt` (or `%UserProfile%\excluded_apps.txt`). This requires no administrator privileges or permission changes.
+- **Default Fallback**: If no custom exclusions exist across GPO, machine, or user files, WAU automatically falls back to `config\default_excluded_apps.txt`.
+- Empty lines and lines starting with `#` are treated as comments and ignored.
+- It is not recommended to edit `config\default_excluded_apps.txt` directly as it may be overwritten on WAU app updates.
 
 #### AllowList
 You can update only pre-selected apps by enabling allowlist mode.
@@ -50,6 +52,10 @@ You can update only pre-selected apps by enabling allowlist mode.
 - Place `included_apps.txt` in the WAU install folder (for example `C:\Program Files\Winget-AutoUpdate\included_apps.txt`)
 
 If allowlist mode is enabled, WAU reads `included_apps.txt` and ignores `excluded_apps.txt`. Otherwise, WAU ignores `included_apps.txt`.
+
+List and Mods folder content will be copied to WAU install location:  
+<img width="474" height="308" alt="423074783-a37837b0-b61e-4ce7-b23c-fd8661585e40" src="https://github.com/user-attachments/assets/323fc50c-2400-4fa2-937d-83a0f0c2392d" />
+
 
 ### Notification Level
 You can choose which notification will be displayed: `Full`, `Success only`, `Errors only` or `None`.
@@ -61,7 +67,7 @@ You can easily translate toast notifications by creating your locale xml config 
 WAU runs by default, at logon. You can configure the frequency with options (Daily, BiDaily, Weekly, BiWeekly, Monthly or Never).
 
 ### Log location
-You can find logs in install location, in logs folder for privileged executions. For user runs (Winget-Install.ps1) a log file will be created at %AppData%\Winget-AutoUpdate\Logs .<br>
+SYSTEM update logs are written to `C:\Program Files\Winget-AutoUpdate\logs\updates.log`; user-scope update logs are written to `%LOCALAPPDATA%\Winget-AutoUpdate\Logs\updates.log`. The SYSTEM log does not grant Authenticated Users write access; existing explicit grants are removed on the next SYSTEM write.<br>
 If **Intune Management Extension** is installed, a **SymLink** (WAU-updates.log) is created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**<br>
 If you are deploying winget Apps with [Winget-Install](https://github.com/Romanitho/Winget-AutoUpdate/blob/main/Sources/Winget-AutoUpdate/Winget-Install.ps1) a **SymLink** (WAU-install.log & WAU-user_%username%.log) is also created under **C:\ProgramData\Microsoft\IntuneManagementExtension\Logs**
 
@@ -72,6 +78,12 @@ As explained in this [post](https://github.com/microsoft/winget-cli/issues/1255)
 
 Eventually, try to reinstall or update app manually to see if new version is detected.
 
+### Package Deferral (Delay updates)
+You can postpone package updates by a configured number of days after their official release in `microsoft/winget-pkgs`:
+- **Global Deferral:** Configure `DEFERRALDAYS=X` during install, in Group Policy, or in the registry (`WAU_DeferralDays`).
+- **Per-App Overrides:** Place `<AppID>-deferral.txt` in the `mods` folder with the desired number of days (e.g., `0` to exempt an app from global deferral, or `14` to postpone it longer).
+- **Smart Caching:** Resolved release dates are cached locally (`cache\deferral_cache.json`) to prevent repeated GitHub API calls and preserve rate limits.
+
 ### Handle metered connections
 
 We might want to stop WAU on metered connection (to save cellular data on connection sharing for instance). The default behavior will detect and stop WAU on limited connections (only for fresh install).
@@ -79,7 +91,13 @@ We might want to stop WAU on metered connection (to save cellular data on connec
 To force WAU to run on metered connections anyway, run new installation with `-RunOnMetered` parameter.
 
 ### System & user context
-WAU runs with system and user contexts. This way, even apps installed on User's scope are updated. Shortcuts for manually run can also be installed.
+WAU runs with system and user contexts. This way, even apps installed on User's scope are updated. Shorcuts for manually run can also be installed.
+
+### Security hardening
+
+- The update GUI is launched into the Windows session associated with the scanned user. ServiceUI uses that session ID rather than selecting an arbitrary `explorer.exe` process. If the session cannot be determined unambiguously, WAU skips the prompt and records the reason in the log. This also applies to installations without the helper prompt task.
+- Remote Mods, app lists and Azure Blob Mod URLs must use HTTPS. AzCopy and downloaded Mod/list files follow only HTTPS redirects and require TLS 1.2. Downloads replace existing files only after a complete, successful transfer; remote Mod filenames are validated.
+- SYSTEM and user update logs are stored separately. The central SYSTEM log removes explicit write permissions previously granted to Authenticated Users.
 
 ### Default install location
 By default, scripts and components will be placed in "Program Files" location (inside a Winget-AutoUpdate folder).
@@ -102,15 +120,18 @@ Install Winget-AutoUpdate and prerequisites silently.
 Default value NO. Set `RUN_WAU=YES` to run WAU just after installation.
 
 ### DISABLEWAUAUTOUPDATE
-Default value 0. Set `DISABLEWAUAUTOUPDATE=1` to disable Winget-AutoUpdate self update checking. By default, WAU auto updates if new version is available on Github.
+Default value `1`. Winget-AutoUpdate self-updates are disabled by default (`DISABLEWAUAUTOUPDATE=1`) for security reasons.
+Pulling updates directly from GitHub introduces supply-chain risks. 
+By keeping this setting disabled, you prevent potentially compromised releases from being automatically deployed to your endpoints if the upstream repository or release pipeline is breached. Set `DISABLEWAUAUTOUPDATE=0` only if you explicitly want WAU to update itself automatically from GitHub without prior internal testing or approval.
+
 
 ### USEWHITELIST
 Set `USEWHITELIST=1` to force WAU to use WhiteList. During installation, if a whitelist is provided, this setting is automatically set to 1.
 
 ### LISTPATH
-Get Black/White List from external Path (**URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.<br>
+Get Black/White List from external Path (**HTTPS URL/UNC/Local/GPO**) - download/copy to Winget-AutoUpdate installation location if external list is newer.<br>
 **PATH** must end with a Directory, not a File...<br>
-...if the external Path is an **URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!<br>
+...if the external Path is an **HTTPS URL** and the web host doesn't respond with a date/time header for the file (i.e **GitHub**) then the file is always downloaded!<br>
 
 If the external Path is a Private Azure Container protected by a SAS token (**resourceURI?sasToken**), every special character should be escaped at installation time.<br>
 It doesn't work to call Powershell in **CMD** to install **WAU** with the parameter:<br>
@@ -123,7 +144,7 @@ If a blacklist or whitelist is configured via Group Policy (GPO), WAU will autom
 
 
 ### MODSPATH
-Get Mods from external Path (**URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
+Get Mods from external Path (**HTTPS URL/UNC/Local/AzureBlob**) - download/copy to `mods` in Winget-AutoUpdate installation location if external mods are newer.<br>
 For **URL**: This requires a site directory with **Directory Listing Enabled** and no index page overriding the listing of files (or an index page with href listing of all the **Mods** to be downloaded):
 ```html
 <ul>
@@ -145,6 +166,14 @@ For **AzureBlob**: This requires the parameter **-AzureBlobURL** to be set with 
 Used in conjunction with the **-ModsPath** parameter to provide the Azure Storage Blob URL with SAS token. The SAS token must, at a minimum, have 'Read' and 'List' permissions. It is recommended to set the permisions at the container level and rotate the SAS token on a regular basis. Ensure the container reflects the same structure as found under the initial `mods` folder.
 
 ### USERCONTEXT
+
+The deadline GUI scans both machine updates and updates for the user of its desktop
+session. `USERCONTEXT` controls the classic silent user task when deadline mode is
+disabled. A user-to-machine migration requires explicit consent. Deadline entries
+are stored under `UpdateDeadlines\<WinGet ID>\<Source>\machine` or
+`UpdateDeadlines\<WinGet ID>\<Source>\user\<SID>`; existing source-less entries are
+migrated without resetting their dates.
+
 Default value 0. Set `USERCONTEXT=1` to install WAU with system and **user** context executions.<br>
 Applications installed in system context will be ignored under user context.
 
@@ -186,6 +215,35 @@ Setting it to 1 keeps the original one and just let it grow.
 ### MAXLOGSIZE
 Specify the size of the log file in bytes before rotating.<br>
 Default is 1048576 = 1 MB (ca. 7500 lines)
+
+### DEFERRALDAYS
+Default value 0 (disabled). Specify the number of days to postpone package updates after their release in `microsoft/winget-pkgs`.<br>
+Example: `DEFERRALDAYS=7` will delay package upgrades until 7 days after the version was merged.
+Individual apps can override this setting using `mods\<AppID>-deferral.txt`.
+
+### GITHUBTOKEN
+Optional GitHub Personal Access Token to raise the API rate limit from 60 to 5,000 requests/hour when checking package release dates from the public `microsoft/winget-pkgs` repository. Can also be configured via Group Policy or `$env:GITHUB_TOKEN`.
+- **Fine-grained PAT (Recommended):** Set Repository access to "Public Repositories (read-only)". No additional permissions needed (or "Contents: Read-only").
+- **Classic PAT:** No scopes required! Leave all checkboxes unchecked (a token without scopes allows read-only access to public data and grants the 5,000 req/h rate limit without risking any private repository or write access).
+
+### SHAREDCACHEPATH
+Specify a central network share folder (e.g. `\\server\share\wau\cache`) to enable decentralized peer-to-peer caching for package deferrals across corporate networks. The first client resolving an update release date saves it to the share; all other clients read from the share without querying GitHub, preventing API rate limit issues. If unreachable (e.g. laptop off VPN), clients automatically fall back to their local cache.
+
+### UPDATEDEADLINEHOURS
+Default value 0 (disabled). Specify the number of hours from first detection until pending updates are forced silently in the background.<br>
+When set to a value greater than 0, WAU will display an update prompt dialog to logged-in users instead of immediately and silently updating apps. The user can choose "Update Now" or "Remind Me in X hours". Once the deadline is reached, updates are forced automatically.
+
+### UPDATEDEADLINEDAYS (Legacy)
+Default value 0 (disabled). Specify the number of days from first detection until pending updates are forced silently in the background. If `UPDATEDEADLINEHOURS` is configured, it takes precedence.
+
+### COMPANYNAME
+Optional company name to display in the deadline prompt dialog header (e.g. "Contoso requires the following updates to be installed"). Default is "Your organization".
+
+### REMINDERINTERVALHOURS
+Default value 2 (hours). Number of hours to wait before re-displaying the deadline prompt dialog after a user dismisses it with "Remind Me". Only active when update deadline enforcement is configured (> 0).
+
+### REMINDERINTERVALDAYS (Legacy)
+Default value 2. Number of days to wait before re-displaying the deadline prompt dialog after a user dismisses it with "Remind Me". If `REMINDERINTERVALHOURS` is configured, it takes precedence.
 
 ### INSTALLDIR
 Specify Winget-AutoUpdate installation location. Default: `C:\Program Files\Winget-AutoUpdate` (Recommended to leave default).

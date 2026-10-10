@@ -20,9 +20,23 @@
 Function Get-AZCopy ($WingetUpdatePath) {
 
     # Get latest AzCopy version from Microsoft redirect
-    $AZCopyLink = (Invoke-WebRequest -Uri https://aka.ms/downloadazcopy-v10-windows -UseBasicParsing -MaximumRedirection 0 -ErrorAction SilentlyContinue).headers.location
+    $redirectBase = [Uri]'https://aka.ms/downloadazcopy-v10-windows'
+    $location = (Invoke-WebRequest -Uri $redirectBase -UseBasicParsing -MaximumRedirection 0 -ErrorAction SilentlyContinue).Headers.Location
+    if ([string]::IsNullOrWhiteSpace($location)) {
+        Write-ToLog 'AzCopy download URL could not be resolved.' 'Yellow'
+        return
+    }
+    try { $AZCopyLink = [Uri]::new($redirectBase, [string]$location) }
+    catch {
+        Write-ToLog 'Invalid AzCopy download redirect.' 'Red'
+        return
+    }
+    if ($AZCopyLink.Scheme -ne [Uri]::UriSchemeHttps) {
+        Write-ToLog 'Insecure AzCopy download redirect rejected.' 'Red'
+        return
+    }
     $AZCopyVersionRegex = [regex]::new("(\d+\.\d+\.\d+)")
-    $AZCopyLatestVersion = $AZCopyVersionRegex.Match($AZCopyLink).Value
+    $AZCopyLatestVersion = $AZCopyVersionRegex.Match($AZCopyLink.AbsoluteUri).Value
 
     # Default to 0.0.0 if version detection fails
     if ($null -eq $AZCopyLatestVersion -or "" -eq $AZCopyLatestVersion) {
@@ -45,7 +59,7 @@ Function Get-AZCopy ($WingetUpdatePath) {
         Write-ToLog "Installing version $AZCopyLatestVersion of AZCopy"
 
         # Download AzCopy zip
-        Invoke-WebRequest -Uri $AZCopyLink -UseBasicParsing -OutFile "$WingetUpdatePath\azcopyv10.zip"
+        $null = Save-WauHttpsFile -Uri $AZCopyLink.AbsoluteUri -Destination "$WingetUpdatePath\azcopyv10.zip"
         Write-ToLog "Extracting AZCopy zip file"
 
         # Extract archive

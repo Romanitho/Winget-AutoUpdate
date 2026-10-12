@@ -24,9 +24,18 @@ function Get-IncludedApps {
         }
     }
     elseif (Test-Path $LocalFile) {
-        Write-ToLog "-> Successfully loaded local included apps list."
-        $AppIDs = (Get-Content $LocalFile).Trim()
+        Write-ToLog "-> Successfully loaded local included apps list: $LocalFile"
+        $AppIDs = (Get-Content $LocalFile -ErrorAction SilentlyContinue) |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ -and -not $_.StartsWith("#") }
+    }
+    elseif ($env:ProgramData -and (Test-Path ([System.IO.Path]::Combine($env:ProgramData, 'Winget-AutoUpdate', 'included_apps.txt')))) {
+        $ProgramDataFile = [System.IO.Path]::Combine($env:ProgramData, 'Winget-AutoUpdate', 'included_apps.txt')
+        Write-ToLog "-> Successfully loaded shared included apps list: $ProgramDataFile"
+        $AppIDs = (Get-Content $ProgramDataFile -ErrorAction SilentlyContinue) |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { $_ -and -not $_.StartsWith("#") }
     }
 
-    return $AppIDs | Where-Object { $_ }
+    return @($AppIDs | Where-Object { $_ } | Select-Object -Unique)
 }

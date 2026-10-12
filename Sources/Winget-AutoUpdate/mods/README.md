@@ -92,6 +92,19 @@ If you must use the base package ID (e.g., `Mozilla.Firefox`), create a `{AppID}
 .\winget-install.ps1 -AppIDs "Mozilla.Firefox --locale sv-SE"
 .\winget-install.ps1 -AppIDs "7zip.7zip --version 23.01 --architecture x64"
 ```
-Note: File-based `-arguments.txt` has priority over command-line arguments.
-
 **Template:** See `_AppID-arguments-template.txt` for more examples and documentation.
+
+#### 4. **AppID-deferral.txt** (Per-App Deferral Override) ⭐ NEW
+Overrides the global package deferral period for a specific application.
+Contains a single integer representing the number of days to postpone updates after release in `winget-pkgs`.
+> Example:  
+>  **Google.Chrome-deferral.txt** with content `0` to exempt Google Chrome from global deferral and update it immediately upon release:
+>  ```
+>  0
+>  ```
+> Example:  
+>  **VideoLAN.VLC-deferral.txt** with content `14` to defer VLC updates for 14 days after release:
+>  ```
+>  14
+>  ```
+

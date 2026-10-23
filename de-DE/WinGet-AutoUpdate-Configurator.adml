@@ -1,1 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<policyDefinitionResources xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/GroupPolicy/2006/07/PolicyDefinitions" revision="1.6" schemaVersion="1.0">
+  <displayName>WinGet-AutoUpdate-aaS</displayName>
+  <description>WinGet-AutoUpdate-aaS</description>
+  <resources>
+    <stringTable>
+      <string id="WAUC">Winget-AutoUpdate-aaS</string>
+      <string id="Configuration">Konfiguration</string>
+      <string id="Mods">Mods</string>
+      <string id="SupportedOn">Windows 10 und Windows 11</string>
+      <string id="ModsConfigDisplayName">Mod-Konfiguration</string>
+      <string id="ModsConfigexplainText">Mit dieser Funktion können zusätzliche Anpassungen (Mods) ausgeführt werden, um bestimmtes Update-Verhalten zu beeinflussen.
+
+Geben Sie als Name die App-ID und den anzupassenden Schritt an, getrennt durch einen Bindestrich. Beispiel: VideoLAN.VLC-preinstall führt die Anpassung aus, bevor der VLC Media Player aktualisiert wird.
+
+Geben Sie die zugehörige Anpassung als Wert an. Die Anpassung muss als einzeiliges JSON angegeben werden. Beispiel: {"StopModsProc" : [{"Process":"vlc"}]} beendet vlc.exe, falls es während des im Namensfeld angegebenen Schritts geöffnet ist.
+</string>
+
+      <string id="ListDisplayName">Anwendungsliste</string>
+      <string id="ListexplainText">Geben Sie die WinGet-IDs der Anwendungen an, die ein- bzw. ausgeschlossen werden sollen.</string>
+
+
+      <string id="UpdatesIntervalDisplayName">Update-Häufigkeit</string>
+      <string id="UpdatesIntervalexplainText">Legt die Update-Häufigkeit fest: Täglich (Standard), Alle zwei Tage, Wöchentlich, Alle zwei Wochen, Monatlich oder Nie.
+
+Wenn Sie diese Richtlinie nicht konfigurieren oder deaktivieren, wird Winget-AutoUpdate nicht nach Zeitplan ausgeführt.</string>
+
+      <string id="RunOnMetereddisplayName">Bei getakteter Verbindung ausführen</string>
+      <string id="RunOnMeteredexplainText">WAU auch bei einer getakteten (volumenbasierten) Verbindung ausführen. Standard: Nein.</string>
+
+      <string id="UseWhiteListdisplayName">Positivliste (Whitelist) statt Sperrliste (Blacklist) verwenden</string>
+      <string id="UseWhiteListexplainText">Verwendet eine Positivliste (Whitelist) statt einer Sperrliste (Blacklist). Es werden dann nur die in der Anwendungsliste aufgeführten Anwendungen aktualisiert.</string>
+
+      <string id="NotificationLeveldisplayName">Benachrichtigungsstufe</string>
+      <string id="NotificationLevelexplainText">Legt die Benachrichtigungsstufe fest: Alles (Standard, zeigt alle Benachrichtigungen an), Nur Erfolg (zeigt nur Benachrichtigungen über erfolgreiche Updates an) oder Keine (zeigt keine Popups an).</string>
+
+      <string id="UpdatesAtLogondisplayName">Updates bei Anmeldung</string>
+      <string id="UpdatesAtLogonexplainText">WAU zusätzlich bei der Benutzeranmeldung ausführen.</string>
+
+      <string id="UpdatesAtTimedisplayName">Update-Uhrzeit</string>
+      <string id="UpdatesAtTimeexplainText">Legt die Uhrzeit fest, zu der das geplante Update ausgeführt wird. Standard: 6 Uhr (6am).</string>
+
+      <string id="DesktopShortcutdisplayName">Desktopverknüpfung</string>
+      <string id="DesktopShortcutexplainText">Erstellt auf dem Desktop eine Verknüpfung, mit der Benutzer die Aufgabe Winget-AutoUpdate starten können.</string>
+
+      <string id="StartMenuShortcutdisplayName">Startmenü-Verknüpfungen</string>
+      <string id="StartMenuShortcutexplainText">Erstellt im Startmenü Verknüpfungen, mit denen Benutzer die Aufgabe Winget-AutoUpdate starten sowie die Protokolle und die Webhilfe öffnen können.</string>
+
+      <string id="DoNotUpdatedisplayName">Nach Installation nicht aktualisieren</string>
+      <string id="DoNotUpdateexplainText">Winget-AutoUpdate nach der Installation nicht ausführen.
+
+Wenn Sie diese Richtlinie aktivieren oder nicht konfigurieren, wird Winget-AutoUpdate nach der Installation nicht ausgeführt. Wenn Sie diese Richtlinie deaktivieren, wird Winget-AutoUpdate nach jeder Installation ausgeführt.</string>
+
+
+      <string id="InstallUserContextdisplayName">Im Benutzerkontext installieren</string>
+      <string id="InstallUserContextexplainText">Installiert WAU mit Ausführung im System- und im Benutzerkontext. Damit lässt sich auch Software aktualisieren, die nur im Benutzerprofil installiert ist.</string>
+
+      <string id="ModsPathdisplayName">Mods-Pfad</string>
+      <string id="ModsPathexplainText">Mods von einem Pfad laden (URL/UNC/lokal).
+
+Lassen Sie diese Richtlinie nicht konfiguriert oder deaktiviert, wenn Sie die Funktion „Mod-Konfiguration“ verwenden.</string>
+
+      <string id="BypassListForUsersdisplayName">Anwendungsliste für Benutzer umgehen</string>
+      <string id="BypassListForUsersexplainText">WAU so konfigurieren, dass die Sperr-/Positivliste bei Ausführung im Benutzerkontext ignoriert wird.</string>
+
+
+
+      <string id="NotificationLevelFull">Alles</string>
+      <string id="NotificationLevelSuccessOnly">Nur Erfolg</string>
+      <string id="NotificationLevelNone">Keine</string>
+
+      <string id="UpdatesIntervalDaily">Täglich</string>
+      <string id="UpdatesIntervalBiDaily">Alle zwei Tage</string>
+      <string id="UpdatesIntervalWeekly">Wöchentlich</string>
+      <string id="UpdatesIntervalBiWeekly">Alle zwei Wochen</string>
+      <string id="UpdatesIntervalMonthly">Monatlich</string>
+      <string id="UpdatesIntervalNever">Nie</string>
+    </stringTable>
+    <presentationTable>
+      <presentation id="UpdatesAtTimePresentation">
+            <textBox refId="UpdatesAtTime"><label>Uhrzeit</label><defaultValue>6am</defaultValue></textBox>
+      </presentation>
+      <presentation id="ModsPathPresentation">
+            <textBox refId="ModsPath"><label>Pfad</label><defaultValue/></textBox>
+      </presentation>
+      <presentation id="ListPresentation">
+        <listBox refId="List">Liste</listBox>
+      </presentation>
+      <presentation id="ModsConfigPresentation">
+        <listBox refId="ModsConfig">Mod-Konfigurationsliste</listBox>
+      </presentation>
+      <presentation id="NotificationLevelPresentation"><dropdownList refId="NotificationLevel">Benachrichtigungsstufe</dropdownList></presentation>
+      <presentation id="UpdatesIntervalPresentation"><dropdownList refId="UpdatesInterval">Intervall</dropdownList></presentation>
+    </presentationTable>
+  </resources>
+</policyDefinitionResources>
 

@@ -22,7 +22,7 @@
         <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
 
         <!-- Check for Powershell -->
-        <Property Id="POWERSHELLEXE">
+        <Property Id="POWERSHELLEXE" Secure="yes">
             <RegistrySearch Id="POWERSHELLEXE" Type="raw" Root="HKLM" Key="SOFTWARE\Microsoft\PowerShell\1\ShellIds\Microsoft.PowerShell" Name="Path" />
         </Property>
         <Launch Condition="Installed OR POWERSHELLEXE" Message="You must have PowerShell 5.0 or higher." />
